@@ -11,85 +11,92 @@ Weft is an autonomous coordination layer that replaces four institutional primit
 ## Component Diagram
 
 ```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Builder   │────▶│   Hermes    │────▶│  0G Storage │
-│  (ENS ID)   │     │   Agent     │     │  (Evidence) │
-└─────────────┘     └─────────────┘     └─────────────┘
-       │                   │                   │
-       ▼                   ▼                   ▼
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Backer    │────▶│  Milestone   │◀────│    ENS      │
-│  (Staker)   │     │  Contract   │     │  Profile    │
-└─────────────┘     └─────────────┘     └─────────────┘
-                           │
-                           ▼
-                    ┌─────────────┐
-                    │  KeeperHub  │
-                    │  (Release)  │
-                    └─────────────┘
+Builder (ENS)
+    │
+    ▼ createMilestone()
+WeftMilestone.sol (0G Chain)
+    │ stake()
+    ▼ deadline triggers
+Hermes Agent / agent/lib/
+    │
+    ├─ github_client.py   (git commits/PRs)
+    ├─ mvp_verifier.py     (deployment + usage)
+    ├─ kimi_client.py     (narrative synthesis)
+    ├─ zero_storage.py    (0G Storage write)
+    ├─ ens_client.py      (ENS profile update)
+    ├─ axl_client.py     (peer broadcast)
+    └─ peer_inbox.py     (peer verdict tally)
+    │
+    ▼ submitVerdict()
+AXL consensus ──2-of-3──► onchain
+                                   │
+                                   ▼ release/refund
 ```
 
-## Data Flow
+## Implemented Structure
 
-1. **Project Creation**: Builder creates milestone with target and deadline
-2. **Staking**: Backers stake ETH against specific milestones
-3. **Verification**: Hermes Agent reads git, deployment, and usage signals
-4. **Consensus**: 3 Hermes nodes reach agreement via AXL
-5. **Release**: KeeperHub triggers capital release to builder
-6. **Settlement**: Revenue flows back to backers via Uniswap
+### Contracts (`contracts/src/`)
 
-## Smart Contracts
+| Contract | Purpose |
+|---|---|
+| `WeftMilestone.sol` | Milestone staking + 2-of-3 verifier quorum |
+| `VerifierRegistry.sol` | Authorized verifier node registry |
+| `interfaces/IKeeperHub.sol` | KeeperHub interface (stub) |
+| `interfaces/IWeftMilestone.sol` | ABI interface for external callers |
 
-### WeftMilestone
-- `createMilestone(...)`: Register a milestone + verification template + optional split recipients
-- `stake(bytes32 milestoneHash)`: Backers stake ETH against the milestone (escrowed until resolution)
-- `submitVerdict(bytes32 milestoneHash, bool didComplete, bytes32 evidenceRoot)`: Authorized Hermes nodes vote after the deadline
-- `release(bytes32 milestoneHash)`: Release escrow to split recipients once quorum verifies
-- `refund(bytes32 milestoneHash)`: Backers reclaim stake if milestone finalizes as not verified
+### Agent Library (`agent/lib/`)
 
-### VerifierRegistry
-- `addVerifier(address) / removeVerifier(address)`: Manage authorized Hermes node addresses (MVP: owner-managed; production: multisig/governance)
+Single source of truth — all Python modules:
 
-## Storage Schema
+| Module | Purpose |
+|---|---|
+| `jsonrpc.py` | RPC client with file caching |
+| `abi.py` | Pure ABI encoding/decoding |
+| `weft_milestone_reader.py` | Reads milestone from contract |
+| `mvp_verifier.py` | Build attestation (deployment + usage) |
+| `github_client.py` | GitHub commits/PRs evidence |
+| `kimi_client.py` | Narrative synthesis |
+| `zero_storage.py` | 0G Storage write (with fallback) |
+| `ens_client.py` | ENS text record updates |
+| `axl_client.py` | Peer broadcast + receive + tally |
+| `peer_inbox.py` | Filesystem-based verdict aggregation |
+| `indexer_client.py` | Unified indexer (KV fallback) |
+| `deadline_scheduler.py` | Poll for pending milestones |
 
-### 0G Storage (KV)
-```
-key: milestone_hash
-value: {
-  project_hash: bytes32,
-  builder: address,
-  target_amount: uint256,
-  staked_amount: uint256,
-  deadline: uint256,
-  is_verified: bool,
-  is_released: bool,
-  evidence_hash: bytes32
-}
-```
+### Agent Scripts (`agent/scripts/`)
 
-### 0G Storage (Log)
-```
-key: evidence_hash
-value: {
-  milestone_hash: bytes32,
-  evidence_type: string (github|deployment|usage),
-  raw_data: bytes,
-  timestamp: uint256
-}
-```
+| Script | Purpose |
+|---|---|
+| `weft_collect_attestation.py` | Full verification pipeline |
+| `weft_daemon.py` | Autonomous verification loop |
+| `weft_peer_server.py` | Receive peer broadcasts |
+| `weft_sync_from_indexer.py` | Sync milestone state |
+| `weft_verify_and_vote.sh` | Shell wrapper |
 
-## ENS Text Records
+### Tests
 
-```
-tessera.projects: ["project1", "project2"]
-tessera.milestones.verified: 5
-tessera.earned.total: 1500000000000000000
-tessera.milestone.{hash}: evidence_hash
-```
+- **Forge**: `contracts/test/` — 10 passing tests
+- **Pytest**: `agent/test/` — 29 passing tests
 
-## Security Considerations
+## What Was Consolidated
+
+The original `agent/skills/` SKILL.md files were deleted — the functionality was consolidated into the Python library:
+
+- `mvp_verifier.py` replaces `weft-verify` skill
+- `ens_client.py` replaces `weft-ens` skill
+- `mvp_verifier.build_attestation()` replaces `weft-attest` skill
+
+## Dependencies
+
+- **0G Chain** — Deployment target
+- **Foundry** — Smart contract development
+- **Python 3** — Agent scripts
+- **Next.js** — Frontend scaffold
+
+## Security
 
 - Multi-sig verification (2-of-3 Hermes nodes)
 - Time-locked release mechanism
 - Evidence immutability via 0G Storage
-- Reentrancy guards on all state-changing functions
+- Reentrancy guards on release/refund
+- Pre-commit secrets hook (`.git/hooks/pre-commit`)
