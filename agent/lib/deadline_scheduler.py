@@ -61,7 +61,7 @@ class DeadlineScheduler:
                 continue
             yield PendingMilestone(
                 milestone_hash=m_hash,
-                project_id=m.project_id,
+                project_id=m.projectId,
                 builder=m.builder,
                 deadline=m.deadline,
             )
