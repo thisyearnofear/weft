@@ -98,6 +98,9 @@ curl "http://localhost:9010/milestone/0x...?"
 curl "http://localhost:9010/milestone/0x...?includeMetadata=1"
 ```
 
+Or open the landing page in a browser (paste milestone hash + click Fetch):
+`http://localhost:9010/`
+
 ### `weft_collect_attestation.py`
 
 ```bash
