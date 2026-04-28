@@ -1,0 +1,75 @@
+# Hermes Agent Configuration for Weft
+
+## Overview
+This configuration extends Hermes with custom skills for autonomous milestone verification.
+
+## Skills
+
+### 1. GitHub Skill (`skills/github.py`)
+- Reads commit history and PR merges for a given project
+- Analyzes code contribution patterns
+- Outputs: commit count, PRs merged, files changed
+
+### 2. Deployment Skill (`skills/deployment.py`)
+- Checks contract activity on 0G Chain via explorer API
+- Verifies deployment addresses match milestone requirements
+- Outputs: deployment address, transaction count, unique callers
+
+### 3. Usage Skill (`skills/usage.py`)
+- Pings live endpoints and reads on-chain interaction counts
+- Measures user adoption metrics
+- Outputs: active users, API calls, transaction volume
+
+## Verification Flow
+
+1. **Trigger**: Milestone deadline passes
+2. **Collect**: Run all three skills in parallel
+3. **Synthesize**: Use Kimi models to analyze evidence
+4. **Attest**: Generate structured attestation object
+5. **Determine**: Binary verified/unverified
+6. **Write**: Store evidence to 0G Storage
+7. **Release**: Trigger KeeperHub for capital release
+
+## AXL Multi-Node Consensus
+
+- Run 3 Hermes nodes independently
+- Each node verifies the same milestone
+- Broadcast determinations over Gensyn AXL
+- 2-of-3 agreement triggers capital release
+
+## Configuration
+
+```yaml
+# hermes.config.yml
+agent:
+  name: weft-verifier
+  model: kimi
+  
+skills:
+  - github
+  - deployment
+  - usage
+
+storage:
+  evidence: 0g-storage
+  kv_store: 0g-kv
+  
+consensus:
+  protocol: axl
+  nodes: 3
+  threshold: 2
+```
+
+## Environment Variables
+
+```bash
+# Required
+GITHUB_TOKEN=ghp_xxx
+KIMI_API_KEY=sk-xxx
+ZERO_G_RPC=https://...
+ENS_DOMAIN=xxx.eth
+
+# Optional
+AXL_PORT=3000
+HERMES_PORT=8080
+```
