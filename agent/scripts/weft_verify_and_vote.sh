@@ -84,6 +84,46 @@ if [[ "${DRY_RUN:-0}" == "1" ]]; then
   exit 0
 fi
 
+# Submit verdict via KeeperHub (preferred) or cast send (fallback).
+# KeeperHub provides retry logic, gas optimization, and audit trails.
+KEEPERHUB_TIMEOUT="${KEEPERHUB_TIMEOUT:-120}"
+
+if command -v kh &>/dev/null && command -v jq &>/dev/null && [[ -n "${KEEPERHUB_API_KEY:-}" ]] && [[ "${KEEPERHUB_ENABLED:-1}" != "0" ]]; then
+  echo "Submitting verdict via KeeperHub..."
+  exec_output=$(kh execute contract-call \
+    --contract "$WEFT_MILESTONE_ADDRESS" \
+    --function "submitVerdict(bytes32,bool,bytes32)" \
+    --args "$MILESTONE_HASH,$VERIFIED,$EVIDENCE_ROOT" \
+    --output json 2>&1) || true
+
+  exec_id=$(echo "$exec_output" | jq -r '.executionId // .id // empty' 2>/dev/null) || true
+
+  if [[ -n "$exec_id" ]]; then
+    # Poll for confirmation
+    deadline=$(( SECONDS + KEEPERHUB_TIMEOUT ))
+    while [[ $SECONDS -lt $deadline ]]; do
+      status_output=$(kh execute status --id "$exec_id" --output json 2>&1) || true
+      confirmed=$(echo "$status_output" | jq -r '.status // empty' 2>/dev/null) || true
+      tx_hash=$(echo "$status_output" | jq -r '.txHash // .transactionHash // empty' 2>/dev/null) || true
+
+      if [[ "$confirmed" == "confirmed" ]]; then
+        echo "Verdict submitted via KeeperHub tx=$tx_hash execution_id=$exec_id"
+        # Retrieve audit logs (best-effort)
+        kh run logs --id "$exec_id" 2>/dev/null || true
+        exit 0
+      elif [[ "$confirmed" == "failed" ]]; then
+        error_msg=$(echo "$status_output" | jq -r '.error // .errorMessage // "unknown"' 2>/dev/null) || true
+        echo "KeeperHub execution failed: $error_msg; falling back to cast send" >&2
+        break
+      fi
+      sleep 2
+    done
+  else
+    echo "KeeperHub: could not parse execution ID; falling back to cast send" >&2
+  fi
+fi
+
+# Fallback: raw cast send
 cast send \
   --rpc-url "$RPC_URL" \
   --private-key "$PRIVATE_KEY" \

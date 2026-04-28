@@ -24,6 +24,7 @@ The single source of truth for all shared agent logic. All scripts import from h
 | `deadline_scheduler.py` | Polls for milestones past deadline awaiting finalization |
 | `indexer_client.py` | Unified indexer: tries 0G KV, falls back to onchain events |
 | `axl_client.py` | Multi-node broadcast shim (env: `AXL_PEERS`, best-effort HTTP POST) |
+| `keeperhub_client.py` | KeeperHub reliable onchain execution (env: `KEEPERHUB_API_KEY`, retry + gas opt + audit trail) |
 | `__init__.py` | Re-exports all public symbols |
 
 ## Verification Flow
@@ -45,7 +46,8 @@ deadline_scheduler.poll_pending_milestones()
 mvp_verifier.build_attestation()  → attestation JSON
         │
         ▼
-shell script calls cast send submitVerdict()        (onchain vote)
+keeperhub_client.execute_verdict()  → KeeperHub (preferred)
+        │   └─ fallback: cast send submitVerdict()  (onchain vote)
         │
         ▼
 indexer_client.get_milestone() reads final state
@@ -328,6 +330,14 @@ KIMI_API_KEY             # Kimi/Moonshot API key
 POLL_INTERVAL           # Seconds between poll cycles (default: 3600)
 ```
 
+KeeperHub (optional — reliable onchain execution with retry, gas optimization, and audit trails):
+```bash
+KEEPERHUB_API_KEY        # API key from app.keeperhub.com (enables KeeperHub execution)
+KEEPERHUB_API_URL        # Optional API URL override (default: https://app.keeperhub.com)
+KEEPERHUB_TIMEOUT        # Seconds to wait for tx confirmation (default: 120)
+KEEPERHUB_ENABLED        # Set to "0" to disable even if API key is set (default: "1")
+```
+
 0G Storage (optional — falls back to local files):
 ```bash
 ZERO_G_EVM_RPC_URL        # 0G chain EVM RPC (or reuse ETH_RPC_URL)
@@ -341,7 +351,7 @@ ZERO_G_STREAM_ID          # KV stream ID (optional)
 | Component | Reason |
 |---|---|
 | AXL multi-node consensus | Gensyn AXL not deployed; MVP runs single-node |
-| KeeperHub capital release | KeeperHub service not deployed |
+| KeeperHub capital release | KeeperHub `scheduleRelease()` not deployed (contract-level integration) |
 | ENS text record updates | Requires deployed .eth names |
 | Uniswap revenue routing | No revenue flow yet |
 | 0G Storage in production | No indexer endpoint available yet |

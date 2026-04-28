@@ -13,7 +13,7 @@ Behavior:
 2) Collect deterministic evidence + build attestation
 3) Compute evidenceRoot (keccak of canonical attestation JSON)
 4) Optionally publish to 0G (official CLI if available; see agent/lib/zero_storage.py)
-5) Submit onchain vote via `cast send submitVerdict(...)`
+5) Submit onchain vote via KeeperHub (preferred) or cast send (fallback)
 6) Optionally broadcast verdict to peers (AXL shim) for multi-node coordination
 """
 
@@ -31,6 +31,7 @@ if REPO_ROOT not in sys.path:
 
 from agent.lib.axl_client import broadcast_verdict
 from agent.lib.jsonrpc import JsonRpcClient, default_cache
+from agent.lib.keeperhub_client import ExecutionStatus, execute_verdict, keeperhub_configured
 from agent.lib.peer_inbox import consensus_signers_for_base_root, default_inbox_dir
 from agent.lib.verdict_envelope import verify_envelope
 from agent.lib.verifier_registry_reader import VerifierRegistryClient, read_verifier_registry_address
@@ -125,6 +126,26 @@ def main() -> int:
     p.add_argument("--interval", type=int, default=int(os.environ.get("POLL_INTERVAL") or 60))
     p.add_argument("--once", action="store_true")
     p.add_argument("--no-cache", action="store_true")
+
+    # KeeperHub reliable execution
+    p.add_argument(
+        "--use-keeperhub",
+        action="store_true",
+        default=(os.environ.get("KEEPERHUB_ENABLED", "1") == "1" if os.environ.get("KEEPERHUB_API_KEY") else False),
+        help="Use KeeperHub for reliable submitVerdict() execution (default: True if KEEPERHUB_API_KEY set).",
+    )
+    p.add_argument(
+        "--no-keeperhub",
+        action="store_true",
+        default=False,
+        help="Explicitly disable KeeperHub even if KEEPERHUB_API_KEY is set.",
+    )
+    p.add_argument(
+        "--keeperhub-timeout",
+        type=int,
+        default=int(os.environ.get("KEEPERHUB_TIMEOUT") or 120),
+        help="Seconds to wait for KeeperHub execution confirmation (default: 120).",
+    )
     args = p.parse_args()
 
     if not args.rpc_url:
@@ -148,6 +169,7 @@ def main() -> int:
 
     print(f"weft_daemon: rpc={args.rpc_url} weft={args.weft} node={args.node_address}")
     print(f"weft_daemon: publish_0g={bool(args.publish_0g)} broadcast={bool(args.broadcast)} interval={args.interval}s once={bool(args.once)}")
+    print(f"weft_daemon: keeperhub={args.use_keeperhub and not args.no_keeperhub} (configured={keeperhub_configured()})")
     if args.wait_for_peers:
         print(
             f"weft_daemon: wait_for_peers=true peer_threshold={args.peer_threshold} "
@@ -176,6 +198,8 @@ def main() -> int:
                 use_consensus_root=args.use_consensus_root,
                 publish_consensus_0g=args.publish_consensus_0g,
                 publish_bundle_0g=args.publish_bundle_0g,
+                use_keeperhub=args.use_keeperhub and not args.no_keeperhub,
+                keeperhub_timeout=args.keeperhub_timeout,
             )
 
         if args.once:
@@ -204,6 +228,8 @@ def _process_one(
     use_consensus_root: bool,
     publish_consensus_0g: bool,
     publish_bundle_0g: bool,
+    use_keeperhub: bool,
+    keeperhub_timeout: int = 120,
 ) -> None:
     try:
         m = read_milestone(rpc, weft, milestone_hash)
@@ -456,7 +482,53 @@ def _process_one(
         f"verified={verified_arg} evidenceRoot={evidence_root}"
     )
 
-    # Submit onchain vote
+    # Submit onchain vote via KeeperHub (preferred) or cast send (fallback)
+    _submit_verdict(
+        milestone_hash=milestone_hash,
+        verified_arg=verified_arg,
+        evidence_root=evidence_root,
+        weft=weft,
+        rpc_url=rpc_url,
+        private_key=private_key,
+        use_keeperhub=use_keeperhub,
+        keeperhub_timeout=keeperhub_timeout,
+    )
+
+
+def _submit_verdict(
+    *,
+    milestone_hash: str,
+    verified_arg: str,
+    evidence_root: str,
+    weft: str,
+    rpc_url: str,
+    private_key: str,
+    use_keeperhub: bool,
+    keeperhub_timeout: int = 120,
+) -> None:
+    """Submit onchain verdict via KeeperHub (if configured) or cast send (fallback)."""
+    if use_keeperhub and keeperhub_configured():
+        result = execute_verdict(
+            contract_address=weft,
+            function_name="submitVerdict(bytes32,bool,bytes32)",
+            args=[milestone_hash, verified_arg, evidence_root],
+            timeout=keeperhub_timeout,
+        )
+        if result is not None:
+            if result.status == ExecutionStatus.CONFIRMED:
+                tx_info = f"tx={result.tx_hash}" if result.tx_hash else ""
+                print(f"[{milestone_hash}] vote submitted via KeeperHub {tx_info}")
+                return
+            else:
+                print(
+                    f"[{milestone_hash}] KeeperHub execution {result.status.value}"
+                    f"{f': {result.error}' if result.error else ''}; "
+                    f"falling back to cast send"
+                )
+        else:
+            print(f"[{milestone_hash}] KeeperHub unavailable; falling back to cast send")
+
+    # Fallback: raw cast send
     try:
         proc = subprocess.run(
             [

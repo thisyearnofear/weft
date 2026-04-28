@@ -77,6 +77,18 @@ AXL_PEERS: "http://node-b:9001,http://node-c:9001"   # Peer HTTP endpoints
 # Requires: VERIFIER_PRIVATE_KEY set for setText transactions
 ```
 
+## KeeperHub (optional — reliable onchain execution)
+
+```yaml
+KEEPERHUB_API_KEY: "kh_..."             # API key from app.keeperhub.com
+KEEPERHUB_API_URL: "https://app.keeperhub.com"  # Optional API URL override
+KEEPERHUB_TIMEOUT: "120"              # Seconds to wait for tx confirmation
+KEEPERHUB_ENABLED: "1"                 # Set to "0" to disable even if API key is set
+# When KEEPERHUB_API_KEY is set: submitVerdict() goes through KeeperHub
+#   (automatic retry, gas optimization, audit trail)
+# When unset: falls back to cast send (existing behavior)
+```
+
 ## Verification Criteria (MVP)
 
 A milestone is `verified=true` when ALL:
