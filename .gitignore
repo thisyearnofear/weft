@@ -52,3 +52,6 @@ deployments/
 # Deploy outputs
 scripts/deployed-addresses.json
 scripts/.env
+broadcast/
+cache/
+out/
