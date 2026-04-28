@@ -27,6 +27,10 @@ Thumbs.db
 coverage/
 .nyc_output/
 
+# Weft agent artifacts
+agent/.cache/
+agent/.attestations/
+
 # Smart Contracts
 cache/
 out/

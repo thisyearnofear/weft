@@ -2,66 +2,91 @@
 
 **The verifiable reputation and milestone-funding layer for fluid builder teams.**
 
-Weft is an autonomous coordination layer for the post-company economy. It solves four problems that currently require corporations, lawyers, and managers: identity, funding, verification, and settlement — for teams of humans, agents, or both.
+## What It Does
 
-## How It Works
+Weft replaces four things that currently require corporations, lawyers, and managers:
 
-A builder posts a project with discrete milestones and a funding target. Backers stake capital against specific milestones rather than taking equity. A Hermes Agent instance acts as the autonomous verifier — reading git commits, deployment addresses, on-chain activity, and usage signals to determine whether a milestone was genuinely hit. When it is, KeeperHub releases the staked capital automatically. If the project earns revenue, it flows back to backers proportionally via Uniswap swaps.
-
-Every verified action — milestone funded, work completed, capital released, revenue earned — gets written as a structured attestation to 0G Storage as a permanent evidence archive, with a human-readable summary pushed to the builder's ENS profile as text records. The ENS name becomes a portable, machine-readable track record: what they shipped, who co-signed it, what it earned, how long it lasted. This record travels with the builder across every project they touch.
-
-Agents participate as first-class co-builders. They hold project shares via ENS subnames, their output history is stored and verified exactly like a human's, and their earnings are settled the same way. Multiple Hermes nodes reach consensus on milestone completion over Gensyn's AXL peer-to-peer network — no central coordinator, no single point of trust.
+| Primitive | Replaced by |
+|---|---|
+| Identity / CV | ENS text records (portable, machine-readable) |
+| Funding / equity | `WeftMilestone.sol` — milestone-staked ETH |
+| Verification / managers | Hermes Agent verification loop |
+| Settlement / payroll | KeeperHub + Uniswap revenue routing (planned) |
 
 ## Architecture
 
 ```
 weft/
 ├── contracts/              # Solidity contracts + tests (Foundry)
-│   ├── src/                # WeftMilestone, VerifierRegistry, utils
-│   └── test/               # Foundry test suite
-├── agent/                  # Hermes skill pack
-│   ├── skills/             # Custom verification skills
-│   └── hermes.config.yml   # Agent configuration
-├── indexer/                # 0G Storage writer
-├── scripts/                # Deploy + setup scripts
-└── docs/
-    └── architecture.md     # Technical architecture docs
+│   ├── src/               # WeftMilestone, VerifierRegistry, interfaces/
+│   ├── script/            # Deployment scripts
+│   └── test/              # Test suite (3 tests passing)
+├── agent/                 # Hermes agent layer
+│   ├── lib/               # Single source of truth (jsonrpc, abi, github, kimi, ...)
+│   ├── scripts/          # CLI entry points
+│   └── hermes.config.yml # Agent configuration
+├── scripts/              # deploy.sh, register-verifier.sh
+├── docs/                 # mvp.md, architecture.md
+└── AGENTS.md             # Agent workflow reference
 ```
 
-## Tech Stack
+## Core Components
 
-- **Smart Contracts**: Solidity on 0G Chain
-- **Verification Agent**: Hermes Agent (Nous Research)
-- **Multi-Verifier Consensus**: Gensyn AXL
-- **Storage**: 0G Storage (KV + Log layers)
-- **Identity**: ENS with text records
-- **Settlement**: KeeperHub + Uniswap
-- **AI Judgment**: Kimi (Moonshot)
+### Contracts (`contracts/src/`)
 
-## Getting Started
+- **WeftMilestone.sol** — milestone-based escrow with 2-of-3 verifier quorum
+- **VerifierRegistry.sol** — authorized Hermes node registry
+- **interfaces/** — `IKeeperHub.sol`, `IWeftMilestone.sol` (pluggable interfaces)
+
+### Agent (`agent/lib/`)
+
+- **jsonrpc.py** — JSON-RPC client with file caching
+- **github_client.py** — GitHub commits/PRs in milestone window
+- **kimi_client.py** — Kimi API for narrative generation (stubbed)
+- **zero_storage.py** — 0G Storage read/write (env var config)
+- **deadline_scheduler.py** — polls for milestones past deadline
+- **indexer_client.py** — unified indexer with KV fallback
+
+## Quick Start
 
 ```bash
-# Smart contracts dev (Foundry)
+# Install Foundry
 curl -L https://foundry.paradigm.xyz | bash
 foundryup
-forge install --no-git foundry-rs/forge-std
+
+# Install forge-std (one-time)
+cd contracts && forge install foundry-rs/forge-std && cd ..
+
+# Run tests
 forge test
 
-# Install Hermes Agent
-curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
+# Deploy locally
+DEPLOYER_KEY=0x... ETH_RPC_URL=http://127.0.0.1:8545 ./scripts/deploy.sh
 
-# Setup Hermes
-hermes setup
-
-# Deploy contracts (see scripts/)
-cd scripts && ./deploy.sh
+# Collect attestation (MVP)
+python agent/scripts/weft_collect_attestation.py \
+  --rpc-url "http://127.0.0.1:8545" \
+  --weft-milestone "0x..." \
+  --milestone-hash "0x..." \
+  --contract-address "0x..." \
+  --out agent/.attestations/attestation.json
 ```
 
-## Hackathon Submissions
+## Environment Variables
 
-- **ETHGlobal Open Agents Async Hackathon** — Deadline May 3
-- **Hermes/Kimi Creative Hackathon** (Nous Research × Kimi Moonshot) — Deadline May 3
-- **0G APAC Hackathon** (HackQuest) — Deadline May 16
+| Variable | Required | Description |
+|---|---|---|
+| `ETH_RPC_URL` | Yes | 0G Chain RPC |
+| `WEFT_CONTRACT_ADDRESS` | Yes | Deployed WeftMilestone |
+| `GITHUB_TOKEN` | No | GitHub API for commits/PRs |
+| `KIMI_API_KEY` | No | Kimi API for narrative |
+| `ZERO_G_*` | No | 0G Storage config |
+
+## Links
+
+- [MVP Spec](docs/mvp.md)
+- [Agent Workflow](AGENTS.md)
+- [Technical Architecture](docs/architecture.md)
 
 ## License
 
