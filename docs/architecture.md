@@ -40,12 +40,15 @@ Weft is an autonomous coordination layer that replaces four institutional primit
 
 ## Smart Contracts
 
-### WeftMilestoneStaking
-- `createMilestone()`: Create new milestone
-- `stake()`: Backers stake against milestone
-- `verifyMilestone()`: Agent verification
-- `release()`: Capital release to builder
-- `distributeRevenue()`: Revenue sharing
+### WeftMilestone
+- `createMilestone(...)`: Register a milestone + verification template + optional split recipients
+- `stake(bytes32 milestoneHash)`: Backers stake ETH against the milestone (escrowed until resolution)
+- `submitVerdict(bytes32 milestoneHash, bool didComplete, bytes32 evidenceRoot)`: Authorized Hermes nodes vote after the deadline
+- `release(bytes32 milestoneHash)`: Release escrow to split recipients once quorum verifies
+- `refund(bytes32 milestoneHash)`: Backers reclaim stake if milestone finalizes as not verified
+
+### VerifierRegistry
+- `addVerifier(address) / removeVerifier(address)`: Manage authorized Hermes node addresses (MVP: owner-managed; production: multisig/governance)
 
 ## Storage Schema
 

@@ -3,7 +3,7 @@
 ## Deploy Scripts
 
 ### deploy.sh
-Deploys the WeftMilestoneStaking contract to 0G Chain testnet.
+Deploys the WeftMilestone contract(s) to 0G Chain testnet.
 
 ```bash
 ./deploy.sh --network testnet

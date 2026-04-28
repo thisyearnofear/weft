@@ -4,34 +4,16 @@ This directory contains custom Hermes skills for autonomous milestone verificati
 
 ## Skills
 
-### github.py
-Verifies code contributions by reading GitHub commit history and PR merges.
+MVP Weft verification is designed to be **deterministic and recomputable**.
+See `docs/mvp.md` for the template and attestation schema.
 
-### deployment.py
-Checks on-chain activity on 0G Chain via explorer API.
-
-### usage.py
-Measures live endpoint usage and on-chain interaction counts.
+Planned skills (to be implemented here):
+- `weft-verify`: collect onchain evidence and compute verdict for the MVP template
+- `weft-attest`: build the attestation bundle + content-addressed evidence root
+- `weft-ens`: write Weft reputation updates to ENS text records
 
 ## Usage
 
-```python
-from skills.github import GitHubSkill
-from skills.deployment import DeploymentSkill
-from skills.usage import UsageSkill
-
-# Initialize skills
-github = GitHubSkill()
-deployment = DeploymentSkill()
-usage = UsageSkill()
-
-# Run verification
-evidence = {
-    "github": github.verify(project_id),
-    "deployment": deployment.verify(contract_address),
-    "usage": usage.verify(endpoint)
-}
-
-# Synthesize with Kimi
-attestation = kimi.synthesize(evidence)
+```text
+TODO: add runnable skill bundles + deterministic plugin tooling.
 ```

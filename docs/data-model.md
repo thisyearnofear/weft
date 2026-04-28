@@ -51,25 +51,30 @@ Agents participate via ENS subnames: `{agent-name}.{project}.weft.eth`
 
 ## Smart Contract Data Model
 
-### WeftMilestoneStaking
+### WeftMilestone
 
 #### Structs
 
 ```solidity
-struct Milestone {
-    bytes32 projectHash;      // Parent project identifier
-    uint256 targetAmount;    // Funding target for this milestone
-    uint256 stakedAmount;    // Total ETH staked by backers
-    uint256 deadline;        // Unix timestamp deadline
-    bool isVerified;         // Has Hermes verified completion?
-    bool isReleased;         // Has capital been released?
-    address builder;         // Project builder address
+struct MilestoneCore {
+    bytes32 projectId;         // Parent project identifier
+    bytes32 templateId;        // Deterministic verification template ID
+    bytes32 metadataHash;      // Pointer to project/milestone metadata (0G/IPFS/etc)
+    address builder;           // Project builder address
+    uint64  createdAt;         // When the milestone was created
+    uint64  deadline;          // Unix timestamp deadline
+    uint256 totalStaked;       // Total ETH staked by backers
+    bool    finalized;         // Resolved by verifier quorum (success/fail)
+    bool    verified;          // True iff quorum reached with didComplete=true
+    bool    released;          // True once capital has been released
+    uint8   verifierCount;     // How many verifier votes were submitted
+    uint8   verifiedVotes;     // How many votes were didComplete=true
+    bytes32 finalEvidenceRoot; // Content hash / 0G root of the evidence bundle
 }
 
-struct Stake {
-    address backer;          // Staker address
-    uint256 amount;          // Amount staked in wei
-    uint256 timestamp;       // When stake was made
+struct Split {
+    address wallet;   // Recipient wallet (builder or co-builder)
+    uint16  shareBps; // Basis points (10000 = 100%)
 }
 ```
 
@@ -77,21 +82,28 @@ struct Stake {
 
 | Mapping | Key | Value | Description |
 |---------|-----|-------|-------------|
-| `milestones` | `bytes32` (milestoneHash) | `Milestone` | All milestone data |
-| `milestoneStakes` | `bytes32` → `Stake[]` | Array | Backers who staked per milestone |
+| `milestones` | `bytes32` (milestoneHash) | `MilestoneCore` | All milestone core data |
 | `stakes` | `bytes32` → `address` → `uint256` | Amount | Individual backer stakes |
+| `splits` | `bytes32` → `Split[]` | Array | Capital recipients for a verified milestone |
+| `verifierVoted` | `bytes32` → `address` → `bool` | Flag | Prevents double-voting |
+| `evidenceByVerifier` | `bytes32` → `address` → `bytes32` | Root | Each verifier’s evidence pointer |
 
 #### Functions
 
 | Function | Visibility | Description |
 |----------|------------|-------------|
-| `createMilestone()` | external | Builder creates new milestone |
-| `stake()` | external payable | Backer stakes ETH against milestone |
-| `verifyMilestone()` | external | Hermes agent verifies completion |
-| `release()` | external | Trigger capital release to builder |
-| `distributeRevenue()` | external payable | Revenue sharing to backers |
-| `getMilestone()` | external view | Read milestone details |
-| `getStakeCount()` | external view | Get number of backers |
+| `createMilestone(...)` | external | Builder registers a milestone + template + splits |
+| `stake(bytes32)` | external payable | Backer stakes ETH against milestone |
+| `submitVerdict(bytes32,bool,bytes32)` | external | Authorized Hermes node submits verdict + evidence root |
+| `release(bytes32)` | external | Release escrow to split recipients after verified finalize |
+| `refund(bytes32)` | external | Backer refunds stake if milestone finalizes as not verified |
+
+### VerifierRegistry
+
+| Function | Visibility | Description |
+|----------|------------|-------------|
+| `addVerifier(address)` | external | Add an authorized verifier node |
+| `removeVerifier(address)` | external | Remove an authorized verifier node |
 
 ---
 
@@ -102,15 +114,17 @@ struct Stake {
 ```
 Key: milestoneHash (bytes32)
 Value: {
-    projectHash: bytes32,
+    projectId: bytes32,
+    templateId: bytes32,
     builder: address,
-    targetAmount: uint256,
-    stakedAmount: uint256,
+    totalStaked: uint256,
     deadline: uint256,
-    isVerified: bool,
-    isReleased: bool,
-    evidenceHash: bytes32,
+    finalized: bool,
+    verified: bool,
+    released: bool,
+    finalEvidenceRoot: bytes32,
     verifierNodes: address[3],
+    verifiedVotes: uint8,
     consensusBlock: uint256
 }
 ```

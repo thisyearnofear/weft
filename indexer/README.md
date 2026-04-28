@@ -10,21 +10,8 @@ The indexer writes verified milestone data to 0G Storage as permanent evidence a
 
 ## Usage
 
-```python
-from indexer.writer import EvidenceWriter
+Planned (not yet implemented):
+- `indexer/writer.py`: write raw evidence + `attestation.json` bundles to 0G Storage
+- `indexer/reader.py`: read evidence bundles by `evidenceRoot`
 
-writer = EvidenceWriter()
-
-# Write evidence
-writer.write_evidence(
-    milestone_hash="0x...",
-    evidence_type="github",
-    data=commit_history
-)
-
-# Write attestation
-writer.write_attestation(
-    milestone_hash="0x...",
-    attestation=attestation_object
-)
-```
+The canonical attestation schema for MVP is defined in `docs/mvp.md`.

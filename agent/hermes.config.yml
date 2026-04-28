@@ -3,22 +3,15 @@
 ## Overview
 This configuration extends Hermes with custom skills for autonomous milestone verification.
 
-## Skills
+## Skills (Implementation Notes)
 
-### 1. GitHub Skill (`skills/github.py`)
-- Reads commit history and PR merges for a given project
-- Analyzes code contribution patterns
-- Outputs: commit count, PRs merged, files changed
+MVP is intentionally narrow and deterministic. See `docs/mvp.md` for the canonical
+milestone template and attestation schema.
 
-### 2. Deployment Skill (`skills/deployment.py`)
-- Checks contract activity on 0G Chain via explorer API
-- Verifies deployment addresses match milestone requirements
-- Outputs: deployment address, transaction count, unique callers
-
-### 3. Usage Skill (`skills/usage.py`)
-- Pings live endpoints and reads on-chain interaction counts
-- Measures user adoption metrics
-- Outputs: active users, API calls, transaction volume
+Planned Hermes workflows (to be implemented under `agent/skills/`):
+- **weft-verify**: deterministic verification for the MVP template (deployment + unique callers)
+- **weft-attest**: package evidence into a single attestation JSON + content-addressed root
+- **weft-ens**: update ENS text records after milestone finalization
 
 ## Verification Flow
 
@@ -46,9 +39,9 @@ agent:
   model: kimi
   
 skills:
-  - github
-  - deployment
-  - usage
+  - weft-verify
+  - weft-attest
+  - weft-ens
 
 storage:
   evidence: 0g-storage

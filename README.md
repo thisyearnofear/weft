@@ -16,12 +16,13 @@ Agents participate as first-class co-builders. They hold project shares via ENS 
 
 ```
 weft/
-├── contracts/              # Milestone staking contract (Solidity)
+├── contracts/              # Solidity contracts + tests (Foundry)
+│   ├── src/                # WeftMilestone, VerifierRegistry, utils
+│   └── test/               # Foundry test suite
 ├── agent/                  # Hermes skill pack
 │   ├── skills/             # Custom verification skills
 │   └── hermes.config.yml   # Agent configuration
 ├── indexer/                # 0G Storage writer
-├── frontend/               # Minimal UI
 ├── scripts/                # Deploy + setup scripts
 └── docs/
     └── architecture.md     # Technical architecture docs
@@ -40,6 +41,12 @@ weft/
 ## Getting Started
 
 ```bash
+# Smart contracts dev (Foundry)
+curl -L https://foundry.paradigm.xyz | bash
+foundryup
+forge install --no-git foundry-rs/forge-std
+forge test
+
 # Install Hermes Agent
 curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
 
