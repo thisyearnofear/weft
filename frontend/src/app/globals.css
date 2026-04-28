@@ -1,0 +1,97 @@
+/* ─────────────────────────────────────────────
+   Weft Design System — global CSS
+   ───────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
+/* ── Tokens ──────────────────────────────────── */
+:root {
+  --c-bg:            #07070f;
+  --c-surface:       rgba(255, 255, 255, 0.04);
+  --c-surface-2:     rgba(255, 255, 255, 0.07);
+  --c-surface-3:     rgba(255, 255, 255, 0.11);
+  --c-border:        rgba(255, 255, 255, 0.07);
+  --c-border-2:      rgba(255, 255, 255, 0.15);
+
+  --c-text:          #e8e8f2;
+  --c-text-2:        rgba(232, 232, 242, 0.55);
+  --c-text-3:        rgba(232, 232, 242, 0.28);
+
+  --c-accent:        hsl(224, 88%, 65%);
+  --c-verified:      hsl(168, 78%, 52%);
+  --c-pending:       hsl(38, 92%, 60%);
+  --c-failed:        hsl(350, 74%, 56%);
+
+  --c-accent-20:     hsla(224, 88%, 65%, 0.18);
+  --c-verified-20:   hsla(168, 78%, 52%, 0.18);
+  --c-pending-20:    hsla(38, 92%, 60%, 0.18);
+  --c-failed-20:     hsla(350, 74%, 56%, 0.18);
+
+  --font-sans:       'Space Grotesk', system-ui, sans-serif;
+  --font-mono:       'JetBrains Mono', monospace;
+
+  --nav-h:           68px;
+  --max-w:           1280px;
+
+  --radius-sm:       6px;
+  --radius-md:       12px;
+  --radius-lg:       20px;
+  --radius-xl:       28px;
+
+  --ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:         cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-inout:      cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* ── Reset ───────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--c-bg);
+  color: var(--c-text);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+img, video { display: block; max-width: 100%; }
+
+/* ── Typography ──────────────────────────────── */
+h1, h2, h3, h4 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.mono { font-family: var(--font-mono); }
+
+/* ── Layout Utilities ────────────────────────── */
+.container {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* ── Scrollbar ───────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+/* ── Selection ───────────────────────────────── */
+::selection {
+  background: var(--c-accent-20);
+  color: var(--c-text);
+}
