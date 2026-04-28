@@ -1,10 +1,12 @@
-import { MILESTONES } from "@/lib/mock-data";
+"use client";
+
 import { MilestoneCard } from "@/components/MilestoneCard";
+import { SkeletonCard } from "@/components/SkeletonCard";
+import { useMilestoneList } from "@/hooks/useMilestoneData";
 import styles from "./page.module.css";
 
 export default function Home() {
-  const pendingMilestones = MILESTONES.filter((m) => m.state === "pending");
-  const completedMilestones = MILESTONES.filter((m) => m.state !== "pending");
+  const { pendingMilestones, completedMilestones, isLoading } = useMilestoneList();
 
   return (
     <div className={styles.container}>
@@ -36,28 +38,32 @@ export default function Home() {
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Funding Open</h2>
-          <span className={styles.sectionCount}>{pendingMilestones.length} milestones</span>
+          <span className={styles.sectionCount}>
+            {isLoading ? "..." : `${pendingMilestones.length} milestones`}
+          </span>
         </div>
         <div className={styles.grid}>
-          {pendingMilestones.map((milestone, i) => (
-            <MilestoneCard key={milestone.hash} milestone={milestone} index={i} />
-          ))}
+          {isLoading
+            ? Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} index={i} />)
+            : pendingMilestones.map((milestone, i) => (
+                <MilestoneCard key={milestone.hash} milestone={milestone as any} index={i} />
+              ))}
         </div>
       </section>
 
-      {completedMilestones.length > 0 && (
-        <section className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Completed</h2>
-            <span className={styles.sectionCount}>{completedMilestones.length} milestones</span>
-          </div>
-          <div className={styles.grid}>
-            {completedMilestones.map((milestone, i) => (
-              <MilestoneCard key={milestone.hash} milestone={milestone} index={i} />
-            ))}
-          </div>
-        </section>
-      )}
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Completed</h2>
+          <span className={styles.sectionCount}>
+            {`${completedMilestones.length} milestones`}
+          </span>
+        </div>
+        <div className={styles.grid}>
+          {completedMilestones.map((milestone, i) => (
+            <MilestoneCard key={milestone.hash} milestone={milestone as any} index={i} />
+          ))}
+        </div>
+      </section>
 
       <footer className={styles.footer}>
         <div className={styles.footerContent}>

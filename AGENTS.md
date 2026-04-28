@@ -60,6 +60,23 @@ indexer_client.get_milestone() reads final state
 | `weft_sync_from_indexer.py` | Sync milestone state from indexer to local cache |
 | `weft_daemon.py` | Poll deadlines and automatically attest + vote (optional 0G publish + peer broadcast) |
 | `weft_peer_server.py` | Receive peer broadcasts (POST /send) and persist to `agent/.inbox/` |
+| `weft_verify_bundle.py` | Verify bundles via bundle_manifest.json (hashes + sizes) |
+| `weft_download_and_verify_bundle.py` | Download bundle.tar.gz from 0G by root and verify |
+
+## Builder onboarding (first cohort)
+
+Builders can create milestones and stake using:
+- `scripts/weft_builder.py` (alpha)
+
+This keeps the initial onboarding simple without requiring a frontend.
+
+Recommended flow:
+1) `init-metadata --upload-0g` to get a `metadata_hash` (0G root)
+2) `verify-metadata --root <metadata_hash>` to sanity-check the uploaded JSON
+3) `create-milestone --metadata-root <metadata_hash> --indexer <...>` (auto-derives deadline/template)
+
+Tip: append `--dry-run` to `create-milestone` to print the computed `milestoneHash` and the exact
+`createMilestone(...)` calldata for copy/paste debugging.
 
 ### `weft_collect_attestation.py`
 

@@ -63,6 +63,46 @@ forge test
 # Deploy locally
 DEPLOYER_KEY=0x... ETH_RPC_URL=http://127.0.0.1:8545 ./scripts/deploy.sh
 
+# Builder onboarding (alpha)
+#
+# 1) Create milestone metadata (optionally upload to 0G for a metadataHash root)
+# 2) Create milestone onchain (deterministically computes milestoneHash)
+# 3) Stake into milestone
+python3 scripts/weft_builder.py init-metadata \
+  --chain-id 16600 \
+  --contract-address 0x0000000000000000000000000000000000000000 \
+  --deadline 1710000000 \
+  --upload-0g
+
+# Optional (recommended): verify the uploaded metadata before creating a milestone
+python3 scripts/weft_builder.py verify-metadata \
+  --root 0x... \
+  --expect-chain-id 16600 \
+  --expect-contract-address 0x0000000000000000000000000000000000000000 \
+  --expect-deadline 1710000000
+
+python3 scripts/weft_builder.py create-milestone \
+  --rpc-url "$ETH_RPC_URL" \
+  --weft "$WEFT_CONTRACT_ADDRESS" \
+  --private-key 0x... \
+  --project "my-project" \
+  --metadata-root 0x... \
+  --indexer "$ZERO_G_INDEXER_RPC"
+
+# Tip: add --dry-run to print computed milestoneHash + exact calldata for debugging/support.
+
+python3 scripts/weft_builder.py stake \
+  --rpc-url "$ETH_RPC_URL" \
+  --weft "$WEFT_CONTRACT_ADDRESS" \
+  --private-key 0x... \
+  --milestone-hash 0x... \
+  --value-eth 0.05
+
+python3 scripts/weft_builder.py status \
+  --rpc-url "$ETH_RPC_URL" \
+  --weft "$WEFT_CONTRACT_ADDRESS" \
+  --milestone-hash 0x...
+
 # Collect attestation (MVP)
 python agent/scripts/weft_collect_attestation.py \
   --rpc-url "http://127.0.0.1:8545" \
