@@ -30,6 +30,9 @@ coverage/
 # Weft agent artifacts
 agent/.cache/
 agent/.attestations/
+agent/__pycache__/
+*.pyc
+*.pyo
 
 # Smart Contracts
 cache/
