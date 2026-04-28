@@ -277,12 +277,13 @@ def _process_one(
     )
     usage = UsageEvidence(windowStart=window_start, windowEnd=window_end, uniqueCallerCount=unique_count)
 
+    cached_chain_id = eth_chain_id(rpc)
     attestation = build_attestation(
         schema_version=1,
         project_id=m.projectId,
         milestone_hash=milestone_hash,
         template_id=m.templateId,
-        chain_id=eth_chain_id(rpc),
+        chain_id=cached_chain_id,
         contract_address=contract_address,
         deadline=m.deadline,
         measurement_window_seconds=measurement_window_seconds,
@@ -492,6 +493,8 @@ def _process_one(
         private_key=private_key,
         use_keeperhub=use_keeperhub,
         keeperhub_timeout=keeperhub_timeout,
+        chain_id=cached_chain_id,
+        out_dir=out_dir,
     )
 
 
@@ -505,6 +508,8 @@ def _submit_verdict(
     private_key: str,
     use_keeperhub: bool,
     keeperhub_timeout: int = 120,
+    chain_id: Optional[int] = None,
+    out_dir: Optional[str] = None,
 ) -> None:
     """Submit onchain verdict via KeeperHub (if configured) or cast send (fallback)."""
     if use_keeperhub and keeperhub_configured():
@@ -512,7 +517,9 @@ def _submit_verdict(
             contract_address=weft,
             function_name="submitVerdict(bytes32,bool,bytes32)",
             args=[milestone_hash, verified_arg, evidence_root],
+            chain_id=chain_id,
             timeout=keeperhub_timeout,
+            out_dir=out_dir,
         )
         if result is not None:
             if result.status == ExecutionStatus.CONFIRMED:

@@ -3,9 +3,13 @@
 
 """Tests for agent.lib.keeperhub_client."""
 
+import io
+import json
 import os
 import sys
+import tempfile
 import unittest
+import urllib.error
 from unittest.mock import patch
 
 # Allow running directly from repo root.
@@ -15,7 +19,9 @@ if REPO_ROOT not in sys.path:
 
 from agent.lib.keeperhub_client import (
     ExecutionStatus,
+    KeeperHubClientError,
     KeeperHubExecution,
+    _request,
     execute_contract_call,
     execute_verdict,
     get_execution_logs,
@@ -30,7 +36,6 @@ class TestKeeperHubConfigured(unittest.TestCase):
     @patch.dict(os.environ, {}, clear=True)
     def test_not_configured_without_api_key(self):
         """Returns False when KEEPERHUB_API_KEY is not set."""
-        # Remove the key if it exists in the inherited env
         os.environ.pop("KEEPERHUB_API_KEY", None)
         self.assertFalse(keeperhub_configured())
 
@@ -43,6 +48,16 @@ class TestKeeperHubConfigured(unittest.TestCase):
     def test_not_configured_with_empty_api_key(self):
         """Returns False when KEEPERHUB_API_KEY is empty string."""
         self.assertFalse(keeperhub_configured())
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test123", "KEEPERHUB_ENABLED": "0"})
+    def test_disabled_with_enabled_zero(self):
+        """Returns False when KEEPERHUB_ENABLED=0 even with API key set."""
+        self.assertFalse(keeperhub_configured())
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test123", "KEEPERHUB_ENABLED": "1"})
+    def test_enabled_with_enabled_one(self):
+        """Returns True when KEEPERHUB_ENABLED=1 with API key set."""
+        self.assertTrue(keeperhub_configured())
 
 
 class TestKeeperHubExecution(unittest.TestCase):
@@ -117,6 +132,43 @@ class TestExecuteContractCall(unittest.TestCase):
 
     @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test"})
     @patch("agent.lib.keeperhub_client._request")
+    def test_contract_call_with_chain_id(self, mock_request):
+        """Passes chainId in the request body for correct network routing."""
+        mock_request.return_value = {
+            "executionId": "exec-chain",
+            "status": "pending",
+        }
+
+        execute_contract_call(
+            contract_address="0xWeft",
+            function_signature="submitVerdict(bytes32,bool,bytes32)",
+            args=["0xa", "true", "0xb"],
+            chain_id=16600,
+        )
+
+        body = mock_request.call_args[1]["body"]
+        self.assertEqual(body["chainId"], 16600)
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test"})
+    @patch("agent.lib.keeperhub_client._request")
+    def test_contract_call_omits_chain_id_when_none(self, mock_request):
+        """Omits chainId from body when not provided."""
+        mock_request.return_value = {
+            "executionId": "exec-nochain",
+            "status": "pending",
+        }
+
+        execute_contract_call(
+            contract_address="0xWeft",
+            function_signature="submitVerdict(bytes32,bool,bytes32)",
+            args=["0xa", "true", "0xb"],
+        )
+
+        body = mock_request.call_args[1]["body"]
+        self.assertNotIn("chainId", body)
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test"})
+    @patch("agent.lib.keeperhub_client._request")
     def test_contract_call_with_optional_params(self, mock_request):
         """Passes optional gas and chain params when provided."""
         mock_request.return_value = {
@@ -148,6 +200,27 @@ class TestExecuteContractCall(unittest.TestCase):
                 function_signature="submitVerdict(bytes32,bool,bytes32)",
                 args=["0xa", "true", "0xb"],
             )
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test"})
+    @patch("agent.lib.keeperhub_client._request")
+    def test_contract_call_unwraps_data_envelope(self, mock_request):
+        """Correctly reads fields from {"data": {...}} envelope."""
+        mock_request.return_value = {
+            "executionId": "exec-envelope",
+            "status": "confirmed",
+            "txHash": "0xenveloped",
+            "txExplorerUrl": "https://explorer/tx/0xenveloped",
+        }
+
+        result = execute_contract_call(
+            contract_address="0xWeft",
+            function_signature="submitVerdict(bytes32,bool,bytes32)",
+            args=["0xa", "true", "0xb"],
+        )
+
+        self.assertEqual(result.execution_id, "exec-envelope")
+        self.assertEqual(result.status, ExecutionStatus.CONFIRMED)
+        self.assertEqual(result.tx_hash, "0xenveloped")
 
     @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test"})
     @patch("agent.lib.keeperhub_client._request")
@@ -215,6 +288,51 @@ class TestPollExecutionStatus(unittest.TestCase):
 
         self.assertEqual(result.status, ExecutionStatus.PENDING)
         self.assertIn("timed out", result.error or "")
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test"})
+    @patch("agent.lib.keeperhub_client._request")
+    def test_4xx_error_fails_fast(self, mock_request):
+        """Returns FAILED immediately on 4xx errors instead of retrying."""
+        mock_request.side_effect = KeeperHubClientError(
+            "KeeperHub API error (401): Unauthorized", status_code=401
+        )
+
+        result = poll_execution_status("exec-auth", timeout=10, poll_interval=0)
+
+        self.assertEqual(result.status, ExecutionStatus.FAILED)
+        self.assertIn("Fatal API error", result.error or "")
+        self.assertIn("401", result.error or "")
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test"})
+    @patch("agent.lib.keeperhub_client.time.sleep")
+    @patch("agent.lib.keeperhub_client._request")
+    def test_429_rate_limit_keeps_polling(self, mock_request, mock_sleep):
+        """Keeps polling on 429 rate-limit (backs off instead of fail-fast)."""
+        mock_request.side_effect = [
+            KeeperHubClientError("Rate limited", status_code=429),
+            {"status": "confirmed", "txHash": "0xpost429"},
+        ]
+
+        result = poll_execution_status("exec-ratelimit", timeout=10, poll_interval=0)
+
+        self.assertEqual(result.status, ExecutionStatus.CONFIRMED)
+        self.assertEqual(result.tx_hash, "0xpost429")
+        # Verify the rate-limit backoff sleep was called (60s)
+        mock_sleep.assert_called()
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test"})
+    @patch("agent.lib.keeperhub_client._request")
+    def test_5xx_error_keeps_polling(self, mock_request):
+        """Keeps polling on 5xx errors (transient server errors)."""
+        mock_request.side_effect = [
+            RuntimeError("KeeperHub API error (503): Service Unavailable"),
+            {"status": "confirmed", "txHash": "0xrecovered"},
+        ]
+
+        result = poll_execution_status("exec-5xx", timeout=10, poll_interval=0)
+
+        self.assertEqual(result.status, ExecutionStatus.CONFIRMED)
+        self.assertEqual(result.tx_hash, "0xrecovered")
 
     @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test"})
     @patch("agent.lib.keeperhub_client._request")
@@ -298,12 +416,20 @@ class TestExecuteVerdict(unittest.TestCase):
             contract_address="0xWeft",
             function_name="submitVerdict(bytes32,bool,bytes32)",
             args=["0xhash", "true", "0xevidence"],
+            chain_id=16600,
             timeout=60,
         )
 
         self.assertIsNotNone(result)
         self.assertEqual(result.status, ExecutionStatus.CONFIRMED)
         self.assertEqual(result.tx_hash, "0xverdictx")
+        # Verify chain_id was passed to execute_contract_call
+        mock_call.assert_called_once_with(
+            contract_address="0xWeft",
+            function_signature="submitVerdict(bytes32,bool,bytes32)",
+            args=["0xhash", "true", "0xevidence"],
+            chain_id=16600,
+        )
         mock_poll.assert_called_once_with("exec-v1", timeout=60)
 
     @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test"})
@@ -392,6 +518,127 @@ class TestExecuteVerdict(unittest.TestCase):
 
             self.assertEqual(result.status, ExecutionStatus.CONFIRMED)
             mock_poll.assert_not_called()
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test"})
+    @patch("agent.lib.keeperhub_client.get_execution_logs")
+    @patch("agent.lib.keeperhub_client.poll_execution_status")
+    @patch("agent.lib.keeperhub_client.execute_contract_call")
+    def test_audit_log_persisted_to_out_dir(self, mock_call, mock_poll, mock_logs):
+        """Writes keeperhub_audit.json to out_dir when provided."""
+        mock_call.return_value = KeeperHubExecution(
+            execution_id="exec-audit",
+            tx_hash=None,
+            status=ExecutionStatus.PENDING,
+            explorer_url=None,
+        )
+        mock_poll.return_value = KeeperHubExecution(
+            execution_id="exec-audit",
+            tx_hash="0xauditx",
+            status=ExecutionStatus.CONFIRMED,
+            explorer_url="https://explorer/tx/0xauditx",
+        )
+        mock_logs.return_value = [{"message": "tx confirmed", "level": "info"}]
+
+        with tempfile.TemporaryDirectory() as tmp:
+            result = execute_verdict(
+                contract_address="0xWeft",
+                function_name="submitVerdict(bytes32,bool,bytes32)",
+                args=["0xa", "true", "0xb"],
+                out_dir=tmp,
+            )
+
+            self.assertEqual(result.status, ExecutionStatus.CONFIRMED)
+
+            audit_path = os.path.join(tmp, "keeperhub_audit.json")
+            self.assertTrue(os.path.exists(audit_path), "keeperhub_audit.json not written")
+
+            with open(audit_path) as f:
+                audit = json.load(f)
+
+            self.assertEqual(audit["execution_id"], "exec-audit")
+            self.assertEqual(audit["status"], "confirmed")
+            self.assertEqual(audit["tx_hash"], "0xauditx")
+            self.assertEqual(len(audit["logs"]), 1)
+            self.assertEqual(audit["logs"][0]["message"], "tx confirmed")
+
+
+class TestRequestFunction(unittest.TestCase):
+    """Test _request() HTTP layer: envelope unwrapping and error parsing."""
+
+    def _make_response(self, payload: dict) -> io.BytesIO:
+        """Return a file-like object that urlopen would return."""
+        body = json.dumps(payload).encode("utf-8")
+        resp = io.BytesIO(body)
+        resp.read = resp.read  # already has .read()
+        return resp
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test", "KEEPERHUB_API_URL": "https://mock.keeperhub.com"})
+    @patch("urllib.request.urlopen")
+    def test_unwraps_data_envelope(self, mock_urlopen):
+        """Returns the inner dict when response is wrapped in {\"data\": {...}}."""
+        inner = {"executionId": "exec-wrapped", "status": "pending"}
+        mock_urlopen.return_value.__enter__ = lambda s: s
+        mock_urlopen.return_value.__exit__ = lambda s, *a: False
+        mock_urlopen.return_value.read = lambda: json.dumps({"data": inner}).encode("utf-8")
+
+        result = _request("GET", "executions/exec-wrapped/status")
+
+        self.assertEqual(result["executionId"], "exec-wrapped")
+        self.assertEqual(result["status"], "pending")
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test", "KEEPERHUB_API_URL": "https://mock.keeperhub.com"})
+    @patch("urllib.request.urlopen")
+    def test_falls_back_to_raw_when_no_envelope(self, mock_urlopen):
+        """Returns raw dict when response has no {\"data\": ...} wrapper."""
+        raw = {"executionId": "exec-raw", "status": "confirmed"}
+        mock_urlopen.return_value.__enter__ = lambda s: s
+        mock_urlopen.return_value.__exit__ = lambda s, *a: False
+        mock_urlopen.return_value.read = lambda: json.dumps(raw).encode("utf-8")
+
+        result = _request("GET", "executions/exec-raw/status")
+
+        self.assertEqual(result["executionId"], "exec-raw")
+        self.assertEqual(result["status"], "confirmed")
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test", "KEEPERHUB_API_URL": "https://mock.keeperhub.com"})
+    @patch("urllib.request.urlopen")
+    def test_nested_error_envelope_message(self, mock_urlopen):
+        """Extracts message from nested {\"error\": {\"message\": \"...\"}} error body."""
+        err_body = json.dumps({"error": {"code": "UNAUTHORIZED", "message": "Invalid API key"}}).encode("utf-8")
+        http_err = urllib.error.HTTPError(
+            url="https://mock.keeperhub.com/api/v1/executions/x/status",
+            code=401,
+            msg="Unauthorized",
+            hdrs=None,  # type: ignore[arg-type]
+            fp=io.BytesIO(err_body),
+        )
+        mock_urlopen.side_effect = http_err
+
+        with self.assertRaises(RuntimeError) as ctx:
+            _request("GET", "executions/x/status")
+
+        self.assertIn("401", str(ctx.exception))
+        self.assertIn("Invalid API key", str(ctx.exception))
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test", "KEEPERHUB_API_URL": "https://mock.keeperhub.com"})
+    @patch("urllib.request.urlopen")
+    def test_error_falls_back_to_code_when_no_message(self, mock_urlopen):
+        """Falls back to error.code when error.message is absent."""
+        err_body = json.dumps({"error": {"code": "NOT_FOUND"}}).encode("utf-8")
+        http_err = urllib.error.HTTPError(
+            url="https://mock.keeperhub.com/api/v1/executions/y/status",
+            code=404,
+            msg="Not Found",
+            hdrs=None,  # type: ignore[arg-type]
+            fp=io.BytesIO(err_body),
+        )
+        mock_urlopen.side_effect = http_err
+
+        with self.assertRaises(RuntimeError) as ctx:
+            _request("GET", "executions/y/status")
+
+        self.assertIn("404", str(ctx.exception))
+        self.assertIn("NOT_FOUND", str(ctx.exception))
 
 
 if __name__ == "__main__":

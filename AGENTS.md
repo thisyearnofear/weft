@@ -237,6 +237,10 @@ Written KV keys:
 - `weft:milestone:<milestoneHash>:consensus` -> `<0g_root_of_consensus.json>`
 - `weft:consensus:<consensusRoot>` -> `<0g_root_of_consensus.json>`
 
+> **KV key namespace**: Weft uses the `weft:` prefix for all 0G KV keys to avoid
+> collisions with other teams writing to the same stream. The full convention is
+> `weft:<entity>:<id>:<artifact>`. Do not write keys outside this namespace.
+
 #### Publishing the full attestation bundle to 0G (recommended)
 
 If `PUBLISH_0G_BUNDLE=1`, the daemon will create a deterministic `bundle.tar.gz`
@@ -334,6 +338,8 @@ KeeperHub (optional — reliable onchain execution with retry, gas optimization,
 ```bash
 KEEPERHUB_API_KEY        # API key from app.keeperhub.com (enables KeeperHub execution)
 KEEPERHUB_API_URL        # Optional API URL override (default: https://app.keeperhub.com)
+                         # Use this to point at a testnet/staging KeeperHub instance,
+                         # e.g. export KEEPERHUB_API_URL="https://staging.keeperhub.com"
 KEEPERHUB_TIMEOUT        # Seconds to wait for tx confirmation (default: 120)
 KEEPERHUB_ENABLED        # Set to "0" to disable even if API key is set (default: "1")
 ```
@@ -353,7 +359,7 @@ ZERO_G_STREAM_ID          # KV stream ID (optional)
 | AXL multi-node consensus | Gensyn AXL not deployed; MVP runs single-node |
 | KeeperHub capital release | KeeperHub `scheduleRelease()` not deployed (contract-level integration) |
 | ENS text record updates | Requires deployed .eth names |
-| Uniswap revenue routing | No revenue flow yet |
+| Uniswap revenue routing | Deferred: requires ERC-20 stake support + real multi-token demand; current settlement is ETH-only via `release()` |
 | 0G Storage in production | No indexer endpoint available yet |
 | Kimi narrative synthesis | No `KIMI_API_KEY` configured yet |
 

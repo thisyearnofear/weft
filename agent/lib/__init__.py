@@ -53,6 +53,7 @@ from .indexer_client import IndexerClient, MilestoneState
 from .ens_client import EnsClient, BuilderProfile, update_ens_after_verification
 from .keeperhub_client import (
     ExecutionStatus,
+    KeeperHubClientError,
     KeeperHubExecution,
     execute_contract_call,
     execute_verdict,
@@ -92,7 +93,7 @@ __all__ = [
     # ens_client
     "EnsClient", "BuilderProfile", "update_ens_after_verification",
     # keeperhub_client
-    "ExecutionStatus", "KeeperHubExecution",
+    "ExecutionStatus", "KeeperHubClientError", "KeeperHubExecution",
     "execute_contract_call", "execute_verdict",
     "get_execution_logs", "keeperhub_configured",
     "poll_execution_status",

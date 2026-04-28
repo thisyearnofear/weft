@@ -30,7 +30,9 @@ from typing import Any, Dict, List, Optional
 # ---------------------------------------------------------------------------
 
 def keeperhub_configured() -> bool:
-    """Return True if KeeperHub is available (API key set)."""
+    """Return True if KeeperHub is available (API key set and not explicitly disabled)."""
+    if os.environ.get("KEEPERHUB_ENABLED", "1") == "0":
+        return False
     return bool(os.environ.get("KEEPERHUB_API_KEY", ""))
 
 
@@ -47,6 +49,13 @@ def _api_key() -> str:
 def _timeout() -> int:
     """Return the timeout in seconds for polling execution status."""
     return int(os.environ.get("KEEPERHUB_TIMEOUT", "120"))
+
+
+# KeeperHub rate limit: 100 requests/minute for authenticated users.
+# At poll_interval=2s we use ~30 req/min per execution — fine for a single
+# execution, but concurrent milestones can push us over the limit.
+# We detect 429 responses and back off automatically (see poll_execution_status).
+_RATE_LIMIT_BACKOFF = 60  # seconds to wait after a 429
 
 
 # ---------------------------------------------------------------------------
@@ -74,6 +83,17 @@ class KeeperHubExecution:
     error: Optional[str] = None
 
 
+class KeeperHubClientError(RuntimeError):
+    """4xx client error from KeeperHub API — should not be retried.
+
+    Raised for 400–499 HTTP status codes (except 429 which gets backoff).
+    Callers can use isinstance() to distinguish fatal vs transient errors.
+    """
+    def __init__(self, message: str, status_code: int = 0):
+        super().__init__(message)
+        self.status_code = status_code
+
+
 # ---------------------------------------------------------------------------
 # Low-level API helpers
 # ---------------------------------------------------------------------------
@@ -87,8 +107,8 @@ def _request(
 ) -> Dict[str, Any]:
     """Make an authenticated request to the KeeperHub REST API.
 
-    Returns parsed JSON response as a dict.
-    Raises on HTTP errors or connection failures.
+    Returns the unwrapped response data as a dict.
+    Raises KeeperHubClientError on 4xx, RuntimeError on 5xx/connection errors.
     """
     url = f"{_api_url()}/api/v1/{path.lstrip('/')}"
     headers = {
@@ -101,14 +121,26 @@ def _request(
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
         with urllib.request.urlopen(req, timeout=http_timeout) as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            raw = json.loads(resp.read().decode("utf-8"))
+            # KeeperHub wraps success responses in {"data": {...}} — unwrap defensively.
+            # If the envelope is absent (non-standard path), fall back to raw dict.
+            return raw.get("data", raw)
     except urllib.error.HTTPError as e:
-        # Try to parse error body for a useful message
+        # Try to parse error body for a useful message.
+        # Error responses are nested: {"error": {"message": "...", "code": "..."}}
         try:
             err_body = json.loads(e.read().decode("utf-8"))
-            msg = err_body.get("message", err_body.get("error", str(e)))
+            err_obj = err_body.get("error", {})
+            if isinstance(err_obj, dict):
+                msg = err_obj.get("message") or err_obj.get("code") or str(e)
+            else:
+                msg = err_obj or err_body.get("message") or str(e)
         except Exception:
             msg = str(e)
+        if 400 <= e.code < 500:
+            raise KeeperHubClientError(
+                f"KeeperHub API error ({e.code}): {msg}", status_code=e.code
+            ) from e
         raise RuntimeError(f"KeeperHub API error ({e.code}): {msg}") from e
     except urllib.error.URLError as e:
         raise RuntimeError(f"KeeperHub API connection error: {e}") from e
@@ -139,7 +171,8 @@ def execute_contract_call(
         function_signature: Solidity function signature, e.g.
             "submitVerdict(bytes32,bool,bytes32)".
         args: List of string arguments for the function call.
-        chain_id: Optional chain ID override.
+        chain_id: Chain ID for correct network routing (e.g. 16600 for 0G).
+            If not provided, KeeperHub uses the wallet's default chain.
         gas_limit: Optional gas limit override.
         max_fee_per_gas: Optional max fee per gas (wei, as string).
         max_priority_fee_per_gas: Optional max priority fee per gas (wei, as string).
@@ -200,8 +233,22 @@ def poll_execution_status(
     while time.time() < deadline:
         try:
             resp = _request("GET", f"executions/{execution_id}/status", http_timeout=10)
+        except KeeperHubClientError as e:
+            # 429 rate-limit: back off and keep polling.
+            if e.status_code == 429:
+                print(f"keeperhub: rate-limited (429); backing off {_RATE_LIMIT_BACKOFF}s")
+                time.sleep(_RATE_LIMIT_BACKOFF)
+                continue
+            # Other 4xx errors (auth, not-found, bad-request) — fail fast.
+            return KeeperHubExecution(
+                execution_id=execution_id,
+                tx_hash=None,
+                status=ExecutionStatus.FAILED,
+                explorer_url=None,
+                error=f"Fatal API error ({e.status_code}): {e}",
+            )
         except RuntimeError:
-            # Transient API error — keep polling
+            # 5xx / connection errors — transient, keep polling.
             time.sleep(poll_interval)
             continue
 
@@ -253,7 +300,9 @@ def execute_verdict(
     contract_address: str,
     function_name: str,
     args: List[str],
+    chain_id: Optional[int] = None,
     timeout: Optional[int] = None,
+    out_dir: Optional[str] = None,
 ) -> Optional[KeeperHubExecution]:
     """High-level helper: submit submitVerdict() via KeeperHub and poll for result.
 
@@ -261,14 +310,18 @@ def execute_verdict(
     It submits the contract call, polls for confirmation, and returns
     the final execution result.
 
-    If KeeperHub is not configured (no API key), returns None so the
-    caller can fall back to `cast send`.
+    If KeeperHub is not configured (no API key or KEEPERHUB_ENABLED=0),
+    returns None so the caller can fall back to `cast send`.
 
     Args:
         contract_address: WeftMilestone contract address.
         function_name: Function signature (e.g. "submitVerdict(bytes32,bool,bytes32)").
         args: [milestone_hash, verified, evidence_root] as strings.
+        chain_id: Chain ID for correct network routing (e.g. 16600 for 0G).
+            If not provided, KeeperHub uses the wallet's default chain.
         timeout: Optional override for polling timeout in seconds.
+        out_dir: Optional directory path to write keeperhub_audit.json
+            (execution details + logs for provenance).
 
     Returns:
         KeeperHubExecution on success/failure, or None if KeeperHub not configured.
@@ -281,7 +334,11 @@ def execute_verdict(
             contract_address=contract_address,
             function_signature=function_name,
             args=args,
+            chain_id=chain_id,
         )
+    except KeeperHubClientError as e:
+        print(f"keeperhub: contract-call rejected ({e.status_code}): {e}")
+        return None
     except RuntimeError as e:
         print(f"keeperhub: contract-call submission failed: {e}")
         return None
@@ -297,7 +354,8 @@ def execute_verdict(
     # Poll for completion
     final = poll_execution_status(exec_result.execution_id, timeout=timeout)
 
-    # If execution succeeded, also retrieve audit logs for provenance
+    # Retrieve audit logs for provenance (cache to avoid duplicate fetch)
+    logs = None
     if final.status == ExecutionStatus.CONFIRMED:
         try:
             logs = get_execution_logs(exec_result.execution_id)
@@ -305,5 +363,29 @@ def execute_verdict(
                 print(f"keeperhub: audit trail entries={len(logs)} execution_id={exec_result.execution_id}")
         except RuntimeError:
             pass  # audit log fetch is best-effort
+
+    # Persist audit trail to disk if out_dir provided
+    if out_dir and final.status in (ExecutionStatus.CONFIRMED, ExecutionStatus.FAILED):
+        try:
+            audit = {
+                "execution_id": final.execution_id,
+                "status": final.status.value,
+                "tx_hash": final.tx_hash,
+                "explorer_url": final.explorer_url,
+                "error": final.error,
+            }
+            # Fetch logs if not already retrieved (e.g. failed execution)
+            if logs is None:
+                try:
+                    logs = get_execution_logs(final.execution_id)
+                except RuntimeError:
+                    logs = []
+            audit["logs"] = logs or []
+            audit_path = os.path.join(out_dir, "keeperhub_audit.json")
+            with open(audit_path, "w", encoding="utf-8") as f:
+                json.dump(audit, f, indent=2, sort_keys=True)
+                f.write("\n")
+        except Exception:
+            pass  # audit persistence is best-effort
 
     return final
