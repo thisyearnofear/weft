@@ -361,7 +361,7 @@ ZERO_G_STREAM_ID          # KV stream ID (optional)
 | ENS text record updates | Requires deployed .eth names |
 | Uniswap revenue routing | Deferred: requires ERC-20 stake support + real multi-token demand; current settlement is ETH-only via `release()` |
 | 0G Storage in production | No indexer endpoint available yet |
-| Kimi narrative synthesis | No `KIMI_API_KEY` configured yet |
+| Kimi narrative synthesis | Requires `KIMI_API_KEY` env var; falls back gracefully when unset |
 
 ## Config
 

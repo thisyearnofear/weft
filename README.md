@@ -13,6 +13,53 @@ Weft replaces four things that currently require corporations, lawyers, and mana
 | Verification / managers | Hermes Agent verification loop |
 | Settlement / payroll | KeeperHub reliable execution (ETH-only; Uniswap routing deferred) |
 
+## Hermes Agent Architecture
+
+Weft's verification layer is a **multi-node autonomous Hermes Agent system**. Each node runs an independent Python daemon that:
+
+1. **Polls** onchain milestones past their deadline via `DeadlineScheduler`
+2. **Collects** deterministic evidence (deployment check + unique caller count)
+3. **Generates** a human-readable narrative from raw attestation data using **Kimi** (`moonshot-v1-128k`)
+4. **Broadcasts** verdicts to peer nodes for offchain consensus
+5. **Submits** onchain votes via KeeperHub (with `cast send` fallback)
+6. **Publishes** evidence bundles + consensus proofs to 0G Storage
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    0G Galileo Testnet                    │
+│  WeftMilestone: 0xcc76...474c                           │
+│  VerifierRegistry: 0x599e...3169                        │
+└──────────┬──────────────┬──────────────┬────────────────┘
+           │              │              │
+     ┌─────▼─────┐ ┌─────▼─────┐ ┌─────▼─────┐
+     │ Verifier 1│ │ Verifier 2│ │ Verifier 3│
+     │ (daemon)  │ │ (daemon)  │ │ (daemon)  │
+     │           │ │           │ │           │
+     │ • poll    │ │ • poll    │ │ • poll    │
+     │ • verify  │ │ • verify  │ │ • verify  │
+     │ • narrate │ │ • narrate │ │ • narrate │  ← Kimi narrative generation
+     │ • vote    │ │ • vote    │ │ • vote    │
+     └─────┬─────┘ └─────┬─────┘ └─────┬─────┘
+           │              │              │
+           └──── peer inbox broadcast ──┘
+                  (consensus root)
+```
+
+### Kimi Integration
+
+Each verification cycle optionally calls Kimi to transform raw attestation JSON into a builder-facing narrative:
+
+```python
+from agent.lib.kimi_client import generate_narrative
+
+narrative = generate_narrative(attestation)
+# → "Your milestone was verified: 147 unique callers interacted with
+#    the contract within the measurement window. Deployment confirmed
+#    at block 12,345,678. Evidence root: 0xabc..."
+```
+
+This runs **autonomously** within the daemon — no human-in-the-loop. The narrative is persisted alongside the attestation and published to 0G Storage as part of the evidence bundle.
+
 ## Quick Start
 
 ```bash

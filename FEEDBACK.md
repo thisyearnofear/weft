@@ -65,3 +65,15 @@ Track known issues and design feedback across Weft integrations.
 ### KeeperHub — `scheduleRelease()`
 
 **Last missing piece.** The execution engine is the most polished integration we have — retry, gas optimization, audit trail, and fallback all work. The capital-release flow (`scheduleRelease()`) is the only remaining gap for a full end-to-end demo; once that contract is deployed, the integration is complete.
+
+---
+
+### Kimi (Moonshot)
+
+**What works well.** The `moonshot-v1-128k` model handles attestation-to-narrative conversion cleanly — it takes raw JSON (deployment evidence, unique caller counts, verdict status) and produces builder-facing prose that's accurate and readable. The 128k context window means we can feed it the full attestation without truncation. Response latency is acceptable for an async daemon loop (~2-4s per call).
+
+**Integration approach.** We built `agent/lib/kimi_client.py` as a standalone module that takes an attestation dict and returns a narrative string. It's called within the verification daemon after evidence collection but before onchain vote submission. The narrative is persisted alongside the attestation JSON and published to 0G Storage as part of the evidence bundle. This makes Kimi a first-class participant in the autonomous verification pipeline, not a post-hoc summarizer.
+
+**API key setup.** The integration is zero-config once `KIMI_API_KEY` is set — no SDK installation required, just a standard OpenAI-compatible HTTP call to `api.moonshot.cn/v1/chat/completions`. The fallback is graceful: if the key is missing or the call fails, the daemon continues without a narrative.
+
+**What would improve the experience.** A documented rate limit spec would help with production planning — we currently don't know if we'll hit limits at scale. Also, a streaming response option would be useful for the frontend to show narrative generation in real-time during demo presentations.
