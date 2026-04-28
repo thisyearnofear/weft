@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  contracts:
+    name: Solidity Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install forge-std
+        run: cd contracts && forge install foundry-rs/forge-std && cd ..
+
+      - name: Run Forge tests
+        run: forge test
+
+  agent:
+    name: Python Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run pytest
+        run: python -m pytest agent/test/test_lib.py -v
+
+  imports:
+    name: Import Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify imports
+        run: |
+          python -c "
+          from agent.lib import (
+              mvp_verifier, github_client, kimi_client, deadline_scheduler,
+              zero_storage, indexer_client, jsonrpc, abi, weft_milestone_reader
+          )
+          print('All imports OK')
+          "
+
+  secrets-check:
+    name: Secrets Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run pre-commit hook
+        run: |
+          chmod +x .git/hooks/pre-commit
+          .git/hooks/pre-commit || exit 1

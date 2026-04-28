@@ -3,7 +3,10 @@
 
 """
 Unified indexer client for Weft milestone state.
-Tries 0G Storage KV first (when configured), falls back to RPC events.
+
+Enhancement-first:
+- Uses existing 0G KV (when configured) and cleanly falls back to onchain reads.
+- Uses canonical Weft event topics from `weft_topics.py` (single source of truth).
 """
 
 from __future__ import annotations
@@ -11,11 +14,13 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Iterator, Tuple
 
 from .jsonrpc import JsonRpcClient
 from .weft_milestone_reader import MilestoneView, read_milestone
 from .zero_storage import read_evidence_from_storage
+from .eth_rpc import latest_timestamp
+from .weft_topics import MILESTONE_CREATED_TOPIC0
 
 
 @dataclass(frozen=True)
@@ -33,14 +38,6 @@ class MilestoneState:
     verified_votes: int
     final_evidence_root: str
     source: str  # "0g-kv" or "onchain"
-
-
-@dataclass(frozen=True)
-class ProjectMeta:
-    project_id: str
-    name: str
-    description: str
-    milestones: List[Dict[str, Any]]
 
 
 class IndexerClient:
@@ -90,14 +87,13 @@ class IndexerClient:
 
     def get_pending_milestones(self) -> List[MilestoneState]:
         """Get all milestones that are past deadline and not yet finalized."""
-        latest_block = self.rpc.call("eth_blockNumber", [])
-        latest_ts   = int(latest_block, 16)
+        now_ts = latest_timestamp(self.rpc)
 
         pending: List[MilestoneState] = []
         for m_hash, m in _iter_onchain_milestones(self.rpc, self.contract_address):
             if m.finalized:
                 continue
-            if m.deadline <= latest_ts:
+            if m.deadline > now_ts:
                 continue
             pending.append(_milestone_view_to_state(m_hash, m, "onchain"))
 
@@ -162,17 +158,17 @@ def _milestone_view_to_state(
 ) -> MilestoneState:
     return MilestoneState(
         milestone_hash=m_hash,
-        project_id=m.project_id,
-        template_id=m.template_id,
+        project_id=m.projectId,
+        template_id=m.templateId,
         builder=m.builder,
         deadline=m.deadline,
-        total_staked=m.total_staked,
+        total_staked=m.totalStaked,
         finalized=m.finalized,
         verified=m.verified,
         released=m.released,
-        verifier_count=m.verifier_count,
-        verified_votes=m.verified_votes,
-        final_evidence_root=m.final_evidence_root,
+        verifier_count=m.verifierCount,
+        verified_votes=m.verifiedVotes,
+        final_evidence_root=m.finalEvidenceRoot,
         source=source,
     )
 
@@ -201,7 +197,7 @@ def _iter_onchain_milestones(
             "address": contract_address,
             "topics": [
                 # MilestoneCreated event signature
-                "0x7d4f0da10000000000000000000000000000000000000000000000000000000",
+                MILESTONE_CREATED_TOPIC0,
             ],
             "fromBlock": "0x0",
             "toBlock": "latest",

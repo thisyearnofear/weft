@@ -23,6 +23,7 @@ The single source of truth for all shared agent logic. All scripts import from h
 | `zero_storage.py` | 0G Storage read/write (env: `ZERO_G_*`, falls back gracefully) |
 | `deadline_scheduler.py` | Polls for milestones past deadline awaiting finalization |
 | `indexer_client.py` | Unified indexer: tries 0G KV, falls back to onchain events |
+| `axl_client.py` | Multi-node broadcast shim (env: `AXL_PEERS`, best-effort HTTP POST) |
 | `__init__.py` | Re-exports all public symbols |
 
 ## Verification Flow
@@ -108,8 +109,6 @@ POLL_INTERVAL           # Seconds between poll cycles (default: 3600)
 
 0G Storage (optional — falls back to local files):
 ```bash
-ZERO_G_RPC_URL
-ZERO_G_SIGNER_KEY
 ZERO_G_INDEXER_URL
 ZERO_G_STREAM_ID
 ```

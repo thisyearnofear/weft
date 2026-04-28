@@ -189,4 +189,125 @@ contract WeftMilestoneTest is Test {
         vm.expectRevert(WeftMilestone.NotAuthorizedVerifier.selector);
         weft.submitVerdict(milestoneHash, true, bytes32("e"));
     }
+
+    function testDefaultSplitGivesBuilder100Percent() public {
+        bytes32 projectId = keccak256("p4");
+        uint64 deadline = uint64(block.timestamp + 1 days);
+        bytes32 milestoneHash = keccak256(abi.encode(projectId, uint256(0), builder, deadline));
+
+        vm.prank(builder);
+        weft.createMilestone(milestoneHash, projectId, bytes32("t"), deadline, bytes32(0), new WeftMilestone.Split[](0));
+
+        vm.prank(backer1);
+        weft.stake{value: 1 ether}(milestoneHash);
+
+        WeftMilestone.Split[] memory splits = weft.getSplits(milestoneHash);
+        assertEq(splits.length, 1);
+        assertEq(splits[0].wallet, builder);
+        assertEq(splits[0].shareBps, 10000); // 100%
+    }
+
+    function testInvalidSplitTotalReverts() public {
+        bytes32 projectId = keccak256("p5");
+        uint64 deadline = uint64(block.timestamp + 1 days);
+        bytes32 milestoneHash = keccak256(abi.encode(projectId, uint256(0), builder, deadline));
+
+        WeftMilestone.Split[] memory badSplits = new WeftMilestone.Split[](2);
+        badSplits[0] = WeftMilestone.Split({wallet: builder, shareBps: 5000});
+        badSplits[1] = WeftMilestone.Split({wallet: cobuilder, shareBps: 4000}); // only 9000 total
+
+        vm.prank(builder);
+        vm.expectRevert(WeftMilestone.InvalidSplits.selector);
+        weft.createMilestone(milestoneHash, projectId, bytes32("t"), deadline, bytes32(0), badSplits);
+    }
+
+    function testDuplicateStakeBySameBacker() public {
+        bytes32 projectId = keccak256("p6");
+        uint64 deadline = uint64(block.timestamp + 1 days);
+        bytes32 milestoneHash = keccak256(abi.encode(projectId, uint256(0), builder, deadline));
+
+        vm.prank(builder);
+        weft.createMilestone(milestoneHash, projectId, bytes32("t"), deadline, bytes32(0), new WeftMilestone.Split[](0));
+
+        vm.prank(backer1);
+        weft.stake{value: 1 ether}(milestoneHash);
+
+        vm.prank(backer1);
+        weft.stake{value: 0.5 ether}(milestoneHash);
+
+        (, , , , , , uint256 totalStaked, , , , , , ) = weft.milestones(milestoneHash);
+        assertEq(totalStaked, 1.5 ether);
+    }
+
+    function testVerifierCannotVoteTwice() public {
+        bytes32 projectId = keccak256("p7");
+        uint64 deadline = uint64(block.timestamp + 1 days);
+        bytes32 milestoneHash = keccak256(abi.encode(projectId, uint256(0), builder, deadline));
+
+        vm.prank(builder);
+        weft.createMilestone(milestoneHash, projectId, bytes32("t"), deadline, bytes32(0), new WeftMilestone.Split[](0));
+
+        vm.warp(deadline);
+
+        vm.prank(v1);
+        weft.submitVerdict(milestoneHash, true, bytes32("e1"));
+
+        vm.prank(v1);
+        vm.expectRevert(WeftMilestone.AlreadyVoted.selector);
+        weft.submitVerdict(milestoneHash, false, bytes32("e2"));
+    }
+
+    function testCannotReleaseWhenNotVerified() public {
+        bytes32 projectId = keccak256("p8");
+        uint64 deadline = uint64(block.timestamp + 1 days);
+        bytes32 milestoneHash = keccak256(abi.encode(projectId, uint256(0), builder, deadline));
+
+        vm.prank(builder);
+        weft.createMilestone(milestoneHash, projectId, bytes32("t"), deadline, bytes32(0), new WeftMilestone.Split[](0));
+
+        vm.prank(backer1);
+        weft.stake{value: 1 ether}(milestoneHash);
+
+        vm.warp(deadline);
+
+        vm.prank(v1);
+        weft.submitVerdict(milestoneHash, false, bytes32("f1")); // failed verdict
+
+        vm.prank(v2);
+        weft.submitVerdict(milestoneHash, false, bytes32("f2")); // second fail
+
+        vm.prank(v3);
+        weft.submitVerdict(milestoneHash, false, bytes32("f3")); // third fail = failed
+
+        vm.prank(backer1);
+        vm.expectRevert(WeftMilestone.NotVerified.selector);
+        weft.release(milestoneHash);
+    }
+
+    function testStakeAfterDeadlineReverts() public {
+        bytes32 projectId = keccak256("p9");
+        uint64 deadline = uint64(block.timestamp + 1 days);
+        bytes32 milestoneHash = keccak256(abi.encode(projectId, uint256(0), builder, deadline));
+
+        vm.prank(builder);
+        weft.createMilestone(milestoneHash, projectId, bytes32("t"), deadline, bytes32(0), new WeftMilestone.Split[](0));
+
+        vm.warp(deadline);
+
+        vm.prank(backer1);
+        vm.expectRevert(WeftMilestone.DeadlinePassed.selector);
+        weft.stake{value: 1 ether}(milestoneHash);
+    }
+
+    function testCannotCreateMilestoneWithPastDeadline() public {
+        bytes32 projectId = keccak256("p10");
+        uint64 deadline = uint64(block.timestamp); // exactly now = past
+
+        vm.prank(builder);
+        vm.expectRevert(WeftMilestone.InvalidDeadline.selector);
+        weft.createMilestone(
+            keccak256(abi.encode(projectId, uint256(0), builder, deadline)),
+            projectId, bytes32("t"), deadline, bytes32(0), new WeftMilestone.Split[](0)
+        );
+    }
 }

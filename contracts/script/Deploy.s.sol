@@ -14,15 +14,12 @@ contract Deploy is Script {
 
     function run() external {
         uint256 sk    = vm.envUint("DEPLOYER_KEY");
-        address owner = vm.envUint("OWNER_ADDRESS") != 0
-                        ? vm.addr(vm.envUint("OWNER_ADDRESS"))
-                        : vm.addr(sk);
+        address owner = vm.envOr("OWNER_ADDRESS", vm.addr(sk));
 
         vm.startBroadcast(sk);
 
         VerifierRegistry registry = new VerifierRegistry(owner);
         WeftMilestone weft    = new WeftMilestone(owner, registry);
-        registry.transferOwnership(owner);
 
         vm.stopBroadcast();
 

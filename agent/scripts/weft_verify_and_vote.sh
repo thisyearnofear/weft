@@ -16,6 +16,7 @@ set -euo pipefail
 #   NODE_ADDRESS (default 0x000..0)
 #   OUT_DIR (default agent/.attestations/<milestoneHash>/<unix>)
 #   DRY_RUN=1 (skip cast send)
+#   PUBLISH_0G=1 (attempt to write attestation to 0G; uses ZERO_G_INDEXER_URL/ZERO_G_STREAM_ID)
 
 : "${RPC_URL:?missing RPC_URL}"
 : "${PRIVATE_KEY:?missing PRIVATE_KEY}"
@@ -43,6 +44,7 @@ python_output="$(
     --measurement-window-seconds "$MEASUREMENT_WINDOW_SECONDS" \
     --unique-caller-threshold "$UNIQUE_CALLER_THRESHOLD" \
     --node-address "$NODE_ADDRESS" \
+    ${PUBLISH_0G:+--publish-0g} \
     --out "$OUT_JSON"
 )"
 
@@ -50,11 +52,13 @@ python_output="$(
 ATTESTATION=""
 CANONICAL=""
 VERIFIED=""
+EVIDENCE_ROOT=""
 while IFS= read -r line; do
   case "$line" in
     ATTESTATION=*) ATTESTATION="${line#ATTESTATION=}" ;;
     CANONICAL=*) CANONICAL="${line#CANONICAL=}" ;;
     VERIFIED=*) VERIFIED="${line#VERIFIED=}" ;;
+    EVIDENCE_ROOT=*) EVIDENCE_ROOT="${line#EVIDENCE_ROOT=}" ;;
     *) : ;;
   esac
 done <<< "$python_output"
@@ -65,7 +69,10 @@ if [[ -z "$CANONICAL" || -z "$VERIFIED" ]]; then
   exit 1
 fi
 
-EVIDENCE_ROOT="$(cast keccak < "$CANONICAL")"
+if [[ -z "$EVIDENCE_ROOT" ]]; then
+  # Backwards-compatible fallback
+  EVIDENCE_ROOT="$(cast keccak < "$CANONICAL")"
+fi
 
 echo "attestation: $ATTESTATION"
 echo "canonical:   $CANONICAL"
@@ -85,4 +92,3 @@ cast send \
   "$MILESTONE_HASH" \
   "$VERIFIED" \
   "$EVIDENCE_ROOT"
-

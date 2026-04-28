@@ -14,6 +14,8 @@ from dataclasses import dataclass
 from typing import Iterator, List, Optional
 
 from .jsonrpc import JsonRpcClient
+from .eth_rpc import latest_timestamp
+from .weft_topics import MILESTONE_CREATED_TOPIC0
 from .weft_milestone_reader import MilestoneView, read_milestone
 
 
@@ -50,8 +52,7 @@ class DeadlineScheduler:
         Yield milestones that are past their deadline and not yet finalized.
         Uses binary search on blocks to find the deadline transition.
         """
-        latest_block = self.rpc.call("eth_blockNumber", [])
-        latest_ts  = self._block_timestamp(int(latest_block, 16))
+        latest_ts = latest_timestamp(self.rpc)
 
         for m_hash, m in self._iter_milestones():
             if m.finalized:
@@ -74,24 +75,20 @@ class DeadlineScheduler:
 
     def _iter_milestones(self) -> Iterator[tuple[str, MilestoneView]]:
         """Iterate all known milestones via Milestones topic events."""
-        topic = self.rpc.call("eth_getLogs", [{
+        logs = self.rpc.call("eth_getLogs", [{
             "address": self.contract_address,
-            "topics": ["0xd5576e7d6bc5e7d3e8c0f7a9b4d3e2c1f0e9d8c7b6a5948372615540454433221100"],
+            "topics": [MILESTONE_CREATED_TOPIC0],
             "fromBlock": "0x0",
             "toBlock": "latest",
         }])
 
-        for event in topic:
+        for event in logs:
             m_hash = event["topics"][1]
             try:
                 m = read_milestone(self.rpc, self.contract_address, m_hash)
                 yield m_hash, m
             except Exception:
                 continue
-
-    def _block_timestamp(self, block_num: int) -> int:
-        block = self.rpc.call("eth_getBlockByNumber", [hex(block_num), False])
-        return int(block["timestamp"], 16)
 
 
 def poll_pending_milestones(

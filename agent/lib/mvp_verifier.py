@@ -7,17 +7,21 @@ import subprocess
 from dataclasses import asdict, dataclass
 from typing import Dict, Optional, Set, Tuple
 
+from .eth_rpc import (
+    chain_id as eth_chain_id,
+    find_first_block_at_or_after,
+    find_last_block_at_or_before,
+    get_block as eth_get_block,
+    get_code as eth_get_code,
+    get_tx_receipt as eth_get_transaction_receipt,
+    latest_timestamp,
+    to_int as _to_int,
+)
 from .jsonrpc import JsonRpcClient
 
 
 def _strip_0x(s: str) -> str:
     return s[2:] if s.startswith("0x") else s
-
-
-def _to_int(hex_or_int) -> int:
-    if isinstance(hex_or_int, int):
-        return hex_or_int
-    return int(hex_or_int, 16)
 
 
 def _cast_keccak_from_stdin(data: bytes) -> str:
@@ -33,6 +37,10 @@ def _cast_keccak_from_stdin(data: bytes) -> str:
     return p.stdout.decode("utf-8").strip()
 
 
+def keccak_bytes(data: bytes) -> str:
+    return _cast_keccak_from_stdin(data)
+
+
 def keccak_hex(hex_data: str) -> str:
     raw = bytes.fromhex(_strip_0x(hex_data))
     return _cast_keccak_from_stdin(raw)
@@ -40,56 +48,6 @@ def keccak_hex(hex_data: str) -> str:
 
 def keccak_text(text: str) -> str:
     return _cast_keccak_from_stdin(text.encode("utf-8"))
-
-
-def eth_get_latest_block_number(rpc: JsonRpcClient) -> int:
-    return _to_int(rpc.call("eth_blockNumber", []))
-
-
-def eth_get_block(rpc: JsonRpcClient, number: int, full: bool) -> Dict:
-    return rpc.call("eth_getBlockByNumber", [hex(number), bool(full)])
-
-
-def eth_get_transaction_receipt(rpc: JsonRpcClient, tx_hash: str) -> Dict:
-    return rpc.call("eth_getTransactionReceipt", [tx_hash])
-
-
-def eth_get_code(rpc: JsonRpcClient, address: str, block: str = "latest") -> str:
-    return rpc.call("eth_getCode", [address, block])
-
-
-def eth_chain_id(rpc: JsonRpcClient) -> int:
-    return _to_int(rpc.call("eth_chainId", []))
-
-
-def _block_timestamp(block: Dict) -> int:
-    return _to_int(block["timestamp"])
-
-
-def find_first_block_at_or_after(rpc: JsonRpcClient, target_ts: int) -> int:
-    latest = eth_get_latest_block_number(rpc)
-    lo, hi = 0, latest
-    while lo < hi:
-        mid = (lo + hi) // 2
-        ts = _block_timestamp(eth_get_block(rpc, mid, full=False))
-        if ts < target_ts:
-            lo = mid + 1
-        else:
-            hi = mid
-    return lo
-
-
-def find_last_block_at_or_before(rpc: JsonRpcClient, target_ts: int) -> int:
-    latest = eth_get_latest_block_number(rpc)
-    lo, hi = 0, latest
-    while lo < hi:
-        mid = (lo + hi + 1) // 2
-        ts = _block_timestamp(eth_get_block(rpc, mid, full=False))
-        if ts > target_ts:
-            hi = mid - 1
-        else:
-            lo = mid
-    return lo
 
 
 @dataclass(frozen=True)
@@ -220,4 +178,3 @@ def write_attestation_files(attestation: Dict, out_path: str) -> str:
         f.write(b"\n")
 
     return canonical_path
-

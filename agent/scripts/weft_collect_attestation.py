@@ -12,19 +12,22 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from agent.lib.jsonrpc import JsonRpcClient, default_cache
+from agent.lib.eth_rpc import (
+    block_number as eth_block_number,
+    chain_id as eth_chain_id,
+    get_code as eth_get_code,
+)
 from agent.lib.mvp_verifier import (
     DeploymentEvidence,
     UsageEvidence,
     build_attestation,
     count_unique_callers,
-    eth_chain_id,
-    eth_get_code,
-    eth_get_latest_block_number,
-    find_last_block_at_or_before,
+    keccak_bytes,
     keccak_hex,
     write_attestation_files,
 )
 from agent.lib.weft_milestone_reader import read_milestone
+from agent.lib.zero_storage import write_evidence_to_storage
 
 
 ZERO_HASH = "0x" + "00" * 32
@@ -44,6 +47,11 @@ def main() -> int:
     p.add_argument("--out", required=True, help="Path to write attestation JSON")
     p.add_argument("--node-address", default="0x0000000000000000000000000000000000000000")
     p.add_argument("--no-cache", action="store_true")
+    p.add_argument(
+        "--publish-0g",
+        action="store_true",
+        help="If set (or if ZERO_G_INDEXER_URL is configured), attempt to write the attestation to 0G Storage",
+    )
 
     args = p.parse_args()
 
@@ -68,7 +76,7 @@ def main() -> int:
         contractAddress=args.contract_address,
         codeHash=code_hash,
         # For MVP, record “observed at block” (exact deployment block can be added later via indexed proof).
-        blockNumber=eth_get_latest_block_number(rpc),
+        blockNumber=eth_block_number(rpc),
     )
 
     unique_count, start_block, end_block = count_unique_callers(
@@ -99,13 +107,39 @@ def main() -> int:
 
     canonical_path = write_attestation_files(attestation, args.out)
 
+    # Compute deterministic evidence root from canonical JSON.
+    with open(canonical_path, "rb") as f:
+        canonical_bytes = f.read()
+    local_evidence_root = keccak_bytes(canonical_bytes)
+
+    # Best-effort publish to 0G (when configured). If it returns a bytes32-like root, prefer it.
+    receipt = None
+    evidence_root = local_evidence_root
+    should_publish = args.publish_0g or bool(os.environ.get("ZERO_G_INDEXER_URL"))
+    if should_publish:
+        receipt = write_evidence_to_storage(args.milestone_hash, attestation)
+        if receipt and _is_bytes32(receipt.log_root):
+            evidence_root = receipt.log_root
+
     # Print paths for scripting.
     print(f"ATTESTATION={os.path.abspath(args.out)}")
     print(f"CANONICAL={os.path.abspath(canonical_path)}")
     print(f"START_BLOCK={start_block}")
     print(f"END_BLOCK={end_block}")
     print(f"VERIFIED={'true' if attestation['verdict']['verified'] else 'false'}")
+    print(f"EVIDENCE_ROOT={evidence_root}")
+    if receipt is not None:
+        print(f"STORAGE_LOG_ROOT={receipt.log_root}")
+        print(f"STORAGE_KV_KEY={receipt.kv_key}")
     return 0
+
+
+def _is_bytes32(x: str) -> bool:
+    if not isinstance(x, str):
+        return False
+    if not x.startswith("0x"):
+        return False
+    return len(x) == 66
 
 
 if __name__ == "__main__":

@@ -54,8 +54,8 @@ weft/
 curl -L https://foundry.paradigm.xyz | bash
 foundryup
 
-# Install forge-std (one-time)
-cd contracts && forge install foundry-rs/forge-std && cd ..
+# Init dependencies (one-time)
+git submodule update --init --recursive
 
 # Run tests
 forge test

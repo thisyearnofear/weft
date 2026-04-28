@@ -35,10 +35,9 @@ agent/__pycache__/
 *.pyo
 
 # Smart Contracts
-cache/
-out/
+contracts/cache/
+contracts/out/
 artifacts/
-lib/
 
 # Node
 npm-debug.log*
@@ -47,3 +46,7 @@ yarn-error.log*
 
 # Hardhat
 deployments/
+
+# Deploy outputs
+scripts/deployed-addresses.json
+scripts/.env
