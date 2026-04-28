@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {Ownable} from "./utils/Ownable.sol";
 import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 import {VerifierRegistry} from "./VerifierRegistry.sol";
 
@@ -11,7 +12,8 @@ import {VerifierRegistry} from "./VerifierRegistry.sol";
 ///      - accept 2-of-3 Hermes verifier votes after deadline
 ///      - on success: allow release to builder/co-builders + store evidenceRoot pointer
 ///      - on failure: allow backers to refund
-contract WeftMilestone is ReentrancyGuard {
+///      - after timeout: allow backers to refund if verifiers never voted
+contract WeftMilestone is Ownable, ReentrancyGuard {
     // ----------------------------
     // Types
     // ----------------------------
@@ -50,15 +52,14 @@ contract WeftMilestone is ReentrancyGuard {
 
     VerifierRegistry public immutable verifierRegistry;
 
-    address public owner;
     uint8 public quorum = 2; // votes required (MVP: 2-of-3)
     uint8 public maxVerifiers = 3; // how many votes we wait for before declaring failure (MVP: 3)
+
+    uint256 public constant TIMEOUT_GRACE = 7 days; // after deadline+grace, backers can refund stuck milestones
 
     // ----------------------------
     // Events
     // ----------------------------
-
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     event MilestoneCreated(
         bytes32 indexed milestoneHash,
@@ -81,14 +82,14 @@ contract WeftMilestone is ReentrancyGuard {
     event MilestoneFinalized(bytes32 indexed milestoneHash, bool verified, bytes32 finalEvidenceRoot);
     event Released(bytes32 indexed milestoneHash, uint256 amount);
     event Refunded(bytes32 indexed milestoneHash, address indexed backer, uint256 amount);
+    event QuorumUpdated(uint8 oldQuorum, uint8 newQuorum);
+    event MaxVerifiersUpdated(uint8 oldMax, uint8 newMax);
 
     // ----------------------------
     // Errors
     // ----------------------------
 
-    error NotOwner();
     error NotAuthorizedVerifier();
-    error ZeroAddress();
     error MilestoneExists();
     error MilestoneNotFound();
     error InvalidDeadline();
@@ -104,43 +105,28 @@ contract WeftMilestone is ReentrancyGuard {
     error InvalidConfig();
     error NothingToRefund();
     error TransferFailed();
-
-    // ----------------------------
-    // Modifiers
-    // ----------------------------
-
-    modifier onlyOwner() {
-        if (msg.sender != owner) revert NotOwner();
-        _;
-    }
+    error TimeoutNotReached();
 
     // ----------------------------
     // Constructor / Admin
     // ----------------------------
 
-    constructor(address _owner, VerifierRegistry _verifierRegistry) {
-        if (_owner == address(0)) revert ZeroAddress();
-        owner = _owner;
+    constructor(address _owner, VerifierRegistry _verifierRegistry) Ownable(_owner) {
         verifierRegistry = _verifierRegistry;
-        emit OwnershipTransferred(address(0), _owner);
-    }
-
-    function transferOwnership(address newOwner) external onlyOwner {
-        if (newOwner == address(0)) revert ZeroAddress();
-        emit OwnershipTransferred(owner, newOwner);
-        owner = newOwner;
     }
 
     function setQuorum(uint8 newQuorum) external onlyOwner {
-        // MVP safety: enforce 1 <= quorum <= maxVerifiers
         if (newQuorum == 0 || newQuorum > maxVerifiers) revert InvalidConfig();
+        uint8 old = quorum;
         quorum = newQuorum;
+        emit QuorumUpdated(old, newQuorum);
     }
 
     function setMaxVerifiers(uint8 newMax) external onlyOwner {
-        // MVP safety: enforce max >= quorum
         if (newMax == 0 || newMax < quorum) revert InvalidConfig();
+        uint8 old = maxVerifiers;
         maxVerifiers = newMax;
+        emit MaxVerifiersUpdated(old, newMax);
     }
 
     // ----------------------------
@@ -149,6 +135,12 @@ contract WeftMilestone is ReentrancyGuard {
 
     function getSplits(bytes32 milestoneHash) external view returns (Split[] memory) {
         return _splits[milestoneHash];
+    }
+
+    /// @notice Returns true if the milestone has timed out (deadline + grace period passed, not finalized).
+    function isTimedOut(bytes32 milestoneHash) public view returns (bool) {
+        MilestoneCore storage m = milestones[milestoneHash];
+        return m.builder != address(0) && !m.finalized && block.timestamp >= m.deadline + TIMEOUT_GRACE;
     }
 
     // ----------------------------
@@ -236,11 +228,9 @@ contract WeftMilestone is ReentrancyGuard {
         }
 
         // Failure path: we have collected all expected verifier votes and quorum is not reachable.
-        // MVP assumption: maxVerifiers is the number of verifier nodes participating (default 3).
         if (m.verifierCount >= maxVerifiers) {
             m.finalized = true;
             m.verified = false;
-            // Set evidence root to the last submitted one for a stable pointer (nodes should converge offchain).
             m.finalEvidenceRoot = evidenceRoot;
             emit MilestoneFinalized(milestoneHash, false, evidenceRoot);
         }
@@ -283,6 +273,22 @@ contract WeftMilestone is ReentrancyGuard {
         MilestoneCore storage m = milestones[milestoneHash];
         if (m.builder == address(0)) revert MilestoneNotFound();
         if (!m.finalized || m.verified) revert MilestoneNotFailed();
+
+        uint256 amount = stakes[milestoneHash][msg.sender];
+        if (amount == 0) revert NothingToRefund();
+
+        stakes[milestoneHash][msg.sender] = 0;
+        (bool ok, ) = msg.sender.call{value: amount}("");
+        if (!ok) revert TransferFailed();
+
+        emit Refunded(milestoneHash, msg.sender, amount);
+    }
+
+    /// @notice Backers can refund if the milestone is stuck (deadline + TIMEOUT_GRACE passed, not finalized).
+    function refundAfterTimeout(bytes32 milestoneHash) external nonReentrant {
+        MilestoneCore storage m = milestones[milestoneHash];
+        if (m.builder == address(0)) revert MilestoneNotFound();
+        if (!isTimedOut(milestoneHash)) revert TimeoutNotReached();
 
         uint256 amount = stakes[milestoneHash][msg.sender];
         if (amount == 0) revert NothingToRefund();

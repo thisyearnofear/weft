@@ -5,8 +5,12 @@ import {Test} from "forge-std/Test.sol";
 
 import {WeftMilestone} from "../src/WeftMilestone.sol";
 import {VerifierRegistry} from "../src/VerifierRegistry.sol";
+import {Ownable} from "../src/utils/Ownable.sol";
 
 contract WeftMilestoneTest is Test {
+    event QuorumUpdated(uint8 oldQuorum, uint8 newQuorum);
+    event MaxVerifiersUpdated(uint8 oldMax, uint8 newMax);
+
     address owner = makeAddr("owner");
     address builder = makeAddr("builder");
     address cobuilder = makeAddr("cobuilder");
@@ -309,5 +313,99 @@ contract WeftMilestoneTest is Test {
             keccak256(abi.encode(projectId, uint256(0), builder, deadline)),
             projectId, bytes32("t"), deadline, bytes32(0), new WeftMilestone.Split[](0)
         );
+    }
+
+    // ---- Two-step ownership ----
+
+    function testTwoStepOwnershipTransfer() public {
+        address newOwner = makeAddr("newOwner");
+
+        // Step 1: initiate transfer
+        vm.prank(owner);
+        weft.transferOwnership(newOwner);
+        assertEq(weft.pendingOwner(), newOwner);
+        assertEq(weft.owner(), owner); // owner unchanged
+
+        // Only pending owner can accept
+        vm.prank(owner);
+        vm.expectRevert(Ownable.NotPendingOwner.selector);
+        weft.acceptOwnership();
+
+        // Step 2: accept
+        vm.prank(newOwner);
+        weft.acceptOwnership();
+        assertEq(weft.owner(), newOwner);
+        assertEq(weft.pendingOwner(), address(0));
+    }
+
+    function testOnlyOwnerCanInitiateTransfer() public {
+        vm.prank(builder);
+        vm.expectRevert(Ownable.NotOwner.selector);
+        weft.transferOwnership(makeAddr("newOwner"));
+    }
+
+    // ---- Admin events ----
+
+    function testSetQuorumEmitsEvent() public {
+        vm.prank(owner);
+        vm.expectEmit(false, false, false, true);
+        emit QuorumUpdated(2, 1);
+        weft.setQuorum(1);
+    }
+
+    function testSetMaxVerifiersEmitsEvent() public {
+        vm.prank(owner);
+        vm.expectEmit(false, false, false, true);
+        emit MaxVerifiersUpdated(3, 5);
+        weft.setMaxVerifiers(5);
+    }
+
+    // ---- Timeout refund ----
+
+    function testRefundAfterTimeout() public {
+        bytes32 projectId = keccak256("p_timeout");
+        uint64 deadline = uint64(block.timestamp + 1 days);
+        bytes32 milestoneHash = keccak256(abi.encode(projectId, uint256(0), builder, deadline));
+
+        vm.prank(builder);
+        weft.createMilestone(milestoneHash, projectId, bytes32("t"), deadline, bytes32(0), new WeftMilestone.Split[](0));
+
+        vm.prank(backer1);
+        weft.stake{value: 2 ether}(milestoneHash);
+
+        // Not timed out yet (before deadline)
+        assertFalse(weft.isTimedOut(milestoneHash));
+
+        // After deadline but before grace period
+        vm.warp(deadline + 1 days);
+        assertFalse(weft.isTimedOut(milestoneHash));
+
+        // After deadline + TIMEOUT_GRACE (7 days)
+        vm.warp(deadline + 7 days);
+        assertTrue(weft.isTimedOut(milestoneHash));
+
+        // Backer can refund
+        uint256 before = backer1.balance;
+        vm.prank(backer1);
+        weft.refundAfterTimeout(milestoneHash);
+        assertEq(backer1.balance - before, 2 ether);
+    }
+
+    function testRefundAfterTimeoutFailsBeforeGrace() public {
+        bytes32 projectId = keccak256("p_no_timeout");
+        uint64 deadline = uint64(block.timestamp + 1 days);
+        bytes32 milestoneHash = keccak256(abi.encode(projectId, uint256(0), builder, deadline));
+
+        vm.prank(builder);
+        weft.createMilestone(milestoneHash, projectId, bytes32("t"), deadline, bytes32(0), new WeftMilestone.Split[](0));
+
+        vm.prank(backer1);
+        weft.stake{value: 1 ether}(milestoneHash);
+
+        // After deadline but before grace period
+        vm.warp(deadline + 3 days);
+        vm.prank(backer1);
+        vm.expectRevert(WeftMilestone.TimeoutNotReached.selector);
+        weft.refundAfterTimeout(milestoneHash);
     }
 }

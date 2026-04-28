@@ -50,6 +50,10 @@ interface IWeftMilestone {
     event MilestoneFinalized(bytes32 indexed milestoneHash, bool verified, bytes32 finalEvidenceRoot);
     event Released(bytes32 indexed milestoneHash, uint256 amount);
     event Refunded(bytes32 indexed milestoneHash, address indexed backer, uint256 amount);
+    event QuorumUpdated(uint8 oldQuorum, uint8 newQuorum);
+    event MaxVerifiersUpdated(uint8 oldMax, uint8 newMax);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event OwnershipTransferStarted(address indexed currentOwner, address indexed pendingOwner);
 
     // ---- Views ----
 
@@ -59,10 +63,14 @@ interface IWeftMilestone {
     function verifierRegistry() external view returns (address);
     function quorum() external view returns (uint8);
     function maxVerifiers() external view returns (uint8);
+    function owner() external view returns (address);
+    function pendingOwner() external view returns (address);
+    function isTimedOut(bytes32 milestoneHash) external view returns (bool);
 
     // ---- Admin ----
 
     function transferOwnership(address newOwner) external;
+    function acceptOwnership() external;
     function setQuorum(uint8 newQuorum) external;
     function setMaxVerifiers(uint8 newMax) external;
 
@@ -84,4 +92,6 @@ interface IWeftMilestone {
     function release(bytes32 milestoneHash) external;
 
     function refund(bytes32 milestoneHash) external;
+
+    function refundAfterTimeout(bytes32 milestoneHash) external;
 }

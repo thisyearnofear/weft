@@ -18,6 +18,7 @@ Behavior:
 """
 
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -33,6 +34,7 @@ from agent.lib.axl_client import broadcast_verdict
 from agent.lib.ens_client import update_ens_after_verification
 from agent.lib.jsonrpc import JsonRpcClient, default_cache
 from agent.lib.keeperhub_client import ExecutionStatus, execute_verdict, keeperhub_configured
+from agent.lib.logger import get_logger
 from agent.lib.peer_inbox import consensus_signers_for_base_root, default_inbox_dir
 from agent.lib.verdict_envelope import verify_envelope
 from agent.lib.verifier_registry_reader import VerifierRegistryClient, read_verifier_registry_address
@@ -50,10 +52,10 @@ from agent.lib.eth_rpc import block_number as eth_block_number, chain_id as eth_
 from agent.lib.deadline_scheduler import DeadlineScheduler
 from agent.lib.weft_milestone_reader import read_milestone
 from agent.lib.zero_storage import kv_put_string, upload_file_to_storage, write_evidence_to_storage
-from agent.lib.ens_client import update_ens_after_verification
 from agent.lib.bundle_pack import create_deterministic_tar_gz
 from agent.lib.bundle_manifest import build_manifest
 
+log = get_logger("daemon")
 
 ZERO_HASH = "0x" + "00" * 32
 CONSENSUS_SCHEMA_VERSION = 1
@@ -168,15 +170,26 @@ def main() -> int:
         if not registry_addr:
             registry_addr = read_verifier_registry_address(rpc, args.weft)
         registry_client = VerifierRegistryClient(rpc, registry_addr)
-        print(f"weft_daemon: verifierRegistry={registry_addr} (authorized peer checks enabled)")
+        log.info("verifier registry loaded", registry=registry_addr, authorized_checks=True)
 
-    print(f"weft_daemon: rpc={args.rpc_url} weft={args.weft} node={args.node_address}")
-    print(f"weft_daemon: publish_0g={bool(args.publish_0g)} broadcast={bool(args.broadcast)} interval={args.interval}s once={bool(args.once)}")
-    print(f"weft_daemon: keeperhub={args.use_keeperhub and not args.no_keeperhub} (configured={keeperhub_configured()})")
+    log.info(
+        "daemon starting",
+        rpc=args.rpc_url,
+        weft=args.weft,
+        node=args.node_address,
+        publish_0g=bool(args.publish_0g),
+        broadcast=bool(args.broadcast),
+        interval=f"{args.interval}s",
+        once=bool(args.once),
+        keeperhub=args.use_keeperhub and not args.no_keeperhub,
+        keeperhub_configured=keeperhub_configured(),
+    )
     if args.wait_for_peers:
-        print(
-            f"weft_daemon: wait_for_peers=true peer_threshold={args.peer_threshold} "
-            f"inbox_dir={args.inbox_dir} require_authorized_peers={bool(args.require_authorized_peers)}"
+        log.info(
+            "peer corroboration enabled",
+            peer_threshold=args.peer_threshold,
+            inbox_dir=args.inbox_dir,
+            require_authorized=bool(args.require_authorized_peers),
         )
 
     while True:
@@ -207,10 +220,10 @@ def main() -> int:
                     builder_ens=args.builder_ens,
                 )
         except KeyboardInterrupt:
-            print("weft_daemon: shutting down")
+            log.info("shutting down (keyboard interrupt)")
             return 0
         except Exception as e:
-            print(f"weft_daemon: poll cycle error: {e}", file=sys.stderr)
+            log.error("poll cycle failed", error=str(e), exc_info=True)
 
         if args.once:
             return 0
@@ -245,7 +258,7 @@ def _process_one(
     try:
         m = read_milestone(rpc, weft, milestone_hash)
     except Exception as e:
-        print(f"[{milestone_hash}] read_milestone failed: {e}")
+        log.error("read_milestone failed", milestone=milestone_hash, error=str(e))
         return
 
     # Derive template inputs from metadataHash (preferred).
@@ -254,7 +267,7 @@ def _process_one(
     except MetadataError as e:
         # If overrides are present, allow operating without metadata as an emergency path.
         if not (contract_address_override and measurement_window_seconds_override and unique_caller_threshold_override):
-            print(f"[{milestone_hash}] metadata download/validation failed: {e}")
+            log.error("metadata download/validation failed", milestone=milestone_hash, error=str(e))
             return
         meta = None
 
@@ -263,7 +276,7 @@ def _process_one(
     unique_caller_threshold = unique_caller_threshold_override or (meta.uniqueCallerThreshold if meta else 0)
 
     if not contract_address or measurement_window_seconds <= 0 or unique_caller_threshold <= 0:
-        print(f"[{milestone_hash}] missing template inputs (contract/window/threshold); cannot verify")
+        log.error("missing template inputs", milestone=milestone_hash, contract=contract_address, window=measurement_window_seconds, threshold=unique_caller_threshold)
         return
 
     # Window is defined relative to the onchain milestone deadline (source of truth).
@@ -331,7 +344,7 @@ def _process_one(
             evidence_root=base_evidence_root,
             node_address=node_address,
         )
-        print(f"[{milestone_hash}] broadcast: {br.succeeded}/{br.attempted} peers")
+        log.info("broadcast complete", milestone=milestone_hash, succeeded=br.succeeded, attempted=br.attempted)
 
     if wait_for_peers:
         # Wait until we observe N signed peer envelopes agreeing on the *base* evidence root.
@@ -406,7 +419,7 @@ def _process_one(
             time.sleep(2)
 
         if chosen is None:
-            print(f"[{milestone_hash}] wait_for_peers: no quorum seen in inbox yet (threshold={peer_threshold}); skipping vote this cycle")
+            log.warning("peer quorum not reached, skipping vote", milestone=milestone_hash, threshold=peer_threshold)
             return
 
         # Build deterministic consensus bundle and derive consensus root (optional).
@@ -422,14 +435,14 @@ def _process_one(
                     for p in sorted(chosen, key=lambda x: x.node_address.lower())
                 ],
             }
-            consensus_msg = __import__("json").dumps(consensus, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+            consensus_msg = json.dumps(consensus, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
             consensus_root = keccak_bytes(consensus_msg.encode("utf-8"))
             evidence_root = consensus_root
 
             # Persist consensus bundle alongside attestation (so the root is reproducible).
             consensus_path = os.path.join(out_dir, "consensus.json")
             with open(consensus_path, "w", encoding="utf-8") as f:
-                __import__("json").dump(consensus, f, indent=2, sort_keys=True)
+                json.dump(consensus, f, indent=2, sort_keys=True)
                 f.write("\n")
 
             # Write bundle_manifest.json before packing/uploading bundles.
@@ -443,7 +456,7 @@ def _process_one(
             )
             manifest_path = os.path.join(out_dir, "bundle_manifest.json")
             with open(manifest_path, "w", encoding="utf-8") as f:
-                __import__("json").dump(manifest, f, indent=2, sort_keys=True)
+                json.dump(manifest, f, indent=2, sort_keys=True)
                 f.write("\n")
 
             # Optional: publish consensus.json to 0G and write KV mappings so the onchain
@@ -451,47 +464,39 @@ def _process_one(
             if publish_consensus_0g and publish_0g:
                 consensus_0g_root = upload_file_to_storage(consensus_path)
                 if consensus_0g_root:
-                    # Two useful keys:
-                    # 1) milestone -> latest consensus object root
-                    # 2) consensusRoot -> consensus object root (content addressable lookup)
-                    kv_put_string(
-                        key=f"weft:milestone:{milestone_hash}:consensus",
-                        value=consensus_0g_root,
-                    )
-                    kv_put_string(
-                        key=f"weft:consensus:{consensus_root}",
-                        value=consensus_0g_root,
-                    )
-                    print(f"[{milestone_hash}] published consensus.json to 0G root={consensus_0g_root}")
+                    kv_put_string(key=f"weft:milestone:{milestone_hash}:consensus", value=consensus_0g_root)
+                    kv_put_string(key=f"weft:consensus:{consensus_root}", value=consensus_0g_root)
+                    log.info("published consensus.json to 0G", milestone=milestone_hash, root=consensus_0g_root)
                 else:
-                    print(f"[{milestone_hash}] publish_consensus_0g enabled but upload failed or not configured")
+                    log.warning("publish_consensus_0g enabled but upload failed", milestone=milestone_hash)
 
-            print(f"[{milestone_hash}] consensusRoot={consensus_root} (baseEvidenceRoot={base_evidence_root}) signers={len(chosen)}")
+            log.info(
+                "consensus root derived",
+                milestone=milestone_hash,
+                consensus_root=consensus_root,
+                base_evidence_root=base_evidence_root,
+                signers=len(chosen),
+            )
 
             # Optional: publish a full bundle tarball containing attestation + consensus + any artifacts.
-            # This gives a single 0G root for the entire decision context.
             if publish_bundle_0g and publish_0g:
                 bundle_path = os.path.join(out_dir, "bundle.tar.gz")
                 create_deterministic_tar_gz(out_dir, bundle_path)
                 bundle_root = upload_file_to_storage(bundle_path)
                 if bundle_root:
-                    # milestone -> latest bundle
-                    kv_put_string(
-                        key=f"weft:milestone:{milestone_hash}:bundle",
-                        value=bundle_root,
-                    )
-                    # consensusRoot -> bundle
-                    kv_put_string(
-                        key=f"weft:consensus:{consensus_root}:bundle",
-                        value=bundle_root,
-                    )
-                    print(f"[{milestone_hash}] published bundle.tar.gz to 0G root={bundle_root}")
+                    kv_put_string(key=f"weft:milestone:{milestone_hash}:bundle", value=bundle_root)
+                    kv_put_string(key=f"weft:consensus:{consensus_root}:bundle", value=bundle_root)
+                    log.info("published bundle.tar.gz to 0G", milestone=milestone_hash, root=bundle_root)
                 else:
-                    print(f"[{milestone_hash}] publish_bundle_0g enabled but upload failed or not configured")
+                    log.warning("publish_bundle_0g enabled but upload failed", milestone=milestone_hash)
 
-    print(
-        f"[{milestone_hash}] window blocks {start_block}-{end_block} uniqueCallers={unique_count} "
-        f"verified={verified_arg} evidenceRoot={evidence_root}"
+    log.info(
+        "verification complete",
+        milestone=milestone_hash,
+        blocks=f"{start_block}-{end_block}",
+        unique_callers=unique_count,
+        verified=verified_arg,
+        evidence_root=evidence_root,
     )
 
     # Submit onchain vote via KeeperHub (preferred) or cast send (fallback)
@@ -520,7 +525,7 @@ def _process_one(
             storage_receipt=_Receipt(),
             earnings=0,
         )
-        print(f"[{milestone_hash}] ENS records updated for {builder_ens}")
+        log.info("ENS records updated", milestone=milestone_hash, builder=builder_ens)
 
 
 def _submit_verdict(
@@ -548,17 +553,17 @@ def _submit_verdict(
         )
         if result is not None:
             if result.status == ExecutionStatus.CONFIRMED:
-                tx_info = f"tx={result.tx_hash}" if result.tx_hash else ""
-                print(f"[{milestone_hash}] vote submitted via KeeperHub {tx_info}")
+                log.info("vote submitted via KeeperHub", milestone=milestone_hash, tx=result.tx_hash)
                 return
             else:
-                print(
-                    f"[{milestone_hash}] KeeperHub execution {result.status.value}"
-                    f"{f': {result.error}' if result.error else ''}; "
-                    f"falling back to cast send"
+                log.warning(
+                    "KeeperHub execution failed, falling back to cast",
+                    milestone=milestone_hash,
+                    status=result.status.value,
+                    error=result.error,
                 )
         else:
-            print(f"[{milestone_hash}] KeeperHub unavailable; falling back to cast send")
+            log.warning("KeeperHub unavailable, falling back to cast", milestone=milestone_hash)
 
     # Fallback: raw cast send
     try:
@@ -582,11 +587,11 @@ def _submit_verdict(
             check=False,
         )
         if proc.returncode != 0:
-            print(f"[{milestone_hash}] cast send failed:\n{proc.stdout}")
+            log.error("cast send failed", milestone=milestone_hash, output=proc.stdout)
         else:
-            print(f"[{milestone_hash}] vote submitted")
+            log.info("vote submitted via cast", milestone=milestone_hash)
     except Exception as e:
-        print(f"[{milestone_hash}] cast send error: {e}")
+        log.error("cast send error", milestone=milestone_hash, error=str(e))
 
 
 if __name__ == "__main__":
