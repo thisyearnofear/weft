@@ -232,51 +232,48 @@ The narrative is the product. The automation is the moat.
 
 ## Technical Architecture
 
-### Hermes Agent Deployment
+### Deployment Model
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    Weft Platform                     │
-│                                                     │
-│  ┌──────────────┐  ┌──────────────┐                │
-│  │  Hermes Agent │  │  Hermes Agent │  (1 per region│
-│  │  (verifier)   │  │  (verifier)   │   for latency)│
-│  │              │  │              │                │
-│  │  Skills:     │  │  Skills:     │                │
-│  │  • verify    │  │  • verify    │                │
-│  │  • narrate   │  │  • narrate   │                │
-│  │  • report    │  │  • report    │                │
-│  │  • release   │  │  • release   │                │
-│  │              │  │              │                │
-│  │  Memory:     │  │  Memory:     │                │
-│  │  • milestones│  │  • milestones│                │
-│  │  • builders  │  │  • builders  │                │
-│  │  • patterns  │  │  • patterns  │                │
-│  └──────┬───────┘  └──────┬───────┘                │
-│         │                 │                         │
-│         └────────┬────────┘                         │
-│                  │                                  │
-│         ┌────────▼────────┐                         │
-│         │  Messaging GW   │                         │
-│         │  Telegram/Discord│                        │
-│         └─────────────────┘                         │
-└─────────────────────────────────────────────────────┘
-         │              │              │
-    ┌────▼────┐   ┌────▼────┐   ┌────▼────┐
-    │Verifier │   │Verifier │   │Verifier │  (peer nodes)
-    │ Node 1  │   │ Node 2  │   │ Node 3  │
-    └─────────┘   └─────────┘   └─────────┘
+┌─────────────────────────────────────────────────────────┐
+│              Free Tier — GCP e2-micro (free)             │
+│                                                         │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐                │
+│  │Verifier │  │Verifier │  │Verifier │                 │
+│  │ Node 1  │  │ Node 2  │  │ Node 3  │                 │
+│  │ daemon  │  │ daemon  │  │ daemon  │                 │
+│  └────┬────┘  └────┬────┘  └────┬────┘                 │
+│       └────────────┼────────────┘                       │
+│              peer inbox broadcast                       │
+└────────────────────┼────────────────────────────────────┘
+                     │
+              ┌──────▼──────┐
+              │  0G Chain   │
+              │  Contracts  │
+              └──────┬──────┘
+                     │
+┌────────────────────┼────────────────────────────────────┐
+│         Paid Tier — GitHub Codespace (free 60h/mo)       │
+│                     │                                    │
+│  ┌──────────────────▼──────────────────┐                │
+│  │         Hermes Agent                 │                │
+│  │                                      │                │
+│  │  Skills:                             │                │
+│  │  • weft-verify (evidence + vote)     │                │
+│  │  • weft-narrate (Kimi narratives)    │                │
+│  │  • weft-status (state queries)       │                │
+│  │                                      │                │
+│  │  Memory: persistent across sessions  │                │
+│  │  Interface: CLI / Telegram / Discord  │                │
+│  └──────────────────────────────────────┘                │
+└──────────────────────────────────────────────────────────┘
 ```
 
-### Hermes Skills to Build
+### Hermes Skills (built)
 
-1. **verify-milestone** — Given a milestone hash, collect evidence, check deployment, count callers
-2. **generate-narrative** — Given an attestation, call Kimi to produce a human-readable report
-3. **coordinate-consensus** — Broadcast to peers, wait for quorum, derive consensus root
-4. **submit-verdict** — Submit onchain vote via KeeperHub with retry
-5. **release-funds** — Call release() on verified milestones
-6. **check-status** — Query milestone state and return formatted status
-7. **update-reputation** — Update ENS text records after verification
+1. **weft-verify** — Check milestone state, collect evidence, submit verdict
+2. **weft-narrate** — Generate human-readable narrative via Kimi from attestation data
+3. **weft-status** — Query and format milestone status for builders
 
 ---
 
@@ -306,12 +303,14 @@ The narrative is the product. The automation is the moat.
 
 ### Hackathon (now)
 - [x] Contracts deployed on 0G Galileo
-- [x] 3-node verifier infrastructure on GCP
+- [x] 3-node verifier infrastructure on GCP (free tier)
 - [x] Structured logging
 - [x] Kimi narrative generation
-- [ ] Install Hermes Agent on VM
-- [ ] Create verify-milestone skill
-- [ ] Create generate-narrative skill
+- [x] Hermes skills created (verify, narrate, status)
+- [x] DevContainer config for Codespace deployment
+- [ ] Install Hermes Agent in Codespace
+- [ ] Configure Kimi API key
+- [ ] Test end-to-end via Hermes CLI
 - [ ] Record demo video
 - [ ] Submit to both hackathons
 
