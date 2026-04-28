@@ -91,7 +91,7 @@ __all__ = [
     # indexer_client
     "IndexerClient", "MilestoneState",
     # ens_client
-    "EnsClient", "BuilderProfile", "update_ens_after_verification",
+    "EnsClient", "BuilderProfile", "update_ens_after_verification", "update_agent_record",
     # keeperhub_client
     "ExecutionStatus", "KeeperHubClientError", "KeeperHubExecution",
     "execute_contract_call", "execute_verdict",

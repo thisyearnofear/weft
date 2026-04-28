@@ -8,10 +8,10 @@ Updates text records on builder ENS names after milestone verification.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import subprocess
+import urllib.request
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
@@ -153,67 +153,163 @@ class EnsClient:
             reputation_score=int(self._get_text(ens_name, "weft.reputation.score") or "0"),
         )
 
-    def _get_text(self, ens_name: str, key: str) -> Optional[str]:
-        """Read text record via eth_call."""
-        node = _namehash(ens_name)
-        data = _encode_text("text(bytes32,string)", node, key)
+    def verify_ownership(self, ens_name: str) -> bool:
+        """Pre-flight: verify the configured wallet owns the ENS name.
 
-        import urllib.request
-        req = urllib.request.Request(
-            self.rpc_url,
-            data=json.dumps({
-                "jsonrpc": "2.0",
-                "method": "eth_call",
-                "params": [{"to": self.public_resolver, "data": data}, "latest"],
-                "id": 1,
-            }).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
+        Calls owner(bytes32) on the ENS registry. Returns False on any error so
+        callers can emit a helpful message instead of letting the tx revert silently.
+        """
+        node = _namehash(ens_name)
+        calldata = _encode_calldata("owner(bytes32)", node)
         try:
+            req = urllib.request.Request(
+                self.rpc_url,
+                data=json.dumps({
+                    "jsonrpc": "2.0",
+                    "method": "eth_call",
+                    "params": [{"to": self.ens_registry, "data": calldata}, "latest"],
+                    "id": 1,
+                }).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+            owner_hex = result.get("result", "")
+            if not owner_hex or owner_hex == "0x" + "00" * 32:
+                return False
+            owner_addr = "0x" + owner_hex[-40:].lower()
+            proc = subprocess.run(
+                ["cast", "wallet", "address", "--private-key", self.wallet_key],
+                capture_output=True, text=True, check=False,
+            )
+            if proc.returncode != 0:
+                return False
+            our_addr = proc.stdout.strip().lower()
+            return our_addr == owner_addr
+        except Exception:
+            return False
+
+    def update_agent_record(
+        self,
+        agent_ens: str,
+        contributions: Optional[int] = None,
+        earnings: int = 0,
+        projects: Optional[List[str]] = None,
+    ) -> str:
+        """Update co-builder agent subname records per docs/data-model.md:
+          weft.agent.contributions, weft.agent.earnings, weft.agent.projects
+        """
+        updates: Dict[str, str] = {}
+
+        if contributions is not None:
+            updates["weft.agent.contributions"] = str(contributions)
+        if earnings > 0:
+            existing = int(self._get_text(agent_ens, "weft.agent.earnings") or "0")
+            updates["weft.agent.earnings"] = str(existing + earnings)
+        if projects:
+            existing_raw = self._get_text(agent_ens, "weft.agent.projects") or "[]"
+            current = json.loads(existing_raw)
+            for p in projects:
+                if p not in current:
+                    current.append(p)
+            updates["weft.agent.projects"] = json.dumps(current)
+
+        if not updates:
+            return ""
+        return self._execute_text_updates(agent_ens, updates)
+
+    def _get_text(self, ens_name: str, key: str) -> Optional[str]:
+        """Read text record via eth_call → text(bytes32,string)."""
+        node = _namehash(ens_name)
+        calldata = _encode_calldata("text(bytes32,string)", node, key)
+        try:
+            req = urllib.request.Request(
+                self.rpc_url,
+                data=json.dumps({
+                    "jsonrpc": "2.0",
+                    "method": "eth_call",
+                    "params": [{"to": self.public_resolver, "data": calldata}, "latest"],
+                    "id": 1,
+                }).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
             with urllib.request.urlopen(req, timeout=10) as resp:
                 result = json.loads(resp.read().decode("utf-8"))
             return result.get("result")
         except Exception:
             return None
 
-    def _set_text_call(self, ens_name: str, key: str, value: str) -> Dict[str, Any]:
-        """Build setText calldata."""
-        node = _namehash(ens_name)
-        encoded = _encode_text("setText(bytes32,string,string)", node, key, value)
-        return {"to": self.public_resolver, "data": encoded}
+    def _execute_text_updates(self, ens_name: str, updates: Dict[str, str]) -> str:
+        """Send one cast send setText(bytes32,string,string) per key-value pair.
 
-    def _execute(self, calls: List[Dict[str, Any]]) -> str:
-        """Execute via cast multicall."""
-        multicall = json.dumps(calls).replace('"', '\\"')
-        result = subprocess.run([
-            "cast", "send", self.public_resolver,
-            f"multicall(bytes)",
-            multicall,
-            "--rpc-url", self.rpc_url,
-            "--private-key", self.wallet_key,
-        ], capture_output=True, text=True)
-        return result.stdout.strip() if result.returncode == 0 else ""
+        Replaces the previous fragile multicall approach. Each setText is a
+        separate transaction — no escaping issues, full error propagation.
+        Returns the last tx hash on success, or empty string if all fail.
+        """
+        node = _namehash(ens_name)
+        last_tx = ""
+        for key, value in updates.items():
+            proc = subprocess.run(
+                [
+                    "cast", "send",
+                    "--rpc-url", self.rpc_url,
+                    "--private-key", self.wallet_key,
+                    self.public_resolver,
+                    "setText(bytes32,string,string)",
+                    node, key, value,
+                ],
+                capture_output=True, text=True, check=False,
+            )
+            if proc.returncode == 0:
+                last_tx = proc.stdout.strip()
+            else:
+                print(f"ens_client: setText failed for key={key}: {proc.stderr.strip()}")
+        return last_tx
+
+
+def _keccak256(data: bytes) -> bytes:
+    """Compute keccak256 via `cast keccak` (no extra deps, consistent with mvp_verifier)."""
+    proc = subprocess.run(
+        ["cast", "keccak"],
+        input=data,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(f"cast keccak failed: {proc.stderr.decode().strip()}")
+    hex_str = proc.stdout.decode().strip()
+    return bytes.fromhex(hex_str[2:] if hex_str.startswith("0x") else hex_str)
 
 
 def _namehash(name: str) -> str:
-    """Compute ENS namehash."""
-    labels = name.split(".")
+    """Compute ENS namehash per EIP-137 using keccak256 (not sha256).
+
+    node = keccak256(namehash(parent) ++ keccak256(label))
+    Starting node is 0x00..00 (32 zero bytes).
+    """
     node = b"\x00" * 32
-    for label in reversed(labels):
-        label_hash = hashlib.sha256(label.encode("utf-8")).hexdigest()
-        combined = label_hash + node[2:]
-        node = "0x" + hashlib.sha256(bytes.fromhex(combined)).hexdigest()
-    return node
+    if name:
+        for label in reversed(name.split(".")):
+            label_hash = _keccak256(label.encode("utf-8"))
+            node = _keccak256(node + label_hash)
+    return "0x" + node.hex()
 
 
-def _encode_text(selector: str, *args: str) -> str:
-    """ABI-encode text record args."""
-    args_str = ",".join(f'"{a}"' for a in args)
-    result = subprocess.run([
-        "cast", "calldata", f"{selector}({args_str})",
-    ], capture_output=True, text=True)
-    return result.stdout.strip()
+def _encode_calldata(selector: str, *args: str) -> str:
+    """ABI-encode a function call via `cast calldata`.
+
+    Uses the correct `cast calldata "fn(types)" arg1 arg2` syntax.
+    """
+    proc = subprocess.run(
+        ["cast", "calldata", selector, *args],
+        capture_output=True, text=True, check=False,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(f"cast calldata failed for {selector}: {proc.stderr.strip()}")
+    return proc.stdout.strip()
 
 
 def update_ens_after_verification(
@@ -224,14 +320,27 @@ def update_ens_after_verification(
     earnings: int,
     role: str = "builder",
 ) -> str:
-    """Update all ENS records after milestone verification."""
+    """Update all ENS records after milestone verification.
+
+    Pre-flight: checks ownership before writing. Emits a clear error if the
+    verifier's key does not control the builder's ENS name so the tx doesn't
+    revert silently.
+    """
     rpc = os.environ.get("ETH_RPC_URL", "")
-    key = os.environ.get("VERIFIER_PRIVATE_KEY", "")
+    key = os.environ.get("VERIFIER_PRIVATE_KEY", "") or os.environ.get("PRIVATE_KEY", "")
 
     if not rpc or not key:
         return ""
 
     client = EnsClient(rpc, key)
+
+    if not client.verify_ownership(builder_ens):
+        print(
+            f"ens_client: skipping ENS update — verifier key does not own '{builder_ens}'. "
+            f"The builder must set the verifier address as owner or approved operator."
+        )
+        return ""
+
     tx_hashes = []
 
     tx = client.update_builder_profile(

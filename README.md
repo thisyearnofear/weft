@@ -11,41 +11,7 @@ Weft replaces four things that currently require corporations, lawyers, and mana
 | Identity / CV | ENS text records (portable, machine-readable) |
 | Funding / equity | `WeftMilestone.sol` — milestone-staked ETH |
 | Verification / managers | Hermes Agent verification loop |
-| Settlement / payroll | KeeperHub + Uniswap revenue routing (planned) |
-
-## Architecture
-
-```
-weft/
-├── contracts/              # Solidity contracts + tests (Foundry)
-│   ├── src/               # WeftMilestone, VerifierRegistry, interfaces/
-│   ├── script/            # Deployment scripts
-│   └── test/              # Test suite (3 tests passing)
-├── agent/                 # Hermes agent layer
-│   ├── lib/               # Single source of truth (jsonrpc, abi, github, kimi, ...)
-│   ├── scripts/          # CLI entry points
-│   └── hermes.config.yml # Agent configuration
-├── scripts/              # deploy.sh, register-verifier.sh
-├── docs/                 # mvp.md, architecture.md
-└── AGENTS.md             # Agent workflow reference
-```
-
-## Core Components
-
-### Contracts (`contracts/src/`)
-
-- **WeftMilestone.sol** — milestone-based escrow with 2-of-3 verifier quorum
-- **VerifierRegistry.sol** — authorized Hermes node registry
-- **interfaces/** — `IKeeperHub.sol`, `IWeftMilestone.sol` (pluggable interfaces)
-
-### Agent (`agent/lib/`)
-
-- **jsonrpc.py** — JSON-RPC client with file caching
-- **github_client.py** — GitHub commits/PRs in milestone window
-- **kimi_client.py** — Kimi API for narrative generation (stubbed)
-- **zero_storage.py** — 0G Storage read/write (env var config)
-- **deadline_scheduler.py** — polls for milestones past deadline
-- **indexer_client.py** — unified indexer with KV fallback
+| Settlement / payroll | KeeperHub reliable execution (ETH-only; Uniswap routing deferred) |
 
 ## Quick Start
 
@@ -64,17 +30,12 @@ forge test
 DEPLOYER_KEY=0x... ETH_RPC_URL=http://127.0.0.1:8545 ./scripts/deploy.sh
 
 # Builder onboarding (alpha)
-#
-# 1) Create milestone metadata (optionally upload to 0G for a metadataHash root)
-# 2) Create milestone onchain (deterministically computes milestoneHash)
-# 3) Stake into milestone
 python3 scripts/weft_builder.py init-metadata \
   --chain-id 16600 \
   --contract-address 0x0000000000000000000000000000000000000000 \
   --deadline 1710000000 \
   --upload-0g
 
-# Optional (recommended): verify the uploaded metadata before creating a milestone
 python3 scripts/weft_builder.py verify-metadata \
   --root 0x... \
   --expect-chain-id 16600 \
@@ -89,7 +50,7 @@ python3 scripts/weft_builder.py create-milestone \
   --metadata-root 0x... \
   --indexer "$ZERO_G_INDEXER_RPC"
 
-# Tip: add --dry-run to print computed milestoneHash + exact calldata for debugging/support.
+# Tip: add --dry-run to create-milestone to print computed milestoneHash + calldata
 
 python3 scripts/weft_builder.py stake \
   --rpc-url "$ETH_RPC_URL" \
@@ -133,14 +94,17 @@ python3 agent/scripts/weft_status_api.py --port 9010
 | `WEFT_CONTRACT_ADDRESS` | Yes | Deployed WeftMilestone |
 | `GITHUB_TOKEN` | No | GitHub API for commits/PRs |
 | `KIMI_API_KEY` | No | Kimi API for narrative |
-| `ZERO_G_INDEXER_RPC` | Yes (verifier) | Needed so verifier can download milestone metadata by `metadataHash` |
+| `KEEPERHUB_API_KEY` | No | KeeperHub reliable execution (fallback: `cast send`) |
+| `ZERO_G_INDEXER_RPC` | Yes (verifier) | Milestone metadata lookup |
 | `ZERO_G_*` | No | 0G Storage config (publish evidence/bundles) |
+
+See [AGENTS.md](AGENTS.md) for the full environment variable reference.
 
 ## Links
 
+- [Technical Architecture](docs/architecture.md)
 - [MVP Spec](docs/mvp.md)
 - [Agent Workflow](AGENTS.md)
-- [Technical Architecture](docs/architecture.md)
 
 ## Deployed Contracts
 

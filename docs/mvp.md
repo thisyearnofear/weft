@@ -11,7 +11,7 @@ This document defines the **single deterministic milestone template** and **atte
 
 Non-goals for MVP:
 - generalized “creative” verification across arbitrary deliverables
-- Uniswap routing / revenue sharing beyond basic milestone release
+- Uniswap routing / multi-token revenue sharing (deferred until real demand — current settlement is ETH-only via `release()`)
 - complex dispute / appeals
 
 ---

@@ -30,6 +30,7 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from agent.lib.axl_client import broadcast_verdict
+from agent.lib.ens_client import update_ens_after_verification
 from agent.lib.jsonrpc import JsonRpcClient, default_cache
 from agent.lib.keeperhub_client import ExecutionStatus, execute_verdict, keeperhub_configured
 from agent.lib.peer_inbox import consensus_signers_for_base_root, default_inbox_dir
@@ -49,6 +50,7 @@ from agent.lib.eth_rpc import block_number as eth_block_number, chain_id as eth_
 from agent.lib.deadline_scheduler import DeadlineScheduler
 from agent.lib.weft_milestone_reader import read_milestone
 from agent.lib.zero_storage import kv_put_string, upload_file_to_storage, write_evidence_to_storage
+from agent.lib.ens_client import update_ens_after_verification
 from agent.lib.bundle_pack import create_deterministic_tar_gz
 from agent.lib.bundle_manifest import build_manifest
 
@@ -63,6 +65,7 @@ def main() -> int:
     p.add_argument("--weft", default=os.environ.get("WEFT_CONTRACT_ADDRESS") or os.environ.get("WEFT_MILESTONE_ADDRESS") or "")
     p.add_argument("--private-key", default=os.environ.get("VERIFIER_PRIVATE_KEY") or os.environ.get("PRIVATE_KEY") or "")
     p.add_argument("--node-address", default=os.environ.get("VERIFIER_ADDRESS") or os.environ.get("NODE_ADDRESS") or "0x0000000000000000000000000000000000000000")
+    p.add_argument("--builder-ens", default=os.environ.get("WEFT_BUILDER_ENS") or "", help="Builder ENS name to update after verification (e.g. builder.weft.eth)")
 
     # MVP template inputs (preferred: derive from milestone.metadataHash via 0G).
     # These are optional overrides for emergency/debug.
@@ -126,6 +129,11 @@ def main() -> int:
     p.add_argument("--interval", type=int, default=int(os.environ.get("POLL_INTERVAL") or 60))
     p.add_argument("--once", action="store_true")
     p.add_argument("--no-cache", action="store_true")
+    p.add_argument(
+        "--builder-ens",
+        default=os.environ.get("BUILDER_ENS") or "",
+        help="Builder ENS name (e.g. builder.weft.eth). If set, updates ENS text records after verification.",
+    )
 
     # KeeperHub reliable execution
     p.add_argument(
@@ -200,6 +208,7 @@ def main() -> int:
                 publish_bundle_0g=args.publish_bundle_0g,
                 use_keeperhub=args.use_keeperhub and not args.no_keeperhub,
                 keeperhub_timeout=args.keeperhub_timeout,
+                builder_ens=args.builder_ens,
             )
 
         if args.once:
@@ -230,6 +239,7 @@ def _process_one(
     publish_bundle_0g: bool,
     use_keeperhub: bool,
     keeperhub_timeout: int = 120,
+    builder_ens: str = "",
 ) -> None:
     try:
         m = read_milestone(rpc, weft, milestone_hash)
@@ -497,6 +507,20 @@ def _process_one(
         out_dir=out_dir,
     )
 
+    # Update ENS text records if a builder ENS name is configured (verified milestones only)
+    if builder_ens and verified_bool:
+        class _Receipt:
+            log_root = evidence_root
+            timestamp = int(time.time())
+        update_ens_after_verification(
+            builder_ens=builder_ens,
+            project_id=str(m.projectId),
+            milestone_hash=milestone_hash,
+            storage_receipt=_Receipt(),
+            earnings=0,
+        )
+        print(f"[{milestone_hash}] ENS records updated for {builder_ens}")
+
 
 def _submit_verdict(
     *,
@@ -525,6 +549,11 @@ def _submit_verdict(
             if result.status == ExecutionStatus.CONFIRMED:
                 tx_info = f"tx={result.tx_hash}" if result.tx_hash else ""
                 print(f"[{milestone_hash}] vote submitted via KeeperHub {tx_info}")
+                
+                _update_ens_if_configured(
+                    builder_ens, milestone_hash, project_id, storage_receipt,
+                    earnings, args, out_dir, rpc_url, private_key, weft
+                )
                 return
             else:
                 print(
@@ -562,6 +591,40 @@ def _submit_verdict(
             print(f"[{milestone_hash}] vote submitted")
     except Exception as e:
         print(f"[{milestone_hash}] cast send error: {e}")
+
+
+def _update_ens_if_configured(
+    builder_ens: str,
+    milestone_hash: str,
+    project_id: str,
+    storage_receipt,
+    earnings: int,
+    args,
+    out_dir: Optional[str],
+    rpc_url: str,
+    private_key: str,
+    weft: str,
+) -> None:
+    """Update ENS records after verdict submission if ENS is configured."""
+    builder = args.builder_ens or os.environ.get("WEFT_BUILDER_ENS")
+    if not builder:
+        return
+    
+    try:
+        tx_hashes = update_ens_after_verification(
+            builder_ens=builder,
+            project_id=project_id,
+            milestone_hash=milestone_hash,
+            storage_receipt=storage_receipt,
+            earnings=earnings,
+            role="verifier",
+        )
+        if tx_hashes:
+            print(f"[{milestone_hash}] ENS records updated")
+        else:
+            print(f"[{milestone_hash}] ENS update skipped (not configured or failed)")
+    except Exception as e:
+        print(f"[{milestone_hash}] ENS update error: {e}")
 
 
 if __name__ == "__main__":

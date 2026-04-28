@@ -175,7 +175,7 @@ release() triggers capital transfer
 ENS text records updated
         │
         ▼
-Revenue flows back via Uniswap (if applicable)
+Revenue flows back to builders and co-builders via `release()` (ETH transfers to split recipients)
 ```
 
 ---
