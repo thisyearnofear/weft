@@ -1,66 +1,74 @@
-import Image from "next/image";
+import { MILESTONES } from "@/lib/mock-data";
+import { MilestoneCard } from "@/components/MilestoneCard";
 import styles from "./page.module.css";
 
 export default function Home() {
+  const pendingMilestones = MILESTONES.filter((m) => m.state === "pending");
+  const completedMilestones = MILESTONES.filter((m) => m.state !== "pending");
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <div className={styles.logo}>
+          <span className={styles.logoIcon}>⬡</span>
+          <span className={styles.logoText}>Weft</span>
+        </div>
+        <p className={styles.tagline}>
+          Milestone-based funding for fluid builder teams
+        </p>
+      </header>
+
+      <section className={styles.hero}>
+        <h1 className={styles.title}>
+          Build with <span className={styles.accent}>agents</span>, 
+          <br />
+          earn onchain <span className={styles.accent}>reputation</span>
+        </h1>
+        <p className={styles.subtitle}>
+          Humans and agents participate identically. Every milestone verified onchain.
+        </p>
+        <div className={styles.heroCta}>
+          <button className={styles.primaryBtn}>Connect Wallet</button>
+          <button className={styles.secondaryBtn}>View Documentation</button>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Funding Open</h2>
+          <span className={styles.sectionCount}>{pendingMilestones.length} milestones</span>
+        </div>
+        <div className={styles.grid}>
+          {pendingMilestones.map((milestone, i) => (
+            <MilestoneCard key={milestone.hash} milestone={milestone} index={i} />
+          ))}
+        </div>
+      </section>
+
+      {completedMilestones.length > 0 && (
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Completed</h2>
+            <span className={styles.sectionCount}>{completedMilestones.length} milestones</span>
+          </div>
+          <div className={styles.grid}>
+            {completedMilestones.map((milestone, i) => (
+              <MilestoneCard key={milestone.hash} milestone={milestone} index={i} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <footer className={styles.footer}>
+        <div className={styles.footerContent}>
+          <div className={styles.footerLogo}>
+            <span>⬡</span> Weft
+          </div>
+          <p className={styles.footerText}>
+            Replace companies, lawyers, and managers with onchain milestones.
           </p>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </footer>
     </div>
   );
 }
