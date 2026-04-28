@@ -142,6 +142,19 @@ python3 agent/scripts/weft_status_api.py --port 9010
 - [Agent Workflow](AGENTS.md)
 - [Technical Architecture](docs/architecture.md)
 
+## Deployed Contracts
+
+**0G Galileo Testnet (Chain ID: 16602)**
+
+| Contract | Address |
+|---|---|
+| WeftMilestone | `0xcc768d56b0053b1b2df5391dde989be3f859474c` |
+| VerifierRegistry | `0x599e34de50379c584787e0b7ba616ac9b6723169` |
+
+**RPC**: `https://evmrpc-testnet.0g.ai`
+
+**Explorer**: `https://explorer-testnet.0g.ai`
+
 ## License
 
 MIT
