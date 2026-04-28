@@ -115,8 +115,14 @@ python agent/scripts/weft_collect_attestation.py \
 ETH_RPC_URL="http://127.0.0.1:8545" \
 WEFT_CONTRACT_ADDRESS="0x..." \
 PRIVATE_KEY="0x..." \
-CONTRACT_ADDRESS="0x..." \
+ZERO_G_INDEXER_RPC="https://..." \
 python3 agent/scripts/weft_daemon.py --once
+
+# Run builder status API (read-only)
+ETH_RPC_URL="http://127.0.0.1:8545" \
+WEFT_CONTRACT_ADDRESS="0x..." \
+ZERO_G_INDEXER_RPC="https://..." \
+python3 agent/scripts/weft_status_api.py --port 9010
 ```
 
 ## Environment Variables
@@ -127,7 +133,8 @@ python3 agent/scripts/weft_daemon.py --once
 | `WEFT_CONTRACT_ADDRESS` | Yes | Deployed WeftMilestone |
 | `GITHUB_TOKEN` | No | GitHub API for commits/PRs |
 | `KIMI_API_KEY` | No | Kimi API for narrative |
-| `ZERO_G_*` | No | 0G Storage config |
+| `ZERO_G_INDEXER_RPC` | Yes (verifier) | Needed so verifier can download milestone metadata by `metadataHash` |
+| `ZERO_G_*` | No | 0G Storage config (publish evidence/bundles) |
 
 ## Links
 

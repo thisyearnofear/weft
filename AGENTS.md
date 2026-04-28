@@ -62,6 +62,7 @@ indexer_client.get_milestone() reads final state
 | `weft_peer_server.py` | Receive peer broadcasts (POST /send) and persist to `agent/.inbox/` |
 | `weft_verify_bundle.py` | Verify bundles via bundle_manifest.json (hashes + sizes) |
 | `weft_download_and_verify_bundle.py` | Download bundle.tar.gz from 0G by root and verify |
+| `weft_status_api.py` | Minimal read-only HTTP API for builders (milestone status, optional metadata) |
 
 ## Builder onboarding (first cohort)
 
@@ -78,6 +79,25 @@ Recommended flow:
 Tip: append `--dry-run` to `create-milestone` to print the computed `milestoneHash` and the exact
 `createMilestone(...)` calldata for copy/paste debugging.
 
+### Builder status API (recommended)
+
+Run a lightweight HTTP status endpoint for builders:
+
+```bash
+export ETH_RPC_URL="https://..."
+export WEFT_CONTRACT_ADDRESS="0x..."
+export ZERO_G_INDEXER_RPC="https://..."   # optional (enables includeMetadata=1)
+
+python3 agent/scripts/weft_status_api.py --port 9010
+```
+
+Then builders can fetch:
+
+```bash
+curl "http://localhost:9010/milestone/0x...?"
+curl "http://localhost:9010/milestone/0x...?includeMetadata=1"
+```
+
 ### `weft_collect_attestation.py`
 
 ```bash
@@ -89,7 +109,7 @@ python agent/scripts/weft_collect_attestation.py \
   --out agent/.attestations/attestation.json
 ```
 
-Optional flags: `--no-cache`, `--unique-caller-threshold`, `--measurement-window-seconds`.
+Optional flags: `--no-cache` and (emergency overrides) `--contract-address`, `--unique-caller-threshold`, `--measurement-window-seconds`.
 
 ### `weft_daemon.py`
 
@@ -100,7 +120,7 @@ export ETH_RPC_URL="http://127.0.0.1:8545"
 export WEFT_CONTRACT_ADDRESS="0x..."
 export PRIVATE_KEY="0x..."          # verifier node key
 export VERIFIER_ADDRESS="0x..."     # optional metadata
-export CONTRACT_ADDRESS="0x..."     # MVP template target contract
+export ZERO_G_INDEXER_RPC="https://..."  # required: daemon derives template inputs from milestone.metadataHash (0G root)
 
 # optional
 export PUBLISH_0G=1                 # attempt official 0G publish (requires ZERO_G_* vars)
