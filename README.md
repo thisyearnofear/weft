@@ -147,8 +147,47 @@ python3 agent/scripts/weft_status_api.py --port 9010
 
 See [AGENTS.md](AGENTS.md) for the full environment variable reference.
 
+## Product Tiers
+
+### Free — Weft Daemon
+
+Self-hosted Python verification loop. Open source, zero cost.
+
+```bash
+python3 agent/scripts/weft_daemon.py --once
+```
+
+- Deterministic evidence collection
+- Onchain attestation
+- CLI-only, manual setup
+
+### Weft Agent (Hermes Agent)
+
+Managed verification with AI-powered narrative generation. 2-3% of released capital.
+
+- Everything in Free, plus:
+- Persistent memory across milestones
+- Telegram/Discord interface
+- Kimi narrative generation
+- Multi-node consensus coordination
+- Automatic 0G Storage publishing
+- ENS reputation updates
+
+**How it works:** Builder texts the Weft bot → agent verifies → generates narrative → submits onchain → reports back.
+
+### Weft Swarm (Enterprise)
+
+Multi-agent verification infrastructure for teams and DAOs. Custom pricing.
+
+- Multiple specialized agents (verifier, monitor, reporter)
+- Custom verification templates
+- Dedicated support, SLA guarantees
+
+See [Product Plan](docs/product-plan.md) for the full monetization strategy.
+
 ## Links
 
+- [Product Plan & Monetization](docs/product-plan.md)
 - [Technical Architecture](docs/architecture.md)
 - [MVP Spec](docs/mvp.md)
 - [Agent Workflow](AGENTS.md)

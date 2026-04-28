@@ -4,9 +4,22 @@ Single source of truth for Weft's Hermes agent layer behavior.
 
 ## Overview
 
-The agent layer reads onchain + offchain signals to produce milestone attestations.
+Weft has two agent tiers:
+
+| Tier | Runtime | Interface | Fee |
+|---|---|---|---|
+| **Free (Daemon)** | `weft_daemon.py` — self-hosted Python loop | CLI only | 0% |
+| **Hermes Agent** | Hermes Agent with Weft skills — managed | Telegram/Discord/CLI | 2-3% of released capital |
+
+The **free daemon** reads onchain + offchain signals to produce milestone attestations.
 It runs deterministically (no AI judgment required for MVP) and can optionally call
 Kimi for human-readable narrative summaries.
+
+The **Hermes Agent** wraps the same verification logic as Hermes skills, adding persistent
+memory, auto-generated skills, anomaly detection, and a messaging interface. It runs as
+a managed service — builders text the bot, the agent handles everything.
+
+See [Product Plan](docs/product-plan.md) for the full tier structure and monetization.
 
 ## Library (`agent/lib/`)
 
