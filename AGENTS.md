@@ -114,6 +114,22 @@ export AXL_BROADCAST=1
 export AXL_PEERS="http://node-a:9002,http://node-b:9002,http://node-c:9002"
 ```
 
+### Peer-corroboration mode (recommended for demos)
+
+To make the multi-node behavior more legible, a node can be configured to **wait**
+until it observes a threshold of matching peer envelopes in `agent/.inbox/` before
+it submits its own onchain vote.
+
+This does **not** change the onchain quorum logic (the contract still enforces
+2-of-3). It simply adds an offchain safety gate so a node won’t vote if peers
+disagree on `(verified, evidenceRoot)`.
+
+```bash
+export AXL_WAIT_FOR_PEERS=1
+export AXL_PEER_THRESHOLD=2   # number of unique node addresses required
+export WEFT_INBOX_DIR=agent/.inbox
+```
+
 ### `weft_sync_from_indexer.py`
 
 ```bash

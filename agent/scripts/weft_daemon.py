@@ -31,6 +31,7 @@ if REPO_ROOT not in sys.path:
 
 from agent.lib.axl_client import broadcast_verdict
 from agent.lib.jsonrpc import JsonRpcClient, default_cache
+from agent.lib.peer_inbox import best_group, default_inbox_dir
 from agent.lib.mvp_verifier import (
     DeploymentEvidence,
     UsageEvidence,
@@ -63,6 +64,23 @@ def main() -> int:
 
     p.add_argument("--publish-0g", action="store_true", default=(os.environ.get("PUBLISH_0G") == "1"))
     p.add_argument("--broadcast", action="store_true", default=(os.environ.get("AXL_BROADCAST") == "1"))
+    p.add_argument(
+        "--wait-for-peers",
+        action="store_true",
+        default=(os.environ.get("AXL_WAIT_FOR_PEERS") == "1"),
+        help="If set, delay onchain vote until at least --peer-threshold peers agree on (verified,evidenceRoot).",
+    )
+    p.add_argument(
+        "--peer-threshold",
+        type=int,
+        default=int(os.environ.get("AXL_PEER_THRESHOLD") or 2),
+        help="How many unique peer node addresses must agree before voting (default: 2).",
+    )
+    p.add_argument(
+        "--inbox-dir",
+        default=os.environ.get("WEFT_INBOX_DIR") or default_inbox_dir(),
+        help="Where the peer server persists received messages (default: agent/.inbox).",
+    )
     p.add_argument("--interval", type=int, default=int(os.environ.get("POLL_INTERVAL") or 60))
     p.add_argument("--once", action="store_true")
     p.add_argument("--no-cache", action="store_true")
@@ -83,6 +101,8 @@ def main() -> int:
 
     print(f"weft_daemon: rpc={args.rpc_url} weft={args.weft} node={args.node_address}")
     print(f"weft_daemon: publish_0g={bool(args.publish_0g)} broadcast={bool(args.broadcast)} interval={args.interval}s once={bool(args.once)}")
+    if args.wait_for_peers:
+        print(f"weft_daemon: wait_for_peers=true peer_threshold={args.peer_threshold} inbox_dir={args.inbox_dir}")
 
     while True:
         for pm in scheduler.pending_milestones():
@@ -98,6 +118,9 @@ def main() -> int:
                 unique_caller_threshold=args.unique_caller_threshold,
                 publish_0g=args.publish_0g,
                 do_broadcast=args.broadcast,
+                wait_for_peers=args.wait_for_peers,
+                peer_threshold=args.peer_threshold,
+                inbox_dir=args.inbox_dir,
             )
 
         if args.once:
@@ -118,6 +141,9 @@ def _process_one(
     unique_caller_threshold: int,
     publish_0g: bool,
     do_broadcast: bool,
+    wait_for_peers: bool,
+    peer_threshold: int,
+    inbox_dir: str,
 ) -> None:
     try:
         m = read_milestone(rpc, weft, milestone_hash)
@@ -188,6 +214,33 @@ def _process_one(
             node_address=node_address,
         )
         print(f"[{milestone_hash}] broadcast: {br.succeeded}/{br.attempted} peers")
+
+    if wait_for_peers:
+        # Wait until we observe a peer group meeting threshold.
+        # This improves "multi-node consensus" UX for demos, without making the contract dependent on it.
+        deadline = time.time() + 60  # cap wait per cycle (seconds)
+        chosen = None
+        while time.time() < deadline:
+            g = best_group(milestone_hash, inbox_dir=inbox_dir)
+            if g and g.count >= peer_threshold:
+                chosen = g
+                break
+            time.sleep(2)
+
+        if chosen is None:
+            print(f"[{milestone_hash}] wait_for_peers: no quorum seen in inbox yet (threshold={peer_threshold}); skipping vote this cycle")
+            return
+
+        # If peers agreed on a different root/verdict than our local computation, prefer the peer group
+        # (MVP: evidence roots should converge if deterministically computed; divergence is a signal to stop).
+        if chosen.verified != verified_bool or chosen.evidence_root.lower() != evidence_root.lower():
+            print(
+                f"[{milestone_hash}] wait_for_peers: peer group differs from local computation; "
+                f"local=(verified={verified_bool},root={evidence_root}) "
+                f"peers=(verified={chosen.verified},root={chosen.evidence_root},count={chosen.count}). "
+                f"Skipping vote for safety."
+            )
+            return
 
     print(
         f"[{milestone_hash}] window blocks {start_block}-{end_block} uniqueCallers={unique_count} "
