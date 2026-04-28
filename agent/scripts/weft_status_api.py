@@ -150,40 +150,225 @@ _INDEX_HTML = """<!doctype html>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Weft Milestone Status</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-      body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 24px; color: #111; }
-      .card { max-width: 880px; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; }
-      label { display: block; font-size: 13px; margin: 12px 0 6px; color: #374151; }
-      input[type=text] { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-      .row { display: flex; gap: 12px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
-      button { padding: 10px 12px; border: 1px solid #111827; background: #111827; color: white; border-radius: 10px; cursor: pointer; }
-      button.secondary { background: white; color: #111827; }
-      .hint { font-size: 12px; color: #6b7280; margin-top: 8px; }
-      pre { background: #0b1020; color: #e5e7eb; padding: 14px; border-radius: 12px; overflow: auto; }
-      .error { color: #b91c1c; font-size: 13px; margin-top: 10px; }
-      .ok { color: #047857; font-size: 13px; margin-top: 10px; }
-      .small { font-size: 12px; color: #6b7280; }
+      :root {
+        --c-bg: #0a0a0f;
+        --c-surface: rgba(255, 255, 255, 0.04);
+        --c-surface-2: rgba(255, 255, 255, 0.08);
+        --c-border: rgba(255, 255, 255, 0.1);
+        --c-text: #e8e8f2;
+        --c-text-2: rgba(232, 232, 242, 0.6);
+        --c-text-3: rgba(232, 232, 242, 0.4);
+        --c-accent: #6366f1;
+        --c-accent-2: #818cf8;
+        --c-success: #22c55e;
+        --c-error: #ef4444;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --font-sans: 'Space Grotesk', system-ui, sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: var(--font-sans);
+        background: var(--c-bg);
+        color: var(--c-text);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .card {
+        width: 100%;
+        max-width: 520px;
+        background: linear-gradient(145deg, rgba(26, 26, 46, 0.8), rgba(22, 22, 42, 0.9));
+        border: 1px solid var(--c-border);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        backdrop-filter: blur(12px);
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+      .logo-icon {
+        font-size: 24px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      h1 {
+        font-size: 20px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .subtitle {
+        font-size: 14px;
+        color: var(--c-text-3);
+        margin-bottom: 28px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--c-text-2);
+        margin-bottom: 8px;
+      }
+      input[type=text] {
+        width: 100%;
+        padding: 14px 16px;
+        background: var(--c-surface);
+        border: 1px solid var(--c-border);
+        border-radius: var(--radius-md);
+        color: var(--c-text);
+        font-family: var(--font-mono);
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      input[type=text]::placeholder { color: var(--c-text-3); }
+      input[type=text]:focus { border-color: var(--c-accent); }
+      
+      .checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .checkbox-row label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--c-text-2);
+        cursor: pointer;
+        margin: 0;
+      }
+      input[type=checkbox] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--c-accent);
+        cursor: pointer;
+      }
+      .button-row {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+      }
+      button {
+        flex: 1;
+        padding: 14px 20px;
+        border: none;
+        border-radius: var(--radius-md);
+        font-family: var(--font-sans);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      #fetch {
+        background: linear-gradient(135deg, var(--c-accent), #8b5cf6);
+        color: white;
+      }
+      #fetch:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+      }
+      #copy {
+        background: var(--c-surface-2);
+        color: var(--c-text);
+        border: 1px solid var(--c-border);
+      }
+      #copy:hover { background: var(--c-surface); }
+      
+      .hint {
+        font-size: 12px;
+        color: var(--c-text-3);
+        margin-top: 16px;
+        font-family: var(--font-mono);
+      }
+      .hint code {
+        background: var(--c-surface);
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+      
+      .status {
+        margin-top: 20px;
+        padding: 12px 16px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 500;
+        display: none;
+      }
+      .status.show { display: block; }
+      .status.ok {
+        background: rgba(34, 197, 94, 0.15);
+        color: var(--c-success);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+      }
+      .status.error {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--c-error);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+      .status.loading {
+        background: rgba(99, 102, 241, 0.15);
+        color: var(--c-accent-2);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+      }
+      
+      pre {
+        margin-top: 20px;
+        padding: 16px;
+        background: #050510;
+        border: 1px solid var(--c-border);
+        border-radius: var(--radius-md);
+        color: var(--c-text-2);
+        font-family: var(--font-mono);
+        font-size: 12px;
+        line-height: 1.6;
+        overflow: auto;
+        max-height: 300px;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
     </style>
   </head>
   <body>
     <div class="card">
-      <h2>Weft Milestone Status</h2>
-      <div class="small">Paste a milestone hash and fetch its current onchain status (optionally including metadata).</div>
+      <div class="logo">
+        <span class="logo-icon">⬡</span>
+        <h1>Weft</h1>
+      </div>
+      <p class="subtitle">Milestone Status API</p>
 
-      <label for="mh">Milestone hash</label>
+      <label for="mh">Milestone Hash</label>
       <input id="mh" type="text" placeholder="0x..." />
 
-      <div class="row">
-        <label style="display:flex;gap:8px;align-items:center;margin:0;">
+      <div class="checkbox-row">
+        <label for="meta">
           <input id="meta" type="checkbox" />
-          include metadata (0G)
+          Include metadata (0G Storage)
         </label>
-        <button id="fetch">Fetch</button>
-        <button id="copy" class="secondary">Copy JSON</button>
       </div>
 
-      <div class="hint">API endpoints: <code>/milestone/&lt;hash&gt;</code> and <code>?includeMetadata=1</code></div>
-      <div id="msg"></div>
+      <div class="button-row">
+        <button id="fetch">Fetch Status</button>
+        <button id="copy">Copy JSON</button>
+      </div>
+
+      <div class="hint">API: <code>/milestone/&lt;hash&gt;</code> · <code>?includeMetadata=1</code></div>
+      
+      <div id="status"></div>
       <pre id="out">{}</pre>
     </div>
 
@@ -191,34 +376,30 @@ _INDEX_HTML = """<!doctype html>
       const mh = document.getElementById('mh');
       const meta = document.getElementById('meta');
       const out = document.getElementById('out');
-      const msg = document.getElementById('msg');
+      const status = document.getElementById('status');
       const btn = document.getElementById('fetch');
       const copy = document.getElementById('copy');
 
-      function setMsg(text, ok=true) {
-        msg.innerHTML = '';
-        if (!text) return;
-        const div = document.createElement('div');
-        div.className = ok ? 'ok' : 'error';
-        div.textContent = text;
-        msg.appendChild(div);
+      function setStatus(text, type) {
+        status.textContent = text || '';
+        status.className = 'status show ' + type;
       }
 
       async function fetchStatus() {
         const h = (mh.value || '').trim();
         if (!h.startsWith('0x') || h.length !== 66) {
-          setMsg('Please enter a 0x-prefixed 32-byte milestone hash (66 chars).', false);
+          setStatus('Enter a valid 0x-prefixed 32-byte hash (66 chars)', 'error');
           return;
         }
-        setMsg('Fetching...', true);
-        const url = `/milestone/${h}?` + (meta.checked ? 'includeMetadata=1' : '');
+        setStatus('Fetching...', 'loading');
+        const url = '/milestone/' + h + '?' + (meta.checked ? 'includeMetadata=1' : '');
         try {
           const res = await fetch(url);
           const j = await res.json();
           out.textContent = JSON.stringify(j, null, 2);
-          setMsg(j.ok ? 'OK' : (j.error || 'Error'), !!j.ok);
+          setStatus(j.ok ? '✓ Fetched successfully' : (j.error || 'Error'), j.ok ? 'ok' : 'error');
         } catch (e) {
-          setMsg('Fetch failed: ' + e, false);
+          setStatus('Fetch failed: ' + e, 'error');
         }
       }
 
@@ -227,9 +408,9 @@ _INDEX_HTML = """<!doctype html>
       copy.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(out.textContent);
-          setMsg('Copied JSON to clipboard.', true);
+          setStatus('Copied to clipboard', 'ok');
         } catch (e) {
-          setMsg('Copy failed: ' + e, false);
+          setStatus('Copy failed', 'error');
         }
       });
     </script>
