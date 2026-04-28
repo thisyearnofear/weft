@@ -1,0 +1,169 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 4rem 1rem;
+  background: #0a0a0a;
+}
+
+.card {
+  width: 100%;
+  max-width: 480px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.status {
+  display: flex;
+}
+
+.verified {
+  padding: 0.25rem 0.75rem;
+  background: #052e16;
+  border: 1px solid #166534;
+  border-radius: 9999px;
+  color: #22c55e;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.rejected {
+  padding: 0.25rem 0.75rem;
+  background: #450a0a;
+  border: 1px solid #7f1d1d;
+  border-radius: 9999px;
+  color: #ef4444;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.active {
+  padding: 0.25rem 0.75rem;
+  background: #1e3a5f;
+  border: 1px solid #1e40af;
+  border-radius: 9999px;
+  color: #60a5fa;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.pending {
+  padding: 0.25rem 0.75rem;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 9999px;
+  color: #666;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.metadata {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.label {
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.value {
+  font-size: 0.875rem;
+  color: #fff;
+  font-family: "SF Mono", Monaco, monospace;
+  word-break: break-all;
+}
+
+.builder {
+  padding: 1rem 0;
+  border-top: 1px solid #222;
+  border-bottom: 1px solid #222;
+  margin-bottom: 1.5rem;
+}
+
+.builderLink {
+  color: #3b82f6;
+  text-decoration: none;
+  font-size: 0.875rem;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.builderLink:hover {
+  text-decoration: underline;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.evidence {
+  padding: 1rem 0;
+  border-top: 1px solid #222;
+}
+
+.code {
+  display: block;
+  font-size: 0.75rem;
+  color: #666;
+  font-family: "SF Mono", Monaco, monospace;
+  word-break: break-all;
+  margin-top: 0.5rem;
+  background: #0a0a0a;
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+
+.stake {
+  padding-top: 1.5rem;
+  border-top: 1px solid #222;
+  margin-top: 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 1rem;
+}
+
+.loading,
+.error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.error {
+  color: #ef4444;
+}
