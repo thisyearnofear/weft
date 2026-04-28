@@ -52,6 +52,7 @@ cd scripts && ./deploy.sh
 
 ## Hackathon Submissions
 
+- **ETHGlobal Open Agents Async Hackathon** — Deadline May 3
 - **Hermes/Kimi Creative Hackathon** (Nous Research × Kimi Moonshot) — Deadline May 3
 - **0G APAC Hackathon** (HackQuest) — Deadline May 16
 
