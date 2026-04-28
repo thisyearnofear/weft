@@ -41,6 +41,31 @@
   --ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in:         cubic-bezier(0.7, 0, 0.84, 0);
   --ease-inout:      cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ── Breakpoints ──────────────────────────── */
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --nav-h:           56px;
+  }
+}
+
+/* ── Mobile‑First Responsive ────────────────── */
+@media (max-width: 640px) {
+  .container {
+    padding: 0 16px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .container {
+    padding: 0 24px;
+  }
 }
 
 /* ── Reset ───────────────────────────────────── */

@@ -34,6 +34,7 @@ from agent.lib.jsonrpc import JsonRpcClient, default_cache
 from agent.lib.peer_inbox import consensus_signers_for_base_root, default_inbox_dir
 from agent.lib.verdict_envelope import verify_envelope
 from agent.lib.verifier_registry_reader import VerifierRegistryClient, read_verifier_registry_address
+from agent.lib.metadata_reader import MetadataError, read_metadata_from_0g
 from agent.lib.mvp_verifier import (
     DeploymentEvidence,
     UsageEvidence,
@@ -62,10 +63,16 @@ def main() -> int:
     p.add_argument("--private-key", default=os.environ.get("VERIFIER_PRIVATE_KEY") or os.environ.get("PRIVATE_KEY") or "")
     p.add_argument("--node-address", default=os.environ.get("VERIFIER_ADDRESS") or os.environ.get("NODE_ADDRESS") or "0x0000000000000000000000000000000000000000")
 
-    # MVP template input (global default until metadata is wired): target contract to measure usage on.
-    p.add_argument("--contract-address", default=os.environ.get("CONTRACT_ADDRESS") or "")
-    p.add_argument("--measurement-window-seconds", type=int, default=int(os.environ.get("MEASUREMENT_WINDOW_SECONDS") or 7 * 24 * 60 * 60))
-    p.add_argument("--unique-caller-threshold", type=int, default=int(os.environ.get("UNIQUE_CALLER_THRESHOLD") or 100))
+    # MVP template inputs (preferred: derive from milestone.metadataHash via 0G).
+    # These are optional overrides for emergency/debug.
+    p.add_argument("--contract-address", default=os.environ.get("CONTRACT_ADDRESS") or "", help="Optional override (preferred: metadataHash)")
+    p.add_argument("--measurement-window-seconds", type=int, default=int(os.environ.get("MEASUREMENT_WINDOW_SECONDS") or 0), help="Optional override (preferred: metadataHash)")
+    p.add_argument("--unique-caller-threshold", type=int, default=int(os.environ.get("UNIQUE_CALLER_THRESHOLD") or 0), help="Optional override (preferred: metadataHash)")
+    p.add_argument(
+        "--metadata-indexer",
+        default=os.environ.get("ZERO_G_INDEXER_RPC") or os.environ.get("ZERO_G_INDEXER_URL") or "",
+        help="0G indexer endpoint used to download milestone metadata by metadataHash",
+    )
 
     p.add_argument("--publish-0g", action="store_true", default=(os.environ.get("PUBLISH_0G") == "1"))
     p.add_argument("--broadcast", action="store_true", default=(os.environ.get("AXL_BROADCAST") == "1"))
@@ -126,8 +133,6 @@ def main() -> int:
         raise SystemExit("Missing --weft (or WEFT_CONTRACT_ADDRESS/WEFT_MILESTONE_ADDRESS env var)")
     if not args.private_key:
         raise SystemExit("Missing --private-key (or VERIFIER_PRIVATE_KEY/PRIVATE_KEY env var)")
-    if not args.contract_address:
-        raise SystemExit("Missing --contract-address (or CONTRACT_ADDRESS env var) for MVP template")
 
     cache = None if args.no_cache else default_cache()
     rpc = JsonRpcClient(args.rpc_url, cache=cache)
@@ -158,9 +163,10 @@ def main() -> int:
                 private_key=args.private_key,
                 node_address=args.node_address,
                 milestone_hash=pm.milestone_hash,
-                contract_address=args.contract_address,
-                measurement_window_seconds=args.measurement_window_seconds,
-                unique_caller_threshold=args.unique_caller_threshold,
+                contract_address_override=args.contract_address,
+                measurement_window_seconds_override=args.measurement_window_seconds,
+                unique_caller_threshold_override=args.unique_caller_threshold,
+                metadata_indexer=args.metadata_indexer,
                 publish_0g=args.publish_0g,
                 do_broadcast=args.broadcast,
                 wait_for_peers=args.wait_for_peers,
@@ -185,9 +191,10 @@ def _process_one(
     private_key: str,
     node_address: str,
     milestone_hash: str,
-    contract_address: str,
-    measurement_window_seconds: int,
-    unique_caller_threshold: int,
+    contract_address_override: str,
+    measurement_window_seconds_override: int,
+    unique_caller_threshold_override: int,
+    metadata_indexer: str,
     publish_0g: bool,
     do_broadcast: bool,
     wait_for_peers: bool,
@@ -204,7 +211,25 @@ def _process_one(
         print(f"[{milestone_hash}] read_milestone failed: {e}")
         return
 
-    # Window is defined relative to deadline (MVP spec).
+    # Derive template inputs from metadataHash (preferred).
+    try:
+        meta = read_metadata_from_0g(m.metadataHash, indexer=metadata_indexer)
+    except MetadataError as e:
+        # If overrides are present, allow operating without metadata as an emergency path.
+        if not (contract_address_override and measurement_window_seconds_override and unique_caller_threshold_override):
+            print(f"[{milestone_hash}] metadata download/validation failed: {e}")
+            return
+        meta = None
+
+    contract_address = contract_address_override or (meta.contractAddress if meta else "")
+    measurement_window_seconds = measurement_window_seconds_override or (meta.measurementWindowSeconds if meta else 0)
+    unique_caller_threshold = unique_caller_threshold_override or (meta.uniqueCallerThreshold if meta else 0)
+
+    if not contract_address or measurement_window_seconds <= 0 or unique_caller_threshold <= 0:
+        print(f"[{milestone_hash}] missing template inputs (contract/window/threshold); cannot verify")
+        return
+
+    # Window is defined relative to the onchain milestone deadline (source of truth).
     window_start = int(m.deadline)
     window_end = int(m.deadline) + int(measurement_window_seconds)
 
