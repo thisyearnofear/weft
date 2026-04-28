@@ -1,13 +1,26 @@
+import { defineChain } from "viem";
 import { mainnet, base, sepolia } from "wagmi/chains";
 import { Address } from "viem";
 
 import WeftMilestoneAbi from "./abis/WeftMilestone.json";
 import VerifierRegistryAbi from "./abis/VerifierRegistry.json";
 
+export const zeroGTestnet = defineChain({
+  id: 16602,
+  name: "0G Testnet",
+  network: "0g-testnet",
+  nativeCurrency: { name: "OG", symbol: "OG", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://evmrpc-testnet.0g.ai"] },
+    public: { http: ["https://evmrpc-testnet.0g.ai"] },
+  },
+});
+
 export const WEFT_CHAINS = {
   mainnet,
   base,
   sepolia,
+  zeroGTestnet,
 } as const;
 
 export const CONTRACT_ADDRESSES = {

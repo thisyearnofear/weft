@@ -2,23 +2,36 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider, createConfig, http } from 'wagmi';
-import { mainnet, base } from 'wagmi/chains';
+import { mainnet, base, sepolia } from 'wagmi/chains';
+import { defineChain } from 'viem';
 import { injected, walletConnect } from 'wagmi/connectors';
-import { useState } from 'react';
 
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? '';
+
+const zeroGTestnet = defineChain({
+  id: 16602,
+  name: "0G Testnet",
+  network: "0g-testnet",
+  nativeCurrency: { name: "OG", symbol: "OG", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://evmrpc-testnet.0g.ai"] },
+    public: { http: ["https://evmrpc-testnet.0g.ai"] },
+  },
+});
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [wagmiConfig] = useState(() =>
     createConfig({
-      chains: [base, mainnet],
+      chains: [zeroGTestnet, base, mainnet, sepolia],
       connectors: [
         injected(),
         ...(projectId ? [walletConnect({ projectId })] : []),
       ],
       transports: {
+        [zeroGTestnet.id]: http(),
         [base.id]: http(),
         [mainnet.id]: http(),
+        [sepolia.id]: http(),
       },
     })
   );
@@ -31,3 +44,5 @@ export function Providers({ children }: { children: React.ReactNode }) {
     </WagmiProvider>
   );
 }
+
+import { useState } from 'react';
