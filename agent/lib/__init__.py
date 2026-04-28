@@ -16,7 +16,15 @@ from .deadline_scheduler import DeadlineScheduler, PendingMilestone, poll_pendin
 from .github_client import GithubEvidence, collect_github_evidence, evidence_to_dict
 from .jsonrpc import FileCache, JsonRpcClient, JsonRpcError, default_cache
 from .kimi_client import Narrative, generate_narrative
-from .axl_client import BroadcastResult, broadcast_verdict, parse_peers
+from .axl_client import (
+    BroadcastResult,
+    VerdictMessage,
+    broadcast_verdict,
+    receive_verdicts,
+    tally_consensus,
+    parse_peers,
+    register_peer,
+)
 from .mvp_verifier import (
     DeploymentEvidence,
     UsageEvidence,
@@ -42,6 +50,7 @@ from .zero_storage import (
     write_evidence_to_storage,
 )
 from .indexer_client import IndexerClient, MilestoneState
+from .ens_client import EnsClient, BuilderProfile, update_ens_after_verification
 
 __all__ = [
     # abi
@@ -71,4 +80,6 @@ __all__ = [
     "StorageReceipt", "read_evidence_from_storage", "write_evidence_to_storage",
     # indexer_client
     "IndexerClient", "MilestoneState",
+    # ens_client
+    "EnsClient", "BuilderProfile", "update_ens_after_verification",
 ]

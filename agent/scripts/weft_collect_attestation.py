@@ -115,9 +115,9 @@ def main() -> int:
     # Best-effort publish to 0G (when configured). If it returns a bytes32-like root, prefer it.
     receipt = None
     evidence_root = local_evidence_root
-    should_publish = args.publish_0g or bool(os.environ.get("ZERO_G_INDEXER_URL"))
+    should_publish = args.publish_0g or bool(os.environ.get("ZERO_G_INDEXER_RPC") or os.environ.get("ZERO_G_INDEXER_URL"))
     if should_publish:
-        receipt = write_evidence_to_storage(args.milestone_hash, attestation)
+        receipt = write_evidence_to_storage(args.milestone_hash, attestation, file_path=canonical_path)
         if receipt and _is_bytes32(receipt.log_root):
             evidence_root = receipt.log_root
 

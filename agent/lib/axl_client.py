@@ -10,6 +10,7 @@ touching verification logic.
 Current behavior:
 - If `AXL_PEERS` is unset: no-op.
 - If set: best-effort HTTP POST of a signed-ish message envelope to each peer.
+- Polling endpoint for receiving peer verdicts.
 
 This is intentionally minimal and does not assume a specific Gensyn AXL SDK.
 """
@@ -28,6 +29,15 @@ from typing import Any, Dict, List, Optional
 class BroadcastResult:
     attempted: int
     succeeded: int
+
+
+@dataclass(frozen=True)
+class VerdictMessage:
+    milestone_hash: str
+    verified: bool
+    evidence_root: str
+    node_address: str
+    timestamp: int
 
 
 def parse_peers(peers: Optional[str] = None) -> List[str]:
@@ -81,4 +91,74 @@ def broadcast_verdict(
             continue
 
     return BroadcastResult(attempted=attempted, succeeded=succeeded)
+
+
+def receive_verdicts(
+    milestone_hash: str,
+    endpoint_path: str = "/recv",
+    local_port: int = 9002,
+) -> List[VerdictMessage]:
+    """
+    Poll local AXL endpoint for incoming verdict messages.
+    """
+    url = f"http://127.0.0.1:{local_port}{endpoint_path}"
+    try:
+        req = urllib.request.Request(url, method="GET")
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        messages = data.get("messages", []) if isinstance(data, dict) else []
+        return [
+            VerdictMessage(
+                milestone_hash=m["milestoneHash"],
+                verified=m["verified"],
+                evidence_root=m.get("evidenceRoot", ""),
+                node_address=m.get("nodeAddress", ""),
+                timestamp=m.get("timestamp", 0),
+            )
+            for m in messages
+            if m.get("milestoneHash") == milestone_hash
+        ]
+    except Exception:
+        return []
+
+
+def tally_consensus(
+    own_verdict: bool,
+    peer_verdicts: List[VerdictMessage],
+    quorum: int = 2,
+) -> tuple[bool, bool]:
+    """
+    Tally verdicts and determine if quorum is reached.
+
+    Returns (has_quorum, should_submit).
+    """
+    true_votes = 1 if own_verdict else 0
+    for v in peer_verdicts:
+        if v.verified:
+            true_votes += 1
+
+    return true_votes >= quorum, true_votes >= quorum
+
+
+def register_peer(
+    peer_address: str,
+    peer_key: Optional[str] = None,
+    local_port: int = 9002,
+) -> bool:
+    """
+    Register this node with the AXL network.
+    """
+    url = f"http://127.0.0.1:{local_port}/register"
+    payload = {"peerAddress": peer_address, "peerKey": peer_key or ""}
+    try:
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=5) as _:
+            return True
+    except Exception:
+        return False
 

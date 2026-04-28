@@ -34,7 +34,9 @@ POLL_INTERVAL: "3600"                         # Seconds between poll cycles (def
 ## 0G Storage (optional — falls back to local files when unset)
 
 ```yaml
-ZERO_G_INDEXER_URL: "https://..."             # 0G Storage indexer
+ZERO_G_EVM_RPC_URL: "https://..."             # 0G Chain EVM RPC
+ZERO_G_INDEXER_RPC: "https://..."             # 0G Storage indexer RPC
+ZERO_G_PRIVATE_KEY: "0x..."                   # Signer private key (or reuse PRIVATE_KEY)
 ZERO_G_STREAM_ID: "0x..."                    # KV stream ID
 ```
 

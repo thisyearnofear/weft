@@ -109,8 +109,10 @@ POLL_INTERVAL           # Seconds between poll cycles (default: 3600)
 
 0G Storage (optional — falls back to local files):
 ```bash
-ZERO_G_INDEXER_URL
-ZERO_G_STREAM_ID
+ZERO_G_EVM_RPC_URL        # 0G chain EVM RPC (or reuse ETH_RPC_URL)
+ZERO_G_INDEXER_RPC        # 0G storage indexer RPC
+ZERO_G_PRIVATE_KEY        # signer private key (or reuse PRIVATE_KEY)
+ZERO_G_STREAM_ID          # KV stream ID (optional)
 ```
 
 ## What's Planned But Not Yet
