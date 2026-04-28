@@ -8,7 +8,11 @@ interface SkeletonCardProps {
 
 export function SkeletonCard({ index = 0 }: SkeletonCardProps) {
   return (
-    <div className={styles.skeleton}>
+    <div
+      className={styles.skeleton}
+      style={{ animationDelay: `${index * 0.1}s` }}
+      aria-hidden="true"
+    >
       <div className={styles.skeletonHeader}>
         <div className={styles.skeletonLine} style={{ width: "60%" }} />
         <div className={styles.skeletonBadge} />

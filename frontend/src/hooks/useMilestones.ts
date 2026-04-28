@@ -16,8 +16,7 @@ export interface Milestone {
   released: boolean;
   verifierCount: number;
   verifiedVotes: number;
-  rejectedVotes: number;
-  evidenceRoot: string;
+  finalEvidenceRoot: string;
 }
 
 export interface VerifierInfo {
@@ -29,7 +28,7 @@ export interface VerifierInfo {
 const MILESTONE_QUERY_KEYS = {
   all: ["milestones"] as const,
   detail: (milestoneHash: string) => ["milestones", milestoneHash] as const,
-  evidence: (milestoneHash: string) => ["milestones", milestoneHash, "evidence"] as const,
+  evidence: (milestoneHash: string, verifier: Address) => ["milestones", milestoneHash, "evidence", verifier] as const,
   allByVerifier: (verifier: Address) => ["milestones", "byVerifier", verifier] as const,
   verifiers: ["verifiers"] as const,
   verifier: (verifier: Address) => ["verifiers", verifier] as const,
@@ -69,27 +68,33 @@ export function useMilestones() {
       if (!addresses.weftMilestone) {
         throw new Error("WeftMilestone not configured");
       }
-      const count = await client.readContract({
+      const logs = await client.getLogs({
         address: addresses.weftMilestone,
-        abi: WeftMilestoneAbi,
-        functionName: "milestoneCount",
+        fromBlock: BigInt(0),
+        toBlock: "latest",
+        event: {
+          type: "event",
+          name: "MilestoneCreated",
+          inputs: [
+            { type: "bytes32", name: "milestoneHash", indexed: true },
+            { type: "bytes32", name: "projectId", indexed: true },
+            { type: "address", name: "builder", indexed: true },
+            { type: "bytes32", name: "templateId" },
+            { type: "uint256", name: "deadline" },
+            { type: "bytes32", name: "metadataHash" },
+          ],
+        },
       });
-      const hashes = await client.readContract({
-        address: addresses.weftMilestone,
-        abi: WeftMilestoneAbi,
-        functionName: "milestoneHashes",
-        args: [BigInt(0), count as bigint],
-      });
-      return hashes as `0x${string}`[];
+      return logs.map((log) => log.args.milestoneHash as `0x${string}`);
     },
   });
 }
 
-export function useMilestoneEvidence(milestoneHash: string) {
+export function useMilestoneEvidence(milestoneHash: string, verifier: Address) {
   const client = usePublicClient();
 
   return useQuery({
-    queryKey: MILESTONE_QUERY_KEYS.evidence(milestoneHash),
+    queryKey: MILESTONE_QUERY_KEYS.evidence(milestoneHash, verifier),
     queryFn: async () => {
       if (!client) throw new Error("No public client");
       const addresses = getAddresses(DEFAULT_CHAIN);
@@ -100,11 +105,11 @@ export function useMilestoneEvidence(milestoneHash: string) {
         address: addresses.weftMilestone,
         abi: WeftMilestoneAbi,
         functionName: "evidenceByVerifier",
-        args: [milestoneHash as `0x${string}`],
+        args: [milestoneHash as `0x${string}`, verifier],
       });
       return result;
     },
-    enabled: !!milestoneHash,
+    enabled: !!milestoneHash && !!verifier,
   });
 }
 

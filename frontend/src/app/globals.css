@@ -7,6 +7,8 @@
 /* ── Tokens ──────────────────────────────────── */
 :root {
   --c-bg:            #07070f;
+  --c-bg-elevated:   #111;
+  --c-bg-subtle:     #1a1a2e;
   --c-surface:       rgba(255, 255, 255, 0.04);
   --c-surface-2:     rgba(255, 255, 255, 0.07);
   --c-surface-3:     rgba(255, 255, 255, 0.11);
@@ -16,6 +18,11 @@
   --c-text:          #e8e8f2;
   --c-text-2:        rgba(232, 232, 242, 0.55);
   --c-text-3:        rgba(232, 232, 242, 0.28);
+  --c-text-secondary: #a0aec0;
+  --c-text-muted:    #8892a4;
+
+  --c-link:          #3b82f6;
+  --c-link-hover:    #60a5fa;
 
   --c-accent:        hsl(224, 88%, 65%);
   --c-verified:      hsl(168, 78%, 52%);
@@ -26,6 +33,18 @@
   --c-verified-20:   hsla(168, 78%, 52%, 0.18);
   --c-pending-20:    hsla(38, 92%, 60%, 0.18);
   --c-failed-20:     hsla(350, 74%, 56%, 0.18);
+
+  --c-success:       #22c55e;
+  --c-success-bg:    #052e16;
+  --c-success-border:#166534;
+
+  --c-error:         #ef4444;
+  --c-error-bg:      #450a0a;
+  --c-error-border:  #7f1d1d;
+
+  --c-active:        #60a5fa;
+  --c-active-bg:     #1e3a5f;
+  --c-active-border: #1e40af;
 
   --font-sans:       'Space Grotesk', system-ui, sans-serif;
   --font-mono:       'JetBrains Mono', monospace;
@@ -38,11 +57,17 @@
   --radius-lg:       20px;
   --radius-xl:       28px;
 
+  --shadow-sm:       0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md:       0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg:       0 8px 24px rgba(0, 0, 0, 0.4);
+
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+
   --ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in:         cubic-bezier(0.7, 0, 0.84, 0);
   --ease-inout:      cubic-bezier(0.65, 0, 0.35, 1);
 
-  /* ── Breakpoints ──────────────────────────── */
   --bp-sm: 640px;
   --bp-md: 768px;
   --bp-lg: 1024px;
@@ -55,7 +80,7 @@
   }
 }
 
-/* ── Mobile‑First Responsive ────────────────── */
+/* ── Mobile-First Responsive ────────────────── */
 @media (max-width: 640px) {
   .container {
     padding: 0 16px;
@@ -98,6 +123,12 @@ h1, h2, h3, h4 {
 }
 
 .mono { font-family: var(--font-mono); }
+
+/* ── Focus ───────────────────────────────────── */
+*:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+}
 
 /* ── Layout Utilities ────────────────────────── */
 .container {

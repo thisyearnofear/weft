@@ -1,12 +1,27 @@
 .card {
-  background: linear-gradient(145deg, #1a1a2e 0%, #16162a 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  background: linear-gradient(145deg, var(--c-bg-subtle) 0%, #16162a 100%);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   cursor: pointer;
-  transition: box-shadow 0.3s ease;
   position: relative;
   overflow: hidden;
+  opacity: 0;
+  transform: translateY(40px) scale(0.95);
+  animation: cardEntrance 0.6s var(--ease-out) forwards;
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s ease;
+}
+
+@keyframes cardEntrance {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.card:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: var(--shadow-lg);
 }
 
 .card::before {
@@ -16,7 +31,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.6), transparent);
+  background: linear-gradient(90deg, transparent, hsla(224, 88%, 65%, 0.6), transparent);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -35,7 +50,7 @@
 .projectName {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--c-text);
   line-height: 1.3;
 }
 
@@ -44,13 +59,13 @@
   font-weight: 600;
   color: white;
   padding: 0.25rem 0.625rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-xl);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .description {
-  color: #94a3b8;
+  color: var(--c-text-secondary);
   font-size: 0.875rem;
   line-height: 1.6;
   margin-bottom: 1rem;
@@ -69,10 +84,10 @@
 
 .tag {
   font-size: 0.75rem;
-  color: #94a3b8;
-  background: rgba(99, 102, 241, 0.15);
+  color: var(--c-text-secondary);
+  background: var(--c-accent-20);
   padding: 0.25rem 0.625rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-xl);
 }
 
 .progress {
@@ -81,7 +96,7 @@
 
 .progressBar {
   height: 4px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--c-border);
   border-radius: 2px;
   overflow: hidden;
   margin-bottom: 0.5rem;
@@ -89,7 +104,7 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  background: linear-gradient(90deg, var(--c-accent), #8b5cf6);
   border-radius: 2px;
   transition: width 0.5s ease;
 }
@@ -98,7 +113,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--c-text-muted);
 }
 
 .footer {
@@ -106,7 +121,7 @@
   justify-content: space-between;
   align-items: center;
   padding-top: 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--c-border);
 }
 
 .builder {
@@ -116,14 +131,14 @@
 
 .builderLabel {
   font-size: 0.625rem;
-  color: #64748b;
+  color: var(--c-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .builderEns {
   font-size: 0.875rem;
-  color: #f1f5f9;
+  color: var(--c-text);
   font-weight: 500;
 }
 
@@ -137,7 +152,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--c-surface-2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -146,7 +161,7 @@
 
 .cobuilderMore {
   font-size: 0.625rem;
-  color: #64748b;
+  color: var(--c-text-muted);
 }
 
 .verifiers {
@@ -156,16 +171,16 @@
 
 .verifierCount {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--c-text-muted);
 }
 
 .stakeButton {
   width: 100%;
   margin-top: 1rem;
   padding: 0.75rem;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, var(--c-accent), #8b5cf6);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   color: white;
   font-weight: 600;
   font-size: 0.875rem;
@@ -175,14 +190,14 @@
 
 .stakeButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 8px 24px hsla(224, 88%, 65%, 0.4);
 }
 
 /* Skeleton styles */
 .skeleton {
-  background: linear-gradient(145deg, #1a1a2e 0%, #16162a 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  background: linear-gradient(145deg, var(--c-bg-subtle) 0%, #16162a 100%);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   position: relative;
   overflow: hidden;
@@ -222,7 +237,7 @@
 
 .skeletonLine {
   height: 16px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--c-surface-2);
   border-radius: 4px;
   margin-bottom: 0.75rem;
 }
@@ -230,8 +245,8 @@
 .skeletonBadge {
   width: 80px;
   height: 24px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 9999px;
+  background: var(--c-surface-2);
+  border-radius: var(--radius-xl);
 }
 
 .skeletonTags {
@@ -243,18 +258,25 @@
 .skeletonTag {
   width: 60px;
   height: 24px;
-  background: rgba(99, 102, 241, 0.15);
-  border-radius: 9999px;
+  background: var(--c-accent-20);
+  border-radius: var(--radius-xl);
 }
 
 .skeletonProgress {
   height: 4px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--c-border);
   border-radius: 2px;
   margin-bottom: 1rem;
 }
 
 .skeletonFooter {
   padding-top: 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--c-border);
+}
+
+@media (max-width: 480px) {
+  .footer {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
 }

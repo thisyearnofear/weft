@@ -7,9 +7,9 @@
 .inputGroup {
   display: flex;
   align-items: center;
-  background: #111;
-  border: 1px solid #333;
-  border-radius: 8px;
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border-2);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -17,7 +17,7 @@
   flex: 1;
   background: transparent;
   border: none;
-  color: #fff;
+  color: var(--c-text);
   font-size: 1rem;
   padding: 0.75rem 1rem;
   outline: none;
@@ -25,11 +25,11 @@
 }
 
 .input::placeholder {
-  color: #444;
+  color: var(--c-text-muted);
 }
 
 .suffix {
-  color: #666;
+  color: var(--c-text-muted);
   font-size: 0.875rem;
   padding-right: 1rem;
 }
@@ -37,41 +37,51 @@
 .button {
   width: 100%;
   padding: 0.875rem;
-  background: #3b82f6;
+  background: var(--c-link);
   border: none;
-  border-radius: 8px;
-  color: #fff;
+  border-radius: var(--radius-md);
+  color: var(--c-text);
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background var(--transition-base);
 }
 
 .button:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--c-link-hover);
 }
 
 .button:disabled {
-  background: #333;
-  color: #666;
+  background: var(--c-border-2);
+  color: var(--c-text-muted);
   cursor: not-allowed;
 }
 
 .success {
   padding: 1rem;
-  background: #052e16;
-  border: 1px solid #166534;
-  border-radius: 8px;
-  color: #22c55e;
+  background: var(--c-success-bg);
+  border: 1px solid var(--c-success-border);
+  border-radius: var(--radius-md);
+  color: var(--c-success);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.error {
+  padding: 1rem;
+  background: var(--c-error-bg);
+  border: 1px solid var(--c-error-border);
+  border-radius: var(--radius-md);
+  color: var(--c-error);
   font-size: 0.875rem;
   text-align: center;
 }
 
 .connectPrompt {
   padding: 1rem;
-  background: #1a1a1a;
-  border-radius: 8px;
-  color: #666;
+  background: var(--c-surface);
+  border-radius: var(--radius-md);
+  color: var(--c-text-muted);
   font-size: 0.875rem;
   text-align: center;
 }
@@ -79,7 +89,7 @@
 .link {
   display: block;
   padding: 0.75rem;
-  color: #3b82f6;
+  color: var(--c-link);
   font-size: 0.875rem;
   text-align: center;
   text-decoration: none;
@@ -87,4 +97,20 @@
 
 .link:hover {
   text-decoration: underline;
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--c-border-2);
+  border-top-color: var(--c-text);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

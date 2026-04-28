@@ -13,10 +13,10 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1rem;
-  background: #1a1a2e;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  background: var(--c-bg-subtle);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
   animation: slideIn 0.3s ease;
 }
 
@@ -38,7 +38,7 @@
 
 .message {
   font-size: 0.875rem;
-  color: #f1f5f9;
+  color: var(--c-text);
 }
 
 .close {
@@ -48,24 +48,24 @@
   padding: 0;
   background: transparent;
   border: none;
-  color: #64748b;
+  color: var(--c-text-muted);
   cursor: pointer;
   margin-left: 0.5rem;
-  transition: color 0.2s;
+  transition: color var(--transition-base);
 }
 
 .close:hover {
-  color: #f1f5f9;
+  color: var(--c-text);
 }
 
 .success .icon {
-  color: #22c55e;
+  color: var(--c-success);
 }
 
 .error .icon {
-  color: #ef4444;
+  color: var(--c-error);
 }
 
 .info .icon {
-  color: #3b82f6;
+  color: var(--c-accent);
 }

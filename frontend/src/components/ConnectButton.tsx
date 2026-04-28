@@ -6,7 +6,7 @@ import { X } from "lucide-react";
 import styles from "./ConnectButton.module.css";
 
 export function ConnectButton() {
-  const { isConnected, address, chainId } = useAccount();
+  const { isConnected, address } = useAccount();
   const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
 
@@ -15,11 +15,11 @@ export function ConnectButton() {
 
   if (isConnected) {
     return (
-      <div className={styles.connected}>
+      <div className={styles.connected} aria-label="Wallet connected">
         <div className={styles.address}>
           {address?.slice(0, 6)}...{address?.slice(-4)}
         </div>
-        <button onClick={() => disconnect()} className={styles.disconnect}>
+        <button onClick={() => disconnect()} className={styles.disconnect} aria-label="Disconnect wallet">
           <X size={14} />
         </button>
       </div>
@@ -33,6 +33,7 @@ export function ConnectButton() {
           onClick={() => connect({ connector: metamask })}
           disabled={isPending}
           className={styles.button}
+          aria-label="Connect MetaMask"
         >
           {isPending ? "Connecting..." : "MetaMask"}
         </button>
@@ -41,6 +42,7 @@ export function ConnectButton() {
         <button
           onClick={() => connect({ connector: walletConnect })}
           className={styles.button}
+          aria-label="Connect WalletConnect"
         >
           WalletConnect
         </button>

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { usePublicClient } from "wagmi";
-import { Address, keccak256, toBytes, bytesToHex } from "viem";
+import { Address, keccak256, toBytes } from "viem";
 
 const ENS_REGISTRY = "0x00000000000C2E706e62F196aA929C3F6a76CF3E";
 
@@ -41,6 +41,10 @@ export interface BuilderPassport {
   weftEarnedTotal: number;
   weftCobuilders: string[];
   weftReputationScore: number;
+}
+
+function safeJsonParse(v: string): string[] {
+  try { return JSON.parse(v || "[]"); } catch { return []; }
 }
 
 function namehash(name: string): `0x${string}` {
@@ -119,10 +123,10 @@ export function useBuilderPassport(ens: string) {
         url: url || undefined,
         github: github || undefined,
         twitter: twitter || undefined,
-        weftProjects: JSON.parse(weftProjects || "[]"),
+        weftProjects: safeJsonParse(weftProjects),
         weftMilestonesVerified: parseInt(weftVerified || "0"),
         weftEarnedTotal: parseInt(weftEarned || "0"),
-        weftCobuilders: JSON.parse(weftCobuilders || "[]"),
+        weftCobuilders: safeJsonParse(weftCobuilders),
         weftReputationScore: parseInt(weftRep || "0"),
       };
     },

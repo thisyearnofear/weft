@@ -1,11 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import Image from "next/image";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
 import type { Milestone, MilestoneState } from "../lib/mock-data";
-import { formatDeadline, shortAddress } from "../lib/mock-data";
+import { formatDeadline } from "../lib/mock-data";
 import styles from "./MilestoneCard.module.css";
 
 interface MilestoneCardProps {
@@ -20,37 +16,14 @@ const STATE_CONFIG: Record<MilestoneState, { label: string; color: string }> = {
 };
 
 export function MilestoneCard({ milestone, index = 0 }: MilestoneCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
   const config = STATE_CONFIG[milestone.state];
-
-  useGSAP(() => {
-    if (!cardRef.current) return;
-
-    const card = cardRef.current;
-
-    // Entrance animation - stagger from bottom
-    gsap.fromTo(
-      card,
-      { opacity: 0, y: 40, scale: 0.95 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "power3.out", delay: index * 0.1 }
-    );
-
-    // Hover scale
-    gsap.to(card, {
-      scale: isHovered ? 1.03 : 1,
-      y: isHovered ? -8 : 0,
-      duration: 0.3,
-      ease: "power2.out",
-    });
-  }, [isHovered, index]);
 
   return (
     <div
-      ref={cardRef}
       className={styles.card}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      style={{ animationDelay: `${index * 0.1}s` }}
+      role="article"
+      aria-label={`${milestone.projectName} — ${config.label}`}
     >
       <div className={styles.header}>
         <div className={styles.projectName}>{milestone.projectName}</div>
@@ -74,7 +47,7 @@ export function MilestoneCard({ milestone, index = 0 }: MilestoneCardProps) {
           <div
             className={styles.progressFill}
             style={{
-              width: milestone.state === "pending" ? "65%" : milestone.state === "verified" ? "100%" : "100%",
+              width: milestone.state === "pending" ? "65%" : "100%",
             }}
           />
         </div>

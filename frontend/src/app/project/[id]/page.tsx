@@ -1,10 +1,37 @@
 "use client";
 
+import React from "react";
+import Link from "next/link";
 import { useMilestone } from "../../../hooks/useMilestones";
 import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
 import { StakeForm } from "../../../components/StakeForm";
 import { DEFAULT_CHAIN, getAddresses } from "../../../lib/contracts";
 import styles from "./page.module.css";
+
+function ProjectSkeleton() {
+  return (
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <div className={styles.skeletonLine} style={{ width: 80, height: 24, borderRadius: "var(--radius-xl)" }} />
+          <div className={styles.skeletonLine} style={{ width: 120, height: 16 }} />
+        </div>
+        <div className={styles.builder}>
+          <div className={styles.skeletonLine} style={{ width: 60, height: 12 }} />
+          <div className={styles.skeletonLine} style={{ width: 140, height: 16, marginTop: 8 }} />
+        </div>
+        <div className={styles.details}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className={styles.detail}>
+              <div className={styles.skeletonLine} style={{ width: 70, height: 12 }} />
+              <div className={styles.skeletonLine} style={{ width: 90, height: 16, marginTop: 4 }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
@@ -16,16 +43,12 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
     milestone?.builder ? `0x${BigInt(milestone.builder).toString(16)}.eth` : ""
   );
 
-  const isActive = milestone && Number(milestone.deadline) * 1000 > Date.now() && !milestone.finalized;
+  const isActive = milestone && !milestone.finalized;
   const isVerified = milestone?.verified;
   const isRejected = milestone?.verified === false && milestone.finalized;
 
   if (isLoading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loading}>Loading milestone...</div>
-      </div>
-    );
+    return <ProjectSkeleton />;
   }
 
   if (error || !milestone) {
@@ -56,9 +79,9 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
         <div className={styles.builder}>
           <span className={styles.label}>Builder</span>
-          <a href={`/builder/${milestone.builder}`} className={styles.builderLink}>
+          <Link href={`/builder/${milestone.builder}`} className={styles.builderLink}>
             {builderPassport?.ens || milestone.builder}
-          </a>
+          </Link>
         </div>
 
         <div className={styles.details}>
@@ -82,10 +105,10 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
           </div>
         </div>
 
-        {milestone.evidenceRoot && (
+        {milestone.finalEvidenceRoot && milestone.finalEvidenceRoot !== "0x0000000000000000000000000000000000000000000000000000000000000000" && (
           <div className={styles.evidence}>
             <span className={styles.label}>Evidence Root</span>
-            <code className={styles.code}>{milestone.evidenceRoot}</code>
+            <code className={styles.code}>{milestone.finalEvidenceRoot}</code>
           </div>
         )}
 
@@ -102,6 +125,3 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
     </div>
   );
 }
-
-import React from "react";
-import { Address } from "viem";

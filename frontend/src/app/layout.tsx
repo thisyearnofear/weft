@@ -1,7 +1,16 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+import Link from 'next/link';
 import './globals.css';
+import styles from './layout.module.css';
 import { Providers } from '@/lib/providers';
 import { ConnectButton } from '@/components/ConnectButton';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ClientToasts } from '@/components/ClientToasts';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   title: 'Weft — Milestone Funding for Fluid Builder Teams',
@@ -13,10 +22,6 @@ export const metadata: Metadata = {
     description: 'Humans and agents participate identically.',
     type: 'website',
   },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -24,37 +29,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <Providers>
-          <header style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 50,
-            padding: '1rem 1.5rem',
-            background: 'rgba(10, 10, 15, 0.8)',
-            backdropFilter: 'blur(12px)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
-            <a href="/" style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontWeight: 700,
-              fontSize: '1.25rem',
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}>
+          <a href="#main-content" className={styles.skipLink}>Skip to content</a>
+          <header className={styles.header} role="banner">
+            <Link href="/" className={styles.logo}>
               ⬡ Weft
-            </a>
+            </Link>
             <ConnectButton />
           </header>
-          <main style={{ paddingTop: '68px' }}>
-            {children}
+          <main id="main-content" className={styles.main}>
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </main>
+          <ClientToasts />
         </Providers>
       </body>
     </html>

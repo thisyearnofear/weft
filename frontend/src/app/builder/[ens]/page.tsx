@@ -1,18 +1,42 @@
 "use client";
 
+import React from "react";
+import Link from "next/link";
 import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
 import styles from "./page.module.css";
+
+function PassportSkeleton() {
+  return (
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <div className={styles.skeletonCircle} />
+          <div className={styles.identity}>
+            <div className={styles.skeletonLine} style={{ width: 140, height: 20 }} />
+            <div className={styles.skeletonLine} style={{ width: 200, height: 12, marginTop: 4 }} />
+          </div>
+        </div>
+        <div className={styles.skeletonLine} style={{ width: "100%", height: 14 }} />
+        <div className={styles.skeletonLine} style={{ width: "70%", height: 14 }} />
+        <div className={styles.stats}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className={styles.stat}>
+              <div className={styles.skeletonLine} style={{ width: 40, height: 20, margin: "0 auto" }} />
+              <div className={styles.skeletonLine} style={{ width: 60, height: 12, margin: "4px auto 0" }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function BuilderPage({ params }: { params: Promise<{ ens: string }> }) {
   const { ens } = React.use(params);
   const { data: passport, isLoading, error } = useBuilderPassport(ens);
 
   if (isLoading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loading}>Loading passport...</div>
-      </div>
-    );
+    return <PassportSkeleton />;
   }
 
   if (error || !passport) {
@@ -61,7 +85,7 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
             <ul className={styles.list}>
               {passport.weftProjects.map((project) => (
                 <li key={project} className={styles.listItem}>
-                  <a href={`/project/${project}`}>{project}</a>
+                  <Link href={`/project/${project}`}>{project}</Link>
                 </li>
               ))}
             </ul>
@@ -74,7 +98,7 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
             <ul className={styles.list}>
               {passport.weftCobuilders.map((cobuilder) => (
                 <li key={cobuilder} className={styles.listItem}>
-                  <a href={`/builder/${cobuilder}`}>{cobuilder}</a>
+                  <Link href={`/builder/${cobuilder}`}>{cobuilder}</Link>
                 </li>
               ))}
             </ul>
@@ -83,17 +107,17 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
 
         <div className={styles.links}>
           {passport.github && (
-            <a href={`https://github.com/${passport.github}`} className={styles.link}>
+            <a href={`https://github.com/${passport.github}`} className={styles.link} target="_blank" rel="noopener noreferrer">
               GitHub
             </a>
           )}
           {passport.twitter && (
-            <a href={`https://twitter.com/${passport.twitter}`} className={styles.link}>
+            <a href={`https://twitter.com/${passport.twitter}`} className={styles.link} target="_blank" rel="noopener noreferrer">
               Twitter
             </a>
           )}
           {passport.url && (
-            <a href={passport.url} className={styles.link}>
+            <a href={passport.url} className={styles.link} target="_blank" rel="noopener noreferrer">
               Website
             </a>
           )}
@@ -102,5 +126,3 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
     </div>
   );
 }
-
-import React from "react";

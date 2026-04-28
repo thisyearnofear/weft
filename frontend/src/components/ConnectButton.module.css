@@ -5,19 +5,19 @@
 
 .button {
   padding: 0.625rem 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  color: #fff;
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border-2);
+  border-radius: var(--radius-md);
+  color: var(--c-text);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
 }
 
 .button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.25);
+  background: var(--c-surface-3);
+  border-color: var(--c-border-2);
 }
 
 .button:disabled {
@@ -30,15 +30,15 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background: rgba(99, 102, 241, 0.2);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  border-radius: 8px;
+  background: var(--c-accent-20);
+  border: 1px solid hsla(224, 88%, 65%, 0.3);
+  border-radius: var(--radius-md);
 }
 
 .address {
   font-size: 0.75rem;
-  font-family: "SF Mono", Monaco, monospace;
-  color: #a5b4fc;
+  font-family: var(--font-mono);
+  color: var(--c-accent);
 }
 
 .disconnect {
@@ -50,13 +50,13 @@
   padding: 0;
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--c-text-secondary);
   cursor: pointer;
   border-radius: 4px;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
 }
 
 .disconnect:hover {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
+  color: var(--c-error);
+  background: hsla(350, 74%, 56%, 0.1);
 }
