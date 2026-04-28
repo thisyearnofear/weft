@@ -31,7 +31,7 @@ if REPO_ROOT not in sys.path:
 
 from agent.lib.axl_client import broadcast_verdict
 from agent.lib.jsonrpc import JsonRpcClient, default_cache
-from agent.lib.peer_inbox import default_inbox_dir, verdicts_for_milestone
+from agent.lib.peer_inbox import consensus_signers_for_base_root, default_inbox_dir
 from agent.lib.verdict_envelope import verify_envelope
 from agent.lib.verifier_registry_reader import VerifierRegistryClient, read_verifier_registry_address
 from agent.lib.mvp_verifier import (
@@ -46,10 +46,13 @@ from agent.lib.mvp_verifier import (
 from agent.lib.eth_rpc import block_number as eth_block_number, chain_id as eth_chain_id, get_code as eth_get_code
 from agent.lib.deadline_scheduler import DeadlineScheduler
 from agent.lib.weft_milestone_reader import read_milestone
-from agent.lib.zero_storage import write_evidence_to_storage
+from agent.lib.zero_storage import kv_put_string, upload_file_to_storage, write_evidence_to_storage
+from agent.lib.bundle_pack import create_deterministic_tar_gz
+from agent.lib.bundle_manifest import build_manifest
 
 
 ZERO_HASH = "0x" + "00" * 32
+CONSENSUS_SCHEMA_VERSION = 1
 
 
 def main() -> int:
@@ -77,6 +80,24 @@ def main() -> int:
         type=int,
         default=int(os.environ.get("AXL_PEER_THRESHOLD") or 2),
         help="How many unique peer node addresses must agree before voting (default: 2).",
+    )
+    p.add_argument(
+        "--use-consensus-root",
+        action="store_true",
+        default=(os.environ.get("AXL_USE_CONSENSUS_ROOT") == "1"),
+        help="If set alongside --wait-for-peers, submit a derived consensusRoot onchain (recommended).",
+    )
+    p.add_argument(
+        "--publish-consensus-0g",
+        action="store_true",
+        default=(os.environ.get("PUBLISH_0G_CONSENSUS") == "1"),
+        help="If set, upload consensus.json to 0G and write KV pointers (requires ZERO_G_* env).",
+    )
+    p.add_argument(
+        "--publish-bundle-0g",
+        action="store_true",
+        default=(os.environ.get("PUBLISH_0G_BUNDLE") == "1"),
+        help="If set, pack the attestation output directory and upload bundle.tar.gz to 0G + KV pointers.",
     )
     p.add_argument(
         "--require-authorized-peers",
@@ -146,6 +167,9 @@ def main() -> int:
                 peer_threshold=args.peer_threshold,
                 inbox_dir=args.inbox_dir,
                 registry_client=registry_client,
+                use_consensus_root=args.use_consensus_root,
+                publish_consensus_0g=args.publish_consensus_0g,
+                publish_bundle_0g=args.publish_bundle_0g,
             )
 
         if args.once:
@@ -170,6 +194,9 @@ def _process_one(
     peer_threshold: int,
     inbox_dir: str,
     registry_client: Optional[VerifierRegistryClient],
+    use_consensus_root: bool,
+    publish_consensus_0g: bool,
+    publish_bundle_0g: bool,
 ) -> None:
     try:
         m = read_milestone(rpc, weft, milestone_hash)
@@ -222,12 +249,14 @@ def _process_one(
 
     with open(canonical_path, "rb") as f:
         canonical_bytes = f.read()
-    evidence_root = keccak_bytes(canonical_bytes)
+    base_evidence_root = keccak_bytes(canonical_bytes)
+    evidence_root = base_evidence_root
 
     if publish_0g:
         receipt = write_evidence_to_storage(milestone_hash, attestation, file_path=canonical_path)
         if receipt and receipt.log_root and receipt.log_root.startswith("0x") and len(receipt.log_root) == 66:
-            evidence_root = receipt.log_root
+            base_evidence_root = receipt.log_root
+            evidence_root = base_evidence_root
 
     verified_bool = bool(attestation["verdict"]["verified"])
     verified_arg = "true" if verified_bool else "false"
@@ -236,63 +265,80 @@ def _process_one(
         br = broadcast_verdict(
             milestone_hash=milestone_hash,
             verified=verified_bool,
-            evidence_root=evidence_root,
+            evidence_root=base_evidence_root,
             node_address=node_address,
         )
         print(f"[{milestone_hash}] broadcast: {br.succeeded}/{br.attempted} peers")
 
     if wait_for_peers:
-        # Wait until we observe a peer group meeting threshold.
-        # This improves "multi-node consensus" UX for demos, without making the contract dependent on it.
+        # Wait until we observe N signed peer envelopes agreeing on the *base* evidence root.
+        # Optionally derive a deterministic consensusRoot from the signer set and submit that onchain.
         deadline = time.time() + 60  # cap wait per cycle (seconds)
         chosen = None
         while time.time() < deadline:
-            # Load envelopes, verify signatures locally, and (optionally) require onchain authorization.
-            verdicts = verdicts_for_milestone(milestone_hash, inbox_dir=inbox_dir)
-            counts = {}
-            nodes_seen = set()
-            for v in verdicts:
-                # Reconstruct envelope dict for signature verification
+            peers = consensus_signers_for_base_root(
+                milestone_hash=milestone_hash,
+                verified=verified_bool,
+                base_evidence_root=base_evidence_root,
+                inbox_dir=inbox_dir,
+            )
+
+            # Verify signature + authorization for each peer
+            valid = []
+            for p in peers:
                 envelope = {
                     "type": "weft.verdict",
-                    "milestoneHash": v.milestone_hash,
-                    "verified": v.verified,
-                    "evidenceRoot": v.evidence_root,
-                    "nodeAddress": v.node_address,
-                    "timestamp": v.timestamp,
+                    "milestoneHash": p.milestone_hash,
+                    "verified": p.verified,
+                    "evidenceRoot": p.evidence_root,
+                    "nodeAddress": p.node_address,
+                    "timestamp": p.timestamp,
+                    "signature": p.signature,
                 }
-                # If the inbox entry includes signature (expected), load it from disk
-                try:
-                    import json as _json
-
-                    with open(v.source_path, "r", encoding="utf-8") as f:
-                        raw = _json.load(f)
-                    if "signature" in raw:
-                        envelope["signature"] = raw["signature"]
-                except Exception:
-                    pass
-
                 ok_sig, _ = verify_envelope(envelope)
                 if not ok_sig:
                     continue
-
-                if registry_client is not None and not registry_client.is_verifier(v.node_address):
+                if registry_client is not None and not registry_client.is_verifier(p.node_address):
                     continue
+                valid.append(p)
 
-                nodes_seen.add(v.node_address.lower())
-                key = (bool(v.verified), v.evidence_root.lower())
-                counts.setdefault(key, set()).add(v.node_address.lower())
+            # Deterministic signer set: take lowest lexicographic addresses
+            signer_set = sorted({p.node_address.lower(): p for p in valid}.values(), key=lambda x: x.node_address.lower())
 
-            # Find largest agreeing set.
-            best_key = None
-            best_nodes = set()
-            for k, ns in counts.items():
-                if len(ns) > len(best_nodes):
-                    best_key = k
-                    best_nodes = ns
+            # Optionally include self as a signer (if we can sign).
+            # This enables threshold=2 to succeed with (self + 1 peer), matching a 2-of-3 demo.
+            self_sig = os.environ.get("AXL_SIGNING_KEY") or os.environ.get("PRIVATE_KEY") or ""
+            if self_sig:
+                from agent.lib.verdict_envelope import build_verdict_envelope, sign_envelope
 
-            if best_key is not None and len(best_nodes) >= peer_threshold:
-                chosen = (best_key[0], best_key[1], len(best_nodes))
+                self_env = build_verdict_envelope(
+                    milestone_hash=milestone_hash,
+                    verified=verified_bool,
+                    evidence_root=base_evidence_root,
+                    node_address=node_address,
+                    timestamp=int(time.time()),
+                )
+                self_env = sign_envelope(self_env, private_key=self_sig)
+                if "signature" in self_env:
+                    # create a pseudo PeerVerdict record for bundling
+                    from agent.lib.peer_inbox import PeerVerdict as _PV
+
+                    signer_set = [p for p in signer_set if p.node_address.lower() != node_address.lower()]
+                    signer_set.insert(
+                        0,
+                        _PV(
+                            milestone_hash=milestone_hash,
+                            verified=verified_bool,
+                            evidence_root=base_evidence_root,
+                            node_address=node_address,
+                            timestamp=self_env["timestamp"],
+                            source_path="local",
+                            signature=self_env["signature"],
+                        ),
+                    )
+
+            if len(signer_set) >= peer_threshold:
+                chosen = signer_set[:peer_threshold]
                 break
             time.sleep(2)
 
@@ -300,17 +346,85 @@ def _process_one(
             print(f"[{milestone_hash}] wait_for_peers: no quorum seen in inbox yet (threshold={peer_threshold}); skipping vote this cycle")
             return
 
-        chosen_verified, chosen_root, chosen_count = chosen
+        # Build deterministic consensus bundle and derive consensus root (optional).
+        if use_consensus_root:
+            consensus = {
+                "schemaVersion": CONSENSUS_SCHEMA_VERSION,
+                "type": "weft.consensus",
+                "milestoneHash": milestone_hash,
+                "verified": verified_bool,
+                "baseEvidenceRoot": base_evidence_root,
+                "signers": [
+                    {"nodeAddress": p.node_address, "signature": p.signature}
+                    for p in sorted(chosen, key=lambda x: x.node_address.lower())
+                ],
+            }
+            consensus_msg = __import__("json").dumps(consensus, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+            consensus_root = keccak_bytes(consensus_msg.encode("utf-8"))
+            evidence_root = consensus_root
 
-        # If peers disagreed with local computation, do not vote.
-        if chosen_verified != verified_bool or chosen_root.lower() != evidence_root.lower():
-            print(
-                f"[{milestone_hash}] wait_for_peers: peer group differs from local computation; "
-                f"local=(verified={verified_bool},root={evidence_root}) "
-                f"peers=(verified={chosen_verified},root={chosen_root},count={chosen_count}). "
-                f"Skipping vote for safety."
+            # Persist consensus bundle alongside attestation (so the root is reproducible).
+            consensus_path = os.path.join(out_dir, "consensus.json")
+            with open(consensus_path, "w", encoding="utf-8") as f:
+                __import__("json").dump(consensus, f, indent=2, sort_keys=True)
+                f.write("\n")
+
+            # Write bundle_manifest.json before packing/uploading bundles.
+            manifest = build_manifest(
+                out_dir=out_dir,
+                milestone_hash=milestone_hash,
+                verified=verified_bool,
+                base_evidence_root=base_evidence_root,
+                consensus_root=consensus_root,
+                signer_addresses=[p.node_address for p in sorted(chosen, key=lambda x: x.node_address.lower())],
             )
-            return
+            manifest_path = os.path.join(out_dir, "bundle_manifest.json")
+            with open(manifest_path, "w", encoding="utf-8") as f:
+                __import__("json").dump(manifest, f, indent=2, sort_keys=True)
+                f.write("\n")
+
+            # Optional: publish consensus.json to 0G and write KV mappings so the onchain
+            # evidenceRoot (consensusRoot) can be resolved to the actual 0G file root.
+            if publish_consensus_0g and publish_0g:
+                consensus_0g_root = upload_file_to_storage(consensus_path)
+                if consensus_0g_root:
+                    # Two useful keys:
+                    # 1) milestone -> latest consensus object root
+                    # 2) consensusRoot -> consensus object root (content addressable lookup)
+                    kv_put_string(
+                        key=f"weft:milestone:{milestone_hash}:consensus",
+                        value=consensus_0g_root,
+                    )
+                    kv_put_string(
+                        key=f"weft:consensus:{consensus_root}",
+                        value=consensus_0g_root,
+                    )
+                    print(f"[{milestone_hash}] published consensus.json to 0G root={consensus_0g_root}")
+                else:
+                    print(f"[{milestone_hash}] publish_consensus_0g enabled but upload failed or not configured")
+
+            print(f"[{milestone_hash}] consensusRoot={consensus_root} (baseEvidenceRoot={base_evidence_root}) signers={len(chosen)}")
+
+            # Optional: publish a full bundle tarball containing attestation + consensus + any artifacts.
+            # This gives a single 0G root for the entire decision context.
+            if publish_bundle_0g and publish_0g:
+                bundle_path = os.path.join(out_dir, "bundle.tar.gz")
+                create_deterministic_tar_gz(out_dir, bundle_path)
+                bundle_root = upload_file_to_storage(bundle_path)
+                if bundle_root:
+                    # milestone -> latest bundle
+                    kv_put_string(
+                        key=f"weft:milestone:{milestone_hash}:bundle",
+                        value=bundle_root,
+                    )
+                    # consensusRoot -> bundle
+                    kv_put_string(
+                        key=f"weft:consensus:{consensus_root}:bundle",
+                        value=bundle_root,
+                    )
+                    print(f"[{milestone_hash}] published bundle.tar.gz to 0G root={bundle_root}")
+                else:
+                    print(f"[{milestone_hash}] publish_bundle_0g enabled but upload failed or not configured")
 
     print(
         f"[{milestone_hash}] window blocks {start_block}-{end_block} uniqueCallers={unique_count} "

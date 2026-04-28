@@ -27,6 +27,58 @@ class StorageReceipt:
     timestamp: Optional[int] = None
 
 
+def upload_file_to_storage(
+    file_path: str,
+    *,
+    indexer_rpc: Optional[str] = None,
+) -> str:
+    """
+    Upload an arbitrary local file to 0G Storage and return its merkle root.
+
+    Preferred path: official `0g-storage-client upload`.
+    Fallback path: none (returns "") unless a custom HTTP gateway is available.
+
+    Env vars:
+      ZERO_G_EVM_RPC_URL / ETH_RPC_URL
+      ZERO_G_PRIVATE_KEY / PRIVATE_KEY
+      ZERO_G_INDEXER_RPC / ZERO_G_INDEXER_URL
+    """
+    indexer = (
+        indexer_rpc
+        or os.environ.get("ZERO_G_INDEXER_RPC")
+        or os.environ.get("ZERO_G_INDEXER_URL")
+        or ""
+    )
+    if not indexer:
+        return ""
+    return _upload_via_cli_if_available(file_path=file_path, indexer_rpc=indexer) or ""
+
+
+def kv_put_string(
+    *,
+    key: str,
+    value: str,
+    stream_id: Optional[str] = None,
+    indexer_rpc: Optional[str] = None,
+) -> None:
+    """
+    Best-effort write a string value to 0G-KV.
+
+    Preferred path: official `0g-storage-client kv-write`
+    Fallback: custom HTTP /kv/put if present.
+    """
+    indexer = (
+        indexer_rpc
+        or os.environ.get("ZERO_G_INDEXER_RPC")
+        or os.environ.get("ZERO_G_INDEXER_URL")
+        or ""
+    )
+    s_id = stream_id or os.environ.get("ZERO_G_STREAM_ID") or ""
+    if not indexer or not s_id:
+        return
+    _kv_write_value(indexer_rpc=indexer, stream_id=s_id, key=key, value=value)
+
+
 def write_evidence_to_storage(
     milestone_hash: str,
     evidence_bundle: Dict[str, Any],
@@ -82,7 +134,7 @@ def write_evidence_to_storage(
         # Keep KV payload minimal to avoid delimiter/encoding pitfalls:
         # store only the log root, and fetch the full attestation via that root.
         if root:
-            _kv_write_root_pointer(indexer_rpc=indexer, stream_id=s_id, key=kv_key, root=root)
+            _kv_write_value(indexer_rpc=indexer, stream_id=s_id, key=kv_key, value=root)
 
     return StorageReceipt(
         log_root=root,
@@ -206,7 +258,7 @@ def _upload_via_http_best_effort(*, indexer_url: str, bundle: Dict[str, Any]) ->
         return ""
 
 
-def _kv_write_root_pointer(*, indexer_rpc: str, stream_id: str, key: str, root: str) -> None:
+def _kv_write_value(*, indexer_rpc: str, stream_id: str, key: str, value: str) -> None:
     """
     Prefer official CLI for KV writes when available; otherwise best-effort HTTP /kv/put.
     """
@@ -231,7 +283,7 @@ def _kv_write_root_pointer(*, indexer_rpc: str, stream_id: str, key: str, root: 
                     "--stream-keys",
                     key,
                     "--stream-values",
-                    root,
+                    value,
                 ],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
@@ -243,6 +295,6 @@ def _kv_write_root_pointer(*, indexer_rpc: str, stream_id: str, key: str, root: 
 
     # Fallback: custom HTTP KV put (deployment-specific).
     try:
-        _kv_put(indexer_rpc, stream_id, key, {"root": root})
+        _kv_put(indexer_rpc, stream_id, key, {"value": value})
     except Exception:
         pass

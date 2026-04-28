@@ -31,6 +31,7 @@ coverage/
 agent/.cache/
 agent/.attestations/
 agent/.inbox/
+agent/.downloads/
 agent/__pycache__/
 *.pyc
 *.pyo

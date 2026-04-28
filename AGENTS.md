@@ -160,6 +160,99 @@ export AXL_PEER_THRESHOLD=2   # number of unique node addresses required
 export WEFT_INBOX_DIR=agent/.inbox
 ```
 
+#### Consensus-root mode (recommended)
+
+When `AXL_USE_CONSENSUS_ROOT=1`, the daemon will:
+1) compute a deterministic `baseEvidenceRoot` for the local attestation bundle
+2) wait for `AXL_PEER_THRESHOLD` signed peer envelopes that agree on `(verified, baseEvidenceRoot)`
+3) compute a deterministic `consensusRoot = keccak(canonical_json(consensus.json))`
+4) submit `consensusRoot` onchain as the `evidenceRoot`
+
+This keeps the contract unchanged while making the onchain `evidenceRoot` prove the
+offchain signer set (signatures over `baseEvidenceRoot`).
+
+```bash
+export AXL_USE_CONSENSUS_ROOT=1
+```
+
+#### Publishing consensus.json to 0G (recommended)
+
+If you also enable `PUBLISH_0G=1` and have `0g-storage-client` configured, the daemon
+can upload `consensus.json` to 0G Storage and write KV pointers so the onchain
+`consensusRoot` can be resolved to the actual 0G merkle root:
+
+```bash
+export PUBLISH_0G=1
+export PUBLISH_0G_CONSENSUS=1
+
+export ZERO_G_EVM_RPC_URL="https://..."
+export ZERO_G_INDEXER_RPC="https://..."
+export ZERO_G_PRIVATE_KEY="0x..."
+export ZERO_G_STREAM_ID="0x..."   # required for KV pointers
+```
+
+Written KV keys:
+- `weft:milestone:<milestoneHash>:consensus` -> `<0g_root_of_consensus.json>`
+- `weft:consensus:<consensusRoot>` -> `<0g_root_of_consensus.json>`
+
+#### Publishing the full attestation bundle to 0G (recommended)
+
+If `PUBLISH_0G_BUNDLE=1`, the daemon will create a deterministic `bundle.tar.gz`
+containing the entire attestation output directory (including `attestation.json`,
+`consensus.json`, and any other artifacts written there), upload it to 0G Storage,
+and write KV pointers:
+
+```bash
+export PUBLISH_0G=1
+export PUBLISH_0G_BUNDLE=1
+```
+
+Written KV keys:
+- `weft:milestone:<milestoneHash>:bundle` -> `<0g_root_of_bundle.tar.gz>`
+- `weft:consensus:<consensusRoot>:bundle` -> `<0g_root_of_bundle.tar.gz>`
+
+#### bundle_manifest.json
+
+Whenever consensus-root mode runs, the daemon writes `bundle_manifest.json` into the
+attestation output directory before packing `bundle.tar.gz`.
+
+The manifest includes:
+- `milestoneHash`, `verified`, `baseEvidenceRoot`, `consensusRoot`, `signers`
+- a deterministic list of files with `{path, bytes, keccak256}` for each file in the directory
+
+This makes it easy to quickly validate bundle integrity after download (before unpacking).
+
+#### Verifying a downloaded bundle
+
+Use `weft_verify_bundle.py` to verify a downloaded bundle against `bundle_manifest.json`.
+
+Verify a tarball (extracts to a temp dir and checks hashes/sizes):
+
+```bash
+python3 agent/scripts/weft_verify_bundle.py --bundle ./bundle.tar.gz
+```
+
+Verify an extracted directory:
+
+```bash
+python3 agent/scripts/weft_verify_bundle.py --dir ./extracted_bundle_dir
+```
+
+Strict mode (fails if extra files exist beyond the manifest list):
+
+```bash
+python3 agent/scripts/weft_verify_bundle.py --bundle ./bundle.tar.gz --strict
+```
+
+#### Download + verify in one command (0G)
+
+If you have a `bundle.tar.gz` merkle root from 0G Storage, you can download and verify it:
+
+```bash
+export ZERO_G_INDEXER_RPC="https://..."
+python3 agent/scripts/weft_download_and_verify_bundle.py --root 0x... --strict
+```
+
 ### `weft_sync_from_indexer.py`
 
 ```bash
