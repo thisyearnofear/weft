@@ -31,7 +31,9 @@ if REPO_ROOT not in sys.path:
 
 from agent.lib.axl_client import broadcast_verdict
 from agent.lib.jsonrpc import JsonRpcClient, default_cache
-from agent.lib.peer_inbox import best_group, default_inbox_dir
+from agent.lib.peer_inbox import default_inbox_dir, verdicts_for_milestone
+from agent.lib.verdict_envelope import verify_envelope
+from agent.lib.verifier_registry_reader import VerifierRegistryClient, read_verifier_registry_address
 from agent.lib.mvp_verifier import (
     DeploymentEvidence,
     UsageEvidence,
@@ -77,6 +79,17 @@ def main() -> int:
         help="How many unique peer node addresses must agree before voting (default: 2).",
     )
     p.add_argument(
+        "--require-authorized-peers",
+        action="store_true",
+        default=(os.environ.get("AXL_REQUIRE_AUTHORIZED") == "1"),
+        help="If set, only count peer envelopes whose nodeAddress is authorized in VerifierRegistry.",
+    )
+    p.add_argument(
+        "--verifier-registry",
+        default=os.environ.get("VERIFIER_REGISTRY_ADDRESS") or "",
+        help="Optional override for VerifierRegistry address (otherwise derived from WeftMilestone.verifierRegistry()).",
+    )
+    p.add_argument(
         "--inbox-dir",
         default=os.environ.get("WEFT_INBOX_DIR") or default_inbox_dir(),
         help="Where the peer server persists received messages (default: agent/.inbox).",
@@ -99,10 +112,21 @@ def main() -> int:
     rpc = JsonRpcClient(args.rpc_url, cache=cache)
     scheduler = DeadlineScheduler(rpc, args.weft, poll_interval=args.interval)
 
+    registry_client = None
+    if args.require_authorized_peers:
+        registry_addr = args.verifier_registry.strip()
+        if not registry_addr:
+            registry_addr = read_verifier_registry_address(rpc, args.weft)
+        registry_client = VerifierRegistryClient(rpc, registry_addr)
+        print(f"weft_daemon: verifierRegistry={registry_addr} (authorized peer checks enabled)")
+
     print(f"weft_daemon: rpc={args.rpc_url} weft={args.weft} node={args.node_address}")
     print(f"weft_daemon: publish_0g={bool(args.publish_0g)} broadcast={bool(args.broadcast)} interval={args.interval}s once={bool(args.once)}")
     if args.wait_for_peers:
-        print(f"weft_daemon: wait_for_peers=true peer_threshold={args.peer_threshold} inbox_dir={args.inbox_dir}")
+        print(
+            f"weft_daemon: wait_for_peers=true peer_threshold={args.peer_threshold} "
+            f"inbox_dir={args.inbox_dir} require_authorized_peers={bool(args.require_authorized_peers)}"
+        )
 
     while True:
         for pm in scheduler.pending_milestones():
@@ -121,6 +145,7 @@ def main() -> int:
                 wait_for_peers=args.wait_for_peers,
                 peer_threshold=args.peer_threshold,
                 inbox_dir=args.inbox_dir,
+                registry_client=registry_client,
             )
 
         if args.once:
@@ -144,6 +169,7 @@ def _process_one(
     wait_for_peers: bool,
     peer_threshold: int,
     inbox_dir: str,
+    registry_client: Optional[VerifierRegistryClient],
 ) -> None:
     try:
         m = read_milestone(rpc, weft, milestone_hash)
@@ -221,9 +247,52 @@ def _process_one(
         deadline = time.time() + 60  # cap wait per cycle (seconds)
         chosen = None
         while time.time() < deadline:
-            g = best_group(milestone_hash, inbox_dir=inbox_dir)
-            if g and g.count >= peer_threshold:
-                chosen = g
+            # Load envelopes, verify signatures locally, and (optionally) require onchain authorization.
+            verdicts = verdicts_for_milestone(milestone_hash, inbox_dir=inbox_dir)
+            counts = {}
+            nodes_seen = set()
+            for v in verdicts:
+                # Reconstruct envelope dict for signature verification
+                envelope = {
+                    "type": "weft.verdict",
+                    "milestoneHash": v.milestone_hash,
+                    "verified": v.verified,
+                    "evidenceRoot": v.evidence_root,
+                    "nodeAddress": v.node_address,
+                    "timestamp": v.timestamp,
+                }
+                # If the inbox entry includes signature (expected), load it from disk
+                try:
+                    import json as _json
+
+                    with open(v.source_path, "r", encoding="utf-8") as f:
+                        raw = _json.load(f)
+                    if "signature" in raw:
+                        envelope["signature"] = raw["signature"]
+                except Exception:
+                    pass
+
+                ok_sig, _ = verify_envelope(envelope)
+                if not ok_sig:
+                    continue
+
+                if registry_client is not None and not registry_client.is_verifier(v.node_address):
+                    continue
+
+                nodes_seen.add(v.node_address.lower())
+                key = (bool(v.verified), v.evidence_root.lower())
+                counts.setdefault(key, set()).add(v.node_address.lower())
+
+            # Find largest agreeing set.
+            best_key = None
+            best_nodes = set()
+            for k, ns in counts.items():
+                if len(ns) > len(best_nodes):
+                    best_key = k
+                    best_nodes = ns
+
+            if best_key is not None and len(best_nodes) >= peer_threshold:
+                chosen = (best_key[0], best_key[1], len(best_nodes))
                 break
             time.sleep(2)
 
@@ -231,13 +300,14 @@ def _process_one(
             print(f"[{milestone_hash}] wait_for_peers: no quorum seen in inbox yet (threshold={peer_threshold}); skipping vote this cycle")
             return
 
-        # If peers agreed on a different root/verdict than our local computation, prefer the peer group
-        # (MVP: evidence roots should converge if deterministically computed; divergence is a signal to stop).
-        if chosen.verified != verified_bool or chosen.evidence_root.lower() != evidence_root.lower():
+        chosen_verified, chosen_root, chosen_count = chosen
+
+        # If peers disagreed with local computation, do not vote.
+        if chosen_verified != verified_bool or chosen_root.lower() != evidence_root.lower():
             print(
                 f"[{milestone_hash}] wait_for_peers: peer group differs from local computation; "
                 f"local=(verified={verified_bool},root={evidence_root}) "
-                f"peers=(verified={chosen.verified},root={chosen.evidence_root},count={chosen.count}). "
+                f"peers=(verified={chosen_verified},root={chosen_root},count={chosen_count}). "
                 f"Skipping vote for safety."
             )
             return

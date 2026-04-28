@@ -24,6 +24,7 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
+from .verdict_envelope import build_verdict_envelope, sign_envelope
 
 @dataclass(frozen=True)
 class BroadcastResult:
@@ -66,14 +67,17 @@ def broadcast_verdict(
 
     endpoint_path = os.environ.get("AXL_ENDPOINT_PATH") or endpoint_path
 
-    payload: Dict[str, Any] = {
-        "type": "weft.verdict",
-        "milestoneHash": milestone_hash,
-        "verified": bool(verified),
-        "evidenceRoot": evidence_root,
-        "nodeAddress": node_address,
-        "timestamp": int(time.time()),
-    }
+    payload: Dict[str, Any] = build_verdict_envelope(
+        milestone_hash=milestone_hash,
+        verified=bool(verified),
+        evidence_root=evidence_root,
+        node_address=node_address,
+        timestamp=int(time.time()),
+    )
+
+    # If AXL_SIGN is enabled (default), attach a signature if a key is available.
+    if os.environ.get("AXL_SIGN", "1") != "0":
+        payload = sign_envelope(payload)
 
     attempted = 0
     succeeded = 0

@@ -107,11 +107,41 @@ Run the peer endpoint that other nodes broadcast to:
 AXL_PORT=9002 python3 agent/scripts/weft_peer_server.py
 ```
 
+Require signed envelopes (recommended):
+
+```bash
+AXL_REQUIRE_SIGNATURE=1 AXL_PORT=9002 python3 agent/scripts/weft_peer_server.py
+```
+
 Then set peers on verifier nodes:
 
 ```bash
 export AXL_BROADCAST=1
 export AXL_PEERS="http://node-a:9002,http://node-b:9002,http://node-c:9002"
+```
+
+#### Signed broadcast mode
+
+Broadcasts are signed by default (if a key is available) using:
+`cast wallet sign <canonical-json-message>` and verified by peers via `cast wallet verify`.
+
+Env vars:
+
+```bash
+AXL_SIGN=1                  # default (set 0 to disable)
+AXL_SIGNING_KEY=0x...        # optional; otherwise uses PRIVATE_KEY
+AXL_REQUIRE_SIGNATURE=1      # on the receiving peer server
+```
+
+#### Authorized-peers mode (recommended)
+
+When using peer corroboration, you can require that each peer envelope is from an
+onchain-authorized verifier address in `VerifierRegistry`:
+
+```bash
+AXL_REQUIRE_AUTHORIZED=1
+# optional override; otherwise derived from WeftMilestone.verifierRegistry()
+VERIFIER_REGISTRY_ADDRESS=0x...
 ```
 
 ### Peer-corroboration mode (recommended for demos)

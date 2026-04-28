@@ -28,6 +28,7 @@ class PeerVerdict:
     node_address: str
     timestamp: int
     source_path: str
+    signature: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -68,6 +69,13 @@ def iter_peer_verdicts(inbox_dir: Optional[str] = None) -> Iterable[PeerVerdict]
     return out
 
 
+def verdicts_for_milestone(
+    milestone_hash: str,
+    inbox_dir: Optional[str] = None,
+) -> List[PeerVerdict]:
+    return [v for v in iter_peer_verdicts(inbox_dir) if v.milestone_hash.lower() == milestone_hash.lower()]
+
+
 def group_verdicts(
     milestone_hash: str,
     inbox_dir: Optional[str] = None,
@@ -75,7 +83,7 @@ def group_verdicts(
     """
     Groups verdicts for a milestone by (verified, evidenceRoot), deduped by nodeAddress.
     """
-    verdicts = [v for v in iter_peer_verdicts(inbox_dir) if v.milestone_hash.lower() == milestone_hash.lower()]
+    verdicts = verdicts_for_milestone(milestone_hash, inbox_dir=inbox_dir)
     buckets: Dict[Tuple[bool, str], Set[str]] = {}
     for v in verdicts:
         key = (bool(v.verified), v.evidence_root.lower())
@@ -105,6 +113,31 @@ def best_group(
     return groups[0] if groups else None
 
 
+def consensus_signers_for_base_root(
+    *,
+    milestone_hash: str,
+    verified: bool,
+    base_evidence_root: str,
+    inbox_dir: Optional[str] = None,
+) -> List[PeerVerdict]:
+    """
+    Returns peer verdicts whose envelope matches the expected (milestoneHash, verified, baseEvidenceRoot)
+    and includes a signature. Sorted deterministically by node_address.
+    """
+    target_root = base_evidence_root.lower()
+    target_verified = bool(verified)
+    verdicts = verdicts_for_milestone(milestone_hash, inbox_dir=inbox_dir)
+    filtered = [
+        v
+        for v in verdicts
+        if bool(v.verified) == target_verified
+        and v.evidence_root.lower() == target_root
+        and v.signature is not None
+    ]
+    filtered.sort(key=lambda v: v.node_address.lower())
+    return filtered
+
+
 def _payload_to_peer_verdict(payload: Dict[str, Any], path: str) -> Optional[PeerVerdict]:
     if payload.get("type") != "weft.verdict":
         return None
@@ -116,7 +149,7 @@ def _payload_to_peer_verdict(payload: Dict[str, Any], path: str) -> Optional[Pee
             node_address=str(payload["nodeAddress"]),
             timestamp=int(payload["timestamp"]),
             source_path=path,
+            signature=str(payload.get("signature")) if payload.get("signature") else None,
         )
     except Exception:
         return None
-
