@@ -58,6 +58,7 @@ indexer_client.get_milestone() reads final state
 | `weft_collect_attestation.py` | Collect evidence + build attestation JSON |
 | `weft_verify_and_vote.sh` | E2E: collect evidence + submit onchain verdict |
 | `weft_sync_from_indexer.py` | Sync milestone state from indexer to local cache |
+| `weft_daemon.py` | Poll deadlines and automatically attest + vote (optional 0G publish + peer broadcast) |
 
 ### `weft_collect_attestation.py`
 
@@ -71,6 +72,31 @@ python agent/scripts/weft_collect_attestation.py \
 ```
 
 Optional flags: `--no-cache`, `--unique-caller-threshold`, `--measurement-window-seconds`.
+
+### `weft_daemon.py`
+
+Runs a continuous verifier loop:
+
+```bash
+export ETH_RPC_URL="http://127.0.0.1:8545"
+export WEFT_CONTRACT_ADDRESS="0x..."
+export PRIVATE_KEY="0x..."          # verifier node key
+export VERIFIER_ADDRESS="0x..."     # optional metadata
+export CONTRACT_ADDRESS="0x..."     # MVP template target contract
+
+# optional
+export PUBLISH_0G=1                 # attempt official 0G publish (requires ZERO_G_* vars)
+export AXL_BROADCAST=1              # broadcast verdicts to peers (requires AXL_PEERS)
+export POLL_INTERVAL=60
+
+python3 agent/scripts/weft_daemon.py
+```
+
+Single pass (cron-friendly):
+
+```bash
+python3 agent/scripts/weft_daemon.py --once
+```
 
 ### `weft_sync_from_indexer.py`
 

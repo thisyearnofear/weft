@@ -5,15 +5,36 @@
 Weft extends Hermes with deterministic onchain evidence collection.
 See `AGENTS.md` for the canonical agent workflow.
 
-## Agent Workflow
+## Agent Workflow (End-to-End)
 
 1. **Poll** — `deadline_scheduler.py` scans for milestones past deadline
 2. **Collect** — `github_client` (commits/PRs) + `mvp_verifier` (deployment/usage)
-3. **Narrate** — `kimi_client` generates human-readable summary (optional)
-4. **Attest** — `mvp_verifier.build_attestation()` produces attestation JSON
-5. **Store** — `zero_storage` writes evidence to 0G Storage (optional, MVP: local files)
+3. **Verify** — build attestation, check deployment + usage signals
+4. **AXL Consensus** — broadcast verdict, poll peers, tally quorum (optional)
+5. **Store** — `zero_storage` writes evidence to 0G Storage (auto if configured)
+6. **ENS** — update builder profile with verified milestone (auto if config)
+7. **Submit** — call `submitVerbid()` onchain
 
-Multi-node consensus via AXL is **planned** — MVP runs single-node with manual quorum.
+## CLI Usage
+
+```bash
+# Full flow with 0G Storage + ENS + AXL
+python agent/scripts/weft_collect_attestation.py \
+  --rpc-url "$ETH_RPC_URL" \
+  --weft-milestone "$WEFT_CONTRACT_ADDRESS" \
+  --milestone-hash "0x..." \
+  --contract-address "0x..." \
+  --out agent/.attestations/attestation.json \
+  --publish-0g \
+  --ens-name "builder.weft.eth" \
+  --axl-poll 30
+
+# Output includes:
+#   VERIFIED=true|false
+#   HAS_QUORUM=true|false  (if AXL_PEERS set)
+#   ENS_UPDATED=true|false (if --ens-name provided)
+#   STORAGE_LOG_ROOT=0x... (if 0G configured)
+```
 
 ## Environment Variables
 
@@ -23,28 +44,37 @@ ETH_RPC_URL: "http://127.0.0.1:8545"          # 0G Chain RPC
 
 # Contract addresses (required for verification)
 WEFT_CONTRACT_ADDRESS: "0x..."                # Deployed WeftMilestone
-VERIFIER_ADDRESS: "0x..."                     # This node's wallet
+VERIFIER_ADDRESS: "0x..."                     # This node's wallet (for submission)
+VERIFIER_PRIVATE_KEY: "0x..."                  # Private key (for submitting verdict)
 
 # Milestone verifier (optional)
 GITHUB_TOKEN: "ghp_..."                      # GitHub personal access token (repo:read)
 KIMI_API_KEY: "sk-..."                       # Kimi/Moonshot API key
-POLL_INTERVAL: "3600"                         # Seconds between poll cycles (default: 3600)
+POLL_INTERVAL: "3600"                         # Seconds between poll cycles
 ```
 
-## 0G Storage (optional — falls back to local files when unset)
+## 0G Storage (optional — falls back to local files)
 
 ```yaml
-ZERO_G_EVM_RPC_URL: "https://..."             # 0G Chain EVM RPC
-ZERO_G_INDEXER_RPC: "https://..."             # 0G Storage indexer RPC
-ZERO_G_PRIVATE_KEY: "0x..."                   # Signer private key (or reuse PRIVATE_KEY)
+ZERO_G_INDEXER_URL: "https://..."                # Storage indexer RPC
 ZERO_G_STREAM_ID: "0x..."                    # KV stream ID
+ZERO_G_RPC_URL: "https://..."                 # 0G Chain RPC (if different)
 ```
 
-## Consensus (planned)
+## AXL Consensus (optional)
 
 ```yaml
-AXL_PORT: "9002"                             # AXL P2P port (future)
-AXL_PEERS: "node-b:9001,node-c:9001"         # Peer addresses (future)
+AXL_PEERS: "http://node-b:9001,http://node-c:9001"   # Peer HTTP endpoints
+# When set: broadcasts verdict + polls for peers + tallies quorum
+# Quorum=2 by default (2-of-3)
+```
+
+## ENS (optional — portable reputation)
+
+```yaml
+# Builder's ENS name to update after verification:
+# Pass --ens-name "builder.weft.eth" to CLI
+# Requires: VERIFIER_PRIVATE_KEY set for setText transactions
 ```
 
 ## Verification Criteria (MVP)
@@ -53,5 +83,5 @@ A milestone is `verified=true` when ALL:
 - **Deployment**: contract code exists at stated address
 - **Usage**: >= unique-caller-threshold unique callers in measurement window
 
-GitHub commits are collected as additional evidence but do not gate the verdict.
-Override: if Kimi confidence < 0.6, return `verified=false`.
+AXL consensus overrides verdict only if quorum reached.
+ENS profile updated only if verified AND quorum met (or single-node mode).

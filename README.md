@@ -70,6 +70,13 @@ python agent/scripts/weft_collect_attestation.py \
   --milestone-hash "0x..." \
   --contract-address "0x..." \
   --out agent/.attestations/attestation.json
+
+# Run verifier daemon (MVP)
+ETH_RPC_URL="http://127.0.0.1:8545" \
+WEFT_CONTRACT_ADDRESS="0x..." \
+PRIVATE_KEY="0x..." \
+CONTRACT_ADDRESS="0x..." \
+python3 agent/scripts/weft_daemon.py --once
 ```
 
 ## Environment Variables
