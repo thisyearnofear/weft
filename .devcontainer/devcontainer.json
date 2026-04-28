@@ -6,7 +6,7 @@
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  "postCreateCommand": "curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash && source ~/.bashrc && echo 'Hermes installed. Run: hermes setup'",
+  "postCreateCommand": "pip install requests && echo 'Ready. Run: curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash'",
   "forwardPorts": [9010],
   "customizations": {
     "vscode": {
