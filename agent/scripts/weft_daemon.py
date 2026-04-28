@@ -129,11 +129,6 @@ def main() -> int:
     p.add_argument("--interval", type=int, default=int(os.environ.get("POLL_INTERVAL") or 60))
     p.add_argument("--once", action="store_true")
     p.add_argument("--no-cache", action="store_true")
-    p.add_argument(
-        "--builder-ens",
-        default=os.environ.get("BUILDER_ENS") or "",
-        help="Builder ENS name (e.g. builder.weft.eth). If set, updates ENS text records after verification.",
-    )
 
     # KeeperHub reliable execution
     p.add_argument(
@@ -185,31 +180,37 @@ def main() -> int:
         )
 
     while True:
-        for pm in scheduler.pending_milestones():
-            _process_one(
-                rpc=rpc,
-                rpc_url=args.rpc_url,
-                weft=args.weft,
-                private_key=args.private_key,
-                node_address=args.node_address,
-                milestone_hash=pm.milestone_hash,
-                contract_address_override=args.contract_address,
-                measurement_window_seconds_override=args.measurement_window_seconds,
-                unique_caller_threshold_override=args.unique_caller_threshold,
-                metadata_indexer=args.metadata_indexer,
-                publish_0g=args.publish_0g,
-                do_broadcast=args.broadcast,
-                wait_for_peers=args.wait_for_peers,
-                peer_threshold=args.peer_threshold,
-                inbox_dir=args.inbox_dir,
-                registry_client=registry_client,
-                use_consensus_root=args.use_consensus_root,
-                publish_consensus_0g=args.publish_consensus_0g,
-                publish_bundle_0g=args.publish_bundle_0g,
-                use_keeperhub=args.use_keeperhub and not args.no_keeperhub,
-                keeperhub_timeout=args.keeperhub_timeout,
-                builder_ens=args.builder_ens,
-            )
+        try:
+            for pm in scheduler.pending_milestones():
+                _process_one(
+                    rpc=rpc,
+                    rpc_url=args.rpc_url,
+                    weft=args.weft,
+                    private_key=args.private_key,
+                    node_address=args.node_address,
+                    milestone_hash=pm.milestone_hash,
+                    contract_address_override=args.contract_address,
+                    measurement_window_seconds_override=args.measurement_window_seconds,
+                    unique_caller_threshold_override=args.unique_caller_threshold,
+                    metadata_indexer=args.metadata_indexer,
+                    publish_0g=args.publish_0g,
+                    do_broadcast=args.broadcast,
+                    wait_for_peers=args.wait_for_peers,
+                    peer_threshold=args.peer_threshold,
+                    inbox_dir=args.inbox_dir,
+                    registry_client=registry_client,
+                    use_consensus_root=args.use_consensus_root,
+                    publish_consensus_0g=args.publish_consensus_0g,
+                    publish_bundle_0g=args.publish_bundle_0g,
+                    use_keeperhub=args.use_keeperhub and not args.no_keeperhub,
+                    keeperhub_timeout=args.keeperhub_timeout,
+                    builder_ens=args.builder_ens,
+                )
+        except KeyboardInterrupt:
+            print("weft_daemon: shutting down")
+            return 0
+        except Exception as e:
+            print(f"weft_daemon: poll cycle error: {e}", file=sys.stderr)
 
         if args.once:
             return 0
@@ -549,11 +550,6 @@ def _submit_verdict(
             if result.status == ExecutionStatus.CONFIRMED:
                 tx_info = f"tx={result.tx_hash}" if result.tx_hash else ""
                 print(f"[{milestone_hash}] vote submitted via KeeperHub {tx_info}")
-                
-                _update_ens_if_configured(
-                    builder_ens, milestone_hash, project_id, storage_receipt,
-                    earnings, args, out_dir, rpc_url, private_key, weft
-                )
                 return
             else:
                 print(
@@ -591,40 +587,6 @@ def _submit_verdict(
             print(f"[{milestone_hash}] vote submitted")
     except Exception as e:
         print(f"[{milestone_hash}] cast send error: {e}")
-
-
-def _update_ens_if_configured(
-    builder_ens: str,
-    milestone_hash: str,
-    project_id: str,
-    storage_receipt,
-    earnings: int,
-    args,
-    out_dir: Optional[str],
-    rpc_url: str,
-    private_key: str,
-    weft: str,
-) -> None:
-    """Update ENS records after verdict submission if ENS is configured."""
-    builder = args.builder_ens or os.environ.get("WEFT_BUILDER_ENS")
-    if not builder:
-        return
-    
-    try:
-        tx_hashes = update_ens_after_verification(
-            builder_ens=builder,
-            project_id=project_id,
-            milestone_hash=milestone_hash,
-            storage_receipt=storage_receipt,
-            earnings=earnings,
-            role="verifier",
-        )
-        if tx_hashes:
-            print(f"[{milestone_hash}] ENS records updated")
-        else:
-            print(f"[{milestone_hash}] ENS update skipped (not configured or failed)")
-    except Exception as e:
-        print(f"[{milestone_hash}] ENS update error: {e}")
 
 
 if __name__ == "__main__":

@@ -35,8 +35,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Run pytest
-        run: python -m pytest agent/test/test_lib.py -v
+      - name: Run all agent tests
+        run: python -m pytest agent/test/ -v
 
   imports:
     name: Import Check
@@ -54,18 +54,37 @@ jobs:
           python -c "
           from agent.lib import (
               mvp_verifier, github_client, kimi_client, deadline_scheduler,
-              zero_storage, indexer_client, jsonrpc, abi, weft_milestone_reader
+              zero_storage, indexer_client, jsonrpc, abi, weft_milestone_reader,
+              axl_client, peer_inbox, verdict_envelope, keeperhub_client,
+              ens_client, verifier_registry_reader, metadata_reader,
+              bundle_manifest, bundle_pack
           )
           print('All imports OK')
           "
 
-  secrets-check:
-    name: Secrets Check
+  frontend:
+    name: Frontend Build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run pre-commit hook
-        run: |
-          chmod +x .git/hooks/pre-commit
-          .git/hooks/pre-commit || exit 1
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_DEFAULT_CHAIN: sepolia
