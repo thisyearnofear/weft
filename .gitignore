@@ -30,6 +30,7 @@ coverage/
 # Weft agent artifacts
 agent/.cache/
 agent/.attestations/
+agent/.inbox/
 agent/__pycache__/
 *.pyc
 *.pyo

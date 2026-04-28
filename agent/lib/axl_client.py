@@ -64,6 +64,8 @@ def broadcast_verdict(
     if not peer_list:
         return BroadcastResult(attempted=0, succeeded=0)
 
+    endpoint_path = os.environ.get("AXL_ENDPOINT_PATH") or endpoint_path
+
     payload: Dict[str, Any] = {
         "type": "weft.verdict",
         "milestoneHash": milestone_hash,
@@ -161,4 +163,3 @@ def register_peer(
             return True
     except Exception:
         return False
-

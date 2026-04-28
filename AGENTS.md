@@ -59,6 +59,7 @@ indexer_client.get_milestone() reads final state
 | `weft_verify_and_vote.sh` | E2E: collect evidence + submit onchain verdict |
 | `weft_sync_from_indexer.py` | Sync milestone state from indexer to local cache |
 | `weft_daemon.py` | Poll deadlines and automatically attest + vote (optional 0G publish + peer broadcast) |
+| `weft_peer_server.py` | Receive peer broadcasts (POST /send) and persist to `agent/.inbox/` |
 
 ### `weft_collect_attestation.py`
 
@@ -96,6 +97,21 @@ Single pass (cron-friendly):
 
 ```bash
 python3 agent/scripts/weft_daemon.py --once
+```
+
+### `weft_peer_server.py`
+
+Run the peer endpoint that other nodes broadcast to:
+
+```bash
+AXL_PORT=9002 python3 agent/scripts/weft_peer_server.py
+```
+
+Then set peers on verifier nodes:
+
+```bash
+export AXL_BROADCAST=1
+export AXL_PEERS="http://node-a:9002,http://node-b:9002,http://node-c:9002"
 ```
 
 ### `weft_sync_from_indexer.py`
