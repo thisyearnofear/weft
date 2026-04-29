@@ -60,6 +60,48 @@ narrative = generate_narrative(attestation)
 
 This runs **autonomously** within the daemon — no human-in-the-loop. The narrative is persisted alongside the attestation and published to 0G Storage as part of the evidence bundle.
 
+## Demo (for Judges)
+
+### 1. Open the Hermes Agent
+
+Click to open: **[Open in GitHub Codespaces](https://codespaces.new/thisyearnofear/weft)**
+
+Once the Codespace loads (~60 seconds), run:
+```bash
+bash setup-hermes.sh && source ~/.bashrc && hermes setup
+```
+
+Configure Kimi as the LLM provider when prompted, then start:
+```bash
+hermes
+```
+
+### 2. Test the Skills
+
+**Check milestone status:**
+```
+Load ~/weft/agent/skills/weft-status/SKILL.md and check the status of milestone 0x0f93e22d852f346d633f5bd0f61d38e011661ee09a74b0a7dd2856181fe9266f
+```
+
+**Generate a Kimi narrative:**
+```
+Load ~/weft/agent/skills/weft-narrate/SKILL.md and generate a narrative for milestone 0x0f93e22d852f346d633f5bd0f61d38e011661ee09a74b0a7dd2856181fe9266f
+```
+
+**Run verification:**
+```
+Load ~/weft/agent/skills/weft-verify/SKILL.md and verify milestone 0x0f93e22d852f346d633f5bd0f61d38e011661ee09a74b0a7dd2856181fe9266f
+```
+
+### 3. Architecture
+
+| Component | Where | Purpose |
+|---|---|---|
+| Smart contracts | 0G Galileo testnet | Milestone escrow + verifier quorum |
+| Free daemon | GCP e2-micro (3 nodes) | Self-hosted verification loop |
+| Hermes Agent | GitHub Codespace | AI-powered verification with memory + skills |
+| Kimi | moonshot-v1-128k | Narrative generation from attestation data |
+
 ## Quick Start
 
 ```bash
