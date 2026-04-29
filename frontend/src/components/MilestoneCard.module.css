@@ -10,6 +10,9 @@
   transform: translateY(40px) scale(0.95);
   animation: cardEntrance 0.6s var(--ease-out) forwards;
   transition: transform 0.3s var(--ease-out), box-shadow 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+  display: block;
 }
 
 @keyframes cardEntrance {
@@ -174,23 +177,23 @@
   color: var(--c-text-muted);
 }
 
-.stakeButton {
+.cta {
   width: 100%;
   margin-top: 1rem;
-  padding: 0.75rem;
-  background: linear-gradient(135deg, var(--c-accent), #8b5cf6);
-  border: none;
+  padding: 0.625rem;
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border-2);
   border-radius: var(--radius-md);
-  color: white;
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  color: var(--c-text-secondary);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  text-align: center;
+  transition: background var(--transition-base), color var(--transition-base);
 }
 
-.stakeButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px hsla(224, 88%, 65%, 0.4);
+.card:hover .cta {
+  background: var(--c-accent-20);
+  color: var(--c-text);
 }
 
 /* Skeleton styles */

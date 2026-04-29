@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { Milestone, MilestoneState } from "../lib/mock-data";
 import { formatDeadline } from "../lib/mock-data";
 import styles from "./MilestoneCard.module.css";
@@ -10,16 +11,17 @@ interface MilestoneCardProps {
 }
 
 const STATE_CONFIG: Record<MilestoneState, { label: string; color: string }> = {
-  pending: { label: "Funding Open", color: "#10b981" },
-  verified: { label: "Verified ✓", color: "#6366f1" },
-  failed: { label: "Failed ✗", color: "#ef4444" },
+  pending: { label: "Awaiting Verification", color: "#f59e0b" },
+  verified: { label: "Verified", color: "#22c55e" },
+  failed: { label: "Failed", color: "#ef4444" },
 };
 
 export function MilestoneCard({ milestone, index = 0 }: MilestoneCardProps) {
   const config = STATE_CONFIG[milestone.state];
 
   return (
-    <div
+    <Link
+      href={`/project/${milestone.hash}`}
       className={styles.card}
       style={{ animationDelay: `${index * 0.1}s` }}
       role="article"
@@ -85,9 +87,9 @@ export function MilestoneCard({ milestone, index = 0 }: MilestoneCardProps) {
         </div>
       </div>
 
-      {milestone.state === "pending" && (
-        <button className={styles.stakeButton}>Stake ETH</button>
-      )}
-    </div>
+      <div className={styles.cta}>
+        {milestone.state === "verified" ? "View Verification" : "View Milestone"}
+      </div>
+    </Link>
   );
 }

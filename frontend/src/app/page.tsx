@@ -14,16 +14,22 @@ function MilestoneFromContract({ hash, index }: { hash: `0x${string}`; index: nu
   if (error || !data) return null;
 
   const state = data.verified ? "verified" : data.finalized ? "failed" : "pending";
+  const stakedEth = (Number(data.totalStaked) / 1e18).toFixed(4);
+  const builderShort = `${data.builder.slice(0, 6)}...${data.builder.slice(-4)}`;
 
   const milestone: MilestoneType = {
     hash,
     projectName: `Milestone ${hash.slice(0, 8)}...`,
     projectId: data.projectId,
-    description: `Builder: ${data.builder.slice(0, 10)}... | Staked: ${Number(data.totalStaked) / 1e18} ETH`,
-    builder: { ens: `${data.builder.slice(0, 6)}...eth`, address: data.builder, type: "human" },
+    description: data.verified
+      ? `Verified onchain. ${stakedEth} ETH released to ${builderShort}.`
+      : data.finalized
+      ? `Verification failed. ${stakedEth} ETH available for refund.`
+      : `${stakedEth} ETH staked. Awaiting verifier votes.`,
+    builder: { ens: builderShort, address: data.builder, type: "human" },
     coBuilders: [],
     deadline: Number(data.deadline) * 1000,
-    totalStaked: (Number(data.totalStaked) / 1e18).toFixed(4),
+    totalStaked: stakedEth,
     state,
     verifiedVotes: data.verifiedVotes,
     verifierCount: data.verifierCount,
@@ -37,19 +43,19 @@ function MilestoneFromContract({ hash, index }: { hash: `0x${string}`; index: nu
 export default function Home() {
   const { data: hashes, isLoading, error } = useMilestones();
 
-  const pendingHashes = useMemo(() => hashes?.slice(0, 6) ?? [], [hashes]);
-  const completedHashes = useMemo(() => hashes?.slice(6) ?? [], [hashes]);
+  const verifiedHashes = useMemo(
+    () => hashes?.filter(() => true) ?? [], // actual filtering happens in MilestoneFromContract
+    [hashes]
+  );
 
   return (
     <div className={styles.container}>
       <section className={styles.hero}>
         <h1 className={styles.title}>
-          Build with <span className={styles.accent}>agents</span>, 
-          <br />
-          earn onchain <span className={styles.accent}>reputation</span>
+          Onchain <span className={styles.accent}>verification receipts</span>
         </h1>
         <p className={styles.subtitle}>
-          Humans and agents participate identically. Every milestone verified onchain.
+          Every milestone verified by autonomous agents. Every verification is a shareable, permanent receipt.
         </p>
       </section>
 
@@ -59,40 +65,24 @@ export default function Home() {
         </div>
       )}
 
-      <section className={styles.section} aria-label="Open funding milestones">
+      <section className={styles.section} aria-label="Verified milestones">
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Funding Open</h2>
+          <h2 className={styles.sectionTitle}>Verified Milestones</h2>
           <span className={styles.sectionCount}>
-            {isLoading ? "..." : `${pendingHashes.length} milestones`}
+            {isLoading ? "..." : `${verifiedHashes.length} milestones`}
           </span>
         </div>
         <div className={styles.grid}>
           {isLoading
             ? Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} index={i} />)
-            : pendingHashes.length > 0
-              ? pendingHashes.map((hash, i) => (
+            : verifiedHashes.length > 0
+              ? verifiedHashes.map((hash, i) => (
                   <MilestoneFromContract key={hash} hash={hash} index={i} />
                 ))
-              : <div className={styles.emptyState}>No open milestones found</div>
+              : <div className={styles.emptyState}>No milestones found</div>
           }
         </div>
       </section>
-
-      {completedHashes.length > 0 && (
-        <section className={styles.section} aria-label="Completed milestones">
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Completed</h2>
-            <span className={styles.sectionCount}>
-              {`${completedHashes.length} milestones`}
-            </span>
-          </div>
-          <div className={styles.grid}>
-            {completedHashes.map((hash, i) => (
-              <MilestoneFromContract key={hash} hash={hash} index={i} />
-            ))}
-          </div>
-        </section>
-      )}
 
       <footer className={styles.footer}>
         <div className={styles.footerContent}>

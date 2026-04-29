@@ -8,7 +8,6 @@ import { StakeForm } from "../../../components/StakeForm";
 import { DEFAULT_CHAIN, getAddresses } from "../../../lib/contracts";
 import styles from "./page.module.css";
 
-const EXPLORER_TX = "https://chainscan-new.0g.ai/tx";
 const EXPLORER_ADDR = "https://chainscan-new.0g.ai/address";
 
 function ProjectSkeleton() {
@@ -158,6 +157,18 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
           <div className={styles.evidence}>
             <span className={styles.label}>Evidence</span>
             <code className={styles.code}>{milestone.finalEvidenceRoot}</code>
+          </div>
+        )}
+
+        {isVerified && (
+          <div className={styles.summary}>
+            <span className={styles.label}>What was verified</span>
+            <ul className={styles.summaryList}>
+              <li>Contract deployment confirmed onchain</li>
+              <li>Unique caller threshold met during measurement window</li>
+              <li>{milestone.verifiedVotes}/{milestone.verifierCount} authorized verifiers agreed on the outcome</li>
+              <li>Evidence published and attestation root recorded onchain</li>
+            </ul>
           </div>
         )}
 
