@@ -306,13 +306,18 @@ The narrative is the product. The automation is the moat.
 - [x] 3-node verifier infrastructure on GCP (free tier)
 - [x] Structured logging
 - [x] Kimi narrative generation
-- [x] Hermes skills created (verify, narrate, status)
+- [x] Hermes skills created (verify, narrate, status, ens)
 - [x] DevContainer config for Codespace deployment
-- [ ] Install Hermes Agent in Codespace
-- [ ] Configure Kimi API key
-- [ ] Test end-to-end via Hermes CLI
+- [x] ENS text record writes (skip_ownership for demos)
+- [x] Shareable verification page with OG images
+- [x] Badge endpoint for GitHub READMEs
+- [x] Frontend as verification directory
 - [ ] Record demo video
 - [ ] Submit to both hackathons
+
+### Post-Hackathon (Month 1-2)
+- [ ] Telegram/Discord bot interface (requires persistent hosting, not Codespace)
+- [ ] Hermes Agent on persistent VPS (Railway/Fly.io)
 
 ### Post-Hackathon (Month 1-2)
 - [ ] Hermes Agent as hosted service
