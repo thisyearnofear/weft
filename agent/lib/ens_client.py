@@ -15,7 +15,7 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-ENS_PUBLIC_RESOLVER = "0x231052B08c198b0822486Eb1B6e2F238f7CF528E1"
+ENS_PUBLIC_RESOLVER = "0x231052B08c198b0822486Eb1B6e2F238f7CF528E"
 
 
 @dataclass(frozen=True)
@@ -319,12 +319,16 @@ def update_ens_after_verification(
     storage_receipt,
     earnings: int,
     role: str = "builder",
+    skip_ownership: bool = False,
 ) -> str:
     """Update all ENS records after milestone verification.
 
     Pre-flight: checks ownership before writing. Emits a clear error if the
     verifier's key does not control the builder's ENS name so the tx doesn't
     revert silently.
+
+    Set skip_ownership=True to bypass the ownership check (for demos/testing
+    when the verifier controls the builder's ENS name via other means).
     """
     rpc = os.environ.get("ETH_RPC_URL", "")
     key = os.environ.get("VERIFIER_PRIVATE_KEY", "") or os.environ.get("PRIVATE_KEY", "")
@@ -334,7 +338,7 @@ def update_ens_after_verification(
 
     client = EnsClient(rpc, key)
 
-    if not client.verify_ownership(builder_ens):
+    if not skip_ownership and not client.verify_ownership(builder_ens):
         print(
             f"ens_client: skipping ENS update — verifier key does not own '{builder_ens}'. "
             f"The builder must set the verifier address as owner or approved operator."

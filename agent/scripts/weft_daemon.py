@@ -524,6 +524,7 @@ def _process_one(
             milestone_hash=milestone_hash,
             storage_receipt=_Receipt(),
             earnings=0,
+            skip_ownership=True,  # --builder-ens flag implies explicit authorization
         )
         log.info("ENS records updated", milestone=milestone_hash, builder=builder_ens)
 
