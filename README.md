@@ -1,25 +1,56 @@
 # Weft
 
-**Weft is a decentralized verifier swarm for milestone-based capital release.**
+**Weft is programmable trust for small teams: milestone funding, verifier swarms, and portable reputation for humans and agents.**
 
-Weft turns milestone funding into an autonomous, auditable agent workflow:
-1. a builder creates a milestone and stakes capital,
-2. verifier agents monitor deadlines and gather evidence,
-3. peers corroborate via AXL,
-4. evidence and bundle pointers persist on 0G,
-5. KeeperHub reliably executes the onchain verdict,
-6. ENS gives builders and verifier agents human-readable identity.
+Weft helps internet-native teams release capital based on verifiable outcomes instead of manual trust.
+
+## The wedge
+
+Most early teams still coordinate funding with some broken combination of:
+- Telegram chats
+- Notion checklists
+- screenshots in DMs
+- multisig payout politics
+- contractor ambiguity
+- no portable reputation
+
+Weft replaces that with a capital coordination system built for **fluid human-agent teams**:
+1. a founder, sponsor, or DAO defines a milestone and escrows capital,
+2. builders and agents work toward the objective,
+3. verifier agents gather evidence when the milestone window closes,
+4. peer nodes corroborate the outcome,
+5. funds release only when the system reaches execution-grade confidence,
+6. the builder and agent identities retain portable reputation tied to funded outcomes.
 
 ## Why this matters
 
-Weft replaces four things that currently require corporations, lawyers, and managers:
+Weft replaces four things that normally require corporations, lawyers, and managers:
 
 | Primitive | Replaced by |
 |---|---|
-| Identity / CV | ENS text records (portable, machine-readable) |
-| Funding / equity | `WeftMilestone.sol` — milestone-staked ETH |
-| Verification / managers | Hermes Agent verification loop |
-| Settlement / payroll | KeeperHub reliable execution (ETH-only; Uniswap routing deferred) |
+| Identity / CV | ENS text records and portable Weft reputation |
+| Funding / equity | `WeftMilestone.sol` milestone escrow |
+| Verification / managers | autonomous verifier swarm |
+| Settlement / payroll | KeeperHub-backed capital release |
+
+## Who it is for
+
+### Founders, sponsors, and DAOs
+- release capital without manual payout review
+- reduce milestone disputes
+- fund faster with more confidence
+- keep auditable evidence trails
+
+### Contributors
+- earn portable reputation from funded outcomes
+- work pseudonymously or agentically
+- prove impact without relying on a résumé or screenshots
+- participate in teams that form and dissolve quickly
+
+### Internet-native teams
+- coordinate without requiring formal company structure first
+- mix human and agent contributors in the same trust graph
+- turn shipped work into reusable trust for future funding
 
 ## Sponsor fit at a glance
 
@@ -31,33 +62,46 @@ Weft replaces four things that currently require corporations, lawyers, and mana
 | **ENS** | Builder / verifier profile records and discoverability | Human-readable identity and portable reputation for builders and agents |
 | **Hermes + Kimi** | Managed agent layer and narrative generation | Makes the system usable by humans, not just scripts |
 
+## What is different about Weft
+
+### 1. Capital moves on evidence, not vibes
+Weft is not task tracking. It is a **capital release system**. Money stays gated until evidence clears a threshold.
+
+### 2. Humans and agents are first-class contributors in the same system
+Most tools still treat agents as assistants. Weft treats them as economic actors that can contribute to outcomes and accumulate track record.
+
+### 3. Reputation is tied to funded outcomes
+A milestone completing is useful. A milestone completing and unlocking real capital is a much stronger signal.
+
+### 4. Flexible verification, onchain consequences
+Weft sits between rigid smart contracts and messy manual review: offchain evidence gathering with onchain finality.
+
 ## For judges: 3-minute demo flow
 
 ### Story in one sentence
-**Weft verifies whether a builder actually shipped, then lets a decentralized verifier swarm release milestone capital with a visible audit trail.**
+**Weft lets internet-native teams release capital based on verifiable outcomes instead of manual trust.**
 
 ### Demo sequence
-1. **Create / inspect a milestone**
+1. **Show the old world**
+   - explain the pain: screenshots, chats, payout ambiguity, no reusable reputation
+2. **Create / inspect a milestone**
    - show the milestone hash and metadata root on 0G
-2. **Open the Weft status API**
-   - `python3 agent/scripts/weft_status_api.py --port 9010`
-   - open `http://localhost:9010/`
-3. **Fetch the milestone payload**
-   - use `/milestone/<hash>?includeMetadata=1`
-   - show `demo.0g`, `demo.gensyn`, `demo.keeperhub`, and `demo.ens`
-4. **Explain the peer-swarm step**
+3. **Open the Weft status API / app**
+   - show the milestone payload and product surface
+4. **Explain the verifier swarm**
    - signed peer envelopes land in `agent/.inbox/`
    - corroborating peers agree on `(verified, evidenceRoot)`
-5. **Explain the execution step**
+5. **Explain the capital release decision**
    - KeeperHub is the preferred execution path for `submitVerdict()`
-6. **Close with the artifact proof**
-   - evidence root / consensus root / bundle manifest make the process auditable
+6. **Close with reputation**
+   - the builder and collaborators retain portable trust tied to funded outcomes
 
 ### What to highlight verbally
 - **0G:** metadata + evidence persistence
 - **AXL:** separate verifier nodes, shared corroboration
 - **KeeperHub:** reliable execution, not a raw one-off tx
 - **ENS:** discoverable agent / builder identity
+- **Weft:** trust graph for fluid teams, not just a milestone dashboard
 
 ## Hermes Agent architecture
 
@@ -157,145 +201,48 @@ forge test
 python -m pytest agent/test/ -v
 ```
 
-### Local deployment / milestone flow
+## End-to-end demo
+
+Run the full pipeline covering all sponsor integrations:
 
 ```bash
-# Deploy locally
-DEPLOYER_KEY=0x... ETH_RPC_URL=http://127.0.0.1:8545 ./scripts/deploy.sh
+export ETH_RPC_URL="https://evmrpc-testnet.0g.ai"
+export WEFT_CONTRACT_ADDRESS="0xcc768d56b0053b1b2df5391dde989be3f859474c"
+export PRIVATE_KEY="0x..."
 
-# Builder onboarding (alpha)
-python3 scripts/weft_builder.py init-metadata \
-  --chain-id 16600 \
-  --contract-address 0x0000000000000000000000000000000000000000 \
-  --deadline 1710000000 \
-  --upload-0g
+# Optional sponsor features
+export KIMI_API_KEY="..."           # Kimi narrative generation
+export KEEPERHUB_API_KEY="..."      # KeeperHub reliable execution
+export ZERO_G_INDEXER_RPC="..."     # 0G Storage publishing
+export WEFT_BUILDER_ENS="builder.weft.eth"  # ENS profile updates
+export UNISWAP_API_KEY="..."        # Uniswap fee routing
+export WEFT_TREASURY_ADDRESS="0x..." # Treasury for fee routing
 
-python3 scripts/weft_builder.py verify-metadata \
-  --root 0x... \
-  --expect-chain-id 16600 \
-  --expect-contract-address 0x0000000000000000000000000000000000000000 \
-  --expect-deadline 1710000000
-
-python3 scripts/weft_builder.py create-milestone \
-  --rpc-url "$ETH_RPC_URL" \
-  --weft "$WEFT_CONTRACT_ADDRESS" \
-  --private-key 0x... \
-  --project "my-project" \
-  --metadata-root 0x... \
-  --indexer "$ZERO_G_INDEXER_RPC"
-
-python3 scripts/weft_builder.py stake \
-  --rpc-url "$ETH_RPC_URL" \
-  --weft "$WEFT_CONTRACT_ADDRESS" \
-  --private-key 0x... \
-  --milestone-hash 0x... \
-  --value-eth 0.05
+bash scripts/demo_e2e.sh --nodes=3
 ```
 
-### Verification flow
-
+Dry-run (no onchain transactions):
 ```bash
-# Collect attestation
-python agent/scripts/weft_collect_attestation.py \
-  --rpc-url "http://127.0.0.1:8545" \
-  --weft-milestone "0x..." \
-  --milestone-hash "0x..." \
-  --contract-address "0x..." \
-  --out agent/.attestations/attestation.json
-
-# Run verifier daemon once
-ETH_RPC_URL="http://127.0.0.1:8545" \
-WEFT_CONTRACT_ADDRESS="0x..." \
-PRIVATE_KEY="0x..." \
-ZERO_G_INDEXER_RPC="https://..." \
-python3 agent/scripts/weft_daemon.py --once
+bash scripts/demo_e2e.sh --dry-run --nodes=3
 ```
 
-## Why each integration is real
+See [Hackathon Strategy](docs/hackathon-strategy.md) for per-track analysis.
 
-### 0G
-- Weft milestones live on **0G Chain**
-- builder metadata is resolved from **0G indexer / storage**
-- evidence / consensus artifacts can be uploaded and referenced deterministically
+## Sponsor SDKs and protocols used
 
-### Gensyn / AXL
-- verifiers share signed verdict envelopes across nodes
-- peer corroboration is visible in the inbox-derived consensus view
-- this is not an in-process mock; the design is node-to-node
-
-### KeeperHub
-- preferred execution path for `submitVerdict()`
-- gives retry logic, gas optimization, audit trail, and better operator reliability
-
-### ENS
-- builder and verifier profiles can be anchored in text records
-- identity and discoverability become portable across tools and frontends
-
-## Kimi integration
-
-Each verification cycle can optionally call Kimi to transform raw attestation JSON into a builder-facing narrative:
-
-```python
-from agent.lib.kimi_client import generate_narrative
-
-narrative = generate_narrative(attestation)
-```
-
-The narrative is persisted alongside the attestation and can be published to 0G Storage as part of the evidence bundle.
-
-## Environment variables
-
-| Variable | Required | Description |
+| Sponsor | SDK / Protocol | Module |
 |---|---|---|
-| `ETH_RPC_URL` | Yes | 0G Chain RPC |
-| `WEFT_CONTRACT_ADDRESS` | Yes | Deployed WeftMilestone |
-| `GITHUB_TOKEN` | No | GitHub API for commits/PRs |
-| `KIMI_API_KEY` | No | Kimi API for narrative |
-| `KEEPERHUB_API_KEY` | No | KeeperHub reliable execution (fallback: `cast send`) |
-| `ZERO_G_INDEXER_RPC` | Yes (verifier/demo) | Milestone metadata lookup |
-| `ZERO_G_*` | No | 0G Storage config (publish evidence/bundles) |
-| `WEFT_BUILDER_ENS` | No | Builder ENS name to display/update |
-| `WEFT_AGENT_ENS` | No | Verifier agent ENS name to display |
-
-See [AGENTS.md](AGENTS.md) for the full environment variable reference.
-
-## Qualification checklist
-
-### Open Agents / 0G / Gensyn / KeeperHub / ENS
-- [x] project name and short description
-- [x] public GitHub repo
-- [x] setup instructions
-- [x] contract deployment addresses
-- [x] explanation of protocol usage
-- [x] working example agent / daemon flow
-- [ ] final demo video under 3 minutes
-- [ ] final live demo link in submission
-- [ ] final team/contact block in submission form
-- [ ] architecture diagram image if you want a stronger package
-
-### Uniswap
-- [x] required `FEEDBACK.md` exists
-- [ ] real Uniswap API integration intentionally deferred until there is a core settlement use case
-
-## Product tiers
-
-### Free — Weft Daemon
-Self-hosted Python verification loop.
-
-```bash
-python3 agent/scripts/weft_daemon.py --once
-```
-
-### Weft Agent (Hermes Agent)
-Managed verification with AI-powered narrative generation.
-
-### Weft Swarm (Enterprise)
-Multi-agent verification infrastructure for teams and DAOs.
-
-See [Product Plan](docs/product-plan.md) for the full monetization strategy.
+| 0G | 0G Chain (EVM RPC), 0G Storage (CLI + KV), 0G Indexer | `agent/lib/jsonrpc.py`, `agent/lib/zero_storage.py`, `agent/lib/indexer_client.py` |
+| Gensyn | AXL binary (`axl send`/`axl recv`), AXL HTTP API, legacy HTTP fallback | `agent/lib/axl_client.py` |
+| KeeperHub | KeeperHub REST API (execute, poll, logs) | `agent/lib/keeperhub_client.py` |
+| ENS | ENS Registry + Public Resolver via `cast` (namehash, setText, text) | `agent/lib/ens_client.py` |
+| Uniswap | Uniswap Routing API (`/v2/quote`), Universal Router | `agent/lib/uniswap_client.py` |
+| Kimi / Moonshot | `moonshot-v1-128k` via OpenAI-compatible API | `agent/lib/kimi_client.py` |
+| Hermes | Hermes Agent skills (`agent/skills/weft-verify/`) | `setup-hermes.sh` |
 
 ## Links
 
+- [Hackathon Strategy](docs/hackathon-strategy.md)
 - [Hackathon Submission Pack](docs/hackathon-submission.md)
 - [Judge-Friendly Architecture Diagram](docs/architecture-diagram.md)
 - [Product Plan & Monetization](docs/product-plan.md)

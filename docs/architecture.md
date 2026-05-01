@@ -28,7 +28,7 @@ Hermes Agent (agent/lib/)
     ├─ mvp_verifier.py            deployment + usage signals
     ├─ kimi_client.py            narrative synthesis (optional)
     ├─ zero_storage.py           0G Storage evidence publish
-    ├─ axl_client.py             peer broadcast (signed envelopes)
+    ├─ axl_client.py             AXL P2P peer broadcast (encrypted)
     ├─ peer_inbox.py             peer verdict tally
     ├─ keeperhub_client.py       reliable onchain execution
     │
@@ -64,10 +64,11 @@ Single source of truth — all shared agent logic. All scripts import from here.
 | `kimi_client.py` | Kimi API for narrative generation (optional) |
 | `zero_storage.py` | 0G Storage read/write (env: `ZERO_G_*`, falls back gracefully) |
 | `ens_client.py` | ENS text record updates |
-| `axl_client.py` | Multi-node broadcast shim (env: `AXL_PEERS`) |
+| `axl_client.py` | AXL binary P2P transport for peer verdict broadcast (env: `AXL_PORT`) |
 | `peer_inbox.py` | Filesystem-based peer verdict aggregation |
 | `verdict_envelope.py` | Signed envelope construction/verification |
 | `keeperhub_client.py` | KeeperHub reliable onchain execution (env: `KEEPERHUB_API_KEY`, retry + gas opt + audit trail) |
+| `uniswap_client.py` | Uniswap Routing API for platform fee → stablecoin treasury swaps |
 | `indexer_client.py` | Unified indexer: tries 0G KV, falls back to onchain events |
 | `deadline_scheduler.py` | Polls for milestones past deadline awaiting finalization |
 | `metadata_reader.py` | Reads milestone metadata from 0G Storage |
@@ -107,8 +108,8 @@ Configuration:
 
 Multi-node verifier coordination:
 
-- **Broadcast**: `axl_client.py` sends signed envelopes to `AXL_PEERS`
-- **Receive**: `weft_peer_server.py` accepts POST /send, persists to `agent/.inbox/`
+- **Broadcast**: `axl_client.py` routes signed envelopes through the local AXL node (`POST /send` with `X-Destination-Peer-Id`)
+- **Receive**: `axl_client.py` drains inbound messages via `GET /recv`; `weft_peer_server.py` also accepts legacy HTTP POST
 - **Corroboration**: `AXL_WAIT_FOR_PEERS=1` — node waits for `AXL_PEER_THRESHOLD` matching envelopes before voting
 - **Consensus root**: `AXL_USE_CONSENSUS_ROOT=1` — deterministic `consensusRoot` submitted as `evidenceRoot`, proving the offchain signer set
 
@@ -131,15 +132,23 @@ KV keys: `weft:milestone:<hash>:consensus`, `weft:milestone:<hash>:bundle`, `wef
 - **Python 3** — Agent scripts (no external pip dependencies)
 - **Next.js** — Frontend scaffold
 
-## Deferred: Uniswap Revenue Routing
+## Uniswap Revenue Routing
 
-Architecture reserves a slot for Uniswap-based revenue routing (e.g., auto-converting milestone payouts from ETH to ERC-20 tokens, multi-hop swaps for token pair availability). This is **not yet implemented** — the current settlement path is plain ETH transfers via `release()` to `Split[]` recipients.
+`uniswap_client.py` integrates the Uniswap Routing API to auto-convert platform fees (2-3% of released capital) from ETH to stablecoin for the treasury. The module supports:
 
-Uniswap routing will be revisited once there is real multi-token demand from builders and backers. Prerequisites before implementation:
+- Quote fetching via Uniswap Routing API (`/quote` endpoint)
+- Swap execution with configurable slippage tolerance
+- Dry-run mode for testing without execution
+- Graceful fallback when `UNISWAP_API_KEY` is not set
 
-1. ERC-20 stake support in `WeftMilestone.sol` (currently ETH-only)
-2. Minimum payout thresholds to avoid gas exceeding revenue
-3. Slippage guards for small-amount distributions
+Configuration:
+
+| Variable | Description |
+|---|---|
+| `UNISWAP_API_KEY` | Uniswap API key (enables swap execution) |
+| `UNISWAP_CHAIN_ID` | Target chain ID (default: 1) |
+| `UNISWAP_SLIPPAGE_BPS` | Slippage tolerance in basis points (default: 50) |
+| `WEFT_TREASURY_ADDRESS` | Treasury address receiving stablecoin |
 
 ## Security
 

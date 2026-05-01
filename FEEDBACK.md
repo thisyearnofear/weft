@@ -40,7 +40,11 @@ Track known issues and design feedback across Weft integrations.
 
 ### Gensyn (AXL)
 
-**Testnet endpoint.** The full multi-node signing flow is wired — signed envelopes, inbox persistence, authorized-verifier checks against `VerifierRegistry` — but AXL isn't deployed yet, so we're validating against a stub. Even a read-only testnet AXL endpoint would let us confirm the broadcast path end-to-end before the demo. A published JSON Schema or OpenAPI spec for the envelope format would also prevent silent incompatibilities as the protocol evolves.
+**What works well.** We cloned and built the AXL binary from `gensyn-ai/axl` (Go 1.25.x required due to gvisor build-tag conflict with Go 1.26). The node starts cleanly, connects to the Gensyn bootstrap peers (`tls://34.46.48.224:9001`, `tls://136.111.135.206:9001`), and exposes the local HTTP API on `127.0.0.1:9002`. Our `axl_client.py` auto-detects a running node via `GET /topology` and routes verdict broadcasts through `POST /send` (with `X-Destination-Peer-Id` header) and receives via `GET /recv`. Fallback to legacy HTTP POST is seamless when no node is running.
+
+**Integration approach.** `agent/lib/axl_client.py` provides `start_axl_node()` which auto-generates a `node-config.json` with an ephemeral ed25519 key and bootstrap peers, then launches the binary. The `broadcast_verdict()` and `receive_verdicts()` functions auto-select AXL transport when a node is running, or fall back to direct HTTP POST for legacy peer servers. Peer addresses are hex-encoded ed25519 public keys (64 chars) when using AXL, or HTTP URLs in legacy mode.
+
+**What would improve the experience.** (1) A published JSON Schema or OpenAPI spec for the `/send` and `/recv` envelope format would prevent silent incompatibilities — currently the body is raw bytes with no documented structure contract. (2) The `GET /recv` endpoint returns one message per call with 204 when empty; a batch endpoint or long-poll option would reduce round-trips for high-throughput use cases. (3) Go 1.26 compatibility — the gvisor build-tag conflict means builders must pin Go 1.25.x, which is a friction point since `brew install go` gives 1.26 by default.
 
 ---
 
@@ -77,3 +81,15 @@ Track known issues and design feedback across Weft integrations.
 **API key setup.** The integration is zero-config once `KIMI_API_KEY` is set — no SDK installation required, just a standard OpenAI-compatible HTTP call to `api.moonshot.cn/v1/chat/completions`. The fallback is graceful: if the key is missing or the call fails, the daemon continues without a narrative.
 
 **What would improve the experience.** A documented rate limit spec would help with production planning — we currently don't know if we'll hit limits at scale. Also, a streaming response option would be useful for the frontend to show narrative generation in real-time during demo presentations.
+
+---
+
+### Uniswap API
+
+**What works well.** The `/v2/quote` routing API is clean and well-documented — request a quote with token pair, amount, and slippage, get back calldata for the Universal Router. The OpenAPI-style docs at `developers.uniswap.org` made it straightforward to build `agent/lib/uniswap_client.py` without an SDK. The `EXACT_INPUT` flow with `enableUniversalRouter: true` is the right abstraction for our use case (swap platform fees from ETH to USDC for treasury).
+
+**Integration approach.** We built a standalone `uniswap_client.py` module that: (1) gets a quote from the Uniswap Routing API, (2) executes the swap via `cast send` to the Universal Router. The high-level entry point is `route_platform_fee(fee_wei=..., dry_run=False)` — called by the daemon after capital release to convert the platform's ETH fee to stablecoins. The module follows the same pattern as our other integrations: env-var config, graceful fallback, no external dependencies beyond stdlib.
+
+**API key setup.** Requires `UNISWAP_API_KEY` (from the Uniswap Developer Platform). Configuration is zero-friction once the key is set. We also support `UNISWAP_CHAIN_ID`, `UNISWAP_SLIPPAGE_BPS`, and `WEFT_TREASURY_ADDRESS` for flexibility across chains and deployments.
+
+**What would improve the experience.** (1) The quote response schema varies slightly between routing types (`CLASSIC` vs `DUTCH_LIMIT`) — a unified response envelope with consistent field names (`amountOut` vs `amountOutMin` vs `quoteGasAdjustedDecimals`) would simplify client code. (2) A sandbox/testnet mode for the quote API would help — currently we can only test against mainnet liquidity, which means dry-run is the only safe option during development. (3) Webhook or streaming support for swap status would be useful for agents that need to confirm settlement before proceeding (we currently rely on `cast receipt` polling).

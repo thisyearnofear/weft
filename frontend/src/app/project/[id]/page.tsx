@@ -75,7 +75,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const evidenceRoot = milestone?.finalEvidenceRoot && milestone.finalEvidenceRoot !== ZERO_ROOT ? milestone.finalEvidenceRoot : null;
   const verificationProgress = milestone?.verifierCount ? Math.min(100, Math.round((milestone.verifiedVotes / milestone.verifierCount) * 100)) : 0;
-  const payoutStatus = isVerified ? "Capital is eligible for release." : milestone?.finalized ? "Milestone did not verify and can be refunded." : "Capital is still gated behind verifier consensus.";
+  const payoutStatus = isVerified ? "This outcome has earned capital release." : milestone?.finalized ? "This outcome failed the trust threshold and can follow the refund path." : "Capital is still locked because the system is not yet confident enough.";
   const evidenceStatus = evidenceRoot ? "Evidence root recorded onchain." : "Awaiting final evidence root publication.";
   const demo = statusMilestone?.demo;
   const peerGroup = demo?.tracks.gensyn.bestPeerGroup;
@@ -105,10 +105,10 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
           <div className={styles.heroGrid}>
             <div className={styles.heroCopy}>
-              <span className={styles.kicker}>Milestone execution view</span>
+              <span className={styles.kicker}>Trust decision view</span>
               <h1 className={styles.title}>Milestone {id.slice(0, 10)}...{id.slice(-8)}</h1>
               <p className={styles.subtitle}>
-                {demo?.pitch || "Track how capital, evidence, and verifier confidence move together before Weft allows settlement."}
+                {demo?.pitch || "This page answers the real question: should a fluid team earn capital release for this outcome?"}
               </p>
 
               <div className={styles.heroActions}>
@@ -117,7 +117,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                   <ArrowUpRight size={16} />
                 </a>
                 <Link href={`/builder/${builderName}`} className={styles.secondaryAction}>
-                  Open builder profile
+                  Open trust profile
                 </Link>
               </div>
             </div>
@@ -125,9 +125,9 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             <div className={styles.executionCard}>
               <div className={styles.executionHeader}>
                 <ShieldCheck size={18} />
-                <span>Execution readiness</span>
+                <span>Capital release readiness</span>
               </div>
-              <h2>{isVerified ? "Ready for reliable release" : milestone.finalized ? "Resolution complete" : "Waiting on more confidence"}</h2>
+              <h2>{isVerified ? "Trust threshold cleared" : milestone.finalized ? "Trust threshold not met" : "Trust still being established"}</h2>
               <p>{payoutStatus}</p>
               <div className={styles.executionBullets}>
                 <div>
@@ -136,11 +136,11 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                 </div>
                 <div>
                   <Network size={16} />
-                  <span>{peerGroup ? `${peerGroup.peerCount} corroborating peers on ${peerGroup.evidenceRoot.slice(0, 12)}...` : `${milestone.verifiedVotes}/${milestone.verifierCount} verifier votes recorded`}</span>
+                  <span>{peerGroup ? `${peerGroup.peerCount} corroborating peers aligned on this outcome` : `${milestone.verifiedVotes}/${milestone.verifierCount} verifier votes recorded so far`}</span>
                 </div>
                 <div>
                   <Blocks size={16} />
-                  <span>{keeperhub?.configured ? `KeeperHub execution path enabled (${keeperhub.apiUrl})` : "Portable ENS identity and direct execution fallback available."}</span>
+                  <span>{keeperhub?.configured ? `Reliable KeeperHub execution is available once the decision is final.` : "Fallback execution path remains available if KeeperHub is not configured."}</span>
                 </div>
               </div>
             </div>
@@ -151,7 +151,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
           <article className={styles.metricCard}>
             <span className={styles.metricLabel}>Capital at stake</span>
             <strong className={styles.metricValue}>{stakedEth} ETH</strong>
-            <p>Escrowed in the milestone contract until the swarm reaches a verdict.</p>
+            <p>Escrowed until the system is confident enough to release or refund.</p>
           </article>
           <article className={styles.metricCard}>
             <span className={styles.metricLabel}>Verifier confidence</span>
@@ -161,7 +161,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
           <article className={styles.metricCard}>
             <span className={styles.metricLabel}>Peer corroboration</span>
             <strong className={styles.metricValue}>{peerGroup ? peerGroup.peerCount : 0}</strong>
-            <p>{peerGroup ? "Peer inbox consensus is visible for this milestone." : "No corroborating peer group surfaced yet."}</p>
+            <p>{peerGroup ? "Peer consensus is visible for this funding decision." : "No corroborating peer group surfaced yet."}</p>
           </article>
           <article className={styles.metricCard}>
             <span className={styles.metricLabel}>Evidence root</span>
@@ -175,17 +175,17 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             <article className={styles.panel}>
               <div className={styles.panelHeader}>
                 <div>
-                  <span className={styles.kicker}>Capital control</span>
-                  <h3>Why this milestone matters</h3>
+                  <span className={styles.kicker}>Why this matters</span>
+                  <h3>This is a funding decision, not a dashboard row</h3>
                 </div>
                 <Coins size={18} />
               </div>
               <p className={styles.panelText}>
-                Weft treats this milestone as a capital release decision, not just a status update. Funds remain locked until evidence exists, peer verifiers corroborate the outcome, and the system is confident enough to execute safely.
+                Weft treats this milestone as a release-or-refund decision for an internet-native team. Funds remain gated until evidence exists, peer verifiers corroborate the outcome, and the system is confident enough to move real capital.
               </p>
               <div className={styles.progressWrap}>
                 <div className={styles.progressHeader}>
-                  <span>Consensus progress</span>
+                  <span>Trust progress</span>
                   <span>{verificationProgress}%</span>
                 </div>
                 <div className={styles.progressBar}>
@@ -197,8 +197,8 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             <article className={styles.panel}>
               <div className={styles.panelHeader}>
                 <div>
-                  <span className={styles.kicker}>Evidence and settlement path</span>
-                  <h3>What the network needs before payout</h3>
+                  <span className={styles.kicker}>Evidence and payout path</span>
+                  <h3>What the network requires before money moves</h3>
                 </div>
                 <CheckCircle2 size={18} />
               </div>
@@ -219,13 +219,13 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             <article className={styles.panel}>
               <div className={styles.panelHeader}>
                 <div>
-                  <span className={styles.kicker}>Shareable proof surface</span>
-                  <h3>Publish or circulate this milestone</h3>
+                  <span className={styles.kicker}>Trust graph impact</span>
+                  <h3>What this outcome changes for the team</h3>
                 </div>
                 <ArrowUpRight size={18} />
               </div>
               <p className={styles.panelText}>
-                Whether the milestone is still active or already verified, this page is designed to make the funding state and verification state legible to backers, builders, and judges.
+                If this milestone verifies, it does more than unlock capital. It strengthens the reusable trust graph around the builder and collaborators. If it fails, that is useful too: Weft makes failure legible instead of hiding it behind social ambiguity.
               </p>
               <ShareButtons url={shareUrl} title={`Milestone ${id.slice(0, 10)}`} />
             </article>
@@ -235,7 +235,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             <article className={styles.panel}>
               <div className={styles.panelHeader}>
                 <div>
-                  <span className={styles.kicker}>Builder context</span>
+                  <span className={styles.kicker}>Trust profile</span>
                   <h3>{builderName}</h3>
                 </div>
                 <Clock3 size={18} />
@@ -247,7 +247,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               {builderPassport?.description && <p className={styles.panelText}>{builderPassport.description}</p>}
               <div className={styles.identityStats}>
                 <div>
-                  <span>Verified milestones</span>
+                  <span>Verified outcomes</span>
                   <strong>{builderPassport?.weftMilestonesVerified ?? demo?.tracks.ens.builderProfile?.milestonesVerified ?? 0}</strong>
                 </div>
                 <div>
@@ -255,7 +255,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                   <strong>{builderPassport?.weftReputationScore ?? demo?.tracks.ens.builderProfile?.reputationScore ?? 0}</strong>
                 </div>
                 <div>
-                  <span>Total earned</span>
+                  <span>Capital unlocked</span>
                   <strong>{builderPassport?.weftEarnedTotal ?? demo?.tracks.ens.builderProfile?.earnedTotal ?? 0}</strong>
                 </div>
               </div>
@@ -266,12 +266,12 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                 <div className={styles.panelHeader}>
                   <div>
                     <span className={styles.kicker}>Participate</span>
-                    <h3>Stake this milestone</h3>
+                    <h3>Stake behind this outcome</h3>
                   </div>
                   <Coins size={18} />
                 </div>
                 <p className={styles.panelText}>
-                  Add capital to the milestone while it is still active. Funds remain governed by Weft’s verifier flow until the final outcome is known.
+                  Add capital to the milestone while it is still active. Funds remain governed by Weft’s trust loop until the final outcome is known.
                 </p>
                 <StakeForm milestoneHash={milestoneHash} contractAddress={addresses.weftMilestone} />
               </article>
@@ -280,8 +280,8 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             <article className={styles.panel}>
               <div className={styles.panelHeader}>
                 <div>
-                  <span className={styles.kicker}>Integration visibility</span>
-                  <h3>Where each protocol fits</h3>
+                  <span className={styles.kicker}>Protocol roles</span>
+                  <h3>What each integration contributes</h3>
                 </div>
                 <Database size={18} />
               </div>
