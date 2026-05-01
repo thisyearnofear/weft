@@ -15,7 +15,8 @@ from .abi import (
 from .deadline_scheduler import DeadlineScheduler, PendingMilestone, poll_pending_milestones
 from .github_client import GithubEvidence, collect_github_evidence, evidence_to_dict
 from .jsonrpc import FileCache, JsonRpcClient, JsonRpcError, default_cache
-from .kimi_client import Narrative, generate_narrative
+from .kimi_client import Chronicle, Narrative, generate_chronicle, generate_narrative
+from .chronicle import CardData, generate_milestone_card, write_card, write_chronicle
 from .axl_client import (
     BroadcastResult,
     VerdictMessage,
@@ -85,7 +86,9 @@ __all__ = [
     # jsonrpc
     "FileCache", "JsonRpcClient", "JsonRpcError", "default_cache",
     # kimi_client
-    "Narrative", "generate_narrative",
+    "Chronicle", "Narrative", "generate_chronicle", "generate_narrative",
+    # chronicle
+    "CardData", "generate_milestone_card", "write_card", "write_chronicle",
     # axl_client
     "BroadcastResult", "broadcast_verdict", "parse_peers",
     "axl_available", "start_axl_node",

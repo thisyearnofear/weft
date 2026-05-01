@@ -32,7 +32,8 @@ The single source of truth for all shared agent logic. All scripts import from h
 | `weft_milestone_reader.py` | Reads `Milestones(bytes32)` from WeftMilestone |
 | `mvp_verifier.py` | Deterministic evidence: deployment check + unique callers + attestation |
 | `github_client.py` | GitHub commits/PRs in milestone window (env: `GITHUB_TOKEN`) |
-| `kimi_client.py` | Kimi API for narrative generation (env: `KIMI_API_KEY`) |
+| `kimi_client.py` | Kimi API for narrative + chronicle generation (env: `KIMI_API_KEY`) |
+| `chronicle.py` | HTML milestone achievement cards and chronicle pages (woven-fabric motif) |
 | `zero_storage.py` | 0G Storage read/write (env: `ZERO_G_*`, falls back gracefully) |
 | `deadline_scheduler.py` | Polls for milestones past deadline awaiting finalization |
 | `indexer_client.py` | Unified indexer: tries 0G KV, falls back to onchain events |
@@ -54,6 +55,8 @@ deadline_scheduler.poll_pending_milestones()
         ├─ mvp_verifier.eth_get_code()              (deployment signal)
         │
         ├─ [optional] kimi_client.generate_narrative()
+        ├─ [optional] kimi_client.generate_chronicle()  (Builder Journey)
+        ├─ [optional] chronicle.write_card()             (milestone card HTML)
         ├─ [optional] zero_storage.write_evidence_to_storage()
         │
         ▼

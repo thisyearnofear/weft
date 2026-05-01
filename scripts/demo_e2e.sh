@@ -303,30 +303,61 @@ print(f'  verified={v.get(\"verified\")}  evidenceRoot={v.get(\"evidenceRoot\", 
 done
 
 # ---------------------------------------------------------------------------
-# Step 6: Kimi narrative (if available)
+# Step 6: Kimi Chronicle — Builder Journey narrative + milestone card
 # ---------------------------------------------------------------------------
-banner "Step 6: Kimi Narrative"
+banner "Step 6: Kimi Chronicle (Builder Journey)"
 
 if $HAS_KIMI; then
   att_file="${OUT_DIRS[0]}/attestation.json"
+  chronicle_dir="${OUT_DIRS[0]}"
   if [ -f "$att_file" ]; then
-    info "Generating narrative via Kimi..."
+    info "Generating Builder Journey chronicle via Kimi..."
     python3 -c "
-import json, sys
+import json, sys, os
 sys.path.insert(0, '$REPO_ROOT')
-from agent.lib.kimi_client import generate_narrative
+from agent.lib.kimi_client import generate_chronicle
+from agent.lib.chronicle import write_chronicle, write_card, CardData
+
 with open('$att_file') as f:
     att = json.load(f)
-result = generate_narrative(att)
-if result:
-    print(result.text[:500])
-    print('...')
+
+chronicle = generate_chronicle([att], project_id='demo')
+if chronicle.title:
+    print(f'  Title: {chronicle.title}')
+    for ch in chronicle.chapters:
+        print(f'  Chapter: {ch.get("heading", "?")}')
+        print(f'    {ch.get("body", "")[:120]}...')
+    if chronicle.epilogue:
+        print(f'  Epilogue: {chronicle.epilogue[:120]}...')
+
+    # Write chronicle HTML
+    write_chronicle(
+        title=chronicle.title,
+        chapters=chronicle.chapters,
+        epilogue=chronicle.epilogue,
+        attestations=[att],
+        out_path=os.path.join('$chronicle_dir', 'chronicle.html'),
+    )
+    print(f'  Chronicle HTML: $chronicle_dir/chronicle.html')
+
+    # Write milestone achievement card
+    ch = chronicle.chapters[0] if chronicle.chapters else {}
+    card = CardData(
+        milestone_hash=att.get('milestoneHash', att.get('milestone_hash', '')),
+        verified=att.get('verified', False),
+        unique_callers=att.get('usage', {}).get('uniqueCallerCount', 0),
+        evidence_root=att.get('evidenceRoot', att.get('evidence_root', '')),
+        chapter_heading=ch.get('heading', ''),
+        chapter_body=ch.get('body', ''),
+    )
+    write_card(card, os.path.join('$chronicle_dir', 'milestone_card.html'))
+    print(f'  Milestone card: $chronicle_dir/milestone_card.html')
 else:
-    print('(no narrative generated)')
-" 2>/dev/null || warn "Kimi narrative generation failed"
+    print('  (chronicle generation returned empty — check KIMI_API_KEY)')
+" 2>/dev/null || warn "Chronicle generation failed"
   fi
 else
-  warn "KIMI_API_KEY not set — skipping narrative generation"
+  warn "KIMI_API_KEY not set — skipping chronicle generation"
 fi
 
 # ---------------------------------------------------------------------------
@@ -387,7 +418,7 @@ $HAS_AXL    && echo "  Gensyn AXL      ✓  Encrypted P2P verdict exchange" || e
 $HAS_KEEPERHUB && echo "  KeeperHub       ✓  Reliable verdict submission" || echo "  KeeperHub       ○  (KEEPERHUB_API_KEY not set)"
 $HAS_ENS    && echo "  ENS             ✓  Builder profile updated" || echo "  ENS             ○  (WEFT_BUILDER_ENS not set)"
 $HAS_UNISWAP && echo "  Uniswap         ✓  Platform fee routed to stablecoin" || echo "  Uniswap         ○  (UNISWAP_API_KEY not set)"
-$HAS_KIMI   && echo "  Kimi            ✓  Narrative generated" || echo "  Kimi            ○  (KIMI_API_KEY not set)"
+$HAS_KIMI   && echo "  Kimi            ✓  Builder Journey chronicle + milestone card generated" || echo "  Kimi            ○  (KIMI_API_KEY not set)"
 echo ""
 echo "  Milestone: $MILESTONE_HASH"
 echo "  Nodes:     $NUM_NODES"

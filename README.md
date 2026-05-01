@@ -2,6 +2,8 @@
 
 **Weft is programmable trust for small teams: milestone funding, verifier swarms, and portable reputation for humans and agents.**
 
+> *In weaving, the **weft** is the horizontal thread that interlaces with the vertical warp to create fabric. In Weft, raw data threads — onchain events, GitHub commits, peer verdicts — are woven by the Hermes Agent into meaningful fabric: narratives, achievement cards, ENS profiles. Technology provides the warp. Liberal arts provide the weft.*
+
 Weft helps internet-native teams release capital based on verifiable outcomes instead of manual trust.
 
 ## The wedge
@@ -60,7 +62,7 @@ Weft replaces four things that normally require corporations, lawyers, and manag
 | **Gensyn / AXL** | Peer broadcast, signed verdict envelopes, offchain corroboration | Separate verifier nodes coordinate before voting; no central coordinator |
 | **KeeperHub** | Reliable `submitVerdict()` execution with retry/audit trail | Agents can reason about a verdict and still need a robust path to execute it onchain |
 | **ENS** | Builder / verifier profile records and discoverability | Human-readable identity and portable reputation for builders and agents |
-| **Hermes + Kimi** | Managed agent layer and narrative generation | Makes the system usable by humans, not just scripts |
+| **Hermes + Kimi** | Managed agent layer, narrative generation, Builder Journey chronicles | Weaves raw data threads into meaningful fabric — creative non-fiction from the blockchain |
 
 ## What is different about Weft
 
@@ -110,9 +112,10 @@ Weft's verification layer is a **multi-node autonomous Hermes Agent system**. Ea
 1. **Polls** onchain milestones past their deadline via `DeadlineScheduler`
 2. **Collects** deterministic evidence (deployment check + unique caller count)
 3. **Generates** a human-readable narrative from raw attestation data using **Kimi** (`moonshot-v1-128k`)
-4. **Broadcasts** verdicts to peer nodes for offchain consensus
-5. **Submits** onchain votes via KeeperHub (with `cast send` fallback)
-6. **Publishes** evidence bundles + consensus proofs to 0G Storage
+4. **Weaves** a Builder Journey chronicle — multi-chapter narrative with milestone achievement cards
+5. **Broadcasts** verdicts to peer nodes for offchain consensus
+6. **Submits** onchain votes via KeeperHub (with `cast send` fallback)
+7. **Publishes** evidence bundles + consensus proofs + chronicle to 0G Storage
 
 ```text
 ┌─────────────────────────────────────────────────────────┐
@@ -182,6 +185,10 @@ Load ~/weft/agent/skills/weft-narrate/SKILL.md and generate a narrative for mile
 
 ```text
 Load ~/weft/agent/skills/weft-verify/SKILL.md and verify milestone 0x0f93e22d852f346d633f5bd0f61d38e011661ee09a74b0a7dd2856181fe9266f
+```
+
+```text
+Load ~/weft/agent/skills/weft-chronicle/SKILL.md and tell me my project's story
 ```
 
 ## Quick start

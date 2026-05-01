@@ -528,6 +528,59 @@ def _process_one(
         )
         log.info("ENS records updated", milestone=milestone_hash, builder=builder_ens)
 
+    # Generate Builder Journey chronicle (when KIMI_API_KEY is set)
+    if os.environ.get("KIMI_API_KEY") and out_dir:
+        try:
+            from agent.lib.kimi_client import generate_chronicle
+            from agent.lib.chronicle import write_chronicle, write_card, CardData
+
+            # Load current attestation as a single-element list
+            att_path = os.path.join(out_dir, "attestation.json")
+            if os.path.isfile(att_path):
+                with open(att_path) as _af:
+                    att_data = json.load(_af)
+                chronicle = generate_chronicle([att_data], project_id=str(m.projectId))
+                if chronicle.title:
+                    # Write chronicle JSON
+                    chronicle_json = {
+                        "title": chronicle.title,
+                        "chapters": chronicle.chapters,
+                        "epilogue": chronicle.epilogue,
+                        "confidence": chronicle.confidence,
+                    }
+                    chronicle_json_path = os.path.join(out_dir, "chronicle.json")
+                    with open(chronicle_json_path, "w", encoding="utf-8") as _cf:
+                        json.dump(chronicle_json, _cf, indent=2)
+                        _cf.write("\n")
+
+                    # Write chronicle HTML page
+                    write_chronicle(
+                        title=chronicle.title,
+                        chapters=chronicle.chapters,
+                        epilogue=chronicle.epilogue,
+                        attestations=[att_data],
+                        out_path=os.path.join(out_dir, "chronicle.html"),
+                    )
+
+                    # Write milestone achievement card
+                    ch = chronicle.chapters[0] if chronicle.chapters else {}
+                    card = CardData(
+                        milestone_hash=milestone_hash,
+                        verified=verified_bool,
+                        unique_callers=unique_count,
+                        peer_signers=len(signer_set) if wait_for_peers else 0,
+                        evidence_root=evidence_root,
+                        chapter_heading=ch.get("heading", ""),
+                        chapter_body=ch.get("body", ""),
+                    )
+                    write_card(card, os.path.join(out_dir, "milestone_card.html"))
+
+                    log.info("chronicle generated", milestone=milestone_hash, title=chronicle.title)
+                else:
+                    log.warning("chronicle generation returned empty title", milestone=milestone_hash)
+        except Exception as e:
+            log.warning("chronicle generation failed (non-fatal)", milestone=milestone_hash, error=str(e))
+
 
 def _submit_verdict(
     *,

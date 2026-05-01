@@ -2,6 +2,23 @@
 
 Maps Weft's existing work to each prize track with specific gaps to close.
 
+## Brand Story — The Weaving Metaphor
+
+**Weft** is the horizontal thread that interlaces with the vertical warp to create
+woven fabric. This isn't just a name — it's the product philosophy:
+
+- **Warp threads** = technology infrastructure (0G Chain, peer consensus, KeeperHub execution, 0G Storage proofs)
+- **Weft threads** = the liberal arts layer (Kimi narratives, Builder Journey chronicles, milestone achievement cards, ENS identity)
+- **The fabric** = a verified, meaningful, shareable project story
+
+Raw data threads (onchain events, GitHub commits, peer verdicts) are woven by the
+Hermes Agent into meaningful fabric (narratives, achievement cards, ENS profiles).
+**Technology provides the warp. Liberal arts provide the weft.**
+
+This positions Weft uniquely: every other hackathon project is either pure tech or
+pure creative. Weft is **creative non-fiction infrastructure** — real onchain events,
+real builder journeys, real stakes, told beautifully by an AI agent that knows your history.
+
 ## Target Prizes
 
 | Sponsor | Track | Prize | Status |
@@ -13,7 +30,7 @@ Maps Weft's existing work to each prize track with specific gaps to close.
 | ENS | Best ENS Integration for AI Agents | $2,500 | ✅ Fixed namehash bug, wired into daemon |
 | ENS | Most Creative Use of ENS | $2,500 | ✅ Portable reputation via text records |
 | Uniswap | Best Uniswap API Integration | $5,000 | ✅ `uniswap_client.py` — platform fee → stablecoin treasury swap |
-| Hermes/Kimi | Creative Hackathon — Kimi Track | $5,000 | ✅ Kimi narrative generation in verification pipeline |
+| Hermes/Kimi | Creative Hackathon — Kimi Track | $5,000 | ✅ Builder Journey chronicles + milestone cards via Kimi (weaving metaphor) |
 
 **Total addressable: $40,000**
 
@@ -150,16 +167,27 @@ Maps Weft's existing work to each prize track with specific gaps to close.
 ### Hermes Creative Hackathon — Kimi Track ($5,000)
 
 **What we have:**
-- `kimi_client.py` — attestation-to-narrative conversion via moonshot-v1-128k
-- Integrated into daemon pipeline (called after evidence collection, before vote)
-- Narrative persisted alongside attestation JSON and published to 0G Storage
+- `kimi_client.py` — `generate_narrative()` for single attestations + `generate_chronicle()` for multi-chapter Builder Journey narratives
+- `chronicle.py` — HTML milestone achievement cards (woven-fabric visual motif) and full chronicle pages
+- `CHRONICLE_SYSTEM_PROMPT` instructs Kimi to use textile/weaving metaphors naturally (threads, fabric, tapestry, interlacing)
+- `weft-chronicle` Hermes skill — "tell me my project's story" loads all attestations and generates the full tapestry
+- Integrated into daemon pipeline: chronicle + milestone card generated after each verification, included in 0G bundle
 - Graceful fallback when KIMI_API_KEY unset
 
 **What judges want:** "Prove your use of Kimi models… creativity, usefulness, presentation."
 
+**Why we're competitive now:**
+- **Creative non-fiction from the blockchain** — no other project has real onchain data feeding creative narrative output
+- Each milestone is a thread; peer consensus is the interlacing; the verified story is the fabric
+- Shareable HTML milestone cards = visual artifacts judges can see in the demo video
+- The weaving metaphor runs through the entire product, not bolted on
+
 **Gaps to close:**
-- [ ] Demo video showing Kimi narrative generation in real-time
-- [ ] Highlight that Kimi is a first-class pipeline participant, not a post-hoc summarizer
+- [x] `generate_chronicle()` with `CHRONICLE_SYSTEM_PROMPT` (weaving metaphors)
+- [x] `chronicle.py` with HTML milestone cards (woven-fabric motif)
+- [x] `weft-chronicle` Hermes skill
+- [x] Daemon integration (chronicle in verification pipeline + 0G bundle)
+- [ ] Demo video showing chronicle generation + milestone card in real-time
 
 ---
 
@@ -200,7 +228,8 @@ Single end-to-end demo covering all sponsors:
 1. **Create milestone** on 0G Chain (WeftMilestone contract)
 2. **Start 3 verifier daemons** with AXL peer routing
 3. **Evidence collection** → deployment check + unique callers
-4. **Kimi narrative** generated from attestation
+4. **Kimi chronicle** — Builder Journey narrative with weaving metaphors
+4b. **Milestone card** — shareable HTML achievement card (woven-fabric motif)
 5. **Peer corroboration** via AXL (signed envelopes exchanged)
 6. **Consensus bundle** published to 0G Storage
 7. **KeeperHub** executes `submitVerdict()` onchain
