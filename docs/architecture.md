@@ -1,5 +1,7 @@
 # Weft Architecture
 
+See also: [Judge-Friendly Architecture Diagram](architecture-diagram.md)
+
 ## System Overview
 
 Weft is an autonomous coordination layer that replaces four institutional primitives:

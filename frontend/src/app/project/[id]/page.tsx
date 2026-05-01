@@ -2,31 +2,28 @@
 
 import React from "react";
 import Link from "next/link";
+import { ArrowUpRight, Blocks, CheckCircle2, Clock3, Coins, Database, Network, ShieldCheck } from "lucide-react";
 import { useMilestone } from "../../../hooks/useMilestones";
 import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
+import { useStatusMilestone } from "../../../hooks/useStatusApi";
 import { StakeForm } from "../../../components/StakeForm";
 import { DEFAULT_CHAIN, getAddresses } from "../../../lib/contracts";
 import styles from "./page.module.css";
 
 const EXPLORER_ADDR = "https://chainscan-new.0g.ai/address";
+const ZERO_ROOT = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 function ProjectSkeleton() {
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.header}>
-          <div className={styles.skeletonLine} style={{ width: 80, height: 24, borderRadius: "var(--radius-xl)" }} />
-          <div className={styles.skeletonLine} style={{ width: 120, height: 16 }} />
-        </div>
-        <div className={styles.builder}>
-          <div className={styles.skeletonLine} style={{ width: 60, height: 12 }} />
-          <div className={styles.skeletonLine} style={{ width: 140, height: 16, marginTop: 8 }} />
-        </div>
-        <div className={styles.details}>
-          {[0, 1, 2].map((i) => (
-            <div key={i} className={styles.detail}>
-              <div className={styles.skeletonLine} style={{ width: 70, height: 12 }} />
-              <div className={styles.skeletonLine} style={{ width: 90, height: 16, marginTop: 4 }} />
+      <div className={styles.skeletonPanel}>
+        <div className={styles.skeletonLine} style={{ width: 180, height: 14 }} />
+        <div className={styles.skeletonLine} style={{ width: "70%", height: 48, marginTop: 18 }} />
+        <div className={styles.skeletonGrid}>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className={styles.skeletonCard}>
+              <div className={styles.skeletonLine} style={{ width: 96, height: 12 }} />
+              <div className={styles.skeletonLine} style={{ width: "55%", height: 24, marginTop: 10 }} />
             </div>
           ))}
         </div>
@@ -35,38 +32,20 @@ function ProjectSkeleton() {
   );
 }
 
-function VerifiedBanner() {
-  return (
-    <div className={styles.verifiedBanner}>
-      <span className={styles.checkmark}>&#10003;</span>
-      <span>Verified onchain</span>
-    </div>
-  );
-}
-
 function StatusBadge({ milestone }: { milestone: { finalized: boolean; verified: boolean } }) {
-  const isVerified = milestone.verified;
-  const isRejected = milestone.verified === false && milestone.finalized;
-  const isActive = !milestone.finalized;
-
-  if (isVerified) return <span className={styles.verified}>Verified</span>;
-  if (isRejected) return <span className={styles.rejected}>Rejected</span>;
-  if (isActive) return <span className={styles.active}>Active</span>;
-  return <span className={styles.pending}>Pending</span>;
+  if (milestone.verified) return <span className={`${styles.statusBadge} ${styles.statusVerified}`}>Verified</span>;
+  if (milestone.finalized) return <span className={`${styles.statusBadge} ${styles.statusRejected}`}>Rejected</span>;
+  return <span className={`${styles.statusBadge} ${styles.statusActive}`}>In verification</span>;
 }
 
 function ShareButtons({ url, title }: { url: string; title: string }) {
-  const tweetText = encodeURIComponent(`Verified on Weft: "${title}"\n\n${url}`);
+  const tweetText = encodeURIComponent(`Tracking on Weft: "${title}"\n\n${url}`);
   const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
 
   return (
     <div className={styles.shareRow}>
-      <button
-        className={styles.shareBtn}
-        onClick={() => navigator.clipboard.writeText(url)}
-        aria-label="Copy link"
-      >
-        Copy Link
+      <button className={styles.shareBtn} onClick={() => navigator.clipboard.writeText(url)} aria-label="Copy link">
+        Copy link
       </button>
       <a href={tweetUrl} target="_blank" rel="noopener noreferrer" className={styles.shareBtn}>
         Share on X
@@ -79,18 +58,29 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const { id } = React.use(params);
   const milestoneHash = (id.startsWith("0x") ? id : `0x${id}`) as `0x${string}`;
   const { data: milestone, isLoading, error } = useMilestone(milestoneHash);
+  const { data: statusMilestone } = useStatusMilestone(milestoneHash, true);
   const addresses = getAddresses(DEFAULT_CHAIN);
 
   const { data: builderPassport } = useBuilderPassport(
-    milestone?.builder ? `0x${BigInt(milestone.builder).toString(16)}.eth` : ""
+    statusMilestone?.demo?.tracks.ens.builderEns || (milestone?.builder ? `0x${BigInt(milestone.builder).toString(16)}.eth` : "")
   );
 
-  const builderName = builderPassport?.ens || (milestone?.builder ? `${milestone.builder.slice(0, 6)}...${milestone.builder.slice(-4)}` : "");
+  const builderName =
+    statusMilestone?.demo?.tracks.ens.builderEns ||
+    builderPassport?.ens ||
+    (milestone?.builder ? `${milestone.builder.slice(0, 6)}...${milestone.builder.slice(-4)}` : "");
   const stakedEth = milestone ? (Number(milestone.totalStaked) / 1e18).toFixed(4) : "0";
-  const deadlineDate = milestone ? new Date(Number(milestone.deadline) * 1000) : null;
-  const isVerified = milestone?.verified;
-  const isActive = milestone && !milestone.finalized;
+  const isVerified = Boolean(milestone?.verified);
+  const isActive = Boolean(milestone && !milestone.finalized);
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+  const evidenceRoot = milestone?.finalEvidenceRoot && milestone.finalEvidenceRoot !== ZERO_ROOT ? milestone.finalEvidenceRoot : null;
+  const verificationProgress = milestone?.verifierCount ? Math.min(100, Math.round((milestone.verifiedVotes / milestone.verifierCount) * 100)) : 0;
+  const payoutStatus = isVerified ? "Capital is eligible for release." : milestone?.finalized ? "Milestone did not verify and can be refunded." : "Capital is still gated behind verifier consensus.";
+  const evidenceStatus = evidenceRoot ? "Evidence root recorded onchain." : "Awaiting final evidence root publication.";
+  const demo = statusMilestone?.demo;
+  const peerGroup = demo?.tracks.gensyn.bestPeerGroup;
+  const keeperhub = demo?.tracks.keeperhub;
+  const metadataRoot = demo?.tracks["0g"].metadataRoot;
 
   if (isLoading) return <ProjectSkeleton />;
 
@@ -104,95 +94,218 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
-        {isVerified && <VerifiedBanner />}
-
-        <div className={styles.header}>
-          <div className={styles.status}>
+      <div className={styles.shell}>
+        <section className={styles.heroCard}>
+          <div className={styles.heroTop}>
+            <Link href="/" className={styles.backLink}>
+              ← Back to system view
+            </Link>
             <StatusBadge milestone={milestone} />
           </div>
-          <div className={styles.metadata}>
-            <span className={styles.label}>Milestone</span>
-            <span className={styles.value}>{id.slice(0, 10)}...{id.slice(-8)}</span>
-          </div>
-        </div>
 
-        <div className={styles.builder}>
-          <span className={styles.label}>Builder</span>
-          <Link href={`/builder/${milestone.builder}`} className={styles.builderLink}>
-            {builderName}
-          </Link>
-          {milestone.builder && (
-            <a
-              href={`${EXPLORER_ADDR}/${milestone.builder}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.explorerLink}
-            >
-              View on Explorer
-            </a>
-          )}
-        </div>
+          <div className={styles.heroGrid}>
+            <div className={styles.heroCopy}>
+              <span className={styles.kicker}>Milestone execution view</span>
+              <h1 className={styles.title}>Milestone {id.slice(0, 10)}...{id.slice(-8)}</h1>
+              <p className={styles.subtitle}>
+                {demo?.pitch || "Track how capital, evidence, and verifier confidence move together before Weft allows settlement."}
+              </p>
 
-        <div className={styles.details}>
-          <div className={styles.detail}>
-            <span className={styles.label}>Total Staked</span>
-            <span className={styles.value}>{stakedEth} ETH</span>
-          </div>
-          <div className={styles.detail}>
-            <span className={styles.label}>Deadline</span>
-            <span className={styles.value}>
-              {deadlineDate ? deadlineDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
-            </span>
-          </div>
-          <div className={styles.detail}>
-            <span className={styles.label}>Verifiers</span>
-            <span className={styles.value}>
-              {milestone.verifiedVotes}/{milestone.verifierCount}
-            </span>
-          </div>
-        </div>
+              <div className={styles.heroActions}>
+                <a href={`${EXPLORER_ADDR}/${milestone.builder}`} target="_blank" rel="noopener noreferrer" className={styles.primaryAction}>
+                  View builder on explorer
+                  <ArrowUpRight size={16} />
+                </a>
+                <Link href={`/builder/${builderName}`} className={styles.secondaryAction}>
+                  Open builder profile
+                </Link>
+              </div>
+            </div>
 
-        {milestone.finalEvidenceRoot && milestone.finalEvidenceRoot !== "0x0000000000000000000000000000000000000000000000000000000000000000" && (
-          <div className={styles.evidence}>
-            <span className={styles.label}>Evidence</span>
-            <code className={styles.code}>{milestone.finalEvidenceRoot}</code>
+            <div className={styles.executionCard}>
+              <div className={styles.executionHeader}>
+                <ShieldCheck size={18} />
+                <span>Execution readiness</span>
+              </div>
+              <h2>{isVerified ? "Ready for reliable release" : milestone.finalized ? "Resolution complete" : "Waiting on more confidence"}</h2>
+              <p>{payoutStatus}</p>
+              <div className={styles.executionBullets}>
+                <div>
+                  <Database size={16} />
+                  <span>{metadataRoot ? `0G metadata root: ${metadataRoot.slice(0, 12)}...${metadataRoot.slice(-8)}` : evidenceStatus}</span>
+                </div>
+                <div>
+                  <Network size={16} />
+                  <span>{peerGroup ? `${peerGroup.peerCount} corroborating peers on ${peerGroup.evidenceRoot.slice(0, 12)}...` : `${milestone.verifiedVotes}/${milestone.verifierCount} verifier votes recorded`}</span>
+                </div>
+                <div>
+                  <Blocks size={16} />
+                  <span>{keeperhub?.configured ? `KeeperHub execution path enabled (${keeperhub.apiUrl})` : "Portable ENS identity and direct execution fallback available."}</span>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
+        </section>
 
-        {isVerified && (
-          <div className={styles.summary}>
-            <span className={styles.label}>What was verified</span>
-            <ul className={styles.summaryList}>
-              <li>Contract deployment confirmed onchain</li>
-              <li>Unique caller threshold met during measurement window</li>
-              <li>{milestone.verifiedVotes}/{milestone.verifierCount} authorized verifiers agreed on the outcome</li>
-              <li>Evidence published and attestation root recorded onchain</li>
-            </ul>
+        <section className={styles.metricGrid}>
+          <article className={styles.metricCard}>
+            <span className={styles.metricLabel}>Capital at stake</span>
+            <strong className={styles.metricValue}>{stakedEth} ETH</strong>
+            <p>Escrowed in the milestone contract until the swarm reaches a verdict.</p>
+          </article>
+          <article className={styles.metricCard}>
+            <span className={styles.metricLabel}>Verifier confidence</span>
+            <strong className={styles.metricValue}>{milestone.verifiedVotes}/{milestone.verifierCount}</strong>
+            <p>{verificationProgress}% of the current quorum has been satisfied.</p>
+          </article>
+          <article className={styles.metricCard}>
+            <span className={styles.metricLabel}>Peer corroboration</span>
+            <strong className={styles.metricValue}>{peerGroup ? peerGroup.peerCount : 0}</strong>
+            <p>{peerGroup ? "Peer inbox consensus is visible for this milestone." : "No corroborating peer group surfaced yet."}</p>
+          </article>
+          <article className={styles.metricCard}>
+            <span className={styles.metricLabel}>Evidence root</span>
+            <strong className={styles.metricValueSmall}>{evidenceRoot ? `${evidenceRoot.slice(0, 12)}...${evidenceRoot.slice(-8)}` : "Pending"}</strong>
+            <p>{evidenceRoot ? "Final proof anchor has been written onchain." : "Root will appear after finalization."}</p>
+          </article>
+        </section>
+
+        <section className={styles.mainGrid}>
+          <div className={styles.primaryColumn}>
+            <article className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <div>
+                  <span className={styles.kicker}>Capital control</span>
+                  <h3>Why this milestone matters</h3>
+                </div>
+                <Coins size={18} />
+              </div>
+              <p className={styles.panelText}>
+                Weft treats this milestone as a capital release decision, not just a status update. Funds remain locked until evidence exists, peer verifiers corroborate the outcome, and the system is confident enough to execute safely.
+              </p>
+              <div className={styles.progressWrap}>
+                <div className={styles.progressHeader}>
+                  <span>Consensus progress</span>
+                  <span>{verificationProgress}%</span>
+                </div>
+                <div className={styles.progressBar}>
+                  <div className={styles.progressFill} style={{ width: `${verificationProgress}%` }} />
+                </div>
+              </div>
+            </article>
+
+            <article className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <div>
+                  <span className={styles.kicker}>Evidence and settlement path</span>
+                  <h3>What the network needs before payout</h3>
+                </div>
+                <CheckCircle2 size={18} />
+              </div>
+              <ul className={styles.summaryList}>
+                <li>Deployment and milestone-linked usage must be verifiable.</li>
+                <li>Verifier votes need to converge on a credible outcome.</li>
+                <li>Evidence roots should be anchorable and inspectable.</li>
+                <li>Final execution should use a reliable path rather than a fragile one-off transaction.</li>
+              </ul>
+              {evidenceRoot && (
+                <div className={styles.codeBlock}>
+                  <span className={styles.codeLabel}>Final evidence root</span>
+                  <code>{evidenceRoot}</code>
+                </div>
+              )}
+            </article>
+
+            <article className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <div>
+                  <span className={styles.kicker}>Shareable proof surface</span>
+                  <h3>Publish or circulate this milestone</h3>
+                </div>
+                <ArrowUpRight size={18} />
+              </div>
+              <p className={styles.panelText}>
+                Whether the milestone is still active or already verified, this page is designed to make the funding state and verification state legible to backers, builders, and judges.
+              </p>
+              <ShareButtons url={shareUrl} title={`Milestone ${id.slice(0, 10)}`} />
+            </article>
           </div>
-        )}
 
-        {isVerified && (
-          <div className={styles.actions}>
-            <ShareButtons url={shareUrl} title={`Milestone ${id.slice(0, 10)}`} />
-          </div>
-        )}
+          <aside className={styles.sideColumn}>
+            <article className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <div>
+                  <span className={styles.kicker}>Builder context</span>
+                  <h3>{builderName}</h3>
+                </div>
+                <Clock3 size={18} />
+              </div>
+              <div className={styles.identityMeta}>
+                <span className={styles.identityLabel}>Address</span>
+                <span className={styles.identityValue}>{milestone.builder}</span>
+              </div>
+              {builderPassport?.description && <p className={styles.panelText}>{builderPassport.description}</p>}
+              <div className={styles.identityStats}>
+                <div>
+                  <span>Verified milestones</span>
+                  <strong>{builderPassport?.weftMilestonesVerified ?? demo?.tracks.ens.builderProfile?.milestonesVerified ?? 0}</strong>
+                </div>
+                <div>
+                  <span>Reputation score</span>
+                  <strong>{builderPassport?.weftReputationScore ?? demo?.tracks.ens.builderProfile?.reputationScore ?? 0}</strong>
+                </div>
+                <div>
+                  <span>Total earned</span>
+                  <strong>{builderPassport?.weftEarnedTotal ?? demo?.tracks.ens.builderProfile?.earnedTotal ?? 0}</strong>
+                </div>
+              </div>
+            </article>
 
-        {isActive && addresses.weftMilestone && (
-          <div className={styles.stake}>
-            <h3 className={styles.sectionTitle}>Stake this milestone</h3>
-            <StakeForm
-              milestoneHash={milestoneHash}
-              contractAddress={addresses.weftMilestone}
-            />
-          </div>
-        )}
+            {isActive && addresses.weftMilestone && (
+              <article className={styles.panel}>
+                <div className={styles.panelHeader}>
+                  <div>
+                    <span className={styles.kicker}>Participate</span>
+                    <h3>Stake this milestone</h3>
+                  </div>
+                  <Coins size={18} />
+                </div>
+                <p className={styles.panelText}>
+                  Add capital to the milestone while it is still active. Funds remain governed by Weft’s verifier flow until the final outcome is known.
+                </p>
+                <StakeForm milestoneHash={milestoneHash} contractAddress={addresses.weftMilestone} />
+              </article>
+            )}
 
-        <div className={styles.footer}>
-          <span className={styles.footerText}>
-            Verified by Weft on 0G Chain
-          </span>
-        </div>
+            <article className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <div>
+                  <span className={styles.kicker}>Integration visibility</span>
+                  <h3>Where each protocol fits</h3>
+                </div>
+                <Database size={18} />
+              </div>
+              <div className={styles.integrationList}>
+                <div>
+                  <span className={styles.integrationTag}>0G</span>
+                  <p>{demo?.tracks["0g"].note || "Chain and storage anchors for milestone state, metadata, and evidence artifacts."}</p>
+                </div>
+                <div>
+                  <span className={styles.integrationTag}>AXL</span>
+                  <p>{peerGroup ? `Corroborating peers: ${peerGroup.nodeAddresses.join(", ")}` : "Verifier nodes share peer signals before trusting a payout decision."}</p>
+                </div>
+                <div>
+                  <span className={styles.integrationTag}>KeeperHub</span>
+                  <p>{keeperhub?.note || "Provides a robust execution path once the system is ready to submit or settle."}</p>
+                </div>
+                <div>
+                  <span className={styles.integrationTag}>ENS</span>
+                  <p>{demo?.tracks.ens.builderEns || demo?.tracks.ens.agentEns ? `Visible identities: ${[demo.tracks.ens.builderEns, demo.tracks.ens.agentEns].filter(Boolean).join(" · ")}` : "Portable builder and agent identity keeps the milestone understandable to humans."}</p>
+                </div>
+              </div>
+            </article>
+          </aside>
+        </section>
       </div>
     </div>
   );

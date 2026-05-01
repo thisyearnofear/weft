@@ -9,6 +9,7 @@ Foundry or direct RPC usage on their machine.
 
 Endpoints:
 - GET /health
+- GET /demo
 - GET /milestone/<0x_milestone_hash>?includeMetadata=1
 
 Config:
@@ -24,6 +25,7 @@ import json
 import os
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 # Allow running directly from repo root without installing.
@@ -31,8 +33,10 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
+from agent.lib.ens_client import EnsClient  # noqa: E402
 from agent.lib.jsonrpc import JsonRpcClient, default_cache  # noqa: E402
 from agent.lib.metadata_reader import MetadataError, read_metadata_from_0g  # noqa: E402
+from agent.lib.peer_inbox import best_group, consensus_signers_for_base_root  # noqa: E402
 from agent.lib.weft_milestone_reader import read_milestone  # noqa: E402
 
 
@@ -43,6 +47,9 @@ def main() -> int:
     p.add_argument("--rpc-url", default=os.environ.get("ETH_RPC_URL") or os.environ.get("RPC_URL") or "")
     p.add_argument("--weft", default=os.environ.get("WEFT_CONTRACT_ADDRESS") or os.environ.get("WEFT_MILESTONE_ADDRESS") or "")
     p.add_argument("--metadata-indexer", default=os.environ.get("ZERO_G_INDEXER_RPC") or os.environ.get("ZERO_G_INDEXER_URL") or "")
+    p.add_argument("--inbox-dir", default=os.environ.get("WEFT_INBOX_DIR") or "agent/.inbox")
+    p.add_argument("--builder-ens", default=os.environ.get("WEFT_BUILDER_ENS") or "")
+    p.add_argument("--agent-ens", default=os.environ.get("WEFT_AGENT_ENS") or os.environ.get("VERIFIER_ENS") or "")
     p.add_argument("--no-cache", action="store_true")
     args = p.parse_args()
 
@@ -54,14 +61,28 @@ def main() -> int:
     cache = None if args.no_cache else default_cache()
     rpc = JsonRpcClient(args.rpc_url, cache=cache)
 
-    handler = _make_handler(rpc, args.weft, args.metadata_indexer)
+    handler = _make_handler(
+        rpc,
+        args.weft,
+        args.metadata_indexer,
+        args.inbox_dir,
+        args.builder_ens,
+        args.agent_ens,
+    )
     server = ThreadingHTTPServer((args.host, args.port), handler)
     print(f"weft_status_api: listening on http://{args.host}:{args.port}")
     server.serve_forever()
     return 0
 
 
-def _make_handler(rpc: JsonRpcClient, weft: str, metadata_indexer: str):
+def _make_handler(
+    rpc: JsonRpcClient,
+    weft: str,
+    metadata_indexer: str,
+    inbox_dir: str,
+    builder_ens: str,
+    agent_ens: str,
+):
     class Handler(BaseHTTPRequestHandler):
         server_version = "weft-status-api/0.1"
 
@@ -75,6 +96,9 @@ def _make_handler(rpc: JsonRpcClient, weft: str, metadata_indexer: str):
 
             if path == "/health":
                 return self._send_json(200, {"ok": True})
+
+            if path == "/demo":
+                return self._send_json(200, _demo_payload(metadata_indexer, inbox_dir, builder_ens, agent_ens))
 
             if path.startswith("/milestone/"):
                 milestone_hash = path.split("/milestone/", 1)[1]
@@ -105,6 +129,18 @@ def _make_handler(rpc: JsonRpcClient, weft: str, metadata_indexer: str):
                 "verifierCount": int(m.verifierCount),
                 "verifiedVotes": int(m.verifiedVotes),
                 "finalEvidenceRoot": m.finalEvidenceRoot,
+                "demo": _milestone_demo_summary(
+                    rpc=rpc,
+                    weft=weft,
+                    milestone_hash=milestone_hash,
+                    metadata_indexer=metadata_indexer,
+                    inbox_dir=inbox_dir,
+                    builder=m.builder,
+                    metadata_hash=m.metadataHash,
+                    final_evidence_root=m.finalEvidenceRoot,
+                    builder_ens=builder_ens,
+                    agent_ens=agent_ens,
+                ),
             }
 
             if include_metadata:
@@ -138,10 +174,130 @@ def _make_handler(rpc: JsonRpcClient, weft: str, metadata_indexer: str):
             self.wfile.write(body)
 
         def log_message(self, fmt: str, *args) -> None:
-            # Quiet default logs
             sys.stderr.write("status_api: " + (fmt % args) + "\n")
 
     return Handler
+
+
+def _milestone_demo_summary(
+    *,
+    rpc: JsonRpcClient,
+    weft: str,
+    milestone_hash: str,
+    metadata_indexer: str,
+    inbox_dir: str,
+    builder: str,
+    metadata_hash: str,
+    final_evidence_root: str,
+    builder_ens: str,
+    agent_ens: str,
+) -> dict:
+    peer_group = best_group(milestone_hash, inbox_dir=inbox_dir)
+    consensus_signers = []
+    if peer_group is not None:
+        consensus_signers = [
+            p.node_address
+            for p in consensus_signers_for_base_root(
+                milestone_hash=milestone_hash,
+                verified=peer_group.verified,
+                base_evidence_root=peer_group.evidence_root,
+                inbox_dir=inbox_dir,
+            )
+        ]
+
+    try:
+        read_milestone(rpc, weft, milestone_hash)
+        metadata_available = bool(metadata_indexer)
+    except Exception:
+        metadata_available = False
+
+    final_root = final_evidence_root or (peer_group.evidence_root if peer_group else "")
+
+    return {
+        "pitch": "Weft is a decentralized verifier swarm for milestone-based capital release.",
+        "tracks": {
+            "0g": {
+                "storageConfigured": bool(metadata_indexer),
+                "metadataIndexer": metadata_indexer or None,
+                "metadataRoot": metadata_hash or None,
+                "finalEvidenceRoot": final_root or None,
+                "note": "0G persists milestone metadata, evidence roots, and bundle pointers.",
+            },
+            "gensyn": {
+                "peerInboxDir": inbox_dir,
+                "peerInboxExists": Path(inbox_dir).is_dir(),
+                "bestPeerGroup": {
+                    "verified": peer_group.verified,
+                    "evidenceRoot": peer_group.evidence_root,
+                    "peerCount": peer_group.count,
+                    "nodeAddresses": peer_group.node_addresses,
+                } if peer_group else None,
+                "signedConsensusSigners": consensus_signers,
+            },
+            "keeperhub": {
+                "configured": bool(os.environ.get("KEEPERHUB_API_KEY")) and os.environ.get("KEEPERHUB_ENABLED", "1") != "0",
+                "apiUrl": os.environ.get("KEEPERHUB_API_URL", "https://app.keeperhub.com"),
+                "timeoutSeconds": int(os.environ.get("KEEPERHUB_TIMEOUT") or "120"),
+                "note": "KeeperHub is the preferred execution path for submitVerdict().",
+            },
+            "ens": {
+                "builderAddress": builder,
+                "builderEns": builder_ens or None,
+                "agentEns": agent_ens or None,
+                "builderProfile": _read_builder_profile(builder_ens),
+                "agentProfile": _read_builder_profile(agent_ens),
+            },
+        },
+        "statusFlags": {
+            "metadataAvailable": metadata_available,
+            "peerConsensusVisible": peer_group is not None,
+            "keeperhubVisible": True,
+            "ensVisible": bool(builder_ens or agent_ens),
+        },
+    }
+
+
+def _demo_payload(metadata_indexer: str, inbox_dir: str, builder_ens: str, agent_ens: str) -> dict:
+    return {
+        "ok": True,
+        "pitch": "Weft is a decentralized verifier swarm for milestone-based capital release.",
+        "sponsorFit": [
+            "0G: metadata + evidence persistence",
+            "Gensyn AXL: peer corroboration across verifier nodes",
+            "KeeperHub: reliable onchain execution",
+            "ENS: human-readable verifier/builder identity",
+        ],
+        "demoHints": {
+            "statusEndpoint": "/milestone/<hash>?includeMetadata=1",
+            "apiSurface": "/demo",
+            "peerInboxDir": inbox_dir,
+            "metadataIndexer": metadata_indexer or None,
+            "builderEns": builder_ens or None,
+            "agentEns": agent_ens or None,
+        },
+    }
+
+
+def _read_builder_profile(ens_name: str) -> dict | None:
+    if not ens_name:
+        return None
+    rpc = os.environ.get("ETH_RPC_URL") or os.environ.get("RPC_URL") or ""
+    key = os.environ.get("VERIFIER_PRIVATE_KEY") or os.environ.get("PRIVATE_KEY") or ""
+    if not rpc or not key:
+        return {"ensName": ens_name, "available": False, "reason": "missing_rpc_or_key"}
+
+    try:
+        profile = EnsClient(rpc, key).read_builder_profile(ens_name)
+        return {
+            "ensName": profile.ens_name,
+            "projects": profile.projects,
+            "milestonesVerified": profile.milestones_verified,
+            "earnedTotal": profile.earned_total,
+            "cobuilders": profile.cobuilders,
+            "reputationScore": profile.reputation_score,
+        }
+    except Exception as exc:
+        return {"ensName": ens_name, "available": False, "reason": str(exc)}
 
 
 _INDEX_HTML = """<!doctype html>
@@ -184,7 +340,7 @@ _INDEX_HTML = """<!doctype html>
       }
       .card {
         width: 100%;
-        max-width: 520px;
+        max-width: 860px;
         background: linear-gradient(145deg, rgba(26, 26, 46, 0.8), rgba(22, 22, 42, 0.9));
         border: 1px solid var(--c-border);
         border-radius: var(--radius-lg);
@@ -213,7 +369,31 @@ _INDEX_HTML = """<!doctype html>
       .subtitle {
         font-size: 14px;
         color: var(--c-text-3);
-        margin-bottom: 28px;
+        margin-bottom: 8px;
+      }
+      .pitch {
+        font-size: 15px;
+        color: var(--c-text-2);
+        margin-bottom: 24px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .pill {
+        padding: 12px 14px;
+        border-radius: var(--radius-md);
+        background: var(--c-surface);
+        border: 1px solid var(--c-border);
+        font-size: 12px;
+        color: var(--c-text-2);
+      }
+      .pill strong {
+        display: block;
+        color: var(--c-text);
+        margin-bottom: 4px;
       }
       label {
         display: block;
@@ -236,7 +416,6 @@ _INDEX_HTML = """<!doctype html>
       }
       input[type=text]::placeholder { color: var(--c-text-3); }
       input[type=text]:focus { border-color: var(--c-accent); }
-      
       .checkbox-row {
         display: flex;
         align-items: center;
@@ -288,7 +467,6 @@ _INDEX_HTML = """<!doctype html>
         border: 1px solid var(--c-border);
       }
       #copy:hover { background: var(--c-surface); }
-      
       .hint {
         font-size: 12px;
         color: var(--c-text-3);
@@ -300,7 +478,6 @@ _INDEX_HTML = """<!doctype html>
         padding: 2px 6px;
         border-radius: 4px;
       }
-      
       .status {
         margin-top: 20px;
         padding: 12px 16px;
@@ -325,7 +502,6 @@ _INDEX_HTML = """<!doctype html>
         color: var(--c-accent-2);
         border: 1px solid rgba(99, 102, 241, 0.3);
       }
-      
       pre {
         margin-top: 20px;
         padding: 16px;
@@ -337,7 +513,7 @@ _INDEX_HTML = """<!doctype html>
         font-size: 12px;
         line-height: 1.6;
         overflow: auto;
-        max-height: 300px;
+        max-height: 360px;
         white-space: pre-wrap;
         word-break: break-all;
       }
@@ -349,14 +525,22 @@ _INDEX_HTML = """<!doctype html>
         <span class="logo-icon">⬡</span>
         <h1>Weft</h1>
       </div>
-      <p class="subtitle">Milestone Status API</p>
+      <p class="subtitle">Hackathon Demo Surface</p>
+      <p class="pitch">Decentralized verifier swarm for milestone-based capital release across 0G, AXL, KeeperHub, and ENS.</p>
+
+      <div class="grid">
+        <div class="pill"><strong>0G</strong>Metadata + evidence roots + bundle pointers</div>
+        <div class="pill"><strong>Gensyn AXL</strong>Peer corroboration across verifier nodes</div>
+        <div class="pill"><strong>KeeperHub</strong>Reliable onchain verdict execution</div>
+        <div class="pill"><strong>ENS</strong>Human-readable verifier and builder identity</div>
+      </div>
 
       <label for="mh">Milestone Hash</label>
       <input id="mh" type="text" placeholder="0x..." />
 
       <div class="checkbox-row">
         <label for="meta">
-          <input id="meta" type="checkbox" />
+          <input id="meta" type="checkbox" checked />
           Include metadata (0G Storage)
         </label>
       </div>
@@ -366,8 +550,8 @@ _INDEX_HTML = """<!doctype html>
         <button id="copy">Copy JSON</button>
       </div>
 
-      <div class="hint">API: <code>/milestone/&lt;hash&gt;</code> · <code>?includeMetadata=1</code></div>
-      
+      <div class="hint">API: <code>/milestone/&lt;hash&gt;</code> · <code>?includeMetadata=1</code> · <code>/demo</code></div>
+
       <div id="status"></div>
       <pre id="out">{}</pre>
     </div>
@@ -391,13 +575,13 @@ _INDEX_HTML = """<!doctype html>
           setStatus('Enter a valid 0x-prefixed 32-byte hash (66 chars)', 'error');
           return;
         }
-        setStatus('Fetching...', 'loading');
-        const url = '/milestone/' + h + '?' + (meta.checked ? 'includeMetadata=1' : '');
+        setStatus('Fetching milestone demo payload...', 'loading');
+        const url = '/milestone/' + h + (meta.checked ? '?includeMetadata=1' : '');
         try {
           const res = await fetch(url);
           const j = await res.json();
           out.textContent = JSON.stringify(j, null, 2);
-          setStatus(j.ok ? '✓ Fetched successfully' : (j.error || 'Error'), j.ok ? 'ok' : 'error');
+          setStatus(j.ok ? '✓ Fetched sponsor-ready status payload' : (j.error || 'Error'), j.ok ? 'ok' : 'error');
         } catch (e) {
           setStatus('Fetch failed: ' + e, 'error');
         }
