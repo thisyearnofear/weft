@@ -40,11 +40,15 @@ export const CONTRACT_ADDRESSES = {
     weftMilestone: process.env.NEXT_PUBLIC_WEFT_MILESTONE_BASE as Address,
     verifierRegistry: process.env.NEXT_PUBLIC_VERIFIER_REGISTRY_BASE as Address,
   },
+  zeroGTestnet: {
+    weftMilestone: (process.env.NEXT_PUBLIC_WEFT_MILESTONE_0G_TESTNET || "0xcc768d56b0053b1b2df5391dde989be3f859474c") as Address,
+    verifierRegistry: (process.env.NEXT_PUBLIC_VERIFIER_REGISTRY_0G_TESTNET || "0x599e34de50379c584787e0b7ba616ac9b6723169") as Address,
+  },
 } as const;
 
 export type ChainName = keyof typeof CONTRACT_ADDRESSES;
 
-export const DEFAULT_CHAIN: ChainName = (process.env.NEXT_PUBLIC_DEFAULT_CHAIN as ChainName) || "sepolia";
+export const DEFAULT_CHAIN: ChainName = (process.env.NEXT_PUBLIC_DEFAULT_CHAIN as ChainName) || "zeroGTestnet";
 
 export function getAddresses(chain: ChainName = DEFAULT_CHAIN) {
   return CONTRACT_ADDRESSES[chain];
