@@ -126,10 +126,10 @@ export default function Home() {
             {overview?.pitch || "Programmable trust for fluid human-agent teams"}
           </div>
           <h1 className={styles.title}>
-            Release capital with <span className={styles.accent}>evidence</span>, not manual trust.
+            Ship it. Prove it. <span className={styles.accent}>Own it.</span>
           </h1>
           <p className={styles.subtitle}>
-            Weft is the capital coordination layer for internet-native teams. It helps founders, sponsors, and DAOs fund fluid groups of humans and agents without relying on screenshots, payout politics, or one-off trust.
+            Weft weaves raw evidence — onchain deployments, usage signals, peer verdicts — into a trust fabric that releases capital and builds portable reputation. No screenshots. No payout politics. Just outcomes.
           </p>
 
           <div className={styles.heroActions}>
@@ -138,7 +138,7 @@ export default function Home() {
               <ArrowRight size={16} />
             </a>
             <Link href="/builder" className={styles.secondaryAction}>
-              Explore portable reputation
+              Look up a builder profile
             </Link>
           </div>
 
@@ -168,9 +168,9 @@ export default function Home() {
               <span>Product thesis</span>
               <CheckCircle2 size={18} />
             </div>
-            <h2>Programmable trust for teams that do not want to become companies first.</h2>
+            <h2>Technology provides the warp. Liberal arts provide the weft.</h2>
             <p>
-              Weft combines milestone escrow, verifier corroboration, evidence persistence, and portable reputation into one capital release system for fluid human-agent teams.
+              Raw data threads — onchain events, GitHub commits, peer verdicts — are woven by the Hermes Agent into meaningful fabric: narratives, achievement cards, and portable reputation. The loom is trustless. The story is human.
             </p>
             <div className={styles.signalList}>
               <div>
@@ -197,9 +197,9 @@ export default function Home() {
       <section className={styles.sponsorSection}>
         <div className={styles.sectionIntro}>
           <span className={styles.sectionKicker}>Why it is different</span>
-          <h2 className={styles.sectionTitle}>Not milestone tracking. Not agent tooling. A capital release system.</h2>
+          <h2 className={styles.sectionTitle}>Every thread of evidence woven into fabric that moves money.</h2>
           <p className={styles.sectionText}>
-            Weft is differentiated because it turns shipped outcomes into trust that can actually move money. The system treats humans and agents symmetrically, then binds reputation to funded work instead of vague social proof.
+            Weft is not milestone tracking or agent tooling — it is a capital release system. Shipped outcomes become trust that moves money. Humans and agents are treated symmetrically. Reputation is bound to funded work, not vague social proof.
           </p>
         </div>
         <div className={styles.sponsorGrid}>
@@ -215,8 +215,8 @@ export default function Home() {
 
       <section className={styles.workflowSection}>
         <div className={styles.sectionIntro}>
-          <span className={styles.sectionKicker}>Core utility</span>
-          <h2 className={styles.sectionTitle}>A trust loop for internet-native teams.</h2>
+          <span className={styles.sectionKicker}>How it works</span>
+          <h2 className={styles.sectionTitle}>Three steps from promise to proof.</h2>
         </div>
         <div className={styles.workflowGrid}>
           {workflow.map((item) => (
@@ -252,7 +252,7 @@ export default function Home() {
               ? milestoneHashes.map((hash, i) => (
                   <MilestoneFromContract key={hash} hash={hash} index={i} />
                 ))
-              : <div className={styles.emptyState}>No milestones found yet. Create one to start the trust loop.</div>}
+              : <div className={styles.emptyState}>No milestones found yet. <a href="https://github.com/thisyearnofear/weft#builder-onboarding" target="_blank" rel="noopener noreferrer">Create one</a> to start weaving your trust fabric.</div>}
         </div>
       </section>
 

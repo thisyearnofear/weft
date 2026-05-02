@@ -1,0 +1,338 @@
+.page {
+  min-height: 100vh;
+  padding: 3rem 1.25rem 5rem;
+  background:
+    radial-gradient(circle at top, rgba(99, 102, 241, 0.14), transparent 26%),
+    radial-gradient(circle at 80% 18%, rgba(34, 197, 94, 0.08), transparent 22%),
+    var(--c-bg);
+  color: var(--c-text);
+}
+
+.shell {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.backLink {
+  color: var(--c-text-secondary);
+  font-size: 0.9rem;
+  width: fit-content;
+}
+
+.backLink:hover {
+  color: var(--c-text);
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 640px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: fit-content;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--c-border-2);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+  color: var(--c-text-secondary);
+  font-size: 0.875rem;
+}
+
+.title {
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.subtitle {
+  font-size: 1.05rem;
+  color: var(--c-text-secondary);
+  line-height: 1.75;
+}
+
+/* ── Lookup card ── */
+.lookupCard {
+  background: rgba(17, 17, 24, 0.9);
+  border: 1px solid var(--c-border);
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.lookupForm {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.inputWrap {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--c-text-muted);
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  padding: 0.9rem 1rem 0.9rem 2.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--c-border-2);
+  border-radius: 999px;
+  color: var(--c-text);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input::placeholder {
+  color: var(--c-text-muted);
+}
+
+.input:focus {
+  border-color: var(--c-accent);
+}
+
+.lookupBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.4rem;
+  background: linear-gradient(135deg, var(--c-accent), #8b5cf6);
+  color: white;
+  font-weight: 600;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s;
+  white-space: nowrap;
+}
+
+.lookupBtn:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.errorMsg {
+  color: #f87171;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.examples {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.examplesLabel {
+  color: var(--c-text-muted);
+  font-size: 0.85rem;
+}
+
+.exampleChip {
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--c-border-2);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--c-text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.exampleChip:hover {
+  border-color: var(--c-accent);
+  color: var(--c-text);
+}
+
+/* ── Explainer grid ── */
+.explainerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.explainerCard {
+  background: rgba(17, 17, 24, 0.9);
+  border: 1px solid var(--c-border);
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.explainerIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-accent);
+}
+
+.explainerCard h3 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.explainerCard p {
+  font-size: 0.9rem;
+  color: var(--c-text-secondary);
+  line-height: 1.65;
+}
+
+/* ── Onboarding section ── */
+.onboardingSection {
+  background: rgba(17, 17, 24, 0.9);
+  border: 1px solid var(--c-border);
+  border-radius: 24px;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.onboardingHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 560px;
+}
+
+.sectionKicker {
+  display: inline-block;
+  color: var(--c-accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.onboardingHeader h2 {
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.onboardingHeader p {
+  color: var(--c-text-secondary);
+  line-height: 1.7;
+}
+
+.onboardingSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.onboardingStep {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.stepNum {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 0.05em;
+}
+
+.onboardingStep h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.onboardingStep p {
+  font-size: 0.875rem;
+  color: var(--c-text-secondary);
+  line-height: 1.65;
+}
+
+.onboardingCta {
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ctaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.3rem;
+  background: linear-gradient(135deg, var(--c-accent), #8b5cf6);
+  color: white;
+  font-weight: 600;
+  border-radius: 999px;
+  transition: transform 0.15s;
+}
+
+.ctaBtn:hover {
+  transform: translateY(-1px);
+}
+
+.ctaSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.3rem;
+  border: 1px solid var(--c-border-2);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--c-text);
+  font-weight: 600;
+  border-radius: 999px;
+  transition: transform 0.15s;
+}
+
+.ctaSecondary:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+  .lookupForm {
+    flex-direction: column;
+  }
+  .lookupBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  .onboardingSection {
+    padding: 1.5rem;
+  }
+}
