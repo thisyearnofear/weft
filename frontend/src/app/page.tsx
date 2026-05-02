@@ -15,11 +15,11 @@ function MilestoneFromContract({ hash, index }: { hash: `0x${string}`; index: nu
   const { data: statusData } = useStatusMilestone(hash, true);
 
   if (isLoading) return <SkeletonCard key={hash} index={index} />;
-  if (error || !data) return null;
+  if (error || !data || !data.builder) return null;
 
   const state: MilestoneState = data.verified ? "verified" : data.finalized ? "failed" : "pending";
-  const stakedEth = (Number(data.totalStaked) / 1e18).toFixed(4);
-  const builderShort = `${data.builder.slice(0, 6)}...${data.builder.slice(-4)}`;
+  const stakedEth = (Number(data.totalStaked ?? 0) / 1e18).toFixed(4);
+  const builderShort = data.builder ? `${data.builder.slice(0, 6)}...${data.builder.slice(-4)}` : "Unknown";
   const demo = statusData?.demo;
   const liveTags = [
     data.verified ? "Capital Released" : data.finalized ? "Refundable" : "Capital Locked",

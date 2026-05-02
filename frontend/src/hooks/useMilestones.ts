@@ -51,9 +51,29 @@ export function useMilestone(milestoneHash: string) {
         functionName: "milestones",
         args: [milestoneHash as `0x${string}`],
       });
-      return result as Milestone;
+      // viem returns multi-output as array: [projectId, templateId, metadataHash, builder, ...]
+      const r = result as unknown[];
+      if (!r || !Array.isArray(r) || r.length < 13) throw new Error("Invalid milestone data");
+      const m: Milestone = {
+        projectId: r[0] as string,
+        templateId: r[1] as string,
+        metadataHash: r[2] as string,
+        builder: r[3] as Address,
+        createdAt: r[4] as bigint,
+        deadline: r[5] as bigint,
+        totalStaked: r[6] as bigint,
+        finalized: r[7] as boolean,
+        verified: r[8] as boolean,
+        released: r[9] as boolean,
+        verifierCount: Number(r[10]),
+        verifiedVotes: Number(r[11]),
+        finalEvidenceRoot: r[12] as string,
+      };
+      if (!m.builder || m.builder === "0x0000000000000000000000000000000000000000") throw new Error("Empty milestone");
+      return m;
     },
     enabled: !!milestoneHash,
+    retry: false,
   });
 }
 
@@ -87,6 +107,7 @@ export function useMilestones() {
       });
       return logs.map((log) => log.args.milestoneHash as `0x${string}`);
     },
+    retry: false,
   });
 }
 

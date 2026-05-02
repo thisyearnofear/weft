@@ -61,14 +61,15 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const { data: statusMilestone } = useStatusMilestone(milestoneHash, true);
   const addresses = getAddresses(DEFAULT_CHAIN);
 
+  const builderAddr = milestone?.builder ?? "";
   const { data: builderPassport } = useBuilderPassport(
-    statusMilestone?.demo?.tracks.ens.builderEns || (milestone?.builder ? `0x${BigInt(milestone.builder).toString(16)}.eth` : "")
+    statusMilestone?.demo?.tracks.ens.builderEns || (builderAddr ? `0x${BigInt(builderAddr).toString(16)}.eth` : "")
   );
 
   const builderName =
     statusMilestone?.demo?.tracks.ens.builderEns ||
     builderPassport?.ens ||
-    (milestone?.builder ? `${milestone.builder.slice(0, 6)}...${milestone.builder.slice(-4)}` : "");
+    (builderAddr ? `${builderAddr.slice(0, 6)}...${builderAddr.slice(-4)}` : "");
   const stakedEth = milestone ? (Number(milestone.totalStaked) / 1e18).toFixed(4) : "0";
   const isVerified = Boolean(milestone?.verified);
   const isActive = Boolean(milestone && !milestone.finalized);
