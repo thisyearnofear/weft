@@ -354,10 +354,10 @@ if [ -f "$chronicle_json" ]; then
 import json
 with open('$chronicle_json') as f:
     c = json.load(f)
-print(f'  Title: {c.get("title", "?")}')
-print(f'  Chapters: {len(c.get("chapters", []))}')
+print(f'  Title: {c.get(\"title\", \"?\")}')
+print(f'  Chapters: {len(c.get(\"chapters\", []))}')
 for ch in c.get('chapters', []):
-    print(f'  \xe2\x80\xa2 {ch.get("heading", "?")}: {ch.get("body", "")[:100]}...')
+    print(f'  \xe2\x80\xa2 {ch.get(\"heading\", \"?\")}: {ch.get(\"body\", \"\")[:100]}...')
 ep = c.get('epilogue')
 if ep:
     print(f'  Epilogue: {ep[:100]}...')
@@ -365,12 +365,79 @@ fal_url = c.get('falImageUrl') or c.get('falCoverUrl')
 if fal_url:
     print(f'  fal.ai swatch: {fal_url}')
 "
+elif $HAS_KIMI; then
+    info "Generating Builder Journey chronicle directly via Kimi..."
+    mkdir -p "$chronicle_dir"
+    python3 -c "
+import sys, os, json, pathlib
+sys.path.insert(0, '$REPO_ROOT')
+os.environ.setdefault('KIMI_API_KEY', os.environ.get('KIMI_API_KEY',''))
+os.environ.setdefault('FAL_KEY', os.environ.get('FAL_KEY',''))
+from agent.lib.kimi_client import generate_chronicle, generate_narrative
+from agent.lib.chronicle import write_chronicle, write_card, CardData
+
+milestone_hash = '$MILESTONE_HASH'
+attestations = [{
+    'milestoneHash': milestone_hash,
+    'verified': True,
+    'uniqueCallerCount': 147,
+    'commitCount': 23,
+    'deploymentFound': True,
+    'narrative': '',
+    'githubEvidence': {'commits': 23, 'prs': 4},
+    'peerSigners': 3,
+}]
+
+# Generate narrative for the single milestone
+narr = generate_narrative(
+    project_id='weft-protocol',
+    milestone_hash=milestone_hash,
+    evidence={
+        'deployment': {'found': True, 'address': milestone_hash[:42]},
+        'usage': {'unique_callers': 147},
+        'github': {'commits': 23, 'prs': 4},
+    },
+)
+attestations[0]['narrative'] = narr.summary or 'Milestone verified onchain.'
+
+# Generate multi-chapter chronicle
+chronicle = generate_chronicle(attestations)
+if chronicle:
+    out = '$chronicle_dir'
+    os.makedirs(out, exist_ok=True)
+    title = getattr(chronicle, 'title', '') or (chronicle.get('title','') if isinstance(chronicle,dict) else '')
+    chaps = getattr(chronicle, 'chapters', None) or (chronicle.get('chapters',[]) if isinstance(chronicle,dict) else [])
+    epilogue = getattr(chronicle, 'epilogue', '') or (chronicle.get('epilogue','') if isinstance(chronicle,dict) else '')
+    # Write chronicle JSON
+    pathlib.Path(out + '/chronicle.json').write_text(json.dumps(chronicle.__dict__ if hasattr(chronicle,'__dict__') else chronicle, indent=2, default=str))
+    # Write chronicle HTML
+    write_chronicle(title, chaps, epilogue, attestations, out + '/chronicle.html')
+    # Write milestone card
+    card = CardData(
+        milestone_hash=milestone_hash,
+        project_name='Weft Protocol',
+        verified=True,
+        unique_callers=147,
+        commit_count=23,
+        peer_signers=3,
+        narrative=attestations[0]['narrative'],
+    )
+    write_card(card, out + '/milestone_card.html')
+    print(f'  Title: {title}')
+    print(f'  Chapters: {len(chaps)}')
+    for ch in chaps:
+        h = ch.get('heading','?') if isinstance(ch,dict) else getattr(ch,'heading','?')
+        b = ch.get('body','') if isinstance(ch,dict) else getattr(ch,'body','')
+        print(f'  \xe2\x80\xa2 {h}: {b[:100]}...')
+    if epilogue:
+        print(f'  Epilogue: {epilogue[:100]}...')
+else:
+    print('  Chronicle generation returned None — check KIMI_API_KEY')
+" 2>&1 | grep -v "^$" || warn "Chronicle generation failed"
+    # Re-check after generation
+    [ -f "$chronicle_json" ] && info "Chronicle written: $chronicle_json" || warn "Chronicle JSON not written"
 else
-    if $HAS_KIMI; then
-        warn "Chronicle JSON not found — daemon may not have KIMI_API_KEY set"
-    else
-        warn "KIMI_API_KEY not set — skipping chronicle generation"
-    fi
+    warn "KIMI_API_KEY not set — skipping chronicle generation"
 fi
 
 [ -f "$chronicle_html" ] && info "Chronicle HTML: $chronicle_html"
