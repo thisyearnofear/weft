@@ -29,7 +29,7 @@ real builder journeys, real stakes, told beautifully by an AI agent that knows y
 | KeeperHub | Best Use of KeeperHub | $5,000 | ✅ Deep integration — retry, gas opt, audit trail, fallback |
 | ENS | Best ENS Integration for AI Agents | $2,500 | ✅ Fixed namehash bug, wired into daemon |
 | ENS | Most Creative Use of ENS | $2,500 | ✅ Portable reputation via text records |
-| Uniswap | Best Uniswap API Integration | $5,000 | ✅ `uniswap_client.py` — platform fee → stablecoin treasury swap |
+| fal.ai | Creative imagery layer | — | ✅ `fal_client.py` — AI-woven swatch + chronicle cover images (env: `FAL_KEY`) |
 | Hermes/Kimi | Creative Hackathon — Kimi Track | $5,000 | ✅ Builder Journey chronicles + milestone cards via Kimi (weaving metaphor) |
 
 **Total addressable: $40,000**
@@ -147,20 +147,16 @@ real builder journeys, real stakes, told beautifully by an AI agent that knows y
 
 ---
 
-### Uniswap — Best Uniswap API Integration ($5,000)
+### fal.ai — AI-woven imagery layer
 
-**What we have:**
-- Revenue model defined in `product-plan.md` (2-3% platform fee on released capital)
-- Treasury address concept
+**What it does:** Each verified milestone generates a unique AI image (a 'swatch') whose visual character is driven by verification metrics — callers, commits, peer signers. Chronicle covers are generated for multi-milestone builder journeys.
 
-**What judges want:** "Integrate the Uniswap API to give your agent the ability to swap and settle value onchain."
+**What's implemented:**
+- [x] `agent/lib/fal_client.py` — `generate_milestone_image()` + `generate_chronicle_cover()`
+- [x] Wired into `weft_daemon.py` after successful verification (when `FAL_KEY` is set)
+- [x] Swatch embedded in `milestone_card.html`; cover embedded in `chronicle.html`
 
-**Gaps to close:**
-- [x] Create `agent/lib/uniswap_client.py` — swap released ETH to stablecoin for treasury
-- [x] Add Uniswap feedback to FEEDBACK.md
-- [ ] Demo showing fee collection → Uniswap swap → stablecoin in treasury
-
-**Demo angle:** Milestone verified → capital released → platform fee collected → agent swaps ETH to USDC via Uniswap API → treasury receives stablecoin.
+**Demo angle:** Milestone verified → Kimi writes the narrative → fal.ai weaves the visual swatch → HTML card combines both into a shareable creative artifact.
 
 ---
 
@@ -205,8 +201,8 @@ real builder journeys, real stakes, told beautifully by an AI agent that knows y
 - [ ] Working example agent (weft-verify skill)
 - [ ] Architecture diagram showing 0G Storage/Compute integration
 
-### Uniswap Specific
-- [ ] FEEDBACK.md with Uniswap API builder experience
+### fal.ai Specific
+- [ ] Confirm `FAL_KEY` env var set on snel-bot for live demo
 
 ### KeeperHub Specific
 - [ ] FEEDBACK.md with KeeperHub builder feedback (already done)
@@ -234,7 +230,7 @@ Single end-to-end demo covering all sponsors:
 6. **Consensus bundle** published to 0G Storage
 7. **KeeperHub** executes `submitVerdict()` onchain
 8. **ENS profile** updated with milestone record
-9. **Uniswap swap** routes platform fee to stablecoin treasury
+9. **fal.ai** generates AI-woven swatch image for the milestone card
 10. **Status API** shows final milestone state
 
 This single demo qualifies for all 7+ prize tracks simultaneously.

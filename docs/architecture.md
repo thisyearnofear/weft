@@ -11,7 +11,7 @@ Weft is an autonomous coordination layer that replaces four institutional primit
 | Identity / CV | ENS text records (portable, machine-readable) |
 | Funding / equity | `WeftMilestone.sol` — milestone-staked ETH |
 | Verification / managers | Hermes Agent + AXL consensus |
-| Settlement / payroll | KeeperHub reliable execution (Uniswap routing deferred — see below) |
+| Settlement / payroll | KeeperHub reliable execution |
 
 ## Flow
 
@@ -68,7 +68,8 @@ Single source of truth — all shared agent logic. All scripts import from here.
 | `peer_inbox.py` | Filesystem-based peer verdict aggregation |
 | `verdict_envelope.py` | Signed envelope construction/verification |
 | `keeperhub_client.py` | KeeperHub reliable onchain execution (env: `KEEPERHUB_API_KEY`, retry + gas opt + audit trail) |
-| `uniswap_client.py` | Uniswap Routing API for platform fee → stablecoin treasury swaps |
+| `fal_client.py` | fal.ai text-to-image — AI-woven milestone swatch + chronicle cover images (env: `FAL_KEY`) |
+| `chronicle.py` | HTML milestone achievement cards and chronicle pages (woven-fabric motif) |
 | `indexer_client.py` | Unified indexer: tries 0G KV, falls back to onchain events |
 | `deadline_scheduler.py` | Polls for milestones past deadline awaiting finalization |
 | `metadata_reader.py` | Reads milestone metadata from 0G Storage |
@@ -132,23 +133,20 @@ KV keys: `weft:milestone:<hash>:consensus`, `weft:milestone:<hash>:bundle`, `wef
 - **Python 3** — Agent scripts (no external pip dependencies)
 - **Next.js** — Frontend scaffold
 
-## Uniswap Revenue Routing
+## fal.ai Creative Imagery
 
-`uniswap_client.py` integrates the Uniswap Routing API to auto-convert platform fees (2-3% of released capital) from ETH to stablecoin for the treasury. The module supports:
+`fal_client.py` generates AI-woven textile images from milestone evidence. Each verified milestone produces a unique 'swatch' image whose visual character is driven by verification metrics (callers, commits, peer signers). Chronicle covers are generated for multi-milestone builder journeys.
 
-- Quote fetching via Uniswap Routing API (`/quote` endpoint)
-- Swap execution with configurable slippage tolerance
-- Dry-run mode for testing without execution
-- Graceful fallback when `UNISWAP_API_KEY` is not set
+- `generate_milestone_image()` — per-milestone swatch, embedded in `milestone_card.html`
+- `generate_chronicle_cover()` — multi-chapter cover, embedded in `chronicle.html`
+- Wired into `weft_daemon.py` after successful verification (graceful fallback when `FAL_KEY` unset)
 
 Configuration:
 
 | Variable | Description |
 |---|---|
-| `UNISWAP_API_KEY` | Uniswap API key (enables swap execution) |
-| `UNISWAP_CHAIN_ID` | Target chain ID (default: 1) |
-| `UNISWAP_SLIPPAGE_BPS` | Slippage tolerance in basis points (default: 50) |
-| `WEFT_TREASURY_ADDRESS` | Treasury address receiving stablecoin |
+| `FAL_KEY` | fal.ai API key (enables image generation) |
+| `FAL_MODEL` | Model override (default: `fal-ai/flux/schnell`) |
 
 ## Security
 

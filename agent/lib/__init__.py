@@ -28,14 +28,12 @@ from .axl_client import (
     axl_available,
     start_axl_node,
 )
-from .uniswap_client import (
-    SwapQuote,
-    SwapResult,
-    UniswapClientError,
-    execute_swap,
-    get_swap_quote,
-    route_platform_fee,
-    uniswap_configured,
+from .fal_client import (
+    FalImageResult,
+    FalClientError,
+    fal_configured,
+    generate_milestone_image,
+    generate_chronicle_cover,
 )
 from .mvp_verifier import (
     DeploymentEvidence,
@@ -92,9 +90,9 @@ __all__ = [
     # axl_client
     "BroadcastResult", "broadcast_verdict", "parse_peers",
     "axl_available", "start_axl_node",
-    # uniswap_client
-    "SwapQuote", "SwapResult", "UniswapClientError",
-    "execute_swap", "get_swap_quote", "route_platform_fee", "uniswap_configured",
+    # fal_client
+    "FalImageResult", "FalClientError", "fal_configured",
+    "generate_milestone_image", "generate_chronicle_cover",
     # mvp_verifier
     "DeploymentEvidence", "UsageEvidence",
     "build_attestation", "count_unique_callers",

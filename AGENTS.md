@@ -39,7 +39,7 @@ The single source of truth for all shared agent logic. All scripts import from h
 | `indexer_client.py` | Unified indexer: tries 0G KV, falls back to onchain events |
 | `axl_client.py` | AXL binary P2P transport for peer verdict broadcast (env: `AXL_PORT`, auto-starts node) |
 | `keeperhub_client.py` | KeeperHub reliable onchain execution (env: `KEEPERHUB_API_KEY`, retry + gas opt + audit trail) |
-| `uniswap_client.py` | Uniswap Routing API for platform fee → stablecoin treasury swaps (env: `UNISWAP_API_KEY`) |
+| `fal_client.py` | fal.ai text-to-image client for AI-woven milestone swatch + chronicle cover images (env: `FAL_KEY`) |
 | `__init__.py` | Re-exports all public symbols |
 
 ## Verification Flow
@@ -376,7 +376,6 @@ ZERO_G_STREAM_ID          # KV stream ID (optional)
 | AXL multi-node consensus | ✅ Implemented — real AXL binary with encrypted P2P transport; requires 2+ nodes for live demo |
 | KeeperHub capital release | KeeperHub `scheduleRelease()` not deployed (contract-level integration) |
 | ENS text record updates | Requires deployed .eth names |
-| Uniswap revenue routing | ✅ `uniswap_client.py` implemented — platform fee → stablecoin swap via Uniswap Routing API; requires `UNISWAP_API_KEY` |
 | 0G Storage in production | No indexer endpoint available yet |
 | Kimi narrative synthesis | Requires `KIMI_API_KEY` env var; falls back gracefully when unset |
 

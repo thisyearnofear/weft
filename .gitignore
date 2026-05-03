@@ -57,3 +57,5 @@ cache/
 out/
 
 .junie
+.blackboxcli/
+.output.txt

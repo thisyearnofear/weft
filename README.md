@@ -222,8 +222,7 @@ export KIMI_API_KEY="..."           # Kimi narrative generation
 export KEEPERHUB_API_KEY="..."      # KeeperHub reliable execution
 export ZERO_G_INDEXER_RPC="..."     # 0G Storage publishing
 export WEFT_BUILDER_ENS="builder.weft.eth"  # ENS profile updates
-export UNISWAP_API_KEY="..."        # Uniswap fee routing
-export WEFT_TREASURY_ADDRESS="0x..." # Treasury for fee routing
+export FAL_KEY="..."                # fal.ai — AI-woven swatch + chronicle cover imagery
 
 bash scripts/demo_e2e.sh --nodes=3
 ```

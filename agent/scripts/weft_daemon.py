@@ -572,29 +572,76 @@ def _process_one(
                     att_data = json.load(_af)
                 chronicle = generate_chronicle([att_data], project_id=str(m.projectId))
                 if chronicle.title:
+                    ch = chronicle.chapters[0] if chronicle.chapters else {}
+
+                    # ── fal.ai: generate AI-woven swatch for this milestone ──────────
+                    swatch_url = ""
+                    swatch_prompt = ""
+                    swatch_error = ""
+                    if os.environ.get("FAL_KEY") or os.environ.get("FAL_API_KEY"):
+                        try:
+                            from agent.lib.fal_client import generate_milestone_image
+                            swatch = generate_milestone_image(
+                                chapter_heading=ch.get("heading", ""),
+                                chapter_body=ch.get("body", ""),
+                                verified=verified_bool,
+                                unique_callers=unique_count,
+                                commits=len((att_data.get("github") or {}).get("commits", []) or []),
+                                peer_signers=len(signer_set) if wait_for_peers else 0,
+                                milestone_hash=milestone_hash,
+                                timeout=90,
+                            )
+                            if swatch.ok:
+                                swatch_url = swatch.image_url
+                                swatch_prompt = swatch.prompt
+                                log.info("fal.ai swatch generated", milestone=milestone_hash, url=swatch_url)
+                            else:
+                                swatch_error = swatch.error
+                                log.warning("fal.ai swatch failed", milestone=milestone_hash, error=swatch_error)
+                        except Exception as _fe:
+                            log.warning("fal.ai swatch exception", milestone=milestone_hash, error=str(_fe))
+                    # ── fal.ai cover image (verified milestones only) ────────────────
+                    cover_url = ""
+                    if verified_bool and (os.environ.get("FAL_KEY") or os.environ.get("FAL_API_KEY")):
+                        try:
+                            from agent.lib.fal_client import generate_chronicle_cover
+                            cover = generate_chronicle_cover(
+                                title=chronicle.title,
+                                chapters=chronicle.chapters,
+                                attestations=[att_data],
+                                timeout=90,
+                            )
+                            if cover.ok:
+                                cover_url = cover.image_url
+                                log.info("fal.ai chronicle cover generated", milestone=milestone_hash, url=cover_url)
+                        except Exception as _ce:
+                            log.warning("fal.ai cover exception", milestone=milestone_hash, error=str(_ce))
+
                     # Write chronicle JSON
                     chronicle_json = {
                         "title": chronicle.title,
                         "chapters": chronicle.chapters,
                         "epilogue": chronicle.epilogue,
                         "confidence": chronicle.confidence,
+                        "falImageUrl": swatch_url,
+                        "falCoverUrl": cover_url,
                     }
                     chronicle_json_path = os.path.join(out_dir, "chronicle.json")
                     with open(chronicle_json_path, "w", encoding="utf-8") as _cf:
                         json.dump(chronicle_json, _cf, indent=2)
                         _cf.write("\n")
 
-                    # Write chronicle HTML page
+                    # Write chronicle HTML page (with fal.ai cover image)
                     write_chronicle(
                         title=chronicle.title,
                         chapters=chronicle.chapters,
                         epilogue=chronicle.epilogue,
                         attestations=[att_data],
                         out_path=os.path.join(out_dir, "chronicle.html"),
+                        cover_image_url=cover_url,
                     )
 
-                    # Write milestone achievement card
-                    ch = chronicle.chapters[0] if chronicle.chapters else {}
+                    # Write milestone achievement card (with AI-woven swatch)
                     card = CardData(
                         milestone_hash=milestone_hash,
                         verified=verified_bool,
@@ -603,10 +650,18 @@ def _process_one(
                         evidence_root=evidence_root,
                         chapter_heading=ch.get("heading", ""),
                         chapter_body=ch.get("body", ""),
+                        image_url=swatch_url,
+                        image_prompt=swatch_prompt,
                     )
                     write_card(card, os.path.join(out_dir, "milestone_card.html"))
 
-                    log.info("chronicle generated", milestone=milestone_hash, title=chronicle.title)
+                    log.info(
+                        "chronicle generated",
+                        milestone=milestone_hash,
+                        title=chronicle.title,
+                        swatch=bool(swatch_url),
+                        cover=bool(cover_url),
+                    )
                 else:
                     log.warning("chronicle generation returned empty title", milestone=milestone_hash)
         except Exception as e:

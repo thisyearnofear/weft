@@ -39,6 +39,8 @@ from agent.lib.metadata_reader import MetadataError, read_metadata_from_0g  # no
 from agent.lib.peer_inbox import best_group, consensus_signers_for_base_root  # noqa: E402
 from agent.lib.weft_milestone_reader import read_milestone  # noqa: E402
 
+_ATTESTATIONS_DIR = os.path.join("agent", ".attestations")
+
 
 def main() -> int:
     p = argparse.ArgumentParser(description="Weft Status API (read-only)")
@@ -104,6 +106,18 @@ def _make_handler(
                 milestone_hash = path.split("/milestone/", 1)[1]
                 include_metadata = (qs.get("includeMetadata", ["0"])[0] == "1")
                 return self._handle_milestone(milestone_hash, include_metadata)
+
+            # Chronicle / swatch card routes (served from .attestations output dirs)
+            if path.startswith("/chronicle/"):
+                parts = path.split("/")
+                # /chronicle/<hash>/card     → milestone_card.html
+                # /chronicle/<hash>/cover    → chronicle.html
+                # /chronicle/<hash>/manifest → bundle_manifest.json
+                if len(parts) >= 4:
+                    hash_part = parts[2]
+                    resource = parts[3]
+                    return self._serve_chronicle_artifact(hash_part, resource)
+                return self._send_json(404, {"ok": False, "error": "not_found"})
 
             return self._send_json(404, {"ok": False, "error": "not_found"})
 
@@ -172,6 +186,53 @@ def _make_handler(
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
             self.wfile.write(body)
+
+        def _serve_chronicle_artifact(self, milestone_hash: str, resource: str) -> None:
+            """Serve fal.ai-generated chronicle artifacts from the attestation output dir.
+
+            Supported resources:
+              - card   → milestone_card.html  (AI-woven swatch card)
+              - cover  → chronicle.html       (full chronicle with cover image)
+              - manifest → bundle_manifest.json
+            """
+            # Find the most recent attestation dir for this milestone
+            milestone_dir = os.path.join(_ATTESTATIONS_DIR, milestone_hash.lstrip("0x"))
+            if not os.path.isdir(milestone_dir):
+                return self._send_json(404, {"ok": False, "error": "milestone_not_found"})
+            subdirs = sorted(
+                [d for d in os.listdir(milestone_dir) if os.path.isdir(os.path.join(milestone_dir, d))],
+                reverse=True,
+            )
+            if not subdirs:
+                return self._send_json(404, {"ok": False, "error": "no_attestations_yet"})
+            latest = os.path.join(milestone_dir, subdirs[0])
+
+            file_map = {
+                "card": "milestone_card.html",
+                "cover": "chronicle.html",
+                "manifest": "bundle_manifest.json",
+                "chronicle_json": "chronicle.json",
+                "attestation": "attestation.json",
+            }
+            filename = file_map.get(resource)
+            if not filename:
+                return self._send_json(404, {"ok": False, "error": "unknown_resource"})
+            file_path = os.path.join(latest, filename)
+            if not os.path.isfile(file_path):
+                return self._send_json(404, {"ok": False, "error": "artifact_not_generated"})
+            with open(file_path, "rb") as f:
+                data = f.read()
+            if filename.endswith(".json"):
+                content_type = "application/json"
+            else:
+                content_type = "text/html; charset=utf-8"
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(data)
 
         def log_message(self, fmt: str, *args) -> None:
             sys.stderr.write("status_api: " + (fmt % args) + "\n")
@@ -247,6 +308,7 @@ def _milestone_demo_summary(
                 "builderProfile": _read_builder_profile(builder_ens),
                 "agentProfile": _read_builder_profile(agent_ens),
             },
+            "fal": _read_fal_images(milestone_hash),
         },
         "statusFlags": {
             "metadataAvailable": metadata_available,
@@ -266,6 +328,7 @@ def _demo_payload(metadata_indexer: str, inbox_dir: str, builder_ens: str, agent
             "Gensyn AXL: peer corroboration across verifier nodes",
             "KeeperHub: reliable onchain execution",
             "ENS: human-readable verifier/builder identity",
+            "fal.ai: AI-generated woven tapestry swatches for milestone chronicle cards",
         ],
         "demoHints": {
             "statusEndpoint": "/milestone/<hash>?includeMetadata=1",
@@ -298,6 +361,41 @@ def _read_builder_profile(ens_name: str) -> dict | None:
         }
     except Exception as exc:
         return {"ensName": ens_name, "available": False, "reason": str(exc)}
+
+
+def _read_fal_images(milestone_hash: str) -> dict:
+    """Read fal.ai-generated image URLs from the chronicle.json artifact.
+
+    Returns swatch and cover URLs if the daemon generated them for this milestone.
+    Falls back gracefully when no chronicle.json exists yet.
+    """
+    milestone_dir = os.path.join(_ATTESTATIONS_DIR, milestone_hash.lstrip("0x"))
+    if not os.path.isdir(milestone_dir):
+        return {"available": False, "reason": "no_attestation_dir"}
+
+    # Find the most recent attestation subdir
+    subdirs = sorted(
+        [d for d in os.listdir(milestone_dir) if os.path.isdir(os.path.join(milestone_dir, d))],
+        reverse=True,
+    )
+    if not subdirs:
+        return {"available": False, "reason": "no_attestations_yet"}
+
+    chronicle_path = os.path.join(milestone_dir, subdirs[0], "chronicle.json")
+    if not os.path.isfile(chronicle_path):
+        return {"available": False, "reason": "chronicle_not_generated"}
+
+    try:
+        with open(chronicle_path) as f:
+            data = json.load(f)
+        return {
+            "available": True,
+            "falImageUrl": data.get("falImageUrl") or None,
+            "falCoverUrl": data.get("falCoverUrl") or None,
+            "chronicleTitle": data.get("title") or None,
+        }
+    except Exception as exc:
+        return {"available": False, "reason": f"read_error: {exc}"}
 
 
 _INDEX_HTML = """<!doctype html>
