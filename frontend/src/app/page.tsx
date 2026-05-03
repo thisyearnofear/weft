@@ -71,31 +71,23 @@ export default function Home() {
   const sponsorCards = [
     {
       icon: Database,
-      title: "0G persistence",
-      description:
-        overview?.sponsorFit.find((item) => item.toLowerCase().includes("0g")) ||
-        "Metadata roots, attestation artifacts, and bundle pointers stay inspectable and portable.",
+      title: "Evidence is permanent",
+      description: "Every attestation, commit, and usage signal is stored on 0G — inspectable by anyone, forever. No black box.",
     },
     {
       icon: Network,
-      title: "AXL corroboration",
-      description:
-        overview?.sponsorFit.find((item) => item.toLowerCase().includes("axl")) ||
-        "Separate verifier nodes exchange signed envelopes before capital moves.",
+      title: "No single point of trust",
+      description: "Multiple independent verifier nodes must agree before capital moves. One compromised node cannot fake a verdict.",
     },
     {
       icon: ShieldCheck,
-      title: "KeeperHub execution",
-      description:
-        overview?.sponsorFit.find((item) => item.toLowerCase().includes("keeperhub")) ||
-        "Verdicts get a reliable execution path instead of depending on a single raw transaction.",
+      title: "Transactions don't fail silently",
+      description: "Capital release goes through KeeperHub — retry logic, gas optimisation, and a full audit trail. Not a raw transaction that might drop.",
     },
     {
       icon: Blocks,
-      title: "ENS identity",
-      description:
-        overview?.sponsorFit.find((item) => item.toLowerCase().includes("ens")) ||
-        "Builders and verifier agents carry discoverable, portable reputation instead of opaque addresses.",
+      title: "Reputation follows you",
+      description: "Verified milestones attach to your ENS name, not a platform account. Take your track record to the next project or sponsor.",
     },
   ];
 
@@ -126,20 +118,20 @@ export default function Home() {
             {overview?.pitch || "Programmable trust for fluid human-agent teams"}
           </div>
           <h1 className={styles.title}>
-            Ship it. Prove it. <span className={styles.accent}>Own it.</span>
+            You shipped it. <span className={styles.accent}>Now prove it and get paid.</span>
           </h1>
           <p className={styles.subtitle}>
-            Weft weaves raw evidence — onchain deployments, usage signals, peer verdicts — into a trust fabric that releases capital and builds portable reputation. No screenshots. No payout politics. Just outcomes.
+            Weft replaces manual payout reviews with automated evidence. Builders lock a milestone, ship the work, and autonomous verifiers confirm it happened — then capital releases automatically. No screenshots. No chasing sponsors.
           </p>
 
           <div className={styles.heroActions}>
-            <a href="#live-milestones" className={styles.primaryAction}>
-              Explore live trust decisions
+            <Link href="/builder" className={styles.primaryAction}>
+              I&apos;m a builder
               <ArrowRight size={16} />
-            </a>
-            <Link href="/builder" className={styles.secondaryAction}>
-              Look up a builder profile
             </Link>
+            <a href="#how-it-works" className={styles.secondaryAction}>
+              How it works
+            </a>
           </div>
 
           <div className={styles.metricGrid}>
@@ -165,29 +157,21 @@ export default function Home() {
         <div className={styles.heroPanel}>
           <div className={styles.signalCard}>
             <div className={styles.signalHeader}>
-              <span>Product thesis</span>
+              <span>Who is this for?</span>
               <CheckCircle2 size={18} />
             </div>
-            <h2>Technology provides the warp. Liberal arts provide the weft.</h2>
-            <p>
-              Raw data threads — onchain events, GitHub commits, peer verdicts — are woven by the Hermes Agent into meaningful fabric: narratives, achievement cards, and portable reputation. The loom is trustless. The story is human.
-            </p>
             <div className={styles.signalList}>
               <div>
-                <span className={styles.signalBadge}>Before</span>
-                <p>Chats, screenshots, manual payout review, and no reusable trust.</p>
+                <span className={styles.signalBadge}>Builders</span>
+                <p>You shipped a contract, hit a usage target, or closed a milestone. Weft collects the evidence automatically and releases the capital you were promised.</p>
               </div>
               <div>
-                <span className={styles.signalBadge}>After</span>
-                <p>Outcome-based capital release with visible evidence, confidence, and execution readiness.</p>
+                <span className={styles.signalBadge}>Sponsors &amp; DAOs</span>
+                <p>You want to fund small teams without manual review. Lock capital behind an outcome — it only moves when autonomous verifiers confirm the work happened.</p>
               </div>
               <div>
-                <span className={styles.signalBadge}>0G + AXL</span>
-                <p>{overview?.demoHints.peerInboxDir ? `Storage and peer consensus are wired into ${overview.demoHints.peerInboxDir}.` : "Storage and verifier corroboration are visible in the system."}</p>
-              </div>
-              <div>
-                <span className={styles.signalBadge}>ENS + KeeperHub</span>
-                <p>{overview?.demoHints.builderEns || overview?.demoHints.agentEns ? "Named identities and reliable execution are present in the demo payload." : "Identity and execution are part of the release decision, not bolt-ons."}</p>
+                <span className={styles.signalBadge}>Verifiers</span>
+                <p>Run a node, inspect evidence, and earn reputation for honest verdicts. No single party controls the outcome.</p>
               </div>
             </div>
           </div>
@@ -196,10 +180,10 @@ export default function Home() {
 
       <section className={styles.sponsorSection}>
         <div className={styles.sectionIntro}>
-          <span className={styles.sectionKicker}>Why it is different</span>
-          <h2 className={styles.sectionTitle}>Every thread of evidence woven into fabric that moves money.</h2>
+          <span className={styles.sectionKicker}>Why it works</span>
+          <h2 className={styles.sectionTitle}>Four things that make capital release trustworthy.</h2>
           <p className={styles.sectionText}>
-            Weft is not milestone tracking or agent tooling — it is a capital release system. Shipped outcomes become trust that moves money. Humans and agents are treated symmetrically. Reputation is bound to funded work, not vague social proof.
+            Manual payout reviews fail because they rely on screenshots, chat logs, and a single trusted party. Weft replaces each of those weak links.
           </p>
         </div>
         <div className={styles.sponsorGrid}>
@@ -213,7 +197,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={styles.workflowSection}>
+      <section id="how-it-works" className={styles.workflowSection}>
         <div className={styles.sectionIntro}>
           <span className={styles.sectionKicker}>How it works</span>
           <h2 className={styles.sectionTitle}>Three steps from promise to proof.</h2>
@@ -260,12 +244,21 @@ export default function Home() {
         <div className={styles.bottomCard}>
           <div className={styles.bottomHeader}>
             <Coins size={18} />
-            <span>Why users care</span>
+            <span>Ready to start?</span>
           </div>
-          <h3>Weft makes it easier to fund small teams without pretending they already operate like formal companies.</h3>
+          <h3>Create your first milestone in under 5 minutes.</h3>
           <p>
-            The product surfaces the real decision: what capital is at risk, what evidence exists, whether the verifier swarm is confident enough, and how this outcome updates the team’s portable trust graph.
+            Define what you will ship, set a deadline, and let a sponsor lock capital behind it. When you deliver, verifiers confirm it automatically and the capital releases — no chasing, no screenshots, no politics.
           </p>
+          <div className={styles.heroActions} style={{ marginTop: "1.5rem" }}>
+            <Link href="/builder" className={styles.primaryAction}>
+              Get started as a builder
+              <ArrowRight size={16} />
+            </Link>
+            <a href="https://github.com/thisyearnofear/weft#builder-onboarding" target="_blank" rel="noopener noreferrer" className={styles.secondaryAction}>
+              Read the docs
+            </a>
+          </div>
         </div>
       </section>
     </div>

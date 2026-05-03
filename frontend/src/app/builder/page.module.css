@@ -324,6 +324,109 @@
   transform: translateY(-1px);
 }
 
+/* ── Role split ── */
+.roleGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.roleCard {
+  background: rgba(17, 17, 24, 0.9);
+  border: 1px solid var(--c-border);
+  border-radius: 20px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.roleCard h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.roleCard > p {
+  color: var(--c-text-secondary);
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+.roleIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-accent);
+}
+
+.roleSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0.25rem 0;
+}
+
+.roleStep {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--c-text-secondary);
+}
+
+.roleStep span {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--c-accent);
+}
+
+/* ── Lookup (secondary) ── */
+.lookupSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.lookupToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.1rem;
+  border: 1px solid var(--c-border-2);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--c-text-secondary);
+  font-size: 0.9rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.lookupToggle:hover {
+  color: var(--c-text);
+  border-color: var(--c-border);
+}
+
+.lookupLabel {
+  font-size: 0.9rem;
+  color: var(--c-text-secondary);
+  margin-bottom: 0.25rem;
+}
+
 @media (max-width: 640px) {
   .lookupForm {
     flex-direction: column;
@@ -332,7 +435,7 @@
     width: 100%;
     justify-content: center;
   }
-  .onboardingSection {
-    padding: 1.5rem;
+  .roleGrid {
+    grid-template-columns: 1fr;
   }
 }
