@@ -28,8 +28,7 @@
 #   ZERO_G_PRIVATE_KEY             0G Storage writes
 #   ZERO_G_STREAM_ID               0G KV stream
 #   WEFT_BUILDER_ENS               Builder ENS name (e.g. builder.weft.eth)
-#   UNISWAP_API_KEY                Uniswap revenue routing
-#   WEFT_TREASURY_ADDRESS          Treasury for fee routing
+#   FAL_KEY                         fal.ai image generation (milestone swatches + chronicle covers)
 #   AXL_BINARY                     Path to AXL binary (default: axl)
 
 set -euo pipefail
@@ -109,8 +108,16 @@ check_env PRIVATE_KEY || { fail "PRIVATE_KEY is required"; exit 1; }
 HAS_KIMI=false;       check_env KIMI_API_KEY && HAS_KIMI=true
 HAS_KEEPERHUB=false;   check_env KEEPERHUB_API_KEY && HAS_KEEPERHUB=true
 HAS_0G=false;          check_env ZERO_G_INDEXER_RPC && HAS_0G=true
-HAS_ENS=false;         check_env WEFT_BUILDER_ENS && HAS_ENS=true
-HAS_UNISWAP=false;     check_env UNISWAP_API_KEY && HAS_UNISWAP=true
+HAS_ENS=false
+if check_env WEFT_BUILDER_ENS; then
+  HAS_ENS=true
+elif [ -n "${WEFT_ENS_PARENT:-}" ]; then
+  # Default to the protocol ENS identity
+  export WEFT_BUILDER_ENS="weft.thisyearnofear.eth"
+  HAS_ENS=true
+  info "Using default ENS: weft.thisyearnofear.eth"
+fi
+HAS_FAL=false;         check_env FAL_KEY && HAS_FAL=true
 
 AXL_BIN="${AXL_BINARY:-axl}"
 HAS_AXL=false
@@ -377,25 +384,35 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Step 7: Uniswap fee routing (if available)
+# Step 7: fal.ai creative imagery (milestone swatch + chronicle cover)
 # ---------------------------------------------------------------------------
-banner "Step 7: Uniswap Revenue Routing"
+banner "Step 7: fal.ai Creative Imagery"
 
-if $HAS_UNISWAP; then
-  info "Routing platform fee via Uniswap..."
-  python3 -c "
-import sys
+if $HAS_FAL; then
+  att_file="${OUT_DIRS[0]}/attestation.json"
+  if [ -f "$att_file" ]; then
+    info "Generating AI-woven milestone swatch via fal.ai..."
+    python3 -c "
+import json, sys, os
 sys.path.insert(0, '$REPO_ROOT')
-from agent.lib.uniswap_client import route_platform_fee
-result = route_platform_fee(fee_wei='300000000000000000', dry_run=$($DRY_RUN && echo True || echo False))
-print(f'  status={result.status}  amount_in={result.amount_in}  amount_out={result.amount_out}')
-if result.tx_hash:
-    print(f'  tx_hash={result.tx_hash}')
-if result.error:
-    print(f'  error={result.error}')
-" 2>/dev/null || warn "Uniswap routing failed"
+from agent.lib.fal_client import generate_milestone_image, fal_configured
+if not fal_configured():
+    print('  fal.ai not configured')
+else:
+    with open('$att_file') as f:
+        att = json.load(f)
+    result = generate_milestone_image(att)
+    if result and result.ok:
+        print(f'  Swatch image: {result.image_url}')
+        print(f'  Prompt: {result.prompt[:80]}...')
+    else:
+        print(f'  Error: {result.error if result else \"no result\"}')
+" 2>/dev/null || warn "fal.ai imagery generation failed"
+  else
+    warn "No attestation file — skipping fal.ai imagery"
+  fi
 else
-  warn "UNISWAP_API_KEY not set — skipping fee routing"
+  warn "FAL_KEY not set — skipping fal.ai creative imagery"
 fi
 
 # ---------------------------------------------------------------------------
@@ -433,7 +450,7 @@ $HAS_0G     && echo "  0G Storage      ✓  Evidence bundle published" || echo "
 $HAS_AXL    && echo "  Gensyn AXL      ✓  Encrypted P2P verdict exchange" || echo "  Gensyn AXL      ○  (axl binary not found — used legacy HTTP)"
 $HAS_KEEPERHUB && echo "  KeeperHub       ✓  Reliable verdict submission" || echo "  KeeperHub       ○  (KEEPERHUB_API_KEY not set)"
 $HAS_ENS    && echo "  ENS             ✓  Builder profile updated" || echo "  ENS             ○  (WEFT_BUILDER_ENS not set)"
-$HAS_UNISWAP && echo "  Uniswap         ✓  Platform fee routed to stablecoin" || echo "  Uniswap         ○  (UNISWAP_API_KEY not set)"
+$HAS_FAL    && echo "  fal.ai          ✓  AI-woven milestone swatch generated" || echo "  fal.ai          ○  (FAL_KEY not set)"
 $HAS_KIMI   && echo "  Kimi            ✓  Builder Journey chronicle + milestone card generated" || echo "  Kimi            ○  (KIMI_API_KEY not set)"
 echo ""
 echo "  Milestone: $MILESTONE_HASH"
