@@ -18,7 +18,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         ...(projectId ? [walletConnect({ projectId })] : []),
       ],
       transports: {
-        [zeroGTestnet.id]: http(),
+        [zeroGTestnet.id]: http('https://evmrpc-testnet.0g.ai'),
         [base.id]: http(),
         [mainnet.id]: http(),
         [sepolia.id]: http(),

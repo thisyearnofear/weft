@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Blocks, Bot, CheckCircle2, Coins, Database, Network, ShieldCheck } from "lucide-react";
+import { ArrowRight, Bot, CheckCircle2, Coins } from "lucide-react";
 import { MilestoneCard } from "@/components/MilestoneCard";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { useMilestones, useMilestone } from "@/hooks/useMilestones";
@@ -77,7 +77,7 @@ function MilestoneFromContract({ hash, index }: { hash: `0x${string}`; index: nu
 }
 
 export default function Home() {
-  const { data: hashes, isLoading, error } = useMilestones();
+  const { data: hashes, isLoading } = useMilestones();
   const { data: overview } = useStatusOverview();
   const [role, setRole] = useState<Role>(null);
 
@@ -97,47 +97,6 @@ export default function Home() {
     { id: "builder", emoji: "🏗️", label: "I built something", blurb: "I shipped work and want to get paid automatically." },
     { id: "sponsor", emoji: "💰", label: "I want to fund builders", blurb: "I want outcomes, not promises — and no manual reviews." },
     { id: "verifier", emoji: "🔍", label: "I want to run a node", blurb: "I want to verify evidence and earn onchain reputation." },
-  ];
-
-  const sponsorCards = [
-    {
-      icon: Database,
-      title: "Evidence is permanent",
-      description: "Every attestation, commit, and usage signal is stored on 0G — inspectable by anyone, forever. No black box.",
-    },
-    {
-      icon: Network,
-      title: "No single point of trust",
-      description: "Multiple independent verifier nodes must agree before capital moves. One compromised node cannot fake a verdict.",
-    },
-    {
-      icon: ShieldCheck,
-      title: "Transactions don't fail silently",
-      description: "Capital release goes through KeeperHub — retry logic, gas optimisation, and a full audit trail. Not a raw transaction that might drop.",
-    },
-    {
-      icon: Blocks,
-      title: "Reputation follows you",
-      description: "Verified milestones attach to your ENS name, not a platform account. Take your track record to the next project or sponsor.",
-    },
-  ];
-
-  const workflow = [
-    {
-      step: "01",
-      title: "Define an outcome and lock capital behind it",
-      text: "A founder, sponsor, or DAO escrows funding into a milestone instead of relying on chat-based promises and manual payout politics.",
-    },
-    {
-      step: "02",
-      title: "Let a verifier swarm inspect the result",
-      text: "Autonomous verifiers gather evidence, compare signals, and decide whether the milestone outcome is strong enough to trust.",
-    },
-    {
-      step: "03",
-      title: "Turn shipped work into reusable trust",
-      text: "If the outcome clears the threshold, capital moves and the builder plus collaborators retain portable reputation tied to funded work.",
-    },
   ];
 
   const activeRole = role ? ROLE_CONTENT[role] : null;
@@ -222,47 +181,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={styles.sponsorSection}>
-        <div className={styles.sectionIntro}>
-          <span className={styles.sectionKicker}>Why it works</span>
-          <h2 className={styles.sectionTitle}>Four things that make capital release trustworthy.</h2>
-          <p className={styles.sectionText}>
-            Manual payout reviews fail because they rely on screenshots, chat logs, and a single trusted party. Weft replaces each of those weak links.
-          </p>
-        </div>
-        <div className={styles.sponsorGrid}>
-          {sponsorCards.map(({ icon: Icon, title, description }) => (
-            <article key={title} className={styles.sponsorCard}>
-              <div className={styles.sponsorIcon}><Icon size={18} /></div>
-              <h3>{title}</h3>
-              <p>{description}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="how-it-works" className={styles.workflowSection}>
-        <div className={styles.sectionIntro}>
-          <span className={styles.sectionKicker}>How it works</span>
-          <h2 className={styles.sectionTitle}>Three steps from promise to proof.</h2>
-        </div>
-        <div className={styles.workflowGrid}>
-          {workflow.map((item) => (
-            <article key={item.step} className={styles.workflowCard}>
-              <span className={styles.workflowStep}>{item.step}</span>
-              <h3>{item.title}</h3>
-              <p>{item.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      {error && (
-        <div className={styles.errorBanner}>
-          Failed to load milestones: {error.message}
-        </div>
-      )}
-
       <section id="live-milestones" className={styles.section} aria-label="Milestones under verification and settlement">
         <div className={styles.sectionHeader}>
           <div>
@@ -270,7 +188,7 @@ export default function Home() {
             <h2 className={styles.sectionTitle}>These builders shipped. Verifiers confirmed it. Capital moved.</h2>
           </div>
           <span className={styles.sectionCount}>
-            {isLoading ? "Loading…" : `${milestoneHashes.length} milestones indexed onchain`}
+            {isLoading ? "Loading..." : `${milestoneHashes.length} milestones indexed onchain`}
           </span>
         </div>
         <div className={styles.grid}>
@@ -280,7 +198,12 @@ export default function Home() {
               ? milestoneHashes.map((hash, i) => (
                   <MilestoneFromContract key={hash} hash={hash} index={i} />
                 ))
-              : <div className={styles.emptyState}>No milestones found yet. <a href="https://github.com/thisyearnofear/weft#builder-onboarding" target="_blank" rel="noopener noreferrer">Create one</a> to start weaving your trust fabric.</div>}
+              : (
+                <div className={styles.emptyState}>
+                  No milestones yet — be the first to create one.{" "}
+                  <Link href="/builder">Get started</Link>
+                </div>
+              )}
         </div>
       </section>
 

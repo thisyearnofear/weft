@@ -3,14 +3,47 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Search, Sparkles, CheckCircle2, Coins, Users, Rocket } from "lucide-react";
+import { ArrowRight, Search, Sparkles, CheckCircle2, Coins, Users, Rocket, ChevronDown, ChevronUp } from "lucide-react";
 import styles from "./page.module.css";
+
+function GuideSteps({ steps }: { steps: { num: string; title: string; detail: string }[] }) {
+  return (
+    <ol className={styles.guideSteps}>
+      {steps.map((s) => (
+        <li key={s.num} className={styles.guideStep}>
+          <span className={styles.guideNum}>{s.num}</span>
+          <div>
+            <strong>{s.title}</strong>
+            <p>{s.detail}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+const BUILDER_STEPS = [
+  { num: "01", title: "Define your outcome", detail: "Describe what you will ship — a deployed contract, a product feature, a usage threshold. Be specific: verifiers will check this automatically." },
+  { num: "02", title: "Set a deadline", detail: "Choose a realistic deadline. The verifier swarm will inspect evidence after this date and decide whether the outcome was met." },
+  { num: "03", title: "Get a sponsor to lock capital", detail: "Share your milestone hash with a sponsor or DAO. They lock ETH into the contract — it only moves when verifiers confirm delivery." },
+  { num: "04", title: "Ship the work", detail: "Deploy your contract, hit your usage targets, push your commits. The evidence is collected automatically — no screenshots needed." },
+  { num: "05", title: "Capital releases automatically", detail: "Once verifiers reach consensus, capital releases to you onchain. Your verified milestone attaches to your ENS identity as permanent reputation." },
+];
+
+const SPONSOR_STEPS = [
+  { num: "01", title: "Agree on an outcome with the builder", detail: "Define what success looks like — a deployed contract address, a unique caller threshold, a GitHub commit range. Specificity is what makes automated verification possible." },
+  { num: "02", title: "Lock capital into a milestone contract", detail: "Call createMilestone() with the agreed outcome parameters and lock your ETH. The funds are held in escrow — neither party can move them unilaterally." },
+  { num: "03", title: "Verifiers do the review", detail: "After the deadline, autonomous verifier nodes collect onchain evidence, compare signals, and reach consensus. No manual review required from you." },
+  { num: "04", title: "Capital moves on proof", detail: "If the outcome is verified, capital releases to the builder automatically. If not, it returns to you via the refund path. Either way, you get a permanent evidence record." },
+];
 
 export default function BuilderIndexPage() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
   const [showLookup, setShowLookup] = useState(false);
+  const [builderGuideOpen, setBuilderGuideOpen] = useState(false);
+  const [sponsorGuideOpen, setSponsorGuideOpen] = useState(false);
 
   function handleLookup(e: React.FormEvent) {
     e.preventDefault();
@@ -54,40 +87,30 @@ export default function BuilderIndexPage() {
             <div className={styles.roleIcon}><Rocket size={24} /></div>
             <h2>I&apos;m a builder</h2>
             <p>You shipped something — a contract, a product, a milestone. Weft collects the evidence automatically and releases the capital you were promised.</p>
-            <div className={styles.roleSteps}>
-              <div className={styles.roleStep}><span>01</span> Define what you will ship and by when</div>
-              <div className={styles.roleStep}><span>02</span> A sponsor locks capital behind the outcome</div>
-              <div className={styles.roleStep}><span>03</span> Ship it — verifiers confirm, capital releases</div>
-            </div>
-            <a
-              href="https://github.com/thisyearnofear/weft#builder-onboarding"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
               className={styles.ctaBtn}
+              onClick={() => setBuilderGuideOpen((v) => !v)}
+              aria-expanded={builderGuideOpen}
             >
-              Start with the builder guide
-              <ArrowRight size={16} />
-            </a>
+              {builderGuideOpen ? "Hide guide" : "How it works for builders"}
+              {builderGuideOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            {builderGuideOpen && <GuideSteps steps={BUILDER_STEPS} />}
           </article>
 
           <article className={styles.roleCard}>
             <div className={styles.roleIcon}><Coins size={24} /></div>
             <h2>I&apos;m a sponsor or DAO</h2>
             <p>You want to fund a team without manual review. Lock capital behind a specific outcome — it only moves when autonomous verifiers confirm the work happened.</p>
-            <div className={styles.roleSteps}>
-              <div className={styles.roleStep}><span>01</span> Agree on an outcome with the builder</div>
-              <div className={styles.roleStep}><span>02</span> Lock capital into a milestone contract</div>
-              <div className={styles.roleStep}><span>03</span> Verifiers do the review — you get the proof</div>
-            </div>
-            <a
-              href="https://github.com/thisyearnofear/weft#builder-onboarding"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
               className={styles.ctaBtn}
+              onClick={() => setSponsorGuideOpen((v) => !v)}
+              aria-expanded={sponsorGuideOpen}
             >
-              Read the sponsor guide
-              <ArrowRight size={16} />
-            </a>
+              {sponsorGuideOpen ? "Hide guide" : "How it works for sponsors"}
+              {sponsorGuideOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            {sponsorGuideOpen && <GuideSteps steps={SPONSOR_STEPS} />}
           </article>
         </section>
 
@@ -107,7 +130,7 @@ export default function BuilderIndexPage() {
                   <input
                     className={styles.input}
                     type="text"
-                    placeholder="alice.eth or 0x1234…"
+                    placeholder="alice.eth or 0x1234..."
                     value={query}
                     onChange={(e) => { setQuery(e.target.value); setError(""); }}
                     autoFocus
