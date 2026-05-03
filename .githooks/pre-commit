@@ -1,0 +1,80 @@
+#!/bin/sh
+# Pre-commit hook to prevent committing secrets
+# Save as .git/hooks/pre-commit
+
+# Patterns that should NEVER be committed
+FORBIDDEN_PATTERNS="\
+api[_-]?key\
+secret[_-]?key\
+private[_-]?key\
+privatekey\
+password\
+token\
+ENS_DOMAIN\
+AWS_ACCESS\
+AWS_SECRET"
+
+# Files to check
+DANGER_FILES="\
+.env\
+.env.local\
+credentials.json\
+secrets.txt\
+keys.txt"
+
+# Check staged files for forbidden patterns
+echo "Checking for secrets..."
+
+for pattern in $FORBIDDEN_PATTERNS; do
+    # Check staged additions for the pattern (case-insensitive)
+    if git diff --cached --diff-filter=A -E -S"$pattern" -- '*.env*' '*.json' '*.yml' '*.yaml' 2>/dev/null | grep -Ei "$pattern" >/dev/null 2>&1; then
+        echo "ERROR: Possible secret '$pattern' detected in staged files"
+        echo "Aborting commit. Please remove secrets before committing."
+        exit 1
+    fi
+done
+
+# Check for dangerous filenames
+for file in $DANGER_FILES; do
+    if git diff --cached --diff-filter=A -E -S"$file" -- '*' 2>/dev/null | grep -i "$file" >/dev/null 2>&1; then
+        echo "WARNING: File '$file' may contain secrets"
+    fi
+done
+
+# Check for 0x private key pattern (raw hex, 64 chars)
+if git diff --cached -- '*.json' '*.yml' '*.yaml' '*.sh' 2>/dev/null | grep -E '0x[0-9a-fA-F]{64}' >/dev/null 2>&1; then
+    echo "ERROR: Possible Ethereum private key detected"
+    echo "Aborting commit. Use environment variables instead."
+    exit 1
+fi
+
+# Check for GitHub token pattern (ghp_, gho_, ghs_)
+if git diff --cached -- '*.json' '*.yml' '*.yaml' 2>/dev/null | grep -E 'gh[poha]_[a-zA-Z0-9]{36,}' >/dev/null 2>&1; then
+    echo "ERROR: Possible GitHub token detected"
+    echo "Aborting commit. Use environment variables instead."
+    exit 1
+fi
+
+# Check for Kimi/API keys (sk-)
+if git diff --cached -- '*.json' '*.yml' '*.yaml' 2>/dev/null | grep -E 'sk-[a-zA-Z0-9]{20,}' >/dev/null 2>&1; then
+    echo "ERROR: Possible API key detected"
+    echo "Aborting commit. Use environment variables instead."
+    exit 1
+fi
+
+# Check for UUID-style API keys (e.g. fal.ai: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:...)
+if git diff --cached -- '*.json' '*.yml' '*.yaml' '*.sh' '*.env*' 2>/dev/null | grep -E '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:[a-zA-Z0-9]{10,}' >/dev/null 2>&1; then
+    echo "ERROR: Possible UUID-style API key detected (e.g. fal.ai key)"
+    echo "Aborting commit. Use environment variables instead."
+    exit 1
+fi
+
+# Check for KeeperHub keys (kh_...)
+if git diff --cached -- '*.json' '*.yml' '*.yaml' '*.sh' 2>/dev/null | grep -E 'kh_[a-zA-Z0-9_-]{20,}' >/dev/null 2>&1; then
+    echo "ERROR: Possible KeeperHub API key detected"
+    echo "Aborting commit. Use environment variables instead."
+    exit 1
+fi
+
+echo "Secret check passed."
+exit 0
