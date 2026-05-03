@@ -348,6 +348,7 @@ Optional:
 ```bash
 GITHUB_TOKEN             # GitHub personal access token (repo:read)
 KIMI_API_KEY             # Kimi/Moonshot API key
+FAL_KEY                  # fal.ai API key (get one at fal.ai) — AI-woven milestone swatches + chronicle covers
 POLL_INTERVAL           # Seconds between poll cycles (default: 3600)
 ```
 
