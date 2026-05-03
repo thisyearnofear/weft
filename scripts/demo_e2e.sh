@@ -368,11 +368,9 @@ if fal_url:
 elif $HAS_KIMI; then
     info "Generating Builder Journey chronicle directly via Kimi..."
     mkdir -p "$chronicle_dir"
-    python3 -c "
+    KIMI_API_KEY="$KIMI_API_KEY" FAL_KEY="$FAL_KEY" python3 -c "
 import sys, os, json, pathlib
 sys.path.insert(0, '$REPO_ROOT')
-os.environ.setdefault('KIMI_API_KEY', os.environ.get('KIMI_API_KEY',''))
-os.environ.setdefault('FAL_KEY', os.environ.get('FAL_KEY',''))
 from agent.lib.kimi_client import generate_chronicle, generate_narrative
 from agent.lib.chronicle import write_chronicle, write_card, CardData
 
@@ -415,12 +413,12 @@ if chronicle:
     # Write milestone card
     card = CardData(
         milestone_hash=milestone_hash,
-        project_name='Weft Protocol',
+        project_id='weft-protocol',
         verified=True,
         unique_callers=147,
-        commit_count=23,
+        commits=23,
         peer_signers=3,
-        narrative=attestations[0]['narrative'],
+        narrative_summary=attestations[0]['narrative'],
     )
     write_card(card, out + '/milestone_card.html')
     print(f'  Title: {title}')
