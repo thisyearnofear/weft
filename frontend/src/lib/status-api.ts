@@ -44,6 +44,14 @@ export interface DemoTrackEns {
   agentProfile: DemoProfile | null;
 }
 
+export interface DemoTrackFal {
+  available: boolean;
+  reason?: string;
+  falImageUrl?: string | null;
+  falCoverUrl?: string | null;
+  chronicleTitle?: string | null;
+}
+
 export interface MilestoneDemoPayload {
   pitch: string;
   tracks: {
@@ -51,6 +59,7 @@ export interface MilestoneDemoPayload {
     gensyn: DemoTrackGensyn;
     keeperhub: DemoTrackKeeperHub;
     ens: DemoTrackEns;
+    fal: DemoTrackFal;
   };
   statusFlags: {
     metadataAvailable: boolean;
@@ -92,4 +101,5 @@ export interface StatusApiOverview {
     builderEns: string | null;
     agentEns: string | null;
   };
+  falConfigured?: boolean;
 }
