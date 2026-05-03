@@ -31,7 +31,7 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from agent.lib.axl_client import broadcast_verdict
-from agent.lib.ens_client import update_ens_after_verification
+from agent.lib.ens_client import update_ens_after_verification, issue_verified_subname
 from agent.lib.jsonrpc import JsonRpcClient, default_cache
 from agent.lib.keeperhub_client import ExecutionStatus, execute_verdict, keeperhub_configured
 from agent.lib.logger import get_logger
@@ -527,6 +527,37 @@ def _process_one(
             skip_ownership=True,  # --builder-ens flag implies explicit authorization
         )
         log.info("ENS records updated", milestone=milestone_hash, builder=builder_ens)
+
+    # Issue a verified subname (e.g. myproject.weft.eth) to the builder when WEFT_ENS_PARENT is set
+    ens_parent = os.environ.get("WEFT_ENS_PARENT", "")
+    if ens_parent and verified_bool:
+        try:
+            # Derive builder address from private key or use node address
+            builder_addr = args.node_address if hasattr(args, "node_address") else ""
+            if not builder_addr or builder_addr == "0x0000000000000000000000000000000000000000":
+                import subprocess as _sp
+                _r = _sp.run(
+                    ["cast", "wallet", "address", "--private-key", private_key],
+                    capture_output=True, text=True, check=False,
+                )
+                builder_addr = _r.stdout.strip() if _r.returncode == 0 else ""
+            if builder_addr:
+                # Use sanitised projectId as the subname label
+                label = str(m.projectId).lower().replace("0x", "")[:32]
+                tx = issue_verified_subname(
+                    parent_ens=ens_parent,
+                    label=label,
+                    owner_address=builder_addr,
+                )
+                if tx:
+                    log.info(
+                        "ENS subname issued",
+                        subname=f"{label}.{ens_parent}",
+                        owner=builder_addr,
+                        tx=tx,
+                    )
+        except Exception as _e:
+            log.warning("ENS subname issuance failed (non-fatal)", error=str(_e))
 
     # Generate Builder Journey chronicle (when KIMI_API_KEY is set)
     if os.environ.get("KIMI_API_KEY") and out_dir:

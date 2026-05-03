@@ -134,7 +134,23 @@ if $HAS_AXL; then
     port=$((9000 + i))
     data_dir="/tmp/weft-axl-node-$i"
     mkdir -p "$data_dir"
-    "$AXL_BIN" node --port "$port" --data-dir "$data_dir" &
+    # Generate ephemeral ed25519 key for this node
+    key_path="$data_dir/private.pem"
+    if [ ! -f "$key_path" ]; then
+      openssl genpkey -algorithm ed25519 -out "$key_path" 2>/dev/null
+    fi
+    # Write AXL config JSON (real binary uses -config <file>)
+    cfg_path="$data_dir/node-config.json"
+    cat > "$cfg_path" <<AXLCFG
+{
+  "PrivateKeyPath": "$key_path",
+  "api_port": $port,
+  "bridge_addr": "127.0.0.1",
+  "Peers": ["tls://34.46.48.224:9001", "tls://136.111.135.206:9001"],
+  "Listen": []
+}
+AXLCFG
+    "$AXL_BIN" -config "$cfg_path" &
     AXL_PIDS+=($!)
     AXL_PORTS+=("$port")
     info "AXL node $i started on port $port (PID ${AXL_PIDS[-1]})"

@@ -312,6 +312,104 @@ def _encode_calldata(selector: str, *args: str) -> str:
     return proc.stdout.strip()
 
 
+def issue_verified_subname(
+    parent_ens: str,
+    label: str,
+    owner_address: str,
+    resolver: str = ENS_PUBLIC_RESOLVER,
+    ttl: int = 0,
+) -> str:
+    """Issue a subname under a parent ENS name to a verified builder.
+
+    Example: issue_verified_subname("weft.eth", "myproject", "0xABC...")
+    creates myproject.weft.eth owned by 0xABC...
+
+    Requires:
+    - ETH_RPC_URL pointing to Ethereum mainnet
+    - VERIFIER_PRIVATE_KEY (or PRIVATE_KEY) controlling parent_ens
+    - foundry `cast` in PATH
+
+    Uses ENS NameWrapper setSubnodeRecord for wrapped names, or
+    ENS Registry setSubnodeRecord for legacy names.
+    """
+    rpc = os.environ.get("ETH_RPC_URL", "")
+    key = os.environ.get("VERIFIER_PRIVATE_KEY", "") or os.environ.get("PRIVATE_KEY", "")
+
+    if not rpc or not key:
+        print("issue_verified_subname: ETH_RPC_URL or PRIVATE_KEY not set")
+        return ""
+
+    # ENS NameWrapper (wraps names for subname issuance)
+    name_wrapper = "0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401"
+    # ENS Registry (legacy fallback)
+    ens_registry = "0x00000000000C2E706e62F196aA929C3F6a76CF3E"
+
+    parent_node = _namehash(parent_ens)
+    label_hash = "0x" + _keccak256(label.encode("utf-8")).hex()
+
+    # Try NameWrapper first (setSubnodeRecord)
+    # setSubnodeRecord(bytes32 parentNode, string label, address owner, address resolver, uint64 ttl, uint32 fuses, uint64 expiry)
+    try:
+        calldata = _encode_calldata(
+            "setSubnodeRecord(bytes32,string,address,address,uint64,uint32,uint64)",
+            parent_node,
+            label,
+            owner_address,
+            resolver,
+            str(ttl),
+            "0",   # fuses: 0 = no restrictions
+            "0",   # expiry: 0 = no expiry
+        )
+        proc = subprocess.run(
+            [
+                "cast", "send",
+                "--rpc-url", rpc,
+                "--private-key", key,
+                name_wrapper,
+                calldata,
+            ],
+            capture_output=True, text=True, check=False,
+        )
+        if proc.returncode == 0:
+            tx = proc.stdout.strip()
+            print(f"ens_client: issued subname {label}.{parent_ens} → {owner_address} (NameWrapper tx={tx})")
+            return tx
+        # Fall through to legacy registry
+        print(f"ens_client: NameWrapper setSubnodeRecord failed ({proc.stderr.strip()[:120]}), trying legacy registry")
+    except Exception as e:
+        print(f"ens_client: NameWrapper attempt error: {e}")
+
+    # Legacy ENS Registry fallback: setSubnodeRecord(bytes32 node, bytes32 label, address owner, address resolver, uint64 ttl)
+    try:
+        calldata = _encode_calldata(
+            "setSubnodeRecord(bytes32,bytes32,address,address,uint64)",
+            parent_node,
+            label_hash,
+            owner_address,
+            resolver,
+            str(ttl),
+        )
+        proc = subprocess.run(
+            [
+                "cast", "send",
+                "--rpc-url", rpc,
+                "--private-key", key,
+                ens_registry,
+                calldata,
+            ],
+            capture_output=True, text=True, check=False,
+        )
+        if proc.returncode == 0:
+            tx = proc.stdout.strip()
+            print(f"ens_client: issued subname {label}.{parent_ens} → {owner_address} (Registry tx={tx})")
+            return tx
+        print(f"ens_client: Registry setSubnodeRecord also failed: {proc.stderr.strip()[:120]}")
+    except Exception as e:
+        print(f"ens_client: Registry attempt error: {e}")
+
+    return ""
+
+
 def update_ens_after_verification(
     builder_ens: str,
     project_id: str,

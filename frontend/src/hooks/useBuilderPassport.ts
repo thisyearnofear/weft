@@ -1,15 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
-import { usePublicClient } from "wagmi";
-import { Address, keccak256, toBytes } from "viem";
+import { createPublicClient, http, Address, keccak256, toBytes } from "viem";
+import { mainnet } from "viem/chains";
 
-const ENS_REGISTRY = "0x00000000000C2E706e62F196aA929C3F6a76CF3E";
+// ENS lives on Ethereum mainnet — always use mainnet client regardless of app chain
+const ensMainnetClient = createPublicClient({
+  chain: mainnet,
+  transport: http("https://eth.llamarpc.com"),
+});
 
-const RESOLVER_ABI = [
+const ENS_REGISTRY = "0x00000000000C2E706e62F196aA929C3F6a76CF3E" as Address;
+
+const REGISTRY_ABI = [
   {
     type: "function",
-    name: "resolve",
-    inputs: [{ name: "name", type: "bytes", internalType: "bytes" }],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
+    name: "resolver",
+    inputs: [{ name: "node", type: "bytes32" }],
+    outputs: [{ name: "", type: "address" }],
+    stateMutability: "view",
+  },
+] as const;
+
+const ADDR_ABI = [
+  {
+    type: "function",
+    name: "addr",
+    inputs: [{ name: "node", type: "bytes32" }],
+    outputs: [{ name: "", type: "address" }],
     stateMutability: "view",
   },
 ] as const;
@@ -19,13 +35,15 @@ const TEXT_ABI = [
     type: "function",
     name: "text",
     inputs: [
-      { name: "node", type: "bytes32", internalType: "bytes32" },
-      { name: "key", type: "string", internalType: "string" },
+      { name: "node", type: "bytes32" },
+      { name: "key", type: "string" },
     ],
-    outputs: [{ name: "", type: "string", internalType: "string" }],
+    outputs: [{ name: "", type: "string" }],
     stateMutability: "view",
   },
 ] as const;
+
+const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
 
 export interface BuilderPassport {
   ens: string;
@@ -65,29 +83,33 @@ function namehash(name: string): `0x${string}` {
 }
 
 export function useBuilderPassport(ens: string) {
-  const client = usePublicClient();
-
   return useQuery({
     queryKey: ["builder-passport", ens],
     queryFn: async (): Promise<BuilderPassport> => {
-      if (!client) throw new Error("No public client");
-
       const name = ens.toLowerCase();
       const node = namehash(name);
 
-      const resolver = (await client
-        .readContract({
-          address: ENS_REGISTRY,
-          abi: RESOLVER_ABI,
-          functionName: "resolve",
-          args: [name as `0x${string}`],
-        })
-        .catch(() => "0x0000000000000000000000000000000000000000000000000000" as Address)) as Address;
+      // Step 1: get resolver from ENS Registry on Ethereum mainnet
+      const resolver = await ensMainnetClient.readContract({
+        address: ENS_REGISTRY,
+        abi: REGISTRY_ABI,
+        functionName: "resolver",
+        args: [node],
+      }).catch(() => ZERO_ADDR as Address) as Address;
 
-      if (resolver === "0x0000000000000000000000000000000000000000000000000000") {
-        throw new Error(`ENS not found: ${name}`);
+      if (!resolver || resolver === ZERO_ADDR) {
+        throw new Error(`ENS name not found: ${name}`);
       }
 
+      // Step 2: resolve the actual wallet address
+      const address = await ensMainnetClient.readContract({
+        address: resolver,
+        abi: ADDR_ABI,
+        functionName: "addr",
+        args: [node],
+      }).catch(() => ZERO_ADDR as Address) as Address;
+
+      // Step 3: read all text records in parallel
       const [
         avatar,
         description,
@@ -101,22 +123,22 @@ export function useBuilderPassport(ens: string) {
         weftCobuilders,
         weftRep,
       ] = await Promise.all([
-        readText(client, resolver, node, "avatar"),
-        readText(client, resolver, node, "description"),
-        readText(client, resolver, node, "email"),
-        readText(client, resolver, node, "url"),
-        readText(client, resolver, node, "com.github"),
-        readText(client, resolver, node, "com.twitter"),
-        readText(client, resolver, node, "weft.projects"),
-        readText(client, resolver, node, "weft.milestones.verified"),
-        readText(client, resolver, node, "weft.earned.total"),
-        readText(client, resolver, node, "weft.cobuilders"),
-        readText(client, resolver, node, "weft.reputation.score"),
+        readText(resolver, node, "avatar"),
+        readText(resolver, node, "description"),
+        readText(resolver, node, "email"),
+        readText(resolver, node, "url"),
+        readText(resolver, node, "com.github"),
+        readText(resolver, node, "com.twitter"),
+        readText(resolver, node, "weft.projects"),
+        readText(resolver, node, "weft.milestones.verified"),
+        readText(resolver, node, "weft.earned.total"),
+        readText(resolver, node, "weft.cobuilders"),
+        readText(resolver, node, "weft.reputation.score"),
       ]);
 
       return {
         ens: name,
-        address: resolver,
+        address: (address && address !== ZERO_ADDR ? address : resolver) as Address,
         avatar: avatar || undefined,
         description: description || undefined,
         email: email || undefined,
@@ -130,20 +152,17 @@ export function useBuilderPassport(ens: string) {
         weftReputationScore: parseInt(weftRep || "0"),
       };
     },
-    enabled: !!ens,
+    enabled: !!ens && ens.endsWith(".eth"),
+    retry: false,
   });
 }
 
 async function readText(
-  client: ReturnType<typeof usePublicClient>,
   resolver: Address,
   node: `0x${string}`,
   key: string
 ): Promise<string> {
-  if (!client) {
-    return "";
-  }
-  return client
+  return ensMainnetClient
     .readContract({
       address: resolver,
       abi: TEXT_ABI,

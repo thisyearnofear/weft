@@ -62,7 +62,7 @@ from .zero_storage import (
     write_evidence_to_storage,
 )
 from .indexer_client import IndexerClient, MilestoneState
-from .ens_client import EnsClient, BuilderProfile, update_ens_after_verification
+from .ens_client import EnsClient, BuilderProfile, update_ens_after_verification, issue_verified_subname
 from .keeperhub_client import (
     ExecutionStatus,
     KeeperHubClientError,
@@ -109,7 +109,7 @@ __all__ = [
     # indexer_client
     "IndexerClient", "MilestoneState",
     # ens_client
-    "EnsClient", "BuilderProfile", "update_ens_after_verification", "update_agent_record",
+    "EnsClient", "BuilderProfile", "update_ens_after_verification", "update_agent_record", "issue_verified_subname",
     # keeperhub_client
     "ExecutionStatus", "KeeperHubClientError", "KeeperHubExecution",
     "execute_contract_call", "execute_verdict",
