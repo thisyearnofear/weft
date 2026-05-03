@@ -1,6 +1,6 @@
 # Weft
 
-**Weft is programmable trust for small teams: milestone funding, verifier swarms, and portable reputation for humans and agents.**
+**Weft is a Hermes Agent-powered Digital Twin for onchain builders: a long-running autonomous agent that maintains persistent memory of every milestone, commit, and user interaction — weaving raw data threads into meaningful fabric and releasing capital when outcomes are verified.**
 
 > *In weaving, the **weft** is the horizontal thread that interlaces with the vertical warp to create fabric. In Weft, raw data threads — onchain events, GitHub commits, peer verdicts — are woven by the Hermes Agent into meaningful fabric: narratives, achievement cards, ENS profiles. Technology provides the warp. Liberal arts provide the weft.*
 
@@ -107,35 +107,64 @@ Weft sits between rigid smart contracts and messy manual review: offchain eviden
 
 ## Hermes Agent architecture
 
-Weft's verification layer is a **multi-node autonomous Hermes Agent system**. Each node runs an independent Python daemon that:
+Weft's verification layer is a **multi-node autonomous Hermes Agent system** — a specialist agent swarm where each node acts as an independent Digital Twin for the builder's project. Each node maintains **persistent memory via 0G Storage** and runs a continuous goal-driven loop:
 
 1. **Polls** onchain milestones past their deadline via `DeadlineScheduler`
-2. **Collects** deterministic evidence (deployment check + unique caller count)
-3. **Generates** a human-readable narrative from raw attestation data using **Kimi** (`moonshot-v1-128k`)
-4. **Weaves** a Builder Journey chronicle — multi-chapter narrative with milestone achievement cards
-5. **Broadcasts** verdicts to peer nodes for offchain consensus
-6. **Submits** onchain votes via KeeperHub (with `cast send` fallback)
-7. **Publishes** evidence bundles + consensus proofs + chronicle to 0G Storage
+2. **Collects** deterministic evidence (deployment check + unique caller count + GitHub commits)
+3. **Persists** real-time state to **0G Storage KV** and appends to the **0G Storage Log** (immutable history)
+4. **Generates** a human-readable narrative from raw attestation data using **Kimi** (`moonshot-v1-128k`)
+5. **Weaves** a Builder Journey chronicle — multi-chapter narrative with fal.ai milestone achievement cards
+6. **Broadcasts** signed verdict envelopes to peer nodes via **AXL** encrypted P2P transport
+7. **Waits** for peer consensus threshold before submitting (offchain safety gate)
+8. **Submits** onchain votes via **KeeperHub** (with `cast send` fallback)
+9. **Updates** builder's **ENS** text records with verified achievement summary
+10. **Publishes** evidence bundles + consensus proofs + chronicle to **0G Storage**
+
+### 0G Storage memory architecture
+
+The Hermes Agent uses both 0G Storage primitives as the 0G judges describe:
+
+| Layer | Key pattern | Purpose |
+|---|---|---|
+| **KV (real-time state)** | `weft:milestone:<hash>:state` | Current verification state — fast lookup for the agent's working memory |
+| **KV (latest evidence)** | `weft:milestone:<hash>:latest` | Pointer to the most recent evidence root in 0G Log |
+| **KV (consensus)** | `weft:milestone:<hash>:consensus` | Consensus proof root — which peer nodes agreed |
+| **KV (bundle)** | `weft:milestone:<hash>:bundle` | Full attestation bundle root (attestation.json + chronicle + cards) |
+| **Log (history)** | `weft:milestone:<hash>:history` | Append-only event log — every state change, verdict, and narrative update |
+| **Log (chronicle)** | `weft:milestone:<hash>:chronicle` | Builder Journey narrative — the creative layer woven from onchain threads |
+
+This mirrors the exact architecture 0G describes: **KV for real-time state, Log for conversation/history**.
 
 ```text
-┌─────────────────────────────────────────────────────────┐
-│                    0G Galileo Testnet                  │
-│  WeftMilestone: 0xcc76...474c                         │
-│  VerifierRegistry: 0x599e...3169                      │
-└──────────┬──────────────┬──────────────┬──────────────┘
-           │              │              │
-     ┌─────▼─────┐ ┌─────▼─────┐ ┌─────▼─────┐
-     │ Verifier 1│ │ Verifier 2│ │ Verifier 3│
-     │  daemon   │ │  daemon   │ │  daemon   │
-     │           │ │           │ │           │
-     │ • poll    │ │ • poll    │ │ • poll    │
-     │ • verify  │ │ • verify  │ │ • verify  │
-     │ • narrate │ │ • narrate │ │ • narrate │
-     │ • vote    │ │ • vote    │ │ • vote    │
-     └─────┬─────┘ └─────┬─────┘ └─────┬─────┘
-           │              │              │
-           └──── signed peer envelopes ─┘
-                 (AXL / inbox consensus)
+┌──────────────────────────────────────────────────────────────────┐
+│                      0G Galileo Testnet                         │
+│  WeftMilestone: 0xcc76...474c  VerifierRegistry: 0x599e...3169  │
+└──────────┬───────────────────────────────────────┬──────────────┘
+           │  poll deadlines                       │  submitVerdict
+           ▼                                       ▼
+┌──────────────────────┐              ┌────────────────────────┐
+│   Hermes Agent Node  │◄─── AXL ────►│  Hermes Agent Node 2   │
+│   (Digital Twin)     │  encrypted   │  (peer corroboration)  │
+│                      │  P2P mesh    │                        │
+│  DeadlineScheduler   │              │  DeadlineScheduler     │
+│  mvp_verifier        │              │  mvp_verifier          │
+│  github_client       │              │  github_client         │
+│  kimi_client ────────┼──────────────┼──► Kimi narrative      │
+│  fal_client ─────────┼──────────────┼──► fal.ai swatch       │
+│  chronicle ──────────┼──────────────┼──► Builder Journey     │
+│  ens_client ─────────┼──────────────┼──► ENS text records    │
+│  keeperhub_client ───┼──────────────┼──► KeeperHub verdict   │
+└──────────┬───────────┘              └────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                      0G Storage                                 │
+│  KV: weft:milestone:<hash>:state    ← real-time agent memory    │
+│  KV: weft:milestone:<hash>:latest   ← evidence root pointer     │
+│  KV: weft:milestone:<hash>:consensus← peer consensus proof      │
+│  Log: weft:milestone:<hash>:history ← immutable event log       │
+│  Log: weft:milestone:<hash>:chronicle← Builder Journey narrative│
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ## Demo surfaces

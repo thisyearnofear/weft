@@ -129,10 +129,19 @@ def write_evidence_to_storage(
         root = _upload_via_http_best_effort(indexer_url=indexer, bundle=bundle)
 
     kv_key = f"weft:milestone:{milestone_hash}:latest"
-    # 2) KV write (best-effort). If this endpoint is not available, we still return receipt.
+    # 2) KV writes (best-effort). Two keys per the Hermes Agent memory architecture:
+    #    :state  — real-time agent working memory (current verification state)
+    #    :latest — pointer to the most recent evidence root in 0G Log
     if s_id:
-        # Keep KV payload minimal to avoid delimiter/encoding pitfalls:
-        # store only the log root, and fetch the full attestation via that root.
+        verified = (evidence_bundle.get("verdict", {}) or {}).get("verified") if isinstance(evidence_bundle, dict) else None
+        state_payload = json.dumps({
+            "milestoneHash": milestone_hash,
+            "verified": verified,
+            "timestamp": int(now),
+            "evidenceRoot": root or "",
+        })
+        _kv_write_value(indexer_rpc=indexer, stream_id=s_id,
+                        key=f"weft:milestone:{milestone_hash}:state", value=state_payload)
         if root:
             _kv_write_value(indexer_rpc=indexer, stream_id=s_id, key=kv_key, value=root)
 
