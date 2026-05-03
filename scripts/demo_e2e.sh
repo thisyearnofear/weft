@@ -34,8 +34,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Auto-load .env if present and vars not already exported
-if [ -f "$SCRIPT_DIR/.env" ] && [ -z "${ETH_RPC_URL:-}" ]; then
+# Auto-load .env — always source so VERIFIER_PRIVATE_KEY alias works in subshell
+if [ -f "$SCRIPT_DIR/.env" ]; then
   set -a; source "$SCRIPT_DIR/.env"; set +a
 fi
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
