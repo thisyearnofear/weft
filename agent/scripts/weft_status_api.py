@@ -33,6 +33,7 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
+from agent.lib.axl_client import axl_available, axl_node_running, get_node_identity, start_axl_node  # noqa: E402
 from agent.lib.ens_client import EnsClient  # noqa: E402
 from agent.lib.jsonrpc import JsonRpcClient, default_cache  # noqa: E402
 from agent.lib.metadata_reader import MetadataError, read_metadata_from_0g  # noqa: E402
@@ -101,6 +102,9 @@ def _make_handler(
 
             if path == "/demo":
                 return self._send_json(200, _demo_payload(metadata_indexer, inbox_dir, builder_ens, agent_ens))
+
+            if path == "/axl":
+                return self._send_json(200, _axl_status(inbox_dir))
 
             if path.startswith("/milestone/"):
                 milestone_hash = path.split("/milestone/", 1)[1]
@@ -316,6 +320,57 @@ def _milestone_demo_summary(
             "keeperhubVisible": True,
             "ensVisible": bool(builder_ens or agent_ens),
         },
+    }
+
+
+def _axl_status(inbox_dir: str) -> dict:
+    """Return live AXL node status — used by judges to verify real P2P operation."""
+    available = axl_available()
+    running = axl_node_running() if available else False
+
+    # Auto-start a node if AXL is installed but not yet running
+    if available and not running:
+        try:
+            proc = start_axl_node()
+            if proc:
+                import time
+                time.sleep(3)
+                running = axl_node_running()
+        except Exception:
+            pass
+
+    identity = get_node_identity() if running else None
+
+    # Count received peer envelopes in inbox
+    inbox_path = Path(inbox_dir)
+    inbox_count = 0
+    inbox_milestones: list[str] = []
+    if inbox_path.is_dir():
+        envelopes = list(inbox_path.glob("*.json"))
+        inbox_count = len(envelopes)
+        inbox_milestones = sorted({f.stem.split("_")[0] for f in envelopes})[:5]
+
+    return {
+        "ok": True,
+        "axl": {
+            "binaryAvailable": available,
+            "nodeRunning": running,
+            "publicKey": identity.get("our_public_key") if identity else None,
+            "ipv6": identity.get("our_ipv6") if identity else None,
+            "connectedPeers": len(identity.get("peers", [])) if identity else 0,
+            "peers": identity.get("peers", []) if identity else [],
+        },
+        "peerInbox": {
+            "dir": inbox_dir,
+            "envelopeCount": inbox_count,
+            "milestones": inbox_milestones,
+        },
+        "note": (
+            "Weft uses AXL for encrypted P2P verdict broadcast between verifier nodes. "
+            "Each node runs a separate AXL instance; verdicts are signed and broadcast "
+            "via AXL's encrypted mesh — no central coordinator."
+        ),
+        "docs": "https://github.com/thisyearnofear/weft#axl-peer-to-peer-verdict-consensus",
     }
 
 

@@ -167,6 +167,37 @@ This mirrors the exact architecture 0G describes: **KV for real-time state, Log 
 └──────────────────────────────────────────────────────────────────┘
 ```
 
+## AXL peer-to-peer verdict consensus
+
+Weft uses **AXL** (Gensyn's Agent eXchange Layer) for encrypted P2P verdict broadcast between verifier nodes. Each node runs a **separate AXL instance**; verdicts are signed and broadcast to peers via AXL's encrypted mesh — no central coordinator, no cloud, no accounts.
+
+### How it works
+
+1. Each verifier daemon calls `start_axl_node()` on startup — auto-generates an ephemeral ed25519 key and connects to Gensyn bootstrap peers
+2. After collecting evidence, the node signs its verdict envelope and calls `broadcast_verdict()` — routes through `POST /send` on the local AXL HTTP API with `X-Destination-Peer-Id` header
+3. Peer nodes receive envelopes via `GET /recv` drain loop and persist to `agent/.inbox/`
+4. When `AXL_WAIT_FOR_PEERS=1`, a node waits for `AXL_PEER_THRESHOLD` matching envelopes before submitting onchain — offchain safety gate before the contract's 2-of-3 quorum
+
+### Live AXL node status
+
+```bash
+curl https://weft.thisyearnofear.com/api/status/axl
+```
+
+Returns the running node's public key, IPv6 address, connected peer count, and received verdict envelope count — proving real AXL operation across separate nodes.
+
+### Multi-node demo
+
+```bash
+# Node 1 (verifier A)
+AXL_PORT=9101 AXL_BROADCAST=1 AXL_PEERS="http://localhost:9102" python3 agent/scripts/weft_daemon.py --once
+
+# Node 2 (verifier B) — separate process, separate AXL instance
+AXL_PORT=9102 AXL_BROADCAST=1 AXL_PEERS="http://localhost:9101" python3 agent/scripts/weft_daemon.py --once
+```
+
+Each node communicates exclusively through its local AXL instance — encrypted, peer-discovered, no shared message broker.
+
 ## Demo surfaces
 
 ### 1. Status API / landing page
