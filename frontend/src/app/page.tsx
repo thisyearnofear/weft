@@ -1,14 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Bot, CheckCircle2, Coins } from "lucide-react";
+import { ArrowRight, Bot, Coins } from "lucide-react";
+
 import { MilestoneCard } from "@/components/MilestoneCard";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { useMilestones, useMilestone } from "@/hooks/useMilestones";
 import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
 import type { Milestone as MilestoneType, MilestoneState } from "@/lib/mock-data";
 import styles from "./page.module.css";
+
+const ScrollStory = dynamic(
+  () => import("@/components/ScrollStory").then((m) => ({ default: m.ScrollStory })),
+  { ssr: false }
+);
 
 type Role = "builder" | "sponsor" | "verifier" | null;
 
@@ -157,29 +164,10 @@ export default function Home() {
           )}
         </div>
 
-        <div className={styles.heroPanel}>
-          <div className={styles.signalCard}>
-            <div className={styles.signalHeader}>
-              <span>How Weft works</span>
-              <CheckCircle2 size={18} />
-            </div>
-            <div className={styles.signalList}>
-              <div>
-                <span className={styles.signalBadge}>Thread</span>
-                <p>Raw evidence — onchain events, GitHub commits, usage signals — is gathered automatically by the verifier swarm.</p>
-              </div>
-              <div>
-                <span className={styles.signalBadge}>Interlace</span>
-                <p>Peer nodes compare signals and reach consensus. No single party controls the verdict.</p>
-              </div>
-              <div>
-                <span className={styles.signalBadge}>Fabric</span>
-                <p>Verified outcomes release capital and attach to your ENS identity as portable, permanent reputation.</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div className={styles.heroPanel} />
       </section>
+
+      <ScrollStory />
 
       <section id="live-milestones" className={styles.section} aria-label="Milestones under verification and settlement">
         <div className={styles.sectionHeader}>

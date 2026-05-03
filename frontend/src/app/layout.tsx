@@ -6,6 +6,7 @@ import { Providers } from '@/lib/providers';
 import { ConnectButton } from '@/components/ConnectButton';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ClientToasts } from '@/components/ClientToasts';
+import { SmoothScroll } from '@/components/SmoothScroll';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <Providers>
+          <SmoothScroll />
           <a href="#main-content" className={styles.skipLink}>Skip to content</a>
           <header className={styles.header} role="banner">
             <Link href="/" className={styles.logo}>

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Search, Sparkles, CheckCircle2, Coins, Users, Rocket, ChevronDown, ChevronUp } from "lucide-react";
+import { useCurvedScrollbar } from "@/hooks/useCurvedScrollbar";
+import type { RefObject } from "react";
 import styles from "./page.module.css";
 
 function GuideSteps({ steps }: { steps: { num: string; title: string; detail: string }[] }) {
@@ -44,6 +46,8 @@ export default function BuilderIndexPage() {
   const [showLookup, setShowLookup] = useState(false);
   const [builderGuideOpen, setBuilderGuideOpen] = useState(false);
   const [sponsorGuideOpen, setSponsorGuideOpen] = useState(false);
+  const builderCardRef = useCurvedScrollbar("#6366f1") as RefObject<HTMLElement>;
+  const sponsorCardRef = useCurvedScrollbar("#22c55e") as RefObject<HTMLElement>;
 
   function handleLookup(e: React.FormEvent) {
     e.preventDefault();
@@ -83,7 +87,7 @@ export default function BuilderIndexPage() {
 
         {/* Role split — primary entry point */}
         <section className={styles.roleGrid}>
-          <article className={styles.roleCard}>
+          <article className={styles.roleCard} ref={builderCardRef as RefObject<HTMLElement>} style={{ position: "relative" }}>
             <div className={styles.roleIcon}><Rocket size={24} /></div>
             <h2>I&apos;m a builder</h2>
             <p>You shipped something — a contract, a product, a milestone. Weft collects the evidence automatically and releases the capital you were promised.</p>
@@ -95,10 +99,14 @@ export default function BuilderIndexPage() {
               {builderGuideOpen ? "Hide guide" : "How it works for builders"}
               {builderGuideOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
-            {builderGuideOpen && <GuideSteps steps={BUILDER_STEPS} />}
+            {builderGuideOpen && (
+              <div data-scroll-content style={{ maxHeight: "260px", overflowY: "auto", paddingRight: "1rem" }}>
+                <GuideSteps steps={BUILDER_STEPS} />
+              </div>
+            )}
           </article>
 
-          <article className={styles.roleCard}>
+          <article className={styles.roleCard} ref={sponsorCardRef as RefObject<HTMLElement>} style={{ position: "relative" }}>
             <div className={styles.roleIcon}><Coins size={24} /></div>
             <h2>I&apos;m a sponsor or DAO</h2>
             <p>You want to fund a team without manual review. Lock capital behind a specific outcome — it only moves when autonomous verifiers confirm the work happened.</p>
@@ -110,7 +118,11 @@ export default function BuilderIndexPage() {
               {sponsorGuideOpen ? "Hide guide" : "How it works for sponsors"}
               {sponsorGuideOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
-            {sponsorGuideOpen && <GuideSteps steps={SPONSOR_STEPS} />}
+            {sponsorGuideOpen && (
+              <div data-scroll-content style={{ maxHeight: "260px", overflowY: "auto", paddingRight: "1rem" }}>
+                <GuideSteps steps={SPONSOR_STEPS} />
+              </div>
+            )}
           </article>
         </section>
 

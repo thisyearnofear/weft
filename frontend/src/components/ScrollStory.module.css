@@ -1,0 +1,114 @@
+.storySection {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 3rem;
+  transition: background-color 0.6s ease;
+}
+
+.storyInner {
+  display: flex;
+  gap: 4rem;
+  align-items: flex-start;
+}
+
+/* ── Left: scrolling chapters ── */
+.left {
+  flex: 1;
+  min-width: 0;
+}
+
+.chapter {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 4rem 0;
+  max-width: 42ch;
+}
+
+.badge {
+  display: inline-block;
+  width: fit-content;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.chapterTitle {
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--c-text);
+  margin: 0;
+}
+
+.chapterBody {
+  font-size: 1.05rem;
+  color: var(--c-text-secondary);
+  line-height: 1.75;
+  margin: 0;
+}
+
+/* ── Right: pinned visual stack ── */
+.right {
+  flex-shrink: 0;
+  width: 340px;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.visualStack {
+  position: relative;
+  width: 100%;
+  height: 280px;
+}
+
+.visual {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.visual svg {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--c-border);
+  padding: 1.5rem;
+}
+
+/* ── Mobile: stack vertically ── */
+@media (max-width: 768px) {
+  .storySection {
+    padding: 0 1.25rem;
+  }
+
+  .storyInner {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .right {
+    display: none;
+  }
+
+  .chapter {
+    min-height: auto;
+    padding: 3rem 0;
+    max-width: 100%;
+  }
+}
