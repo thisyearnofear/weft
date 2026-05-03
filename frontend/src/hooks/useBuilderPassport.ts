@@ -8,7 +8,7 @@ const ensMainnetClient = createPublicClient({
   transport: http("https://eth.llamarpc.com"),
 });
 
-const ENS_REGISTRY = "0x00000000000C2E706e62F196aA929C3F6a76CF3E" as Address;
+const ENS_REGISTRY = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" as Address;
 
 const REGISTRY_ABI = [
   {
