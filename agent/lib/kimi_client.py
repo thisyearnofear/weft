@@ -62,8 +62,9 @@ def generate_narrative(
         "temperature": 0.3,
     }
 
+    _base = os.environ.get("KIMI_API_BASE", "https://api.moonshot.ai/v1")
     req = urllib.request.Request(
-        "https://api.moonshot.cn/v1/chat/completions",
+        f"{_base}/chat/completions",
         data=json.dumps(payload).encode("utf-8"),
         headers={
             "Content-Type": "application/json",
@@ -159,8 +160,9 @@ def generate_chronicle(
         "temperature": 0.5,
     }
 
+    _base = os.environ.get("KIMI_API_BASE", "https://api.moonshot.ai/v1")
     req = urllib.request.Request(
-        "https://api.moonshot.cn/v1/chat/completions",
+        f"{_base}/chat/completions",
         data=json.dumps(payload).encode("utf-8"),
         headers={
             "Content-Type": "application/json",
