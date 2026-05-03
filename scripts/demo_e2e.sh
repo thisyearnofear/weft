@@ -34,6 +34,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Auto-load .env if present and vars not already exported
+if [ -f "$SCRIPT_DIR/.env" ] && [ -z "${ETH_RPC_URL:-}" ]; then
+  set -a; source "$SCRIPT_DIR/.env"; set +a
+fi
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
@@ -103,7 +107,11 @@ banner "Pre-flight Checks"
 
 check_env ETH_RPC_URL || { fail "ETH_RPC_URL is required"; exit 1; }
 check_env WEFT_CONTRACT_ADDRESS || { fail "WEFT_CONTRACT_ADDRESS is required"; exit 1; }
-check_env PRIVATE_KEY || { fail "PRIVATE_KEY is required"; exit 1; }
+# Support both PRIVATE_KEY and VERIFIER_PRIVATE_KEY
+if [ -z "${PRIVATE_KEY:-}" ] && [ -n "${VERIFIER_PRIVATE_KEY:-}" ]; then
+  export PRIVATE_KEY="$VERIFIER_PRIVATE_KEY"
+fi
+check_env PRIVATE_KEY || { fail "PRIVATE_KEY (or VERIFIER_PRIVATE_KEY) is required"; exit 1; }
 
 HAS_KIMI=false;       check_env KIMI_API_KEY && HAS_KIMI=true
 HAS_KEEPERHUB=false;   check_env KEEPERHUB_API_KEY && HAS_KEEPERHUB=true
@@ -160,7 +168,8 @@ AXLCFG
     "$AXL_BIN" -config "$cfg_path" &
     AXL_PIDS+=($!)
     AXL_PORTS+=("$port")
-    info "AXL node $i started on port $port (PID ${AXL_PIDS[-1]})"
+    _last_pid=$!
+    info "AXL node $i started on port $port (PID $_last_pid)"
   done
   sleep 2
 else
@@ -185,8 +194,9 @@ for i in $(seq 1 "$NUM_NODES"); do
   AXL_PORT="$port" WEFT_INBOX_DIR="$inbox_dir" \
     python3 agent/scripts/weft_peer_server.py &
   PEER_PIDS+=($!)
+  _last_pid=$!
   PEER_URLS+=("http://127.0.0.1:$port")
-  info "Peer server $i on port $port (PID ${PEER_PIDS[-1]})"
+  info "Peer server $i on port $port (PID $_last_pid)"
 done
 sleep 1
 
@@ -286,7 +296,8 @@ for i in $(seq 1 "$NUM_NODES"); do
   else
     "${daemon_args[@]}" &
     DAEMON_PIDS+=($!)
-    info "Node $i daemon started (PID ${DAEMON_PIDS[-1]})"
+    _last_pid=$!
+    info "Node $i daemon started (PID $_last_pid)"
   fi
 done
 
@@ -327,7 +338,7 @@ done
 
 # ---------------------------------------------------------------------------
 # Step 6: Builder Journey Chronicle — Kimi narrative + milestone achievement card
----------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # The daemon already ran Kimi + fal.ai and wrote chronicle.json, chronicle.html,
 # and milestone_card.html. This step reads and displays those artifacts.
 banner "Step 6: Kimi Chronicle — Builder Journey"
