@@ -326,95 +326,64 @@ print(f'  verified={v.get(\"verified\")}  evidenceRoot={v.get(\"evidenceRoot\", 
 done
 
 # ---------------------------------------------------------------------------
-# Step 6: Kimi Chronicle — Builder Journey narrative + milestone card
-# ---------------------------------------------------------------------------
-banner "Step 6: Kimi Chronicle (Builder Journey)"
+# Step 6: Builder Journey Chronicle — Kimi narrative + milestone achievement card
+---------------------------------------------------------------------------------
+# The daemon already ran Kimi + fal.ai and wrote chronicle.json, chronicle.html,
+# and milestone_card.html. This step reads and displays those artifacts.
+banner "Step 6: Kimi Chronicle — Builder Journey"
 
-if $HAS_KIMI; then
-  att_file="${OUT_DIRS[0]}/attestation.json"
-  chronicle_dir="${OUT_DIRS[0]}"
-  if [ -f "$att_file" ]; then
-    info "Generating Builder Journey chronicle via Kimi..."
+chronicle_dir="${OUT_DIRS[0]}"
+chronicle_json="$chronicle_dir/chronicle.json"
+chronicle_html="$chronicle_dir/chronicle.html"
+card_html="$chronicle_dir/milestone_card.html"
+
+if [ -f "$chronicle_json" ]; then
+    info "Chronicle JSON: $chronicle_json"
     python3 -c "
-import json, sys, os
-sys.path.insert(0, '$REPO_ROOT')
-from agent.lib.kimi_client import generate_chronicle
-from agent.lib.chronicle import write_chronicle, write_card, CardData
-
-with open('$att_file') as f:
-    att = json.load(f)
-
-chronicle = generate_chronicle([att], project_id='demo')
-if chronicle.title:
-    print(f'  Title: {chronicle.title}')
-    for ch in chronicle.chapters:
-        print(f'  Chapter: {ch.get("heading", "?")}')
-        print(f'    {ch.get("body", "")[:120]}...')
-    if chronicle.epilogue:
-        print(f'  Epilogue: {chronicle.epilogue[:120]}...')
-
-    # Write chronicle HTML
-    write_chronicle(
-        title=chronicle.title,
-        chapters=chronicle.chapters,
-        epilogue=chronicle.epilogue,
-        attestations=[att],
-        out_path=os.path.join('$chronicle_dir', 'chronicle.html'),
-    )
-    print(f'  Chronicle HTML: $chronicle_dir/chronicle.html')
-
-    # Write milestone achievement card
-    ch = chronicle.chapters[0] if chronicle.chapters else {}
-    card = CardData(
-        milestone_hash=att.get('milestoneHash', att.get('milestone_hash', '')),
-        verified=att.get('verified', False),
-        unique_callers=att.get('usage', {}).get('uniqueCallerCount', 0),
-        evidence_root=att.get('evidenceRoot', att.get('evidence_root', '')),
-        chapter_heading=ch.get('heading', ''),
-        chapter_body=ch.get('body', ''),
-    )
-    write_card(card, os.path.join('$chronicle_dir', 'milestone_card.html'))
-    print(f'  Milestone card: $chronicle_dir/milestone_card.html')
-else:
-    print('  (chronicle generation returned empty — check KIMI_API_KEY)')
-" 2>/dev/null || warn "Chronicle generation failed"
-  fi
+import json
+with open('$chronicle_json') as f:
+    c = json.load(f)
+print(f'  Title: {c.get("title", "?")}')
+print(f'  Chapters: {len(c.get("chapters", []))}')
+for ch in c.get('chapters', []):
+    print(f'  \xe2\x80\xa2 {ch.get("heading", "?")}: {ch.get("body", "")[:100]}...')
+ep = c.get('epilogue')
+if ep:
+    print(f'  Epilogue: {ep[:100]}...')
+fal_url = c.get('falImageUrl') or c.get('falCoverUrl')
+if fal_url:
+    print(f'  fal.ai swatch: {fal_url}')
+"
 else
-  warn "KIMI_API_KEY not set — skipping chronicle generation"
+    if $HAS_KIMI; then
+        warn "Chronicle JSON not found — daemon may not have KIMI_API_KEY set"
+    else
+        warn "KIMI_API_KEY not set — skipping chronicle generation"
+    fi
 fi
 
-# ---------------------------------------------------------------------------
-# Step 7: fal.ai creative imagery (milestone swatch + chronicle cover)
-# ---------------------------------------------------------------------------
-banner "Step 7: fal.ai Creative Imagery"
+[ -f "$chronicle_html" ] && info "Chronicle HTML: $chronicle_html"
 
-if $HAS_FAL; then
-  att_file="${OUT_DIRS[0]}/attestation.json"
-  if [ -f "$att_file" ]; then
-    info "Generating AI-woven milestone swatch via fal.ai..."
-    python3 -c "
-import json, sys, os
-sys.path.insert(0, '$REPO_ROOT')
-from agent.lib.fal_client import generate_milestone_image, fal_configured
-if not fal_configured():
-    print('  fal.ai not configured')
-else:
-    with open('$att_file') as f:
-        att = json.load(f)
-    result = generate_milestone_image(att)
-    if result and result.ok:
-        print(f'  Swatch image: {result.image_url}')
-        print(f'  Prompt: {result.prompt[:80]}...')
-    else:
-        print(f'  Error: {result.error if result else \"no result\"}')
-" 2>/dev/null || warn "fal.ai imagery generation failed"
-  else
-    warn "No attestation file — skipping fal.ai imagery"
-  fi
-else
-  warn "FAL_KEY not set — skipping fal.ai creative imagery"
+if [ -f "$card_html" ]; then
+    info "Milestone card HTML: $card_html"
+    swatch_url=$(python3 -c "
+import json
+with open('$chronicle_json') as f:
+    c = json.load(f)
+url = c.get('falImageUrl') or c.get('falCoverUrl')
+print(url or '')
+" 2>/dev/null || echo "")
+    [ -n "$swatch_url" ] && info "AI-woven swatch: $swatch_url"
 fi
 
+# Visual browser output — judges open these directly; woven swatches are visible
+if [ -f "$card_html" ] || [ -f "$chronicle_html" ]; then
+    echo ""
+    echo "  +-- VISUAL OUTPUT (open in browser) --------------------------------------+"
+    [ -f "$card_html" ]       && echo "  |  open file://$card_html"
+    [ -f "$chronicle_html" ]  && echo "  |  open file://$chronicle_html"
+    echo "  +-----------------------------------------------------------------------+"
+fi
 # ---------------------------------------------------------------------------
 # Step 8: ENS profile check
 # ---------------------------------------------------------------------------
