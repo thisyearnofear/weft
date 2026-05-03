@@ -107,10 +107,18 @@ for i, att in enumerate(attestations):
 "
 ```
 
-### 3. Present the output
+### 3. Present the output AND open the files
 
-Show the chronicle title and chapter summaries in chat. Provide the HTML file paths
-so the user can open them in a browser:
+Show the chronicle title and chapter summaries in chat, then **open the HTML files
+directly in the browser** — do not just print paths and wait for the user to open them.
+
+```bash
+# Open the chronicle and milestone card in the default browser
+open agent/.attestations/chronicle.html
+open agent/.attestations/card_1.html
+```
+
+Then present the narrative in chat:
 
 ```
   🧵 Builder Journey Chronicle
@@ -128,9 +136,12 @@ so the user can open them in a browser:
   thread into the fabric with cryptographic certainty...
 
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  📄 Full chronicle: agent/.attestations/chronicle.html
-  🎴 Milestone card: agent/.attestations/card_1.html
+  ✅ Chronicle opened in your browser.
+  ✅ Milestone card opened in your browser.
 ```
+
+**Important:** Always call `open <path>` after generating the files. The user should
+never have to manually open anything — the agent handles the full flow end-to-end.
 
 ## Pitfalls
 
