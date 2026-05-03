@@ -225,31 +225,32 @@ The milestone payload includes a `demo` section that surfaces:
 
 ### 2. Hermes skills
 
-Open in Codespaces if you want the managed-agent flow:
-**[Open in GitHub Codespaces](https://codespaces.new/thisyearnofear/weft)**
+Weft's 5 skills auto-load into Hermes via `external_dirs` — no manual `Load` prompts needed.
 
-Then:
 ```bash
-bash setup-hermes.sh && source ~/.bashrc && hermes setup
-hermes
+# One-time setup (installs Hermes, wires skills, writes SOUL.md)
+bash setup-hermes.sh
+
+# Launch Hermes with all Weft env vars pre-loaded
+bash scripts/hermes_weft.sh
 ```
 
-Useful prompts:
+Then use natural language:
 ```text
-Load ~/weft/agent/skills/weft-status/SKILL.md and check the status of milestone 0x0f93e22d852f346d633f5bd0f61d38e011661ee09a74b0a7dd2856181fe9266f
+tell me the story of the Weft Protocol
+```
+```text
+verify milestone 0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f
+```
+```text
+what is the status of weft.thisyearnofear.eth?
+```
+```text
+generate a chronicle for my builder journey
 ```
 
-```text
-Load ~/weft/agent/skills/weft-narrate/SKILL.md and generate a narrative for milestone 0x0f93e22d852f346d633f5bd0f61d38e011661ee09a74b0a7dd2856181fe9266f
-```
-
-```text
-Load ~/weft/agent/skills/weft-verify/SKILL.md and verify milestone 0x0f93e22d852f346d633f5bd0f61d38e011661ee09a74b0a7dd2856181fe9266f
-```
-
-```text
-Load ~/weft/agent/skills/weft-chronicle/SKILL.md and tell me my project's story
-```
+Skills loaded: `weft-chronicle`, `weft-verify`, `weft-narrate`, `weft-status`, `weft-ens`.
+Hermes identity is defined in `~/.hermes/SOUL.md` (written by `setup-hermes.sh`).
 
 ## Quick start
 
@@ -302,9 +303,9 @@ See [Hackathon Strategy](docs/hackathon-strategy.md) for per-track analysis.
 | Gensyn | AXL binary (`axl send`/`axl recv`), AXL HTTP API, legacy HTTP fallback | `agent/lib/axl_client.py` |
 | KeeperHub | KeeperHub REST API (execute, poll, logs) | `agent/lib/keeperhub_client.py` |
 | ENS | ENS Registry + Public Resolver via `cast` (namehash, setText, text) | `agent/lib/ens_client.py` |
-| Uniswap | Uniswap Routing API (`/v2/quote`), Universal Router | `agent/lib/uniswap_client.py` |
-| Kimi / Moonshot | `moonshot-v1-128k` via OpenAI-compatible API | `agent/lib/kimi_client.py` |
-| Hermes | Hermes Agent skills (`agent/skills/weft-verify/`) | `setup-hermes.sh` |
+| fal.ai | fal.ai text-to-image API — AI-woven milestone swatches + chronicle covers | `agent/lib/fal_client.py` |
+| Kimi / Moonshot | `moonshot-v1-128k` via OpenAI-compatible API (`api.moonshot.ai/v1`) | `agent/lib/kimi_client.py` |
+| Hermes | Hermes Agent v0.11.0 — 5 auto-loaded skills via `external_dirs`, `SOUL.md` identity | `setup-hermes.sh`, `scripts/hermes_weft.sh` |
 
 ## Links
 

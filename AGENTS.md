@@ -370,15 +370,57 @@ ZERO_G_PRIVATE_KEY        # signer private key (or reuse PRIVATE_KEY)
 ZERO_G_STREAM_ID          # KV stream ID (optional)
 ```
 
+## Hermes Agent Setup
+
+Weft ships 5 Hermes skills that auto-load via `external_dirs` — no manual `Load` prompts needed.
+
+```bash
+# One-time: install Hermes, wire skills into ~/.hermes/config.yaml, write SOUL.md
+bash setup-hermes.sh
+
+# Launch Hermes with all Weft env vars pre-loaded (KIMI, FAL, KeeperHub, 0G, ENS)
+bash scripts/hermes_weft.sh
+```
+
+### Skills (`agent/skills/`)
+
+| Skill | Trigger phrase | What it does |
+|---|---|---|
+| `weft-chronicle` | "tell me my project's story" | Loads all attestations, calls Kimi, returns multi-chapter Builder Journey narrative + HTML card |
+| `weft-verify` | "verify milestone 0x..." | Runs `mvp_verifier` + `github_client`, builds attestation JSON |
+| `weft-narrate` | "narrate milestone 0x..." | Calls `kimi_client.generate_narrative()` for a single milestone |
+| `weft-status` | "status of weft.thisyearnofear.eth" | Queries `weft_status_api` and returns human-readable milestone state |
+| `weft-ens` | "update ENS profile" | Calls `ens_client.update_builder_profile()` to write text records |
+
+### Identity (`~/.hermes/SOUL.md`)
+
+Written by `setup-hermes.sh`. Defines Weft's weaving identity — warp/weft metaphor, skill
+descriptions, contract context, and demo milestone hash. Edit to customise the agent's
+personality for your deployment.
+
+### How skills are wired
+
+`setup-hermes.sh` writes the following to `~/.hermes/config.yaml`:
+
+```yaml
+skills:
+  external_dirs:
+    - /path/to/weft/agent/skills
+```
+
+Hermes loads all `SKILL.md` files from that directory on startup. No restart needed after
+adding a new skill — just create a new subdirectory with a `SKILL.md`.
+
 ## What's Planned But Not Yet
 
 | Component | Reason |
 |---|---|
-| AXL multi-node consensus | ✅ Implemented — real AXL binary with encrypted P2P transport; requires 2+ nodes for live demo |
+| AXL multi-node consensus | ✅ Implemented — real AXL binary with encrypted P2P transport; live node at `/api/status/axl` |
 | KeeperHub capital release | KeeperHub `scheduleRelease()` not deployed (contract-level integration) |
-| ENS text record updates | Requires deployed .eth names |
-| 0G Storage in production | No indexer endpoint available yet |
-| Kimi narrative synthesis | Requires `KIMI_API_KEY` env var; falls back gracefully when unset |
+| ENS text record updates | ✅ Implemented — `weft.thisyearnofear.eth` live with 6 records; subname issuance wired into daemon |
+| 0G Storage in production | ✅ Public testnet indexer available: `https://indexer-storage-testnet-standard.0g.ai` |
+| Kimi narrative synthesis | ✅ Implemented — `generate_chronicle()` + `generate_narrative()` via `api.moonshot.ai/v1` |
+| Hermes skills auto-load | ✅ Implemented — `external_dirs` wired, `SOUL.md` identity written, `hermes_weft.sh` launcher |
 
 ## Config
 
