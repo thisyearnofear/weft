@@ -142,7 +142,7 @@ export default function BuilderIndexPage() {
                   <input
                     className={styles.input}
                     type="text"
-                    placeholder="alice.eth or 0x1234..."
+                    placeholder="weft.thisyearnofear.eth or 0x1234..."
                     value={query}
                     onChange={(e) => { setQuery(e.target.value); setError(""); }}
                     autoFocus
@@ -156,6 +156,18 @@ export default function BuilderIndexPage() {
                 </button>
               </form>
               {error && <p className={styles.errorMsg}>{error}</p>}
+              <div className={styles.exampleChips}>
+                <span className={styles.exampleLabel}>Try:</span>
+                {["weft.thisyearnofear.eth", "thisyearnofear.eth"].map((name) => (
+                  <button
+                    key={name}
+                    className={styles.chip}
+                    onClick={() => { setQuery(name); setError(""); router.push(`/builder/${encodeURIComponent(name)}`); }}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </section>

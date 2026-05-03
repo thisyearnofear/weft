@@ -138,6 +138,35 @@
   margin: 0;
 }
 
+.exampleChips {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+.exampleLabel {
+  color: var(--c-text-muted);
+  font-size: 0.85rem;
+}
+
+.chip {
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--c-border-2);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--c-text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.chip:hover {
+  border-color: var(--c-accent);
+  color: var(--c-text);
+}
+
 .examples {
   display: flex;
   align-items: center;
