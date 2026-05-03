@@ -12,7 +12,7 @@
 #   - Kimi (narrative generation from attestation)
 #
 # Usage:
-#   bash scripts/demo_e2e.sh [--dry-run] [--nodes N]
+#   bash scripts/demo_e2e.sh [--dry-run] [--nodes N] [--staged] [--hermes]
 #
 # Required env vars:
 #   ETH_RPC_URL              0G Chain RPC
@@ -47,12 +47,16 @@ cd "$REPO_ROOT"
 DRY_RUN=false
 NUM_NODES=3
 MILESTONE_HASH=""
+STAGED=false
+HERMES_NARRATE=false
 
 for arg in "$@"; do
   case "$arg" in
     --dry-run) DRY_RUN=true ;;
     --nodes=*) NUM_NODES="${arg#*=}" ;;
     --milestone=*) MILESTONE_HASH="${arg#*=}" ;;
+    --staged) STAGED=true ;;
+    --hermes) HERMES_NARRATE=true ;;
   esac
 done
 
@@ -63,6 +67,61 @@ banner() { echo -e "\n\033[1;36m═══ $1 ═══\033[0m"; }
 info()   { echo -e "  \033[0;32m✓\033[0m $1"; }
 warn()   { echo -e "  \033[0;33m⚠\033[0m $1"; }
 fail()   { echo -e "  \033[0;31m✗\033[0m $1"; }
+
+# Slow-print a string character by character (typewriter effect)
+typewrite() {
+  local text="$1"
+  local delay="${2:-0.03}"
+  local i
+  for ((i=0; i<${#text}; i++)); do
+    printf '%s' "${text:$i:1}"
+    sleep "$delay"
+  done
+  echo
+}
+
+# Pause and show narration cue (--staged mode)
+stage_pause() {
+  local cue="$1"
+  if $STAGED; then
+    echo -e "\n  \033[1;35m🎬 NARRATE:\033[0m \033[0;35m$cue\033[0m"
+    echo -e "  \033[0;90m[Press Enter to continue...]\033[0m"
+    read -r _
+  fi
+}
+
+# Call Kimi for a one-sentence contextual commentary (--hermes mode)
+hermes_comment() {
+  local context="$1"
+  if $HERMES_NARRATE && [ -n "${KIMI_API_KEY:-}" ]; then
+    local comment
+    comment=$(KIMI_API_KEY="$KIMI_API_KEY" python3 -c "
+import os, json, urllib.request, urllib.error
+prompt = '''You are the Weft Hermes Agent — a poetic but precise narrator for a live hackathon demo.
+In ONE sentence (max 20 words), comment on this moment in the verification pipeline:
+$context
+Use weaving metaphors naturally. Be vivid. No quotes around your response.
+'''
+try:
+    req = urllib.request.Request(
+        'https://api.moonshot.ai/v1/chat/completions',
+        data=json.dumps({'model':'moonshot-v1-8k','messages':[{'role':'user','content':prompt}],'max_tokens':60}).encode(),
+        headers={'Content-Type':'application/json','Authorization':'Bearer '+os.environ['KIMI_API_KEY']},
+        method='POST'
+    )
+    with urllib.request.urlopen(req, timeout=8) as r:
+        d = json.load(r)
+        print(d['choices'][0]['message']['content'].strip())
+except Exception:
+    print('')
+" 2>/dev/null || echo "")
+    if [ -n "$comment" ]; then
+      echo -e "\n  \033[1;33m🧵 Hermes:\033[0m"
+      typewrite "  $comment" 0.025
+      echo
+    fi
+  fi
+}
 
 check_env() {
   local var="$1"
@@ -136,11 +195,19 @@ else
   warn "AXL binary not found — using legacy HTTP peer transport"
 fi
 
-info "Nodes: $NUM_NODES | Dry-run: $DRY_RUN"
+info "Nodes: $NUM_NODES | Dry-run: $DRY_RUN | Staged: $STAGED | Hermes narration: $HERMES_NARRATE"
+
+if $STAGED; then
+  echo -e "\n  \033[1;35m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+  echo -e "  \033[1;35m  STAGED DEMO MODE — each step pauses for narration\033[0m"
+  echo -e "  \033[1;35m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+  echo
+fi
 
 # ---------------------------------------------------------------------------
 # Step 1: Start AXL nodes (if available)
 # ---------------------------------------------------------------------------
+stage_pause "We are about to start $NUM_NODES verifier nodes, each running the real Gensyn AXL binary — encrypted peer-to-peer, no central server, no cloud."
 banner "Step 1: Start AXL Nodes"
 
 AXL_PORTS=()
@@ -172,6 +239,7 @@ AXLCFG
     info "AXL node $i started on port $port (PID $_last_pid)"
   done
   sleep 2
+  hermes_comment "Three AXL nodes have just started, each with a unique cryptographic identity, connecting to the Gensyn mesh."
 else
   for i in $(seq 1 "$NUM_NODES"); do
     port=$((9000 + i))
@@ -183,6 +251,7 @@ fi
 # ---------------------------------------------------------------------------
 # Step 2: Start peer servers
 # ---------------------------------------------------------------------------
+stage_pause "Each node runs a peer server — the inbox where other verifiers broadcast their verdicts over AXL."
 banner "Step 2: Start Peer Servers"
 
 PEER_URLS=()
@@ -199,6 +268,7 @@ for i in $(seq 1 "$NUM_NODES"); do
   info "Peer server $i on port $port (PID $_last_pid)"
 done
 sleep 1
+hermes_comment "Three peer inboxes are open — the loom is threaded, ready to interlace verdicts."
 
 # Build peer list (each node sees the others)
 ALL_PEERS=$(IFS=,; echo "${PEER_URLS[*]}")
@@ -206,6 +276,7 @@ ALL_PEERS=$(IFS=,; echo "${PEER_URLS[*]}")
 # ---------------------------------------------------------------------------
 # Step 3: Create or select milestone
 # ---------------------------------------------------------------------------
+stage_pause "A builder locked capital behind an outcome on 0G Chain. We now select that milestone — the thread we are about to verify."
 banner "Step 3: Milestone"
 
 if [ -n "$MILESTONE_HASH" ]; then
@@ -243,6 +314,7 @@ fi
 # ---------------------------------------------------------------------------
 # Step 4: Run verifier daemons
 # ---------------------------------------------------------------------------
+stage_pause "Three independent Hermes Agent nodes now collect evidence — onchain usage, GitHub commits, contract deployment — and broadcast their verdicts to each other over AXL."
 banner "Step 4: Run Verifier Daemons"
 
 KEYS=("${PRIVATE_KEY}" "${PRIVATE_KEY_2:-}" "${PRIVATE_KEY_3:-}")
@@ -307,11 +379,13 @@ if ! $DRY_RUN && [ ${#DAEMON_PIDS[@]} -gt 0 ]; then
     wait "$pid" 2>/dev/null || true
   done
   info "All daemons finished"
+  hermes_comment "All three verifier nodes have completed their independent assessment of the milestone evidence."
 fi
 
 # ---------------------------------------------------------------------------
 # Step 5: Show results
 # ---------------------------------------------------------------------------
+stage_pause "Two-of-three nodes agreed: the verdict is in. KeeperHub submits it onchain with retry logic and gas optimisation — the execution layer that guarantees it lands."
 banner "Step 5: Results"
 
 for i in $(seq 1 "$NUM_NODES"); do
@@ -341,6 +415,7 @@ done
 # ---------------------------------------------------------------------------
 # The daemon already ran Kimi + fal.ai and wrote chronicle.json, chronicle.html,
 # and milestone_card.html. This step reads and displays those artifacts.
+stage_pause "Raw data is not a story. Kimi now takes the onchain evidence and weaves it into a Builder Journey narrative — narrative non-fiction from the blockchain."
 banner "Step 6: Kimi Chronicle — Builder Journey"
 
 chronicle_dir="${OUT_DIRS[0]}"
@@ -459,10 +534,12 @@ if [ -f "$card_html" ] || [ -f "$chronicle_html" ]; then
     [ -f "$card_html" ]       && echo "  |  open file://$card_html"
     [ -f "$chronicle_html" ]  && echo "  |  open file://$chronicle_html"
     echo "  +-----------------------------------------------------------------------+"
+    hermes_comment "The chronicle is woven — a milestone card and narrative born from trustless evidence, ready to share."
 fi
 # ---------------------------------------------------------------------------
 # Step 8: ENS profile check
 # ---------------------------------------------------------------------------
+stage_pause "ENS is the identity layer. weft.thisyearnofear.eth resolves to the protocol — and verified builders receive subnames as portable onchain credentials."
 banner "Step 8: ENS Profile"
 
 if $HAS_ENS; then
@@ -485,6 +562,8 @@ fi
 # ---------------------------------------------------------------------------
 # Summary
 # ---------------------------------------------------------------------------
+stage_pause "The fabric is complete. Technology provided the warp. Liberal arts provided the weft."
+hermes_comment "The milestone is verified, the story is told, and the builder's reputation is woven into the chain forever."
 banner "Demo Complete"
 
 echo ""
