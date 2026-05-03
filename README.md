@@ -274,7 +274,7 @@ Run the full pipeline covering all sponsor integrations:
 
 ```bash
 export ETH_RPC_URL="https://evmrpc-testnet.0g.ai"
-export WEFT_CONTRACT_ADDRESS="0xcc768d56b0053b1b2df5391dde989be3f859474c"
+export WEFT_CONTRACT_ADDRESS="0x9f66158c560ce5c8b40820fdcd2874ff8d852192"
 export PRIVATE_KEY="0x..."
 
 # Optional sponsor features
@@ -323,8 +323,8 @@ See [Hackathon Strategy](docs/hackathon-strategy.md) for per-track analysis.
 
 | Contract | Address |
 |---|---|
-| WeftMilestone | `0xcc768d56b0053b1b2df5391dde989be3f859474c` |
-| VerifierRegistry | `0x599e34de50379c584787e0b7ba616ac9b6723169` |
+| WeftMilestone | `0x9f66158c560ce5c8b40820fdcd2874ff8d852192` |
+| VerifierRegistry | `0x1356dd3f28461685ffd81d44f6ae9ae87937e34a` |
 
 **RPC**: `https://evmrpc-testnet.0g.ai`
 

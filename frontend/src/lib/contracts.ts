@@ -41,8 +41,8 @@ export const CONTRACT_ADDRESSES = {
     verifierRegistry: process.env.NEXT_PUBLIC_VERIFIER_REGISTRY_BASE as Address,
   },
   zeroGTestnet: {
-    weftMilestone: (process.env.NEXT_PUBLIC_WEFT_MILESTONE_0G_TESTNET || "0xcc768d56b0053b1b2df5391dde989be3f859474c") as Address,
-    verifierRegistry: (process.env.NEXT_PUBLIC_VERIFIER_REGISTRY_0G_TESTNET || "0x599e34de50379c584787e0b7ba616ac9b6723169") as Address,
+    weftMilestone: (process.env.NEXT_PUBLIC_WEFT_MILESTONE_0G_TESTNET || "0x9f66158c560ce5c8b40820fdcd2874ff8d852192") as Address,
+    verifierRegistry: (process.env.NEXT_PUBLIC_VERIFIER_REGISTRY_0G_TESTNET || "0x1356dd3f28461685ffd81d44f6ae9ae87937e34a") as Address,
   },
 } as const;
 
