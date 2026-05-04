@@ -1,108 +1,163 @@
 "use client";
 
-import { FormEvent, useCallback, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, MessageCircle, Send } from "lucide-react";
+import { Loader2, MessageCircle, Send, Sparkles } from "lucide-react";
 import styles from "./AskWeft.module.css";
 
-/**
- * Lightweight "Ask the Weft Agent" input on the landing page.
- * Supports two actions:
- *  - If the user types a milestone hash (0x…), navigate to its story page.
- *  - Otherwise, generate a chronicle for the demo milestone.
- */
-
-const DEMO_HASH = "0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f";
-
-interface ChronicleResult {
-  ok: boolean;
-  title?: string;
-  chapters?: { heading: string; body: string }[];
-  epilogue?: string;
-  error?: string;
+interface ChatMessage {
+  role: "user" | "agent";
+  text: string;
+  data?: Record<string, unknown>;
+  action?: { type: string; url: string };
 }
 
 export function AskWeft() {
   const router = useRouter();
-  const [query, setQuery] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<ChronicleResult | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const handleSubmit = useCallback(
+  // Auto-scroll to bottom on new messages
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages]);
+
+  const sendMessage = useCallback(
     async (e: FormEvent) => {
       e.preventDefault();
-      const trimmed = query.trim();
-      if (!trimmed) return;
+      const trimmed = input.trim();
+      if (!trimmed || loading) return;
 
-      // If it looks like a milestone hash, navigate to its story page
+      // If it looks like a milestone hash, navigate directly
       if (/^0x[a-fA-F0-9]{10,}$/.test(trimmed)) {
         router.push(`/milestone/${trimmed}/story`);
         return;
       }
 
-      // Otherwise generate a chronicle for the demo milestone
+      const userMsg: ChatMessage = { role: "user", text: trimmed };
+      setMessages((prev) => [...prev, userMsg]);
+      setInput("");
       setLoading(true);
-      setResult(null);
+
       try {
-        const res = await fetch("/api/chronicle/generate", {
+        const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ milestoneHash: DEMO_HASH }),
+          body: JSON.stringify({ message: trimmed }),
         });
-        const data: ChronicleResult = await res.json();
-        setResult(data);
+        const data = await res.json();
+
+        const agentMsg: ChatMessage = {
+          role: "agent",
+          text: data.message || "I couldn't process that request.",
+          data: data.data,
+          action: data.action,
+        };
+        setMessages((prev) => [...prev, agentMsg]);
       } catch {
-        setResult({ ok: false, error: "Could not reach the Weft agent." });
+        setMessages((prev) => [
+          ...prev,
+          { role: "agent", text: "Could not reach the Weft agent. Try again in a moment." },
+        ]);
       } finally {
         setLoading(false);
       }
     },
-    [query, router]
+    [input, loading, router]
   );
+
+  const handleAction = (action: { type: string; url: string }) => {
+    if (action.type === "navigate") {
+      router.push(action.url);
+    }
+  };
 
   return (
     <section className={styles.section}>
       <div className={styles.header}>
         <MessageCircle size={16} />
-        <span>Ask the Weft Agent</span>
+        <span>Talk to the Weft Agent</span>
+        <span className={styles.badge}>MCP</span>
       </div>
 
-      <form className={styles.form} onSubmit={handleSubmit}>
+      <div className={styles.chatWindow} ref={scrollRef}>
+        {messages.length === 0 && (
+          <div className={styles.emptyState}>
+            <Sparkles size={20} className={styles.sparkleIcon} />
+            <p>Ask about a milestone, request a Builder Journey, or check verification status.</p>
+            <div className={styles.suggestions}>
+              {[
+                "tell me the story of 0x516975…",
+                "check status of 0x516975…",
+                "what can you do?",
+              ].map((s) => (
+                <button
+                  key={s}
+                  className={styles.suggestion}
+                  onClick={() => {
+                    setInput(s);
+                  }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {messages.map((msg, i) => (
+          <div
+            key={i}
+            className={msg.role === "user" ? styles.userMsg : styles.agentMsg}
+          >
+            {msg.role === "agent" && (
+              <span className={styles.agentLabel}>🧵 Weft</span>
+            )}
+            <p className={styles.msgText}>{msg.text}</p>
+            {msg.data && (
+              <div className={styles.dataBlock}>
+                {Object.entries(msg.data).map(([k, v]) => (
+                  <div key={k} className={styles.dataRow}>
+                    <span className={styles.dataKey}>{k}</span>
+                    <span className={styles.dataVal}>{String(v)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {msg.action && (
+              <button
+                className={styles.actionBtn}
+                onClick={() => handleAction(msg.action!)}
+              >
+                {msg.action.type === "navigate" ? "Go →" : msg.action.type}
+              </button>
+            )}
+          </div>
+        ))}
+
+        {loading && (
+          <div className={styles.agentMsg}>
+            <span className={styles.agentLabel}>🧵 Weft</span>
+            <Loader2 size={16} className={styles.spinner} />
+          </div>
+        )}
+      </div>
+
+      <form className={styles.form} onSubmit={sendMessage}>
         <input
           className={styles.input}
           type="text"
-          placeholder="Paste a milestone hash or ask &quot;tell me the story&quot;…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Ask the Weft Agent…"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
           disabled={loading}
         />
-        <button className={styles.sendBtn} type="submit" disabled={loading} aria-label="Send">
+        <button className={styles.sendBtn} type="submit" disabled={loading || !input.trim()} aria-label="Send">
           {loading ? <Loader2 size={16} className={styles.spinner} /> : <Send size={16} />}
         </button>
       </form>
-
-      {result && (
-        <div className={styles.result}>
-          {result.ok && result.title ? (
-            <>
-              <strong className={styles.resultTitle}>{result.title}</strong>
-              {result.chapters?.slice(0, 1).map((ch, i) => (
-                <p key={i} className={styles.resultBody}>
-                  <em>{ch.heading}</em> — {ch.body.slice(0, 200)}…
-                </p>
-              ))}
-              <a
-                className={styles.readMore}
-                href={`/milestone/${DEMO_HASH}/story`}
-              >
-                Read the full story →
-              </a>
-            </>
-          ) : (
-            <p className={styles.resultError}>{result.error || "Generation failed."}</p>
-          )}
-        </div>
-      )}
     </section>
   );
 }

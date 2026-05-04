@@ -278,3 +278,40 @@
 .backBtn:hover {
   background: rgba(255, 255, 255, 0.05);
 }
+
+/* Manim animation section */
+.manimSection {
+  margin-top: 3rem;
+  padding: 2rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.manimHeading {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+.manimDesc {
+  font-size: 0.85rem;
+  color: var(--muted, #888);
+  margin: 0 0 1rem;
+}
+.manimVideo {
+  width: 100%;
+  max-height: 400px;
+  border-radius: 8px;
+  background: #000;
+}
+.manimHint {
+  font-size: 0.8rem;
+  color: var(--muted, #888);
+  text-align: center;
+  margin-top: 0.5rem;
+}
+.manimHint code {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}

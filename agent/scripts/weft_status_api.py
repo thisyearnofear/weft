@@ -120,11 +120,26 @@ def _make_handler(
                 # /chronicle/<hash>/card     → milestone_card.html
                 # /chronicle/<hash>/cover    → chronicle.html
                 # /chronicle/<hash>/manifest → bundle_manifest.json
+                # /chronicle/<hash>/cached   → pre-generated chronicle JSON (from daemon or 0G KV)
                 if len(parts) >= 4:
                     hash_part = parts[2]
                     resource = parts[3]
+                    if resource == "cached":
+                        return self._serve_cached_chronicle(hash_part)
                     return self._serve_chronicle_artifact(hash_part, resource)
                 return self._send_json(404, {"ok": False, "error": "not_found"})
+
+            # Manim animation video serving
+            if path.startswith("/manim/"):
+                parts = path.split("/")
+                if len(parts) >= 3:
+                    video_name = parts[2]
+                    return self._serve_manim_video(video_name)
+                return self._send_json(404, {"ok": False, "error": "not_found"})
+
+            # MCP tool listing (GET /mcp/tools)
+            if path == "/mcp/tools":
+                return self._send_json(200, _mcp_tools_list())
 
             return self._send_json(404, {"ok": False, "error": "not_found"})
 
@@ -134,6 +149,13 @@ def _make_handler(
 
             if path == "/chronicle/generate":
                 return self._handle_chronicle_generate()
+
+            if path == "/mcp/invoke":
+                return self._handle_mcp_invoke()
+
+            # WebSocket-style chat over HTTP (long-poll fallback)
+            if path == "/chat":
+                return self._handle_chat()
 
             self._send_json(404, {"ok": False, "error": "not_found"})
 
@@ -375,10 +397,264 @@ def _make_handler(
             self.end_headers()
             self.wfile.write(data)
 
+        def _serve_cached_chronicle(self, milestone_hash: str) -> None:
+            """Serve a pre-generated chronicle JSON from local files or 0G KV cache."""
+            # 1) Check local attestation dirs (daemon-generated)
+            for search_dir in [f"demo-node-1", "demo_verification", "api-generated"]:
+                candidate = os.path.join(_ATTESTATIONS_DIR, search_dir, "chronicle.json")
+                if os.path.isfile(candidate):
+                    try:
+                        with open(candidate) as f:
+                            data = json.load(f)
+                        return self._send_json(200, {"ok": True, "source": "local", **data})
+                    except Exception:
+                        pass
+
+            # 2) Try 0G KV cache
+            try:
+                from agent.lib.zero_storage import read_evidence_from_storage
+                kv_data = read_evidence_from_storage(
+                    milestone_hash,
+                    stream_id=os.environ.get("ZERO_G_STREAM_ID"),
+                )
+                if kv_data:
+                    return self._send_json(200, {"ok": True, "source": "0g_kv", **kv_data})
+            except Exception:
+                pass
+
+            return self._send_json(404, {"ok": False, "error": "no_cached_chronicle"})
+
+        def _serve_manim_video(self, video_name: str) -> None:
+            """Serve Manim-generated MP4 videos from the media output directory."""
+            # Sanitize filename to prevent path traversal
+            safe_name = os.path.basename(video_name)
+            if not safe_name.endswith(".mp4"):
+                safe_name += ".mp4"
+
+            # Search common Manim output locations
+            search_paths = [
+                os.path.join("media", "videos", safe_name),
+                os.path.join("media", "videos", "weft_weaving", "720p30", safe_name),
+                os.path.join("media", "videos", "weft_weaving", "1080p60", safe_name),
+                os.path.join(_ATTESTATIONS_DIR, "manim", safe_name),
+            ]
+            for p in search_paths:
+                if os.path.isfile(p):
+                    with open(p, "rb") as f:
+                        data = f.read()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "video/mp4")
+                    self.send_header("Content-Length", str(len(data)))
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.send_header("Cache-Control", "public, max-age=3600")
+                    self.end_headers()
+                    self.wfile.write(data)
+                    return
+
+            # List available videos for discoverability
+            available = []
+            for root_dir in ["media", os.path.join(_ATTESTATIONS_DIR, "manim")]:
+                if os.path.isdir(root_dir):
+                    for dirpath, _, filenames in os.walk(root_dir):
+                        for fn in filenames:
+                            if fn.endswith(".mp4"):
+                                available.append(os.path.relpath(os.path.join(dirpath, fn)))
+            return self._send_json(404, {
+                "ok": False,
+                "error": "video_not_found",
+                "requested": safe_name,
+                "available": available[:20],
+            })
+
+        def _handle_mcp_invoke(self) -> None:
+            """MCP tool invocation endpoint.
+
+            POST /mcp/invoke  {"tool": "chronicle", "params": {"milestoneHash": "0x..."}}
+            Bridges Hermes skills to the frontend via a JSON-RPC-like interface.
+            """
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                body = json.loads(self.rfile.read(length)) if length else {}
+            except Exception:
+                return self._send_json(400, {"ok": False, "error": "invalid_json"})
+
+            tool = body.get("tool", "")
+            params = body.get("params", {})
+
+            if tool == "chronicle":
+                # Reuse existing chronicle generation
+                milestone_hash = params.get("milestoneHash", "")
+                if not milestone_hash:
+                    return self._send_json(400, {"ok": False, "error": "milestoneHash required"})
+                # Inject milestoneHash into body for reuse
+                self.headers = self.headers  # keep reference
+                self._mcp_body = json.dumps({"milestoneHash": milestone_hash}).encode()
+                return self._handle_chronicle_generate()
+
+            if tool == "status":
+                milestone_hash = params.get("milestoneHash", "")
+                if not milestone_hash:
+                    return self._send_json(400, {"ok": False, "error": "milestoneHash required"})
+                try:
+                    m = read_milestone(rpc, weft, milestone_hash)
+                    return self._send_json(200, {
+                        "ok": True,
+                        "tool": "status",
+                        "milestoneHash": milestone_hash,
+                        "verified": bool(m.verified),
+                        "finalized": bool(m.finalized),
+                        "totalStaked": str(m.totalStaked),
+                        "deadline": int(m.deadline),
+                    })
+                except Exception as e:
+                    return self._send_json(500, {"ok": False, "error": str(e)})
+
+            if tool == "verify":
+                milestone_hash = params.get("milestoneHash", "")
+                if not milestone_hash:
+                    return self._send_json(400, {"ok": False, "error": "milestoneHash required"})
+                # Return current verification evidence
+                try:
+                    m = read_milestone(rpc, weft, milestone_hash)
+                    return self._send_json(200, {
+                        "ok": True,
+                        "tool": "verify",
+                        "milestoneHash": milestone_hash,
+                        "verified": bool(m.verified),
+                        "finalized": bool(m.finalized),
+                        "builder": m.builder,
+                        "deadline": int(m.deadline),
+                    })
+                except Exception as e:
+                    return self._send_json(500, {"ok": False, "error": str(e)})
+
+            available_tools = [t["name"] for t in _mcp_tools_list()["tools"]]
+            return self._send_json(400, {
+                "ok": False,
+                "error": f"unknown tool: {tool}",
+                "available": available_tools,
+            })
+
+        def _handle_chat(self) -> None:
+            """Simple chat endpoint — routes natural language to appropriate MCP tools.
+
+            POST /chat  {"message": "tell me the story of 0x..."}
+            Returns a structured response with the agent's reply.
+            """
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                body = json.loads(self.rfile.read(length)) if length else {}
+            except Exception:
+                return self._send_json(400, {"ok": False, "error": "invalid_json"})
+
+            message = body.get("message", "").strip().lower()
+            if not message:
+                return self._send_json(400, {"ok": False, "error": "message required"})
+
+            # Extract milestone hash if present
+            import re
+            hash_match = re.search(r"0x[a-fA-F0-9]{10,}", message)
+            milestone_hash = hash_match.group(0) if hash_match else ""
+
+            # Route based on intent
+            if any(w in message for w in ["story", "chronicle", "narrate", "journey", "weave"]):
+                if milestone_hash:
+                    # Try cached first, then generate
+                    for search_dir in ["demo-node-1", "demo_verification", "api-generated"]:
+                        candidate = os.path.join(_ATTESTATIONS_DIR, search_dir, "chronicle.json")
+                        if os.path.isfile(candidate):
+                            try:
+                                with open(candidate) as f:
+                                    data = json.load(f)
+                                return self._send_json(200, {
+                                    "ok": True,
+                                    "type": "chronicle",
+                                    "message": f"Here is the Builder Journey for {milestone_hash[:10]}…",
+                                    "data": data,
+                                })
+                            except Exception:
+                                pass
+                    return self._send_json(200, {
+                        "ok": True,
+                        "type": "action",
+                        "message": f"No cached chronicle found. Generate one at /milestone/{milestone_hash}/story",
+                        "action": {"type": "navigate", "url": f"/milestone/{milestone_hash}/story"},
+                    })
+                return self._send_json(200, {
+                    "ok": True,
+                    "type": "hint",
+                    "message": "I can weave a Builder Journey for any milestone. Paste a milestone hash (0x…) and ask me to tell its story.",
+                })
+
+            if any(w in message for w in ["status", "check", "verify", "milestone"]):
+                if milestone_hash:
+                    try:
+                        m = read_milestone(rpc, weft, milestone_hash)
+                        staked_eth = int(m.totalStaked) / 1e18
+                        status = "verified ✓" if m.verified else ("finalized" if m.finalized else "pending ⏳")
+                        return self._send_json(200, {
+                            "ok": True,
+                            "type": "status",
+                            "message": f"Milestone {milestone_hash[:10]}… is {status} with {staked_eth:.4f} ETH staked.",
+                            "data": {
+                                "verified": bool(m.verified),
+                                "finalized": bool(m.finalized),
+                                "totalStaked": str(m.totalStaked),
+                                "deadline": int(m.deadline),
+                            },
+                        })
+                    except Exception as e:
+                        return self._send_json(200, {
+                            "ok": True,
+                            "type": "error",
+                            "message": f"Could not read milestone: {e}",
+                        })
+                return self._send_json(200, {
+                    "ok": True,
+                    "type": "hint",
+                    "message": "Paste a milestone hash (0x…) and I can check its status.",
+                })
+
+            # Default: helpful response
+            return self._send_json(200, {
+                "ok": True,
+                "type": "hint",
+                "message": "I'm the Weft Agent. I can: check milestone status, weave a Builder Journey narrative, or show verification evidence. Try: \"tell me the story of 0x516975…\"",
+                "capabilities": ["status", "chronicle", "verify"],
+            })
+
         def log_message(self, fmt: str, *args) -> None:
             sys.stderr.write("status_api: " + (fmt % args) + "\n")
 
     return Handler
+
+
+def _mcp_tools_list() -> dict:
+    """Return the list of MCP-compatible tools the Weft agent exposes."""
+    return {
+        "ok": True,
+        "protocol": "mcp",
+        "version": "0.1",
+        "tools": [
+            {
+                "name": "chronicle",
+                "description": "Generate a Builder Journey narrative for a milestone using Kimi.",
+                "parameters": {"milestoneHash": {"type": "string", "required": True}},
+            },
+            {
+                "name": "status",
+                "description": "Check the onchain status of a milestone (verified, staked, deadline).",
+                "parameters": {"milestoneHash": {"type": "string", "required": True}},
+            },
+            {
+                "name": "verify",
+                "description": "Return current verification evidence for a milestone.",
+                "parameters": {"milestoneHash": {"type": "string", "required": True}},
+            },
+        ],
+        "invoke_endpoint": "/mcp/invoke",
+        "chat_endpoint": "/chat",
+    }
 
 
 def _milestone_demo_summary(

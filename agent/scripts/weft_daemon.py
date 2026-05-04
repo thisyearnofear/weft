@@ -655,6 +655,15 @@ def _process_one(
                     )
                     write_card(card, os.path.join(out_dir, "milestone_card.html"))
 
+                    # Cache chronicle JSON to 0G KV for frontend pre-loading
+                    try:
+                        kv_put_string(
+                            key=f"weft:milestone:{milestone_hash}:chronicle",
+                            value=json.dumps(chronicle_json),
+                        )
+                    except Exception as _kv_e:
+                        log.debug("chronicle 0G KV cache failed (non-fatal)", error=str(_kv_e))
+
                     log.info(
                         "chronicle generated",
                         milestone=milestone_hash,
