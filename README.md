@@ -84,19 +84,29 @@ Weft sits between rigid smart contracts and messy manual review: offchain eviden
 **Weft lets internet-native teams release capital based on verifiable outcomes instead of manual trust.**
 
 ### Demo sequence
-1. **Show the old world**
-   - explain the pain: screenshots, chats, payout ambiguity, no reusable reputation
-2. **Create / inspect a milestone**
-   - show the milestone hash and metadata root on 0G
-3. **Open the Weft status API / app**
-   - show the milestone payload and product surface
-4. **Explain the verifier swarm**
-   - signed peer envelopes land in `agent/.inbox/`
-   - corroborating peers agree on `(verified, evidenceRoot)`
-5. **Explain the capital release decision**
-   - KeeperHub is the preferred execution path for `submitVerdict()`
-6. **Close with reputation**
-   - the builder and collaborators retain portable trust tied to funded outcomes
+
+**Option A — Hermes Agent (most immersive, recommended for Hermes Creative Hackathon)**
+```bash
+bash scripts/hermes_weft.sh
+# then type:
+run the demo
+```
+Hermes follows the Problem→Stakes→Solution→Proof→Meaning arc autonomously: starts AXL nodes, collects evidence, calls Kimi, generates the chronicle, opens `chronicle.html` + `milestone_card.html` in your browser, reads live ENS records, and prints the sponsor summary — all from one prompt.
+
+**Option B — Staged shell demo (ETH Global, narration-friendly)**
+```bash
+bash scripts/demo_e2e.sh \
+  --milestone=0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f \
+  --staged --hermes
+```
+Pauses before each step with a `🎬 NARRATE:` cue (exact words to say). After each step, Kimi types a one-sentence weaving-metaphor commentary live in the terminal (`🧵 Hermes:`). Press Enter to advance.
+
+**Option C — Live frontend (judges clicking the link)**
+1. Visit `https://weft.thisyearnofear.com` — role-picker hero, `ChronicleShowcase` sample narrative, `AskWeft` chat widget
+2. Click a milestone card → **"Read the story"** → `/milestone/<hash>/story` — Kimi-generated chronicle + Manim animation
+3. Type in the AskWeft chat: *"tell me about milestone 0x5169..."* — agent responds via MCP
+4. Visit `https://weft.thisyearnofear.com/api/status/axl` — live AXL node, 2 Gensyn peers
+5. Visit `https://app.ens.domains/weft.thisyearnofear.eth` — 6 live text records
 
 ### What to highlight verbally
 - **0G:** metadata + evidence persistence
@@ -200,6 +210,21 @@ Each node communicates exclusively through its local AXL instance — encrypted,
 
 ## Demo surfaces
 
+### 0. Live frontend (primary demo surface)
+
+`https://weft.thisyearnofear.com` — the full product, live:
+
+| Surface | URL | What it shows |
+|---|---|---|
+| Landing page | `/` | Role-picker, `ChronicleShowcase` (sample narrative), `AskWeft` chat widget |
+| Builder passport | `/builder/weft.thisyearnofear.eth` | ENS resolution → milestone history |
+| Milestone story | `/milestone/<hash>/story` | Kimi chronicle + Manim animation (cached in `localStorage`) |
+| AXL live node | `/api/status/axl` | Public key, IPv6, connected Gensyn peers |
+| MCP tools | `/api/mcp/tools` | Lists chronicle, status, verify tools for MCP clients |
+| MCP invoke | `/api/mcp/invoke` | `POST {tool, args}` — invoke any Weft skill programmatically |
+| Chat | `/api/chat` | `POST {message}` — conversational agent interface |
+| Chronicle generate | `/api/chronicle/generate` | `POST {milestoneHash}` — on-demand Kimi chronicle |
+
 ### 1. Status API / landing page
 
 Run:
@@ -249,8 +274,18 @@ what is the status of weft.thisyearnofear.eth?
 generate a chronicle for my builder journey
 ```
 
-Skills loaded: `weft-chronicle`, `weft-verify`, `weft-narrate`, `weft-status`, `weft-ens`.
+Skills loaded: `weft-chronicle`, `weft-demo`, `weft-manim`, `weft-verify`, `weft-narrate`, `weft-status`, `weft-ens`.
 Hermes identity is defined in `~/.hermes/SOUL.md` (written by `setup-hermes.sh`).
+
+| Skill | Trigger | Output |
+|---|---|---|
+| `weft-demo` | `run the demo` | Full Problem→Meaning arc; opens chronicle + card in browser automatically |
+| `weft-chronicle` | `tell me my project's story` | Multi-chapter Builder Journey narrative; auto-opens `chronicle.html` + `milestone_card.html` |
+| `weft-manim` | `animate the verification` | Manim MP4 of warp→weft→fabric weaving animation; served at `/manim/<name>` |
+| `weft-verify` | `verify milestone 0x...` | Runs `mvp_verifier` + `github_client`, builds attestation JSON |
+| `weft-narrate` | `narrate milestone 0x...` | Single-milestone Kimi narrative |
+| `weft-status` | `status of weft.thisyearnofear.eth` | Human-readable milestone state from status API |
+| `weft-ens` | `update ENS profile` | Writes text records to builder's `.eth` name |
 
 ## Quick start
 
@@ -286,6 +321,23 @@ export WEFT_BUILDER_ENS="builder.weft.eth"  # ENS profile updates
 export FAL_KEY="..."                # fal.ai — AI-woven swatch + chronicle cover imagery
 
 bash scripts/demo_e2e.sh --nodes=3
+```
+
+**Demo flags:**
+
+| Flag | Effect |
+|---|---|
+| `--dry-run` | No onchain transactions; prints daemon commands instead of running them |
+| `--staged` | Pauses before each step with a `🎬 NARRATE:` cue — perfect for screen recording with voiceover |
+| `--hermes` | After each step, calls Kimi for a one-sentence weaving-metaphor commentary typed live (`🧵 Hermes:`) |
+| `--milestone=0x...` | Use a specific milestone hash instead of querying for pending ones |
+| `--nodes=N` | Number of verifier nodes to simulate (default: 3) |
+
+Recommended for demo recording:
+```bash
+bash scripts/demo_e2e.sh \
+  --milestone=0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f \
+  --staged --hermes
 ```
 
 Dry-run (no onchain transactions):

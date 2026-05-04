@@ -386,7 +386,9 @@ bash scripts/hermes_weft.sh
 
 | Skill | Trigger phrase | What it does |
 |---|---|---|
-| `weft-chronicle` | "tell me my project's story" | Loads all attestations, calls Kimi, returns multi-chapter Builder Journey narrative + HTML card |
+| `weft-chronicle` | "tell me my project's story" | Loads all attestations, calls Kimi, returns multi-chapter Builder Journey narrative + HTML card; auto-opens `chronicle.html` + `milestone_card.html` in browser |
+| `weft-demo` | "run the demo" | Story-first coordinator (Problem→Stakes→Solution→Proof→Meaning): starts AXL nodes, collects evidence, calls Kimi chronicle, generates fal.ai/ComfyUI swatch, reads ENS records, prints sponsor summary |
+| `weft-manim` | "animate the verification" | Generates a Manim animation of the verification flow as a literal weaving — warp threads (evidence) → weft interlacing (peer consensus) → fabric (milestone card) → MP4 output |
 | `weft-verify` | "verify milestone 0x..." | Runs `mvp_verifier` + `github_client`, builds attestation JSON |
 | `weft-narrate` | "narrate milestone 0x..." | Calls `kimi_client.generate_narrative()` for a single milestone |
 | `weft-status` | "status of weft.thisyearnofear.eth" | Queries `weft_status_api` and returns human-readable milestone state |
@@ -421,6 +423,11 @@ adding a new skill — just create a new subdirectory with a `SKILL.md`.
 | 0G Storage in production | ✅ Public testnet indexer available: `https://indexer-storage-testnet-standard.0g.ai` |
 | Kimi narrative synthesis | ✅ Implemented — `generate_chronicle()` + `generate_narrative()` via `api.moonshot.ai/v1` |
 | Hermes skills auto-load | ✅ Implemented — `external_dirs` wired, `SOUL.md` identity written, `hermes_weft.sh` launcher |
+| MCP server | ✅ Implemented — `GET /mcp/tools`, `POST /mcp/invoke` on `weft_status_api.py`; exposes chronicle, status, verify tools to any MCP client |
+| Chat / conversational interface | ✅ Implemented — `POST /chat` on status API + `AskWeft` widget on frontend landing page; intent-routes to chronicle/status/verify |
+| ComfyUI milestone swatches | ✅ Implemented — `generate_milestone_image_comfyui()` in `fal_client.py` as supplement to fal.ai; submits workflow to local ComfyUI REST API |
+| Manim weaving animation | ✅ Implemented — `weft-manim` Hermes skill generates animated verification flow (warp→weft→fabric) as MP4; served at `/manim/<name>` on status API |
+| Chronicle on frontend | ✅ Implemented — `/milestone/<hash>/story` page with `localStorage` cache; `ChronicleShowcase` on landing page; `POST /chronicle/generate` API endpoint |
 
 ## Config
 
