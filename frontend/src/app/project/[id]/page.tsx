@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowUpRight, Blocks, CheckCircle2, Clock3, Coins, Database, Network, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Blocks, BookOpen, CheckCircle2, Clock3, Coins, Database, Network, ShieldCheck } from "lucide-react";
 import { useMilestone } from "../../../hooks/useMilestones";
 import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
 import { useStatusMilestone } from "../../../hooks/useStatusApi";
@@ -115,7 +115,11 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               </p>
 
               <div className={styles.heroActions}>
-                <a href={`${EXPLORER_ADDR}/${milestone.builder}`} target="_blank" rel="noopener noreferrer" className={styles.primaryAction}>
+                <Link href={`/milestone/${milestoneHash}/story`} className={styles.primaryAction}>
+                  <BookOpen size={16} />
+                  Read the story
+                </Link>
+                <a href={`${EXPLORER_ADDR}/${milestone.builder}`} target="_blank" rel="noopener noreferrer" className={styles.secondaryAction}>
                   View builder on explorer
                   <ArrowUpRight size={16} />
                 </a>

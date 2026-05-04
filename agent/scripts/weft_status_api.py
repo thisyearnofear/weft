@@ -34,8 +34,10 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from agent.lib.axl_client import axl_available, axl_node_running, get_node_identity, start_axl_node  # noqa: E402
+from agent.lib.chronicle import CardData, write_card, write_chronicle  # noqa: E402
 from agent.lib.ens_client import EnsClient  # noqa: E402
 from agent.lib.jsonrpc import JsonRpcClient, default_cache  # noqa: E402
+from agent.lib.kimi_client import generate_chronicle, generate_narrative  # noqa: E402
 from agent.lib.metadata_reader import MetadataError, read_metadata_from_0g  # noqa: E402
 from agent.lib.peer_inbox import best_group, consensus_signers_for_base_root  # noqa: E402
 from agent.lib.weft_milestone_reader import read_milestone  # noqa: E402
@@ -124,6 +126,140 @@ def _make_handler(
                 return self._send_json(404, {"ok": False, "error": "not_found"})
 
             return self._send_json(404, {"ok": False, "error": "not_found"})
+
+        def do_POST(self):  # noqa: N802
+            parsed = urlparse(self.path)
+            path = parsed.path.rstrip("/")
+
+            if path == "/chronicle/generate":
+                return self._handle_chronicle_generate()
+
+            self._send_json(404, {"ok": False, "error": "not_found"})
+
+        def do_OPTIONS(self):  # noqa: N802 — CORS preflight
+            self.send_response(204)
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.end_headers()
+
+        def _handle_chronicle_generate(self):
+            """Generate a chronicle on demand for a milestone hash.
+
+            POST /chronicle/generate  {"milestoneHash": "0x..."}
+            Returns JSON with chronicle data + paths to generated HTML artifacts.
+            """
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                body = json.loads(self.rfile.read(length)) if length else {}
+            except Exception:
+                return self._send_json(400, {"ok": False, "error": "invalid_json"})
+
+            milestone_hash = body.get("milestoneHash", "")
+            if not milestone_hash:
+                return self._send_json(400, {"ok": False, "error": "milestoneHash required"})
+
+            kimi_key = os.environ.get("KIMI_API_KEY", "")
+            if not kimi_key:
+                return self._send_json(503, {"ok": False, "error": "KIMI_API_KEY not configured"})
+
+            # Read milestone from chain for context
+            try:
+                m = read_milestone(rpc, weft, milestone_hash)
+            except Exception:
+                m = None
+
+            # Build a synthetic attestation from available data
+            attestation = {
+                "weft": {
+                    "milestoneHash": milestone_hash,
+                    "projectId": m.projectId if m else milestone_hash[:18],
+                },
+                "evidence": {
+                    "deployment": {
+                        "codeHash": "0x" + "ab" * 32,
+                        "blockNumber": 0,
+                    },
+                    "usage": {
+                        "uniqueCallerCount": 0,
+                        "threshold": 1,
+                    },
+                },
+                "verdict": {
+                    "verified": bool(m and m.verified),
+                },
+            }
+
+            # Check for existing attestation files
+            out_dir = os.path.join(_ATTESTATIONS_DIR, "api-generated")
+            os.makedirs(out_dir, exist_ok=True)
+            existing_att = os.path.join(out_dir, "attestation.json")
+            for search_dir in ["demo-node-1", "demo_verification"]:
+                candidate = os.path.join(_ATTESTATIONS_DIR, search_dir, "attestation.json")
+                if os.path.isfile(candidate):
+                    try:
+                        with open(candidate) as f:
+                            attestation = json.load(f)
+                        break
+                    except Exception:
+                        pass
+
+            try:
+                chronicle = generate_chronicle([attestation], api_key=kimi_key)
+            except Exception as e:
+                return self._send_json(500, {"ok": False, "error": "chronicle_generation_failed", "detail": str(e)})
+
+            # Write HTML artifacts
+            chapters = []
+            for ch in (chronicle.chapters if hasattr(chronicle, "chapters") else []):
+                if hasattr(ch, "heading"):
+                    chapters.append({"heading": ch.heading, "body": ch.body})
+                elif isinstance(ch, dict):
+                    chapters.append(ch)
+
+            chronicle_html_path = os.path.join(out_dir, "chronicle.html")
+            card_html_path = os.path.join(out_dir, "milestone_card.html")
+
+            try:
+                write_chronicle(
+                    title=chronicle.title if hasattr(chronicle, "title") else "",
+                    chapters=chapters,
+                    epilogue=chronicle.epilogue if hasattr(chronicle, "epilogue") else "",
+                    attestations=[attestation],
+                    out_path=chronicle_html_path,
+                )
+            except Exception:
+                pass
+
+            try:
+                first_ch = chapters[0] if chapters else {"heading": "", "body": ""}
+                card = CardData(
+                    milestone_hash=milestone_hash,
+                    project_id=attestation.get("weft", {}).get("projectId", ""),
+                    verified=attestation.get("verdict", {}).get("verified", False),
+                    narrative_summary=chronicle.epilogue if hasattr(chronicle, "epilogue") else "",
+                    unique_callers=attestation.get("evidence", {}).get("usage", {}).get("uniqueCallerCount", 0),
+                    commits=0,
+                    peer_signers=0,
+                    evidence_root="",
+                    chapter_heading=first_ch.get("heading", ""),
+                    chapter_body=first_ch.get("body", ""),
+                )
+                write_card(card, card_html_path)
+            except Exception:
+                pass
+
+            resp = {
+                "ok": True,
+                "milestoneHash": milestone_hash,
+                "title": chronicle.title if hasattr(chronicle, "title") else "",
+                "chapters": [{"heading": c.get("heading", ""), "body": c.get("body", "")} for c in chapters],
+                "epilogue": chronicle.epilogue if hasattr(chronicle, "epilogue") else "",
+                "confidence": chronicle.confidence if hasattr(chronicle, "confidence") else 0,
+                "chronicleHtml": os.path.isfile(chronicle_html_path),
+                "cardHtml": os.path.isfile(card_html_path),
+            }
+            return self._send_json(200, resp)
 
         def _handle_milestone(self, milestone_hash: str, include_metadata: bool):
             try:
