@@ -74,6 +74,7 @@ def main() -> int:
         args.builder_ens,
         args.agent_ens,
     )
+    ThreadingHTTPServer.allow_reuse_address = True
     server = ThreadingHTTPServer((args.host, args.port), handler)
     print(f"weft_status_api: listening on http://{args.host}:{args.port}")
     server.serve_forever()
