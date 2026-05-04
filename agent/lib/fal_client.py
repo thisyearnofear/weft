@@ -286,3 +286,196 @@ def generate_chronicle_cover(
     return _submit_and_wait(
         prompt=prompt, model=model, image_size=image_size, seed=None, timeout=timeout
     )
+
+
+# ---------------------------------------------------------------------------
+# ComfyUI integration — supplement to fal.ai
+# ---------------------------------------------------------------------------
+# ComfyUI runs locally (or on a remote server) and provides a REST API.
+# When COMFYUI_URL is set, Weft can route image generation through ComfyUI
+# instead of (or alongside) fal.ai — giving full control over the pipeline
+# and avoiding per-image API costs.
+#
+# The integration uses ComfyUI's /prompt endpoint with a minimal txt2img
+# workflow. ComfyUI must be running separately (e.g. via Hermes ComfyUI
+# skill or `python main.py --listen`).
+
+COMFYUI_DEFAULT_URL = "http://127.0.0.1:8188"
+
+
+def comfyui_configured() -> bool:
+    """True iff ComfyUI is reachable (COMFYUI_URL is set or default is up)."""
+    url = os.environ.get("COMFYUI_URL", "")
+    if url:
+        return True
+    # Probe default
+    try:
+        req = urllib.request.Request(f"{COMFYUI_DEFAULT_URL}/system_stats")
+        with urllib.request.urlopen(req, timeout=2):
+            return True
+    except Exception:
+        return False
+
+
+def _comfyui_url() -> str:
+    return os.environ.get("COMFYUI_URL", COMFYUI_DEFAULT_URL).rstrip("/")
+
+
+def _comfyui_txt2img_workflow(prompt: str, seed: int, width: int = 1024, height: int = 1024) -> Dict[str, Any]:
+    """Minimal ComfyUI workflow JSON for txt2img via KSampler."""
+    return {
+        "3": {
+            "class_type": "KSampler",
+            "inputs": {
+                "seed": seed,
+                "steps": 20,
+                "cfg": 7.0,
+                "sampler_name": "euler",
+                "scheduler": "normal",
+                "denoise": 1.0,
+                "model": ["4", 0],
+                "positive": ["6", 0],
+                "negative": ["7", 0],
+                "latent_image": ["5", 0],
+            },
+        },
+        "4": {
+            "class_type": "CheckpointLoaderSimple",
+            "inputs": {"ckpt_name": os.environ.get("COMFYUI_CHECKPOINT", "sd_xl_base_1.0.safetensors")},
+        },
+        "5": {
+            "class_type": "EmptyLatentImage",
+            "inputs": {"width": width, "height": height, "batch_size": 1},
+        },
+        "6": {
+            "class_type": "CLIPTextEncode",
+            "inputs": {"text": prompt, "clip": ["4", 1]},
+        },
+        "7": {
+            "class_type": "CLIPTextEncode",
+            "inputs": {"text": "text, logos, watermark, blurry, low quality", "clip": ["4", 1]},
+        },
+        "8": {
+            "class_type": "VAEDecode",
+            "inputs": {"samples": ["3", 0], "vae": ["4", 2]},
+        },
+        "9": {
+            "class_type": "SaveImage",
+            "inputs": {"filename_prefix": "weft_swatch", "images": ["8", 0]},
+        },
+    }
+
+
+def generate_comfyui_image(
+    *,
+    prompt: str,
+    seed: int = 42,
+    width: int = 1024,
+    height: int = 1024,
+    timeout: int = 120,
+) -> FalImageResult:
+    """
+    Generate an image via a local/remote ComfyUI instance.
+
+    Returns a FalImageResult for API compatibility — ``image_url`` will be
+    a ``file://`` or ``http://`` URL pointing to the generated image.
+    Never raises; check ``.ok`` before use.
+    """
+    base = _comfyui_url()
+    workflow = _comfyui_txt2img_workflow(prompt, seed, width, height)
+
+    try:
+        body = json.dumps({"prompt": workflow}).encode("utf-8")
+        req = urllib.request.Request(
+            f"{base}/prompt",
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            queued = json.loads(resp.read().decode("utf-8"))
+    except Exception as e:
+        return FalImageResult(prompt=prompt, model="comfyui", error=f"ComfyUI submit: {e}")
+
+    prompt_id = queued.get("prompt_id", "")
+    if not prompt_id:
+        return FalImageResult(prompt=prompt, model="comfyui", error="no prompt_id from ComfyUI")
+
+    # Poll history until done
+    deadline_t = time.time() + timeout
+    while time.time() < deadline_t:
+        try:
+            hreq = urllib.request.Request(f"{base}/history/{prompt_id}")
+            with urllib.request.urlopen(hreq, timeout=10) as hresp:
+                history = json.loads(hresp.read().decode("utf-8"))
+        except Exception:
+            time.sleep(2)
+            continue
+
+        entry = history.get(prompt_id)
+        if not entry:
+            time.sleep(2)
+            continue
+
+        outputs = entry.get("outputs", {})
+        for node_id, node_out in outputs.items():
+            images = node_out.get("images", [])
+            if images:
+                img = images[0]
+                filename = img.get("filename", "")
+                subfolder = img.get("subfolder", "")
+                img_type = img.get("type", "output")
+                img_url = f"{base}/view?filename={filename}&subfolder={subfolder}&type={img_type}"
+                return FalImageResult(image_url=img_url, prompt=prompt, model="comfyui", seed=seed)
+
+        # Check for errors
+        status = entry.get("status", {})
+        if status.get("status_str") == "error":
+            msgs = status.get("messages", [])
+            return FalImageResult(prompt=prompt, model="comfyui", error=f"ComfyUI error: {msgs}")
+
+        time.sleep(2)
+
+    return FalImageResult(prompt=prompt, model="comfyui", error="ComfyUI timeout")
+
+
+def generate_milestone_image_comfyui(
+    *,
+    chapter_heading: str = "",
+    chapter_body: str = "",
+    verified: bool = False,
+    unique_callers: int = 0,
+    commits: int = 0,
+    peer_signers: int = 0,
+    milestone_hash: str = "",
+    width: int = 1024,
+    height: int = 1024,
+    timeout: int = 120,
+) -> FalImageResult:
+    """
+    Generate a milestone swatch via ComfyUI. Same interface as
+    ``generate_milestone_image`` but routes through a local ComfyUI
+    instance. Falls back gracefully if ComfyUI is not running.
+    """
+    if not comfyui_configured():
+        return FalImageResult(prompt="", model="comfyui", error="ComfyUI not available")
+
+    prompt = build_milestone_prompt(
+        chapter_heading=chapter_heading,
+        chapter_body=chapter_body,
+        verified=verified,
+        unique_callers=unique_callers,
+        commits=commits,
+        peer_signers=peer_signers,
+    )
+    seed = 42
+    if milestone_hash:
+        h = milestone_hash[2:] if milestone_hash.startswith("0x") else milestone_hash
+        try:
+            seed = int(h[:8], 16)
+        except ValueError:
+            pass
+
+    return generate_comfyui_image(
+        prompt=prompt, seed=seed, width=width, height=height, timeout=timeout
+    )

@@ -34,6 +34,9 @@ from .fal_client import (
     fal_configured,
     generate_milestone_image,
     generate_chronicle_cover,
+    comfyui_configured,
+    generate_comfyui_image,
+    generate_milestone_image_comfyui,
 )
 from .mvp_verifier import (
     DeploymentEvidence,
@@ -93,6 +96,7 @@ __all__ = [
     # fal_client
     "FalImageResult", "FalClientError", "fal_configured",
     "generate_milestone_image", "generate_chronicle_cover",
+    "comfyui_configured", "generate_comfyui_image", "generate_milestone_image_comfyui",
     # mvp_verifier
     "DeploymentEvidence", "UsageEvidence",
     "build_attestation", "count_unique_callers",
