@@ -177,9 +177,33 @@
   color: var(--c-text-muted);
 }
 
-.cta {
-  width: 100%;
+.cardBottom {
   margin-top: 1rem;
+}
+
+.swatch {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  margin-bottom: 0.75rem;
+  opacity: 0.85;
+  transition: opacity var(--transition-base);
+}
+
+.card:hover .swatch {
+  opacity: 1;
+}
+
+.ctaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cta {
+  flex: 1;
   padding: 0.625rem;
   background: var(--c-surface-2);
   border: 1px solid var(--c-border-2);
@@ -194,6 +218,19 @@
 .card:hover .cta {
   background: var(--c-accent-20);
   color: var(--c-text);
+}
+
+.storyCta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--c-accent);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.card:hover .storyCta {
+  opacity: 1;
 }
 
 /* Skeleton styles */

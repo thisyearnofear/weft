@@ -30,6 +30,14 @@ export default function StoryPage({ params }: { params: Promise<{ hash: string }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Hydrate from localStorage cache on mount
+  React.useEffect(() => {
+    try {
+      const cached = localStorage.getItem(`weft_chronicle_${milestoneHash}`);
+      if (cached) setChronicle(JSON.parse(cached));
+    } catch { /* ignore */ }
+  }, [milestoneHash]);
+
   const generateChronicle = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -44,6 +52,7 @@ export default function StoryPage({ params }: { params: Promise<{ hash: string }
         setError(data.error || "Generation failed");
       } else {
         setChronicle(data);
+        try { localStorage.setItem(`weft_chronicle_${milestoneHash}`, JSON.stringify(data)); } catch { /* quota */ }
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Network error");

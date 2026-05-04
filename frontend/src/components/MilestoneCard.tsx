@@ -8,6 +8,7 @@ import styles from "./MilestoneCard.module.css";
 interface MilestoneCardProps {
   milestone: Milestone;
   index?: number;
+  swatchUrl?: string | null;
 }
 
 const STATE_CONFIG: Record<MilestoneState, { label: string; color: string }> = {
@@ -16,7 +17,7 @@ const STATE_CONFIG: Record<MilestoneState, { label: string; color: string }> = {
   failed: { label: "Failed", color: "#ef4444" },
 };
 
-export function MilestoneCard({ milestone, index = 0 }: MilestoneCardProps) {
+export function MilestoneCard({ milestone, index = 0, swatchUrl }: MilestoneCardProps) {
   const config = STATE_CONFIG[milestone.state];
 
   return (
@@ -87,8 +88,16 @@ export function MilestoneCard({ milestone, index = 0 }: MilestoneCardProps) {
         </div>
       </div>
 
-      <div className={styles.cta}>
-        {milestone.state === "verified" ? "View Verification" : "View Milestone"}
+      <div className={styles.cardBottom}>
+        {swatchUrl && (
+          <img src={swatchUrl} alt="AI-woven milestone swatch" className={styles.swatch} />
+        )}
+        <div className={styles.ctaRow}>
+          <span className={styles.cta}>
+            {milestone.state === "verified" ? "View Verification" : "View Milestone"}
+          </span>
+          <span className={styles.storyCta}>Read the story →</span>
+        </div>
       </div>
     </Link>
   );

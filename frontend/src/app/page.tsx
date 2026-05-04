@@ -7,6 +7,8 @@ import { ArrowRight, Bot, Coins } from "lucide-react";
 
 import { MilestoneCard } from "@/components/MilestoneCard";
 import { SkeletonCard } from "@/components/SkeletonCard";
+import { ChronicleShowcase } from "@/components/ChronicleShowcase";
+import { AskWeft } from "@/components/AskWeft";
 import { useMilestones, useMilestone } from "@/hooks/useMilestones";
 import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
 import type { Milestone as MilestoneType, MilestoneState } from "@/lib/mock-data";
@@ -80,7 +82,11 @@ function MilestoneFromContract({ hash, index }: { hash: `0x${string}`; index: nu
         : undefined,
   };
 
-  return <MilestoneCard milestone={milestone} index={index} />;
+  const falImageUrl = statusData?.demo?.tracks?.fal?.available
+    ? (statusData.demo.tracks.fal.falImageUrl || statusData.demo.tracks.fal.falCoverUrl || null)
+    : null;
+
+  return <MilestoneCard milestone={milestone} index={index} swatchUrl={falImageUrl} />;
 }
 
 export default function Home() {
@@ -168,6 +174,10 @@ export default function Home() {
       </section>
 
       <ScrollStory />
+
+      <ChronicleShowcase />
+
+      <AskWeft />
 
       <section id="live-milestones" className={styles.section} aria-label="Milestones under verification and settlement">
         <div className={styles.sectionHeader}>

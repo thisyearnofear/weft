@@ -1,0 +1,119 @@
+.section {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 3rem 3rem;
+}
+
+.header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.form {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--c-border-2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  transition: border-color var(--transition-base);
+}
+
+.form:focus-within {
+  border-color: var(--c-accent);
+}
+
+.input {
+  flex: 1;
+  padding: 0.85rem 1.25rem;
+  background: transparent;
+  border: none;
+  color: var(--c-text);
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--c-text-muted);
+}
+
+.sendBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  background: linear-gradient(135deg, var(--c-accent), #8b5cf6);
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: opacity var(--transition-base);
+}
+
+.sendBtn:hover {
+  opacity: 0.85;
+}
+
+.sendBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.result {
+  margin-top: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--c-border);
+}
+
+.resultTitle {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.resultBody {
+  color: var(--c-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.readMore {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--c-accent);
+  text-decoration: none;
+}
+
+.readMore:hover {
+  opacity: 0.8;
+}
+
+.resultError {
+  color: var(--c-error, #ef4444);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}

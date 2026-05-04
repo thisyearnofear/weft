@@ -1,0 +1,186 @@
+.section {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 2rem 3rem 4rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.75rem;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+.title {
+  font-size: clamp(1.55rem, 2.5vw, 2.35rem);
+  font-weight: 700;
+}
+
+.accent {
+  background: linear-gradient(135deg, var(--c-accent), #8b5cf6 60%, #22c55e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: var(--c-text-secondary);
+  line-height: 1.75;
+  max-width: 60ch;
+}
+
+.card {
+  background: linear-gradient(180deg, rgba(16, 18, 31, 0.95), rgba(9, 11, 21, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 24px;
+  padding: 1.75rem;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.sparkle {
+  color: var(--c-accent);
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.chapters {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.chapter {
+  padding-left: 1rem;
+  border-left: 2px solid rgba(99, 102, 241, 0.3);
+}
+
+.chapterHeading {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.chapterNum {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.16);
+}
+
+.chapterBody {
+  color: var(--c-text-secondary);
+  line-height: 1.8;
+  font-size: 0.95rem;
+}
+
+.epilogue {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.epilogueHeading {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.epilogue p {
+  color: var(--c-text-secondary);
+  line-height: 1.8;
+  font-size: 0.95rem;
+  font-style: italic;
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.expandBtn {
+  font-size: 0.85rem;
+  color: var(--c-text-muted);
+  background: none;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: border-color var(--transition-base), color var(--transition-base);
+}
+
+.expandBtn:hover {
+  border-color: var(--c-accent);
+  color: var(--c-text);
+}
+
+.storyLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--c-accent);
+  text-decoration: none;
+  transition: opacity var(--transition-base);
+}
+
+.storyLink:hover {
+  opacity: 0.8;
+}
+
+.tagline {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-style: italic;
+  color: var(--c-text-muted);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+}
