@@ -82,7 +82,7 @@ const CONTRAST_ITEMS = [
   },
   {
     pain: { icon: <XCircle size={14} />, text: "Chasing sponsors for payment" },
-    solution: { icon: <CheckCircle size={14} />, text: "Capital releases automatically on proof" },
+    solution: { icon: <CheckCircle size={14} />, text: "Verified proof opens the release path" },
   },
   {
     pain: { icon: <BarChart3 size={14} />, text: "Reputation that resets every project" },
@@ -134,7 +134,7 @@ export default function Home() {
 
           {/* Live stats strip */}
           <div className={styles.statsStrip}>
-          <StatCard value={3} label="Verifier nodes" />
+          <StatCard value={3} label="Verifier-ready paths" />
           <div className={styles.statDivider} />
           <StatCard value={isLoading ? 0 : verifiedOutcomeCount} label="Verified outcomes" suffix={isLoading ? "…" : ""} />
           <div className={styles.statDivider} />

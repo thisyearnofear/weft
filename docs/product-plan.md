@@ -216,7 +216,7 @@ At scale, this is a real business.
    Evidence:
    • Contract deployed at 0x1234...5678 (block 12,345,678)
    • 147 unique wallets interacted during measurement window
-   • All 3 verifiers agreed on the outcome
+   • Verifier quorum agreed on the outcome
    • Evidence published to 0G Storage
 
    Funds (3.5 ETH) are now available for release.

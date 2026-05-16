@@ -264,7 +264,7 @@ export function ConsensusVisual() {
       <div className={styles.legend}>
         <div className={styles.legendItem}>
           <span className={styles.legendDot} style={{ background: "#6366f1" }} />
-          <span className={styles.legendLabel}>Verifier Nodes</span>
+          <span className={styles.legendLabel}>Verifier Path</span>
         </div>
         <div className={styles.legendItem}>
           <span className={styles.legendDot} style={{ background: "#8b5cf6" }} />
@@ -279,7 +279,7 @@ export function ConsensusVisual() {
       <div className={styles.statusRow}>
         <div className={styles.pulse}>
           <span className={styles.pulseDot} />
-          Live network · 3 nodes online
+          Status API · AXL path active
         </div>
       </div>
     </div>

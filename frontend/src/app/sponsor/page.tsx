@@ -33,7 +33,7 @@ export default function SponsorPage() {
             <div className={styles.roleSteps}>
               <div className={styles.roleStep}><span>01</span> Agree on a deliverable and deadline with the builder</div>
               <div className={styles.roleStep}><span>02</span> Lock capital into the milestone contract</div>
-              <div className={styles.roleStep}><span>03</span> Verifiers confirm delivery — capital releases automatically</div>
+              <div className={styles.roleStep}><span>03</span> Verifiers confirm delivery — verified release path opens</div>
             </div>
             <a
               href="https://github.com/thisyearnofear/weft#builder-onboarding"
