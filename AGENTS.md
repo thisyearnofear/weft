@@ -372,7 +372,7 @@ ZERO_G_STREAM_ID          # KV stream ID (optional)
 
 ## Hermes Agent Setup
 
-Weft ships 5 Hermes skills that auto-load via `external_dirs` — no manual `Load` prompts needed.
+Weft ships 7 Hermes skills that auto-load via `external_dirs` — no manual `Load` prompts needed.
 
 ```bash
 # One-time: install Hermes, wire skills into ~/.hermes/config.yaml, write SOUL.md
@@ -390,6 +390,7 @@ bash scripts/hermes_weft.sh
 | `weft-demo` | "run the demo" | Story-first coordinator (Problem→Stakes→Solution→Proof→Meaning): starts AXL nodes, collects evidence, calls Kimi chronicle, generates fal.ai/ComfyUI swatch, reads ENS records, prints sponsor summary |
 | `weft-manim` | "animate the verification" | Generates a Manim animation of the verification flow as a literal weaving — warp threads (evidence) → weft interlacing (peer consensus) → fabric (milestone card) → MP4 output |
 | `weft-verify` | "verify milestone 0x..." | Runs `mvp_verifier` + `github_client`, builds attestation JSON |
+| `weft-narrate` | "narrate milestone 0x..." | Single-milestone Kimi narrative |
 | `weft-narrate` | "narrate milestone 0x..." | Calls `kimi_client.generate_narrative()` for a single milestone |
 | `weft-status` | "status of weft.thisyearnofear.eth" | Queries `weft_status_api` and returns human-readable milestone state |
 | `weft-ens` | "update ENS profile" | Calls `ens_client.update_builder_profile()` to write text records |

@@ -5,8 +5,10 @@ import Link from "next/link";
 import { BookOpen, Sparkles } from "lucide-react";
 import styles from "./ChronicleShowcase.module.css";
 
-/* A static sample chronicle displayed on the landing page so visitors
-   immediately see the creative output without clicking anything. */
+/* ── Sample chronicle ──
+   This is illustrative demo content, not a real generated chronicle.
+   It shows what a Builder Journey narrative looks like when Kimi
+   processes onchain evidence for an actual milestone. */
 
 const SAMPLE = {
   title: "The Weaving of the Weft Protocol",
@@ -44,6 +46,7 @@ export function ChronicleShowcase() {
       </div>
 
       <div className={styles.card}>
+        <div className={styles.sampleBadge}>Sample chronicle — illustrative content</div>
         <div className={styles.cardHeader}>
           <Sparkles size={16} className={styles.sparkle} />
           <span className={styles.cardTitle}>{SAMPLE.title}</span>

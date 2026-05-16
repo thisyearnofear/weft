@@ -21,8 +21,8 @@ const ScrollStory = dynamic(
 );
 
 /* ── Live Counters ── */
-function StatCard({ value, label, suffix = "" }: { value: number; label: string; suffix?: string }) {
-  const display = value >= 1000 ? `${(value / 1000).toFixed(1)}k` : String(value);
+function StatCard({ value, label, suffix = "" }: { value: number | string; label: string; suffix?: string }) {
+  const display = typeof value === "string" ? value : (value >= 1000 ? `${(value / 1000).toFixed(1)}k` : String(value));
   return (
     <div className={styles.statCard}>
       <span className={styles.statValue}>{display}{suffix}</span>
@@ -134,7 +134,7 @@ export default function Home() {
           <div className={styles.statsStrip}>
           <StatCard value={3} label="Verifier nodes" />
           <div className={styles.statDivider} />
-          <StatCard value={milestoneHashes.length || 3} label="Milestones on 0G" />
+          <StatCard value={isLoading ? 0 : milestoneHashes.length} label="Milestones on 0G" suffix={isLoading ? "…" : ""} />
           <div className={styles.statDivider} />
           <StatCard value={7} label="Hermes skills" />
           <div className={styles.statDivider} />

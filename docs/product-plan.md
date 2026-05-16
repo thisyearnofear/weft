@@ -277,43 +277,20 @@ The narrative is the product. The automation is the moat.
 
 ---
 
-## Hackathon Positioning
-
-### ETHGlobal Open Agents
-
-| Prize | How Tiers Help |
-|---|---|
-| 0G ($7,500) | Free tier uses 0G Chain; Agent tier auto-publishes to 0G Storage |
-| Gensyn AXL ($5,000) | Free tier is single-node; Agent tier coordinates multi-node consensus |
-| ENS ($2,500) | Free tier uses ENS for identity; Agent tier auto-updates ENS records |
-| KeeperHub ($4,500) | Free tier uses cast send; Agent tier uses KeeperHub for reliability |
-
-### Nous Research Hermes Creative Hackathon
-
-| Track | Evidence |
-|---|---|
-| Main Track ($15k) | Hermes Agent as autonomous verification system — memory, skills, learning |
-| Kimi Track ($5k) | Kimi generates human-readable narratives from raw attestation data |
-
-**Both tracks, one submission:** "Hermes Agent that autonomously verifies onchain milestones, learns from each verification, generates narratives via Kimi, and coordinates multi-node consensus."
-
----
-
 ## Roadmap
 
-### Hackathon (now)
+### Hackathon (now — 0G APAC)
 - [x] Contracts deployed on 0G Galileo
-- [x] 3-node verifier infrastructure on GCP (free tier)
-- [x] Structured logging
-- [x] Kimi narrative generation
-- [x] Hermes skills created (verify, narrate, status, ens)
-- [x] DevContainer config for Codespace deployment
-- [x] ENS text record writes (skip_ownership for demos)
-- [x] Shareable verification page with OG images
-- [x] Badge endpoint for GitHub READMEs
-- [x] Frontend as verification directory
+- [x] Hermes Agent with 7 auto-loaded skills (verify, chronicle, narrate, demo, manim, status, ens)
+- [x] Landing page with animated consensus visualization, GSAP scroll story, live onchain data
+- [x] 0G Storage KV+Log agent memory architecture
+- [x] AXL encrypted P2P multi-node consensus
+- [x] Kimi narrative generation + fal.ai milestone imagery
+- [x] ENS text record updates for portable builder reputation
+- [x] Live frontend at weft.thisyearnofear.com
+- [x] Comprehensive architecture docs, data model, hackathon strategy
 - [ ] Record demo video
-- [ ] Submit to both hackathons
+- [ ] Submit to 0G APAC Hackathon
 
 ### Post-Hackathon (Month 1-2)
 - [ ] Telegram/Discord bot interface (requires persistent hosting, not Codespace)

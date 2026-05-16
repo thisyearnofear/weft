@@ -9,7 +9,8 @@
 | **Track** | **Track 3 — Agentic Economy & Autonomous Applications** (primary) · Track 4 secondary |
 | **Prize Pool** | $150,000 · Deadline: May 16, 2026 |
 | **One-line pitch** | Autonomous capital release for AI agents — verified by a Hermes Agent swarm, stored on 0G Storage KV+Log, coordinated via AXL encrypted P2P |
-| **Live demo** | [weft.thisyearnofear.com](https://weft.thisyearnofear.com) |
+| **Live demo (frontend)** | [weft.thisyearnofear.com](https://weft.thisyearnofear.com) — ensure status API is online for full experience |
+| **Status API** | `/api/status/demo` — milestone state, chat, chronicle generation, MCP tools |
 | **Deployed contracts** | WeftMilestone: `0x9f66...1922` on 0G Galileo ([explorer](https://explorer-testnet.0g.ai/address/0x9f66158c560ce5c8b40820fdcd2874ff8d852192)) |
 | **ENS identity** | `weft.thisyearnofear.eth` |
 
@@ -149,10 +150,10 @@ Weft provides **autonomous financial rails for AI agents**:
 ### Demo — Live Frontend
 
 Visit **https://weft.thisyearnofear.com**:
-1. Role-picker hero → `ChronicleShowcase` → `AskWeft` chat widget
+1. Landing page hero → `ChronicleShowcase` (sample narrative) → `AskWeft` chat widget
 2. Milestone cards → **"Read the story"** → `/milestone/<hash>/story`
 3. AskWeft chat: `"tell me about milestone 0x5169..."`
-4. `/api/status/axl` — live AXL node, peer consensus state
+4. `/api/status/demo` — milestone state with sponsor integration status
 5. `app.ens.domains/weft.thisyearnofear.eth` — builder reputation records
 
 ### Demo — Hermes Agent (most immersive)
@@ -244,13 +245,7 @@ Weft uses **AXL** (Gensyn's Agent eXchange Layer) for encrypted P2P verdict broa
 3. Peer nodes receive envelopes via `GET /recv` drain loop and persist to `agent/.inbox/`
 4. When `AXL_WAIT_FOR_PEERS=1`, a node waits for `AXL_PEER_THRESHOLD` matching envelopes before submitting onchain — offchain safety gate before the contract's 2-of-3 quorum
 
-### Live AXL node status
-
-```bash
-curl https://weft.thisyearnofear.com/api/status/axl
-```
-
-Returns the running node's public key, IPv6 address, connected peer count, and received verdict envelope count — proving real AXL operation across separate nodes.
+> Note: The live demo currently runs a single AXL node. For the full multi-node consensus demo with encrypted P2P verdict exchange between 3 separate nodes, run `bash scripts/demo_e2e.sh --nodes=3` locally. The AXL client code and peer inbox logic are fully implemented in `agent/lib/axl_client.py` and `agent/lib/peer_inbox.py`.
 
 ### Multi-node demo
 
@@ -272,10 +267,10 @@ Each node communicates exclusively through its local AXL instance — encrypted,
 
 | Surface | URL | What it shows |
 |---|---|---|
-| Landing page | `/` | Role-picker, `ChronicleShowcase` (sample narrative), `AskWeft` chat widget |
+| Landing page | `/` | Hero with animated consensus visualization, `ChronicleShowcase` (sample narrative), `AskWeft` chat widget |
 | Builder passport | `/builder/weft.thisyearnofear.eth` | ENS resolution → milestone history |
 | Milestone story | `/milestone/<hash>/story` | Kimi chronicle + Manim animation (cached in `localStorage`) |
-| AXL live node | `/api/status/axl` | Public key, IPv6, connected Gensyn peers |
+| Status API overview | `/api/status/demo` | Milestone state, sponsor integration status, AXL peer inbox state |
 | MCP tools | `/api/mcp/tools` | Lists chronicle, status, verify tools for MCP clients |
 | MCP invoke | `/api/mcp/invoke` | `POST {tool, args}` — invoke any Weft skill programmatically |
 | Chat | `/api/chat` | `POST {message}` — conversational agent interface |
@@ -303,10 +298,11 @@ The milestone payload includes a `demo` section that surfaces:
 - **Gensyn / AXL** peer corroboration state from `agent/.inbox/`
 - **KeeperHub** execution-path configuration
 - **ENS** builder / agent profile visibility
+- **fal.ai** AI-woven milestone swatch and chronicle cover
 
 ### 2. Hermes skills
 
-Weft's 5 skills auto-load into Hermes via `external_dirs` — no manual `Load` prompts needed.
+Weft's 7 skills auto-load into Hermes via `external_dirs` — no manual `Load` prompts needed.
 
 ```bash
 # One-time setup (installs Hermes, wires skills, writes SOUL.md)
@@ -413,7 +409,7 @@ See [Hackathon Strategy](docs/hackathon-strategy.md) for per-track analysis.
 | ENS | ENS Registry + Public Resolver via `cast` (namehash, setText, text) | `agent/lib/ens_client.py` |
 | fal.ai | fal.ai text-to-image API — AI-woven milestone swatches + chronicle covers | `agent/lib/fal_client.py` |
 | Kimi / Moonshot | `moonshot-v1-128k` via OpenAI-compatible API (`api.moonshot.ai/v1`) | `agent/lib/kimi_client.py` |
-| Hermes | Hermes Agent v0.11.0 — 5 auto-loaded skills via `external_dirs`, `SOUL.md` identity | `setup-hermes.sh`, `scripts/hermes_weft.sh` |
+| Hermes | Hermes Agent v0.11.0 — 7 auto-loaded skills via `external_dirs`, `SOUL.md` identity | `setup-hermes.sh`, `scripts/hermes_weft.sh` |
 
 ## Links
 

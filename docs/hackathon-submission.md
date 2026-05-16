@@ -9,7 +9,7 @@ Weft helps internet-native teams release capital based on verifiable outcomes in
 **Track fit:** Primary → **Track 3 (Agentic Economy & Autonomous Applications)**: Weft provides autonomous financial rails for AI agents — capital release triggered by verifiable outcomes, coordinated by a multi-node Hermes Agent swarm, with all state persisted to 0G Storage.
 
 ## Links
-- **GitHub**: https://github.com/weft/weft
+- **GitHub**: https://github.com/thisyearnofear/weft
 - **WeftMilestone (0G Galileo)**: `0x9f66158c560ce5c8b40820fdcd2874ff8d852192` ([Explorer](https://explorer-testnet.0g.ai/address/0x9f66158c560ce5c8b40820fdcd2874ff8d852192))
 - **VerifierRegistry (0G Galileo)**: `0x1356dd3f28461685ffd81d44f6ae9ae87937e34a`
 - **Live demo**: https://weft.thisyearnofear.com

@@ -48,6 +48,20 @@
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
 }
 
+.sampleBadge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #a78bfa;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(167, 139, 250, 0.12);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  margin-bottom: 0.75rem;
+}
+
 .cardHeader {
   display: flex;
   align-items: center;
