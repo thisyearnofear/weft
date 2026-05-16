@@ -1,12 +1,12 @@
 # Weft — 0G APAC Hackathon Submission Pack
 
 ## One-line pitch
-**Weft is an autonomous Hermes Agent swarm that releases milestone-based capital using 0G Storage as persistent agent memory.**
+**Weft is an autonomous milestone verifier for onchain builders: 0G Chain escrow, deterministic evidence, optional 0G Storage publishing, AXL peer corroboration, and ENS reputation.**
 
 ## Short description
-Weft helps internet-native teams release capital based on verifiable outcomes instead of manual trust. A Hermes Agent swarm monitors onchain milestones on 0G Chain, gathers deterministic evidence (deployment checks, unique caller counts, GitHub commits), corroborates verdicts across peer nodes via AXL encrypted P2P transport, persists every artifact to **0G Storage KV+Log** as the agent's permanent memory, and submits final onchain verdicts through KeeperHub. ENS gives builders and agents portable, human-readable identity.
+Weft helps internet-native teams release capital based on verifiable outcomes instead of manual trust. The verifier daemon monitors onchain milestones on 0G Chain, gathers deterministic evidence (deployment checks, unique caller counts, GitHub commits), can corroborate verdicts across peer nodes via AXL encrypted P2P transport, and can publish evidence artifacts and KV pointers to 0G Storage when configured. KeeperHub is implemented as the preferred verdict-submission path, with `cast send` fallback. ENS gives builders and agents portable, human-readable identity.
 
-**Track fit:** Primary → **Track 3 (Agentic Economy & Autonomous Applications)**: Weft provides autonomous financial rails for AI agents — capital release triggered by verifiable outcomes, coordinated by a multi-node Hermes Agent swarm, with all state persisted to 0G Storage.
+**Track fit:** Primary → **Track 3 (Agentic Economy & Autonomous Applications)**: Weft provides autonomous financial rails for builders and agents — capital release gated by verifiable outcomes, with optional multi-node corroboration and persistent evidence artifacts.
 
 ## Links
 - **GitHub**: https://github.com/thisyearnofear/weft
@@ -18,13 +18,13 @@ Weft helps internet-native teams release capital based on verifiable outcomes in
 ## Best-fit tracks
 
 **Primary: Track 3 — Agentic Economy & Autonomous Applications**
-- Autonomous multi-node agent swarm for milestone verification
+- Autonomous verifier daemon with multi-node AXL path implemented
 - Capital release as a financial primitive for AI agents
 - Agents as first-class economic actors with portable reputation
 
 **Secondary: Track 4 — Web 4.0 Open Innovation (The Wildcard)**
-- Deepest 0G Storage integration on the platform: KV + Log as agent memory
-- Innovative architecture: no central coordinator, no cloud dependency
+- 0G Storage as an evidence and memory layer: KV pointers plus uploaded attestation/consensus bundles
+- Innovative architecture: deterministic verification with optional peer corroboration and storage-backed evidence
 - Portable, verifiable builder reputation stored on 0G
 
 ## 0G Integration Depth
@@ -32,12 +32,12 @@ Weft helps internet-native teams release capital based on verifiable outcomes in
 | Component | What We Use | Why It Matters |
 |---|---|---|
 | **0G Chain** | WeftMilestone + VerifierRegistry deployed on Galileo testnet | Milestone escrow, verifier registration, 2-of-3 quorum voting |
-| **0G Storage KV** | Real-time agent memory: `weft:milestone:<hash>:state`, `weft:milestone:<hash>:consensus`, `weft:milestone:<hash>:bundle` | KV holds the agent's working state — current verification status, peer consensus proofs, bundle pointers |
-| **0G Storage Log** | Immutable history: `weft:milestone:<hash>:history`, `weft:milestone:<hash>:chronicle` | Log holds the append-only event history and Kimi-generated Builder Journey narratives |
+| **0G Storage KV** | Optional agent memory: `weft:milestone:<hash>:state`, `weft:milestone:<hash>:consensus`, `weft:milestone:<hash>:bundle`, `weft:milestone:<hash>:chronicle` | KV holds current verification status, peer consensus proofs, bundle pointers, and cached chronicle JSON when configured |
+| **0G Storage files** | Optional `attestation.json`, `consensus.json`, and `bundle.tar.gz` uploads | Content-addressed evidence artifacts make the onchain `evidenceRoot` resolvable outside the app |
 | **0G Indexer** | Unified metadata lookup via `indexer_client.py` | Tries 0G KV first, falls back to onchain events |
 
 **Judge takeaway:**
-Weft uses 0G Storage exactly as the 0G team describes — **KV for real-time agent state, Log for conversation/history**. It's not bolted on; it's the memory architecture of the entire system.
+Weft uses 0G Chain as the settlement layer and 0G Storage as the evidence/memory layer. The code supports KV pointers and content-addressed artifact publishing; the public demo falls back gracefully when storage credentials are not present.
 
 ## Hermes Agent Integration
 
@@ -63,7 +63,7 @@ bash scripts/hermes_weft.sh # launch with Weft env vars
 
 | Technology | Module | Purpose |
 |---|---|---|
-| **0G** | `zero_storage.py`, `indexer_client.py`, `weft_milestone_reader.py` | Chain + Storage (KV+Log) + Indexer |
+| **0G** | `zero_storage.py`, `indexer_client.py`, `weft_milestone_reader.py` | Chain + Storage KV/file artifacts + Indexer |
 | **Hermes Agent** | `agent/skills/*`, `setup-hermes.sh`, `SOUL.md` | Agent runtime, 7 skills, persistent identity |
 | **AXL (Gensyn)** | `axl_client.py`, `peer_inbox.py`, `verdict_envelope.py` | Encrypted P2P verdict broadcast across nodes |
 | **KeeperHub** | `keeperhub_client.py` | Reliable onchain execution with retry + audit trail |
@@ -74,14 +74,14 @@ bash scripts/hermes_weft.sh # launch with Weft env vars
 ## What Makes Weft Different
 
 1. **0G Storage as agent memory, not just file storage** — KV for real-time state, Log for immutable history, bundles for verifiable evidence
-2. **Multi-node autonomy** — 3 verifier nodes coordinate via AXL encrypted P2P, reach offchain consensus before onchain vote
+2. **Multi-node-ready autonomy** — verifier nodes can coordinate via AXL encrypted P2P and reach offchain consensus before onchain vote; the public demo exposes one live AXL process, while the 3-node flow is reproducible locally
 3. **Creative non-fiction from the blockchain** — Kimi-generated Builder Journey narratives, fal.ai milestone swatches, ENS reputation — every verified outcome becomes a shareable story
-4. **No central coordinator** — no cloud, no API keys, no single point of failure. Just agents, 0G, and peer consensus
+4. **Coordinator-light architecture** — deterministic agents, 0G, and peer consensus paths reduce manual review; optional APIs such as Kimi, fal.ai, KeeperHub, and 0G Storage credentials enhance the managed demo
 
 ## 3-minute Demo Script
 
 ### 0:00–0:25 — Problem
-"Milestone funding relies on manual trust: managers, screenshots, Telegram checklists. Weft replaces that with an autonomous Hermes Agent swarm that releases capital based on verifiable outcomes. This is a financial primitive for the agentic economy."
+"Milestone funding relies on manual trust: managers, screenshots, Telegram checklists. Weft replaces that with an autonomous verifier that gates capital release based on deterministic evidence. This is a financial primitive for the agentic economy."
 
 ### 0:25–0:55 — The Hermes Agent in Action
 - Open Hermes prompt: `"verify milestone 0x5169..."`
@@ -99,7 +99,7 @@ bash scripts/hermes_weft.sh # launch with Weft env vars
 ### 1:25–1:55 — Multi-Node Consensus
 - Show AXL peer status: `curl weft.thisyearnofear.com/api/status/axl`
 - Show peer count, signed verdict envelopes, consensus threshold
-- "Separate verifier nodes, encrypted P2P, no central coordinator — just agents agreeing on truth."
+- "Separate verifier nodes can use encrypted P2P corroboration before the onchain vote. The public demo shows the status surface; the local demo can run the full multi-node path."
 
 ### 1:55–2:30 — The Creative Layer
 - Show `chronicle.html` — Kimi-generated Builder Journey narrative

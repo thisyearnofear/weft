@@ -11,7 +11,7 @@
 **Narration:**
 "Every day, builders ship working code. And every day, they wait for capital that's stuck behind someone's inbox. Telegram checklists. Notion screenshots. Ad hoc payout decisions.
 
-Weft replaces that with an autonomous agent that releases capital based on verifiable outcomes.
+Weft replaces that with an autonomous verifier that gates capital release based on verifiable outcomes.
 
 **This is a financial primitive for the agentic economy.** "
 
@@ -22,24 +22,24 @@ Weft replaces that with an autonomous agent that releases capital based on verif
 **Visual:** Terminal recording of `bash scripts/hermes_weft.sh` followed by the prompt `"verify milestone 0x5169..."`. Show the agent responding with evidence collection, peer consensus, and onchain verdict. Use `--staged --hermes` mode so Kimi's live weaving commentary appears between steps.
 
 **Narration:**
-"A builder defines a milestone and locks capital. When the deadline passes, Weft's Hermes Agent swarm takes over.
+"A builder defines a milestone and locks capital. When the deadline passes, Weft's verifier takes over.
 
-The agent polls 0G Chain, collects deployment evidence, counts unique callers, and checks GitHub commits. It broadcasts its finding to peer nodes via AXL encrypted P2P transport. When 3 out of 3 nodes agree, it submits the verdict onchain through KeeperHub — with automatic retry and gas optimization.
+The agent polls 0G Chain, collects deployment evidence, counts unique callers, and checks GitHub commits. In the full local demo, peer nodes corroborate over AXL encrypted P2P transport before the verdict is submitted onchain. KeeperHub is the preferred execution path when configured, with a raw transaction fallback.
 
-The capital releases autonomously. No manager reviewed this. No screenshots were exchanged."
+The contract release path is now gated by evidence and verifier quorum. No manager reviewed this. No screenshots were exchanged."
 
 ---
 
 ### 🎬 1:00–1:30 — 0G Storage as Agent Memory
 
-**Visual:** Show the 0G Storage architecture. A diagram animates showing KV keys being written (`weft:milestone:<hash>:state`, `weft:milestone:<hash>:consensus`) and Log entries being appended (`weft:milestone:<hash>:history`, `weft:milestone:<hash>:chronicle`). Then show a `curl` to the live status API returning milestone data from 0G.
+**Visual:** Show the 0G Storage architecture. A diagram animates showing KV pointers being written (`weft:milestone:<hash>:state`, `weft:milestone:<hash>:consensus`, `weft:milestone:<hash>:bundle`) and evidence artifacts being uploaded. Then show a `curl` to the live status API returning milestone and integration status.
 
 **Narration:**
-"Weft uses 0G Storage as the agent's persistent memory layer — not just file storage, but the agent's brain.
+"Weft uses 0G Storage as the agent's optional evidence memory layer.
 
-KV holds real-time state: what milestone is being verified, what peer nodes have agreed, where the evidence bundles live. Log holds the immutable history: every state change, every verdict, every narrative update.
+KV can hold real-time state pointers: what milestone is being verified, what peer nodes have agreed, where the evidence bundles live. Content-addressed bundles hold the full attestation and consensus artifacts.
 
-This is exactly the architecture the 0G team describes: **KV for real-time state, Log for history.** Weft is the reference implementation of 0G Storage as agent memory."
+The demo degrades gracefully if storage credentials are absent, but the code path is ready for 0G-backed evidence memory."
 
 ---
 
@@ -48,11 +48,11 @@ This is exactly the architecture the 0G team describes: **KV for real-time state
 **Visual:** A network diagram showing 3 independent AXL nodes. Lines pulse between them showing signed envelope exchange. A consensus counter ticks from 0/3 to 3/3. Show the live AXL node at `weft.thisyearnofear.com/api/status/axl` with peer count and verdict envelope count.
 
 **Narration:**
-"No central coordinator. No cloud API. No single point of failure.
+"The verification logic does not depend on one human reviewer.
 
 Each verifier node runs its own AXL instance — encrypted P2P transport, signed verdict envelopes, authorized peer verification. Nodes agree on the outcome offchain before any onchain transaction is submitted.
 
-This isn't a demo of a single agent. This is a multi-node autonomous swarm that coordinates through cryptography and peer consensus."
+The public demo exposes one live AXL process through the status API; the local demo can run the full multi-node path."
 
 ---
 
@@ -78,7 +78,7 @@ Kimi generates a multi-chapter Builder Journey chronicle from the raw evidence. 
 
 0G provides the memory. Hermes provides the mind. AXL provides the consensus. KeeperHub provides the execution. ENS provides the identity.
 
-The builder keeps the story — and the capital.
+The builder keeps the story — and a portable trust record.
 
 **Weft: Autonomous capital release for the agentic economy.** "
 

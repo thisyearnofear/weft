@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { useMemo } from "react";
-import { ArrowRight, Bot, Coins, ShieldCheck, Sparkles, MessageCircle, Zap, Clock, XCircle, CheckCircle, BarChart3 } from "lucide-react";
+import { ArrowRight, Bot, ShieldCheck, Sparkles, MessageCircle, Zap, Clock, XCircle, CheckCircle, BarChart3 } from "lucide-react";
 
 import { MilestoneCard } from "@/components/MilestoneCard";
 import { SkeletonCard } from "@/components/SkeletonCard";
@@ -15,11 +14,6 @@ import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
 import { useBuilderPassport } from "@/hooks/useBuilderPassport";
 import type { Milestone as MilestoneType, MilestoneState } from "@/lib/mock-data";
 import styles from "./page.module.css";
-
-const ScrollStory = dynamic(
-  () => import("@/components/ScrollStory").then((m) => ({ default: m.ScrollStory })),
-  { ssr: false }
-);
 
 /* ── Live Counters ── */
 function StatCard({ value, label, suffix = "" }: { value: number | string; label: string; suffix?: string }) {
@@ -102,11 +96,11 @@ export default function Home() {
   const builderEns = overview?.demoHints?.builderEns || "weft.thisyearnofear.eth";
   const { data: builderPassport } = useBuilderPassport(builderEns);
 
-  const statusMilestones = overview?.demoHints?.milestones ?? [];
   const milestoneHashes = useMemo(() => {
+    const statusMilestones = overview?.demoHints?.milestones ?? [];
     const source = hashes && hashes.length > 0 ? hashes : statusMilestones;
     return Array.from(new Set(source));
-  }, [hashes, statusMilestones]);
+  }, [hashes, overview?.demoHints?.milestones]);
   const verifiedOutcomeCount = Math.max(milestoneHashes.length, builderPassport?.weftMilestonesVerified ?? 0);
 
   return (
@@ -125,9 +119,9 @@ export default function Home() {
             No chasing. No politics.
           </h1>
           <p className={styles.subtitle}>
-            Lock capital behind a deliverable. When you ship, autonomous verifier nodes
-            collect evidence, reach consensus over encrypted P2P, and release funds
-            automatically — no screenshots, no manual reviews, no trust-me-bro.
+            Weft turns milestone funding into a verifier workflow: escrow on 0G,
+            deterministic evidence collection, peer corroboration, and a portable
+            ENS trust record for the builder.
           </p>
           <div className={styles.heroActions}>
             <Link href="/builder" className={styles.primaryAction}>
@@ -155,14 +149,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── PAIN / SOLUTION ── */}
+      {/* ── PROOF STRIP ── */}
       <section className={styles.contrastSection} id="how-it-works">
         <div className={styles.contrastInner}>
           <div className={styles.contrastHeader}>
-            <span className={styles.sectionKicker}>The old way vs. Weft</span>
-            <h2 className={styles.sectionTitle}>
-              Funding shouldn&apos;t feel like pulling teeth.
-            </h2>
+            <span className={styles.sectionKicker}>Judge-ready proof path</span>
+            <h2 className={styles.sectionTitle}>What the demo proves</h2>
           </div>
           <div className={styles.contrastGrid}>
             {CONTRAST_ITEMS.map((item, i) => (
@@ -190,18 +182,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── SCROLL STORY ── */}
-      <ScrollStory />
-
-      {/* ── ASK WEFT (promoted above the fold) ── */}
+      {/* ── ASK WEFT ── */}
       <section className={styles.chatPromoSection}>
         <div className={styles.chatPromoHeader}>
           <MessageCircle size={16} />
-          <span>Try the Weft Agent</span>
+          <span>AskWeft agent surface</span>
         </div>
         <p className={styles.chatPromoSub}>
-          Ask about any milestone, generate a Builder Journey story, or check verification status —
-          all in natural language.
+          Query milestone status, trigger a Builder Journey, or inspect the same status API
+          that powers the frontend.
         </p>
         <AskWeft />
       </section>
@@ -272,7 +261,7 @@ export default function Home() {
           <h3>Create a milestone in under 5 minutes.</h3>
           <p>
             Define what you&apos;ll ship, set a deadline, and let verifiers handle the rest.
-            When the evidence checks out, capital releases automatically.
+            When the evidence checks out, the verified release path opens.
           </p>
           <div className={styles.heroActions} style={{ marginTop: "1.5rem" }}>
             <Link href="/builder" className={styles.primaryAction}>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createPublicClient, http, Address, keccak256, toBytes, namehash } from "viem";
+import { createPublicClient, http, Address, keccak256, toBytes } from "viem";
 import { mainnet } from "viem/chains";
 
 const MAINNET_RPC = process.env.MAINNET_RPC || "https://ethereum-rpc.publicnode.com";

@@ -34,7 +34,10 @@ export default function StoryPage({ params }: { params: Promise<{ hash: string }
   React.useEffect(() => {
     try {
       const cached = localStorage.getItem(`weft_chronicle_${milestoneHash}`);
-      if (cached) setChronicle(JSON.parse(cached));
+      if (cached) {
+        const parsed = JSON.parse(cached) as ChronicleData;
+        queueMicrotask(() => setChronicle(parsed));
+      }
     } catch { /* ignore */ }
   }, [milestoneHash]);
 

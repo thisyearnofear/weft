@@ -8,9 +8,9 @@
 |---|---|
 | **Track** | **Track 3 — Agentic Economy & Autonomous Applications** (primary) · Track 4 secondary |
 | **Prize Pool** | $150,000 · Deadline: May 16, 2026 |
-| **One-line pitch** | Autonomous capital release for AI agents — verified by a Hermes Agent swarm, stored on 0G Storage KV+Log, coordinated via AXL encrypted P2P |
+| **One-line pitch** | Autonomous milestone verification for builders — onchain escrow on 0G Chain, deterministic evidence, optional 0G Storage publishing, AXL peer corroboration, and ENS reputation |
 | **Live demo (frontend)** | [weft.thisyearnofear.com](https://weft.thisyearnofear.com) — ensure status API is online for full experience |
-| **Status API** | `/api/status/demo` — milestone state, chat, chronicle generation, MCP tools |
+| **Status API** | `/api/status/demo` — live integration status, chat, chronicle generation, MCP tools |
 | **Deployed contracts** | WeftMilestone: `0x9f66...1922` on 0G Galileo ([explorer](https://explorer-testnet.0g.ai/address/0x9f66158c560ce5c8b40820fdcd2874ff8d852192)) |
 | **ENS identity** | `weft.thisyearnofear.eth` |
 
@@ -24,13 +24,27 @@ bash scripts/demo_e2e.sh --staged --hermes --milestone=0x516975afcb46acf3ea22657
 
 Watch the terminal: Kimi narrates each step as the Hermes Agent collects evidence, reaches peer consensus, and submits the onchain verdict.
 
+### Live Demo Status
+
+The public demo is intentionally honest about what is live versus implemented:
+
+| Surface | Current status |
+|---|---|
+| 0G Chain contracts | Live on Galileo testnet |
+| Homepage + status API | Live at `weft.thisyearnofear.com` |
+| ENS trust profile | Live at `weft.thisyearnofear.eth` with 1 verified outcome |
+| AXL | Live process visible through status API; full 3-node flow is reproducible locally |
+| 0G Storage publishing | Implemented and best-effort when `ZERO_G_*` env vars and `0g-storage-client` are configured |
+| KeeperHub | Implemented as preferred execution path; daemon falls back to `cast send` when not configured |
+| Capital release | Contract supports verified release/refund; demo focuses on verification and verdict flow |
+
 ### 0G Integration Depth
 
 | Component | How Weft Uses It |
 |---|---|
 | **0G Chain** | WeftMilestone + VerifierRegistry deployed on Galileo — milestone escrow + 2-of-3 quorum |
-| **0G Storage KV** | Real-time agent memory: milestone state, consensus proofs, bundle pointers |
-| **0G Storage Log** | Immutable history: every state change, verdict, and Builder Journey chronicle |
+| **0G Storage KV** | Optional real-time pointers for milestone state, consensus proofs, bundles, and chronicles |
+| **0G Storage files** | Optional evidence bundle, `consensus.json`, and `bundle.tar.gz` publishing through `0g-storage-client` |
 | **0G Indexer** | Unified metadata lookup (KV first, onchain fallback) |
 
 ### Quick links
@@ -132,10 +146,10 @@ See [Hackathon Strategy](docs/hackathon-strategy.md) and [Submission Pack](docs/
 ### Why Weft fits Track 3
 
 Weft provides **autonomous financial rails for AI agents**:
-- A multi-node **Hermes Agent swarm** autonomously verifies milestone completion
-- Capital releases automatically when evidence clears the threshold — **no human in the loop**
-- **0G Storage KV+Log** serves as persistent agent memory (real-time state + immutable history)
-- Agents coordinate via **AXL encrypted P2P** and execute onchain via **KeeperHub**
+- A deterministic verifier daemon autonomously evaluates milestone completion
+- Contract release/refund paths are gated by verifier quorum
+- **0G Storage KV + file publishing** can persist evidence, consensus, and bundle pointers
+- Agents can coordinate via **AXL encrypted P2P** and execute onchain via **KeeperHub** when configured
 - Agents build portable reputation via **ENS** — economic actors, not just tools
 
 ### 0G Integration Depth
@@ -143,8 +157,8 @@ Weft provides **autonomous financial rails for AI agents**:
 | Component | Usage |
 |---|---|
 | **0G Chain** | WeftMilestone + VerifierRegistry deployed on Galileo |
-| **0G Storage KV** | Real-time agent state: `weft:milestone:<hash>:state`, `:consensus`, `:bundle` |
-| **0G Storage Log** | Immutable history: `weft:milestone:<hash>:history`, `:chronicle` |
+| **0G Storage KV** | Optional agent state: `weft:milestone:<hash>:state`, `:consensus`, `:bundle`, `:chronicle` |
+| **0G Storage files** | Optional evidence and consensus artifacts uploaded as content-addressed roots |
 | **0G Indexer** | Unified milestone metadata lookup |
 
 ### Demo — Live Frontend
@@ -174,11 +188,11 @@ bash scripts/demo_e2e.sh \
 
 ## Hermes Agent architecture
 
-Weft's verification layer is a **multi-node autonomous Hermes Agent system** — a specialist agent swarm where each node acts as an independent Digital Twin for the builder's project. Each node maintains **persistent memory via 0G Storage** and runs a continuous goal-driven loop:
+Weft's verification layer is a deterministic agent loop with optional managed Hermes surfaces. In the full configuration, multiple verifier nodes run the same logic and coordinate before voting. Each node can maintain persistent memory via 0G Storage and runs a continuous goal-driven loop:
 
 1. **Polls** onchain milestones past their deadline via `DeadlineScheduler`
 2. **Collects** deterministic evidence (deployment check + unique caller count + GitHub commits)
-3. **Persists** real-time state to **0G Storage KV** and appends to the **0G Storage Log** (immutable history)
+3. **Persists** real-time state and artifact pointers to **0G Storage KV** when configured
 4. **Generates** a human-readable narrative from raw attestation data using **Kimi** (`moonshot-v1-128k`)
 5. **Weaves** a Builder Journey chronicle — multi-chapter narrative with fal.ai milestone achievement cards
 6. **Broadcasts** signed verdict envelopes to peer nodes via **AXL** encrypted P2P transport
@@ -205,7 +219,7 @@ This mirrors the exact architecture 0G describes: **KV for real-time state, Log 
 ```text
 ┌──────────────────────────────────────────────────────────────────┐
 │                      0G Galileo Testnet                         │
-│  WeftMilestone: 0xcc76...474c  VerifierRegistry: 0x599e...3169  │
+│  WeftMilestone: 0x9f66...1922  VerifierRegistry: 0x1356...e34a  │
 └──────────┬───────────────────────────────────────┬──────────────┘
            │  poll deadlines                       │  submitVerdict
            ▼                                       ▼
@@ -229,8 +243,8 @@ This mirrors the exact architecture 0G describes: **KV for real-time state, Log 
 │  KV: weft:milestone:<hash>:state    ← real-time agent memory    │
 │  KV: weft:milestone:<hash>:latest   ← evidence root pointer     │
 │  KV: weft:milestone:<hash>:consensus← peer consensus proof      │
-│  Log: weft:milestone:<hash>:history ← immutable event log       │
-│  Log: weft:milestone:<hash>:chronicle← Builder Journey narrative│
+│  KV: weft:milestone:<hash>:chronicle← Builder Journey cache     │
+│  Files: attestation + consensus + bundle roots                  │
 └──────────────────────────────────────────────────────────────────┘
 ```
 

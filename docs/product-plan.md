@@ -282,9 +282,9 @@ The narrative is the product. The automation is the moat.
 ### Hackathon (now — 0G APAC)
 - [x] Contracts deployed on 0G Galileo
 - [x] Hermes Agent with 7 auto-loaded skills (verify, chronicle, narrate, demo, manim, status, ens)
-- [x] Landing page with animated consensus visualization, GSAP scroll story, live onchain data
-- [x] 0G Storage KV+Log agent memory architecture
-- [x] AXL encrypted P2P multi-node consensus
+- [x] Landing page with consensus visualization, AskWeft, verified profile fallback, and live status data
+- [x] 0G Storage KV/file-publishing evidence memory architecture
+- [x] AXL encrypted P2P path implemented; public demo runs one live AXL process, local demo can run multiple nodes
 - [x] Kimi narrative generation + fal.ai milestone imagery
 - [x] ENS text record updates for portable builder reputation
 - [x] Live frontend at weft.thisyearnofear.com

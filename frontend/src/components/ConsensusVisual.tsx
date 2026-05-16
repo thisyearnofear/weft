@@ -49,7 +49,6 @@ export function ConsensusVisual() {
       // 0.33–0.66: Peer Consensus (phase 1)
       // 0.66–1.0: Verified (phase 2)
       const phase = t < 0.33 ? 0 : t < 0.66 ? 1 : 2;
-      const phaseProgress = phase === 0 ? t / 0.33 : phase === 1 ? (t - 0.33) / 0.33 : (t - 0.66) / 0.34;
 
       // Update phase labels
       labels.forEach((l, i) => {

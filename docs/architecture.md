@@ -10,8 +10,8 @@ Weft is an autonomous coordination layer that replaces four institutional primit
 |---|---|
 | Identity / CV | ENS text records (portable, machine-readable) |
 | Funding / equity | `WeftMilestone.sol` — milestone-staked ETH |
-| Verification / managers | Hermes Agent + AXL consensus |
-| Settlement / payroll | KeeperHub reliable execution |
+| Verification / managers | Deterministic verifier daemon + optional Hermes/AXL surfaces |
+| Settlement / payroll | Contract release/refund path; KeeperHub preferred verdict execution when configured |
 
 ## Flow
 
@@ -91,7 +91,7 @@ Single source of truth — all shared agent logic. All scripts import from here.
 
 ## KeeperHub Integration
 
-The daemon uses KeeperHub as the primary execution path for onchain verdicts:
+The daemon uses KeeperHub as the preferred execution path for onchain verdicts when `KEEPERHUB_API_KEY` is configured:
 
 1. **Primary path**: `keeperhub_client.execute_verdict()` — submits via KeeperHub REST API with automatic retry, gas optimization, and audit trail
 2. **Fallback**: raw `cast send submitVerdict()` — used when `KEEPERHUB_API_KEY` is not set
@@ -118,13 +118,13 @@ Signed broadcast mode (`AXL_SIGN=1`, default): envelopes signed with `cast walle
 
 ## 0G Storage
 
-Evidence and attestation bundles are published to 0G Storage:
+Evidence and attestation bundles can be published to 0G Storage. The code falls back to local deterministic roots when storage credentials or the CLI are unavailable:
 
 - `PUBLISH_0G=1` — enables publishing
 - `PUBLISH_0G_CONSENSUS=1` — uploads `consensus.json` with KV pointers
 - `PUBLISH_0G_BUNDLE=1` — uploads full `bundle.tar.gz` with KV pointers
 
-KV keys: `weft:milestone:<hash>:consensus`, `weft:milestone:<hash>:bundle`, `weft:consensus:<root>:bundle`
+KV keys: `weft:milestone:<hash>:state`, `weft:milestone:<hash>:latest`, `weft:milestone:<hash>:consensus`, `weft:milestone:<hash>:bundle`, `weft:milestone:<hash>:chronicle`, `weft:consensus:<root>:bundle`
 
 ## Dependencies
 
