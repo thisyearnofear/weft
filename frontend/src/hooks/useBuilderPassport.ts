@@ -5,7 +5,7 @@ import { mainnet } from "viem/chains";
 // ENS lives on Ethereum mainnet — always use mainnet client regardless of app chain
 const ensMainnetClient = createPublicClient({
   chain: mainnet,
-  transport: http("https://eth.llamarpc.com"),
+  transport: http("https://eth.public-rpc.com"),
 });
 
 const ENS_REGISTRY = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" as Address;
