@@ -2,6 +2,44 @@
 
 **Weft is a Hermes Agent-powered Digital Twin for onchain builders: a long-running autonomous agent that maintains persistent memory of every milestone, commit, and user interaction — weaving raw data threads into meaningful fabric and releasing capital when outcomes are verified.**
 
+## 📋 For Judges — 0G APAC Hackathon
+
+| | |
+|---|---|
+| **Track** | **Track 3 — Agentic Economy & Autonomous Applications** (primary) · Track 4 secondary |
+| **Prize Pool** | $150,000 · Deadline: May 16, 2026 |
+| **One-line pitch** | Autonomous capital release for AI agents — verified by a Hermes Agent swarm, stored on 0G Storage KV+Log, coordinated via AXL encrypted P2P |
+| **Live demo** | [weft.thisyearnofear.com](https://weft.thisyearnofear.com) |
+| **Deployed contracts** | WeftMilestone: `0x9f66...1922` on 0G Galileo ([explorer](https://explorer-testnet.0g.ai/address/0x9f66158c560ce5c8b40820fdcd2874ff8d852192)) |
+| **ENS identity** | `weft.thisyearnofear.eth` |
+
+### Demo in 60 seconds
+
+```bash
+git clone https://github.com/thisyearnofear/weft
+cd weft
+bash scripts/demo_e2e.sh --staged --hermes --milestone=0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f
+```
+
+Watch the terminal: Kimi narrates each step as the Hermes Agent collects evidence, reaches peer consensus, and submits the onchain verdict.
+
+### 0G Integration Depth
+
+| Component | How Weft Uses It |
+|---|---|
+| **0G Chain** | WeftMilestone + VerifierRegistry deployed on Galileo — milestone escrow + 2-of-3 quorum |
+| **0G Storage KV** | Real-time agent memory: milestone state, consensus proofs, bundle pointers |
+| **0G Storage Log** | Immutable history: every state change, verdict, and Builder Journey chronicle |
+| **0G Indexer** | Unified metadata lookup (KV first, onchain fallback) |
+
+### Quick links
+- [Architecture Diagram](docs/architecture-diagram.svg) — visual system overview
+- [Hackathon Strategy](docs/hackathon-strategy.md) — per-track analysis, judging criteria mapping
+- [Submission Pack](docs/hackathon-submission.md) — 3-min demo script, sponsor stack, checklist
+- [Demo Video Script](docs/video-outline.md) — timed narration for recording
+- [Architecture](docs/architecture.md) — system design and data flow
+
+
 > *In weaving, the **weft** is the horizontal thread that interlaces with the vertical warp to create fabric. In Weft, raw data threads — onchain events, GitHub commits, peer verdicts — are woven by the Hermes Agent into meaningful fabric: narratives, achievement cards, ENS profiles. Technology provides the warp. Liberal arts provide the weft.*
 
 Weft helps internet-native teams release capital based on verifiable outcomes instead of manual trust.
@@ -78,42 +116,60 @@ A milestone completing is useful. A milestone completing and unlocking real capi
 ### 4. Flexible verification, onchain consequences
 Weft sits between rigid smart contracts and messy manual review: offchain evidence gathering with onchain finality.
 
-## For judges: 3-minute demo flow
+## 0G APAC Hackathon — Submission
 
-### Story in one sentence
-**Weft lets internet-native teams release capital based on verifiable outcomes instead of manual trust.**
+**Weft is submitted to the 0G APAC Hackathon** (deadline: May 16, 2026).
 
-### Demo sequence
+| Detail | Value |
+|---|---|
+| **Primary Track** | **Track 3 — Agentic Economy & Autonomous Applications** |
+| **Secondary Track** | Track 4 — Web 4.0 Open Innovation (The Wildcard) |
+| **Prize Pool** | $150,000 (Grand: $45k/$35k/$20k + Excellence + Community) |
 
-**Option A — Hermes Agent (most immersive, recommended for Hermes Creative Hackathon)**
+See [Hackathon Strategy](docs/hackathon-strategy.md) and [Submission Pack](docs/hackathon-submission.md) for the full submission materials.
+
+### Why Weft fits Track 3
+
+Weft provides **autonomous financial rails for AI agents**:
+- A multi-node **Hermes Agent swarm** autonomously verifies milestone completion
+- Capital releases automatically when evidence clears the threshold — **no human in the loop**
+- **0G Storage KV+Log** serves as persistent agent memory (real-time state + immutable history)
+- Agents coordinate via **AXL encrypted P2P** and execute onchain via **KeeperHub**
+- Agents build portable reputation via **ENS** — economic actors, not just tools
+
+### 0G Integration Depth
+
+| Component | Usage |
+|---|---|
+| **0G Chain** | WeftMilestone + VerifierRegistry deployed on Galileo |
+| **0G Storage KV** | Real-time agent state: `weft:milestone:<hash>:state`, `:consensus`, `:bundle` |
+| **0G Storage Log** | Immutable history: `weft:milestone:<hash>:history`, `:chronicle` |
+| **0G Indexer** | Unified milestone metadata lookup |
+
+### Demo — Live Frontend
+
+Visit **https://weft.thisyearnofear.com**:
+1. Role-picker hero → `ChronicleShowcase` → `AskWeft` chat widget
+2. Milestone cards → **"Read the story"** → `/milestone/<hash>/story`
+3. AskWeft chat: `"tell me about milestone 0x5169..."`
+4. `/api/status/axl` — live AXL node, peer consensus state
+5. `app.ens.domains/weft.thisyearnofear.eth` — builder reputation records
+
+### Demo — Hermes Agent (most immersive)
+
 ```bash
 bash scripts/hermes_weft.sh
 # then type:
 run the demo
 ```
-Hermes follows the Problem→Stakes→Solution→Proof→Meaning arc autonomously: starts AXL nodes, collects evidence, calls Kimi, generates the chronicle, opens `chronicle.html` + `milestone_card.html` in your browser, reads live ENS records, and prints the sponsor summary — all from one prompt.
 
-**Option B — Staged shell demo (ETH Global, narration-friendly)**
+### Demo — Staged shell (video recording)
+
 ```bash
 bash scripts/demo_e2e.sh \
   --milestone=0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f \
   --staged --hermes
 ```
-Pauses before each step with a `🎬 NARRATE:` cue (exact words to say). After each step, Kimi types a one-sentence weaving-metaphor commentary live in the terminal (`🧵 Hermes:`). Press Enter to advance.
-
-**Option C — Live frontend (judges clicking the link)**
-1. Visit `https://weft.thisyearnofear.com` — role-picker hero, `ChronicleShowcase` sample narrative, `AskWeft` chat widget
-2. Click a milestone card → **"Read the story"** → `/milestone/<hash>/story` — Kimi-generated chronicle + Manim animation
-3. Type in the AskWeft chat: *"tell me about milestone 0x5169..."* — agent responds via MCP
-4. Visit `https://weft.thisyearnofear.com/api/status/axl` — live AXL node, 2 Gensyn peers
-5. Visit `https://app.ens.domains/weft.thisyearnofear.eth` — 6 live text records
-
-### What to highlight verbally
-- **0G:** metadata + evidence persistence
-- **AXL:** separate verifier nodes, shared corroboration
-- **KeeperHub:** reliable execution, not a raw one-off tx
-- **ENS:** discoverable agent / builder identity
-- **Weft:** trust graph for fluid teams, not just a milestone dashboard
 
 ## Hermes Agent architecture
 

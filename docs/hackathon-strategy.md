@@ -1,236 +1,154 @@
-# Hackathon Submission Strategy
+# Hackathon Submission Strategy — 0G APAC Hackathon
 
-Maps Weft's existing work to each prize track with specific gaps to close.
+Maps Weft's existing work to the 0G APAC Hackathon tracks with specific gaps to close.
+
+> **Deadline**: May 16, 2026, 23:59 UTC+8
+> **Prize Pool**: $150,000 (Grand: $45k/$35k/$20k, Excellence: 10×$3,700, Community: 10×$1,300)
+> **Submission**: GitHub repo + contract/explorer links + demo video (<3 min) + README + X post
+
+---
 
 ## Brand Story — The Weaving Metaphor
 
-**Weft** is the horizontal thread that interlaces with the vertical warp to create
-woven fabric. This isn't just a name — it's the product philosophy:
+**Weft** is the horizontal thread that interlaces with the vertical warp to create woven fabric. This isn't just a name — it's the product philosophy:
 
-- **Warp threads** = technology infrastructure (0G Chain, peer consensus, KeeperHub execution, 0G Storage proofs)
-- **Weft threads** = the liberal arts layer (Kimi narratives, Builder Journey chronicles, milestone achievement cards, ENS identity)
+- **Warp threads** = technology infrastructure (0G Chain, 0G Storage KV+Log, peer consensus, KeeperHub execution)
+- **Weft threads** = the liberal arts layer (Hermes Agent, Kimi narratives, Builder Journey chronicles, milestone cards, ENS identity)
 - **The fabric** = a verified, meaningful, shareable project story
 
-Raw data threads (onchain events, GitHub commits, peer verdicts) are woven by the
-Hermes Agent into meaningful fabric (narratives, achievement cards, ENS profiles).
+Raw data threads (onchain events, GitHub commits, peer verdicts) are woven by the **Hermes Agent** into meaningful fabric (narratives, achievement cards, ENS profiles).
+
 **Technology provides the warp. Liberal arts provide the weft.**
 
-This positions Weft uniquely: every other hackathon project is either pure tech or
-pure creative. Weft is **creative non-fiction infrastructure** — real onchain events,
-real builder journeys, real stakes, told beautifully by an AI agent that knows your history.
+This positions Weft uniquely: every other project is either pure infrastructure or pure application. Weft is **autonomous agent infrastructure that produces creative non-fiction** — real onchain events, real builder journeys, real stakes, told beautifully by an AI agent that knows your history and stores it in 0G's persistent memory layer.
 
-## Target Prizes
+---
 
-| Sponsor | Track | Prize | Status |
+## Target Tracks
+
+| Priority | Track | Prize Pool | Fit |
 |---|---|---|---|
-| 0G | Best Agent Framework | $7,500 | ✅ Strong fit — Weft is a modular agent framework on 0G Chain + Storage |
-| 0G | Best Autonomous Agents | $7,500 | ✅ Strong fit — multi-node verifier swarm with persistent 0G Storage memory |
-| Gensyn | Best Application of AXL | $5,000 | ✅ Real AXL binary integration — encrypted P2P verdict exchange |
-| KeeperHub | Best Use of KeeperHub | $5,000 | ✅ Deep integration — retry, gas opt, audit trail, fallback |
-| ENS | Best ENS Integration for AI Agents | $2,500 | ✅ Fixed namehash bug, wired into daemon |
-| ENS | Most Creative Use of ENS | $2,500 | ✅ Portable reputation via text records |
-| fal.ai | Creative imagery layer | — | ✅ `fal_client.py` — AI-woven swatch + chronicle cover images (env: `FAL_KEY`) |
-| Hermes/Kimi | Creative Hackathon — Kimi Track | $5,000 | ✅ Builder Journey chronicles + milestone cards via Kimi (weaving metaphor) |
+| **Primary** | **Track 3 — Agentic Economy & Autonomous Applications** | $45k/1st, $35k/2nd, $20k/3rd + Excellence/Community | ✅ **Strongest fit** — Weft is an autonomous capital-release system for AI agents, exactly matching "financial rails for autonomous agents" |
+| **Secondary** | **Track 4 — Web 4.0 Open Innovation (The Wildcard)** | $45k/1st, $35k/2nd, $20k/3rd + Excellence/Community | ✅ **Strong fit** — Deep 0G Storage integration (KV+Log) for agent memory, innovative infrastructure |
+| Honorary | **Track 1 — Agentic Infrastructure** | Same as above | ⚠️ Requires OpenClaw — Weft uses Hermes instead |
 
-**Total addressable: $40,000**
+**Total addressable**: Up to $45k per track for 1st prize.
+
+---
+
+## Why Weft Wins on Judging Criteria
+
+| Criterion | How Weft Delivers |
+|---|---|
+| **0G Technical Integration Depth & Innovation** | Uses 0G Chain for milestones + 0G Storage KV for real-time agent state + 0G Storage Log for immutable history + 0G Indexer for metadata — **the full 0G stack** |
+| **Implementation Completeness** | Deployed contracts on Galileo testnet, autonomous Python daemon, 7 Hermes skills, Next.js frontend, live AXL node, MCP server |
+| **Product Value / Market Potential** | Replaces managers/lawyers/escrow for milestone-based funding — a real $10B+ market |
+| **UX / Demo Quality** | 5+ demo surfaces: CLI daemon, Hermes Agent chat, web frontend, AskWeft widget, MCP tools |
+| **Team Capability / Docs** | Comprehensive README, AGENTS.md, architecture docs, FEEDBACK.md, deployment guides |
 
 ---
 
 ## Per-Track Analysis
 
-### 0G — Best Agent Framework ($7,500)
+### Track 3 — Agentic Economy & Autonomous Applications (PRIMARY)
+
+**Track description:** "Financial/service layer for AI agents — includes financial rails, AI commerce/social, and operational tools for autonomous agents."
+
+**Why Weft fits:**
+- **Autonomous capital release** — Weft's core mechanism is: agent verifies milestone → capital releases. This is a financial primitive for AI agents.
+- **Agents as economic actors** — Weft treats Hermes Agents as first-class participants that can earn, hold reputation, and participate in capital allocation
+- **Multi-node verifier swarm** — autonomous agents that coordinate without human intervention
+- **Persistent agent memory via 0G Storage** — KV for real-time state, Log for immutable history
 
 **What we have:**
-- Modular `agent/lib/` with 15+ composable modules (jsonrpc, abi, mvp_verifier, etc.)
-- 0G Chain for milestones, 0G Storage for evidence bundles + KV pointers
-- Deterministic verification pipeline with pluggable evidence collectors
-- Hermes Agent skill (`agent/skills/weft-verify/`) for no-code verification
-- `weft_daemon.py` as the autonomous runtime
-- `bundle_manifest.json` for deterministic artifact integrity
+- [x] Hermes Agent with 7 auto-loaded skills (chronicle, verify, narrate, demo, manim, status, ens)
+- [x] `weft_daemon.py` autonomous verification loop (poll → collect evidence → peer consensus → onchain vote)
+- [x] `keeperhub_client.py` for reliable onchain execution
+- [x] `zero_storage.py` for 0G Storage KV + Log as agent memory
+- [x] ENS identity for portable agent/builder reputation
+- [x] Multi-node AXL peer consensus (offchain safety gate before onchain vote)
 
-**What judges want:** "Framework-level work… architectures, developer tooling, and infrastructure primitives that other builders will use."
-
-**Gaps to close:**
-- [x] Architecture diagram in README
-- [ ] Highlight the skill auto-generation angle (Hermes skills from verification templates)
-- [ ] Emphasize 0G Storage KV as persistent agent memory layer
-
-**Demo angle:** Show a new milestone template being added → daemon auto-verifies → evidence published to 0G → skill available in Hermes.
+**Demo angle for judges:**
+> "Weft is an autonomous agent that manages milestone-based capital release. A builder creates a milestone, stakes capital, and works toward the objective. When the deadline passes, Weft's Hermes Agent swarm polls 0G Chain, collects evidence from onchain usage and GitHub, corroborates with peer nodes via AXL, persists everything to 0G Storage, and releases capital autonomously. The agent tells the story of what happened in human-readable narrative — creative non-fiction from the blockchain."
 
 ---
 
-### 0G — Best Autonomous Agents ($7,500)
+### Track 4 — Web 4.0 Open Innovation (SECONDARY)
+
+**Track description:** "Scaling for SocialFi, Gaming, and DePIN using 0G decentralized storage — the wildcard track for innovative infrastructure."
+
+**Why Weft fits:**
+- **Deepest 0G Storage integration** — Weft uses 0G Storage as its **persistent agent memory layer**, not just file storage. KV for real-time state, Log for append-only history, file upload for evidence bundles
+- **Innovative architecture** — No other project uses 0G Storage as a memory layer for a multi-node autonomous agent swarm
+- **Web4 principle: agent-owned data** — Builders' milestone history lives on 0G, not on Weft's servers. Portable, verifiable, permanent
 
 **What we have:**
-- Multi-node verifier swarm (3 independent daemon nodes)
-- Peer corroboration via signed envelopes + inbox persistence
-- Consensus-root derivation (deterministic `consensusRoot = keccak(consensus.json)`)
-- 0G Storage for persistent evidence (KV for real-time state, file upload for bundles)
-- Kimi narrative generation (agent explains its reasoning in prose)
+- [x] `zero_storage.py` — full KV read/write + file upload + Log append
+- [x] KV keys: `weft:milestone:<hash>:state`, `weft:milestone:<hash>:consensus`, `weft:milestone:<hash>:bundle`
+- [x] Log keys: `weft:milestone:<hash>:history`, `weft:milestone:<hash>:chronicle`
+- [x] `bundle_manifest.json` + `bundle.tar.gz` for verifiable evidence bundles
+- [x] `indexer_client.py` — unified indexer that tries 0G KV first, falls back to onchain events
 
-**What judges want:** "Long-running goal-driven agents, emergent collaboration."
-
-**Gaps to close:**
-- [ ] Emphasize the "swarm coordination" narrative (planner=scheduler, verifier=evidence, reporter=Kimi)
-- [ ] Show agents communicating via shared 0G Storage memory
-
-**Demo angle:** 3 verifier nodes independently verify → peer-corroborate → consensus bundle published to 0G → Kimi generates human-readable report.
+**Demo angle:**
+> "Weft uses 0G Storage as the persistent memory layer for an autonomous agent swarm. Each milestone's verification state, peer consensus proofs, chronicle narratives, and evidence bundles all live on 0G — KV for real-time agent state, Log for immutable history. When you resolve `weft.thisyearnofear.eth`, you find a builder with a permanent, verifiable track record stored on 0G."
 
 ---
 
-### Gensyn — Best Application of AXL ($5,000)
+## Demo Script (3-minute video)
 
-**What we have:**
-- `axl_client.py` with broadcast/receive/tally/register
-- Signed verdict envelopes (`verdict_envelope.py`)
-- Peer inbox persistence (`peer_inbox.py`)
-- `weft_peer_server.py` for receiving broadcasts
-- Authorized-peers mode via `VerifierRegistry`
+### 0:00–0:30 — Problem & Solution (Track 3 pitch)
+"Milestone funding still depends on manual trust: managers, screenshots, Telegram checklists. Weft replaces that with an autonomous agent that releases capital based on verifiable outcomes. **This is a financial primitive for the agentic economy.** "
 
-**What judges want:** "Must use AXL for inter-agent communication… demonstrate communication across separate AXL nodes."
+### 0:30–1:00 — The Hermes Agent in Action
+- Show the Hermes prompt: `"verify milestone 0x5169..."` 
+- Agent responds with evidence collection, peer consensus, onchain verdict
+- "The agent does what a manager would do — but autonomously, transparently, and with a permanent record on 0G."
 
-**Gaps to close:**
-- [x] Replace HTTP stub with real AXL binary routing (localhost → AXL node → peer)
-- [ ] Demo showing 2-3 separate AXL nodes exchanging signed verdicts
-- [ ] Document AXL integration depth in README
+### 1:00–1:30 — 0G Storage as Agent Memory
+- Show the 0G Storage integration deep dive
+- "0G Storage KV holds the agent's real-time state. 0G Storage Log holds the immutable history. Every milestone, every verdict, every narrative — all on 0G."
+- Show `curl` to status API showing milestone data from 0G
 
-**Demo angle:** Start 3 AXL nodes → each verifier daemon routes through its local AXL → encrypted P2P verdict exchange → consensus reached without central coordinator.
+### 1:30–2:00 — Multi-Node Autonomy
+- Show AXL peer consensus: 3 verifier nodes, signed envelopes, threshold agreement
+- "No central coordinator. No single point of failure. The agents coordinate through 0G and AXL."
 
----
+### 2:00–2:30 — The Creative Layer (What Makes Weft Unique)
+- Show `chronicle.html` — Kimi-generated Builder Journey narrative
+- Show `milestone_card.html` — fal.ai milestone swatch
+- Show ENS profile with accumulated track record
+- "Every verified milestone becomes a shareable story. Weft doesn't just verify — it tells the story of what happened."
 
-### KeeperHub — Best Use of KeeperHub ($5,000)
-
-**What we have:**
-- `keeperhub_client.py` with full integration: execute_verdict, poll status, retry logic
-- Gas optimization, audit trail, fallback to cast send
-- Environment-based configuration (API key, URL override, timeout)
-- Documented in AGENTS.md and FEEDBACK.md
-
-**What judges want:** "Does it work? Would someone actually use it? Depth of integration."
-
-**Gaps to close:**
-- [x] FEEDBACK.md covers KeeperHub builder feedback (3 items)
-- [ ] Ensure demo shows KeeperHub execution path clearly
-
-**Demo angle:** Verdict ready → KeeperHub executes `submitVerdict()` with retry + gas optimization → tx confirmed → audit trail logged.
-
----
-
-### ENS — Best ENS Integration for AI Agents ($2,500)
-
-**What we have:**
-- `ens_client.py` with full profile CRUD (builder profile, project records, milestone records, agent records)
-- Namehash correctly uses keccak256 (EIP-137 compliant)
-- Ownership pre-flight check (`verify_ownership`)
-- Wired into `weft_daemon.py` (auto-updates after verified milestone)
-- Text record schema: `weft.projects`, `weft.milestones.verified`, `weft.earned.total`, `weft.reputation.score`
-
-**What judges want:** "ENS is the identity mechanism… resolving agent's address, storing metadata, gating access, enabling discovery."
-
-**Gaps to close:**
-- [ ] Demo showing ENS profile update after verification
-- [ ] Show ENS as discovery mechanism (resolve builder.weft.eth → see track record)
-
----
-
-### ENS — Most Creative Use of ENS ($2,500)
-
-**What we have:**
-- Per-milestone text records (`weft.milestone.<hash>.status`, `.evidence`, `.released`)
-- Per-project records (`weft.project.<id>.role`, `.earnings`, `.milestones`)
-- Agent subname records (`weft.agent.contributions`, `.earnings`, `.projects`)
-- Portable reputation: ENS name carries funded-outcome history across platforms
-
-**What judges want:** "Store verifiable credentials… use subnames as access tokens… surprise us!"
-
-**Demo angle:** Builder's ENS name accumulates verified milestone history → any dApp can resolve it → portable reputation without a centralized platform.
-
----
-
-### fal.ai — AI-woven imagery layer
-
-**What it does:** Each verified milestone generates a unique AI image (a 'swatch') whose visual character is driven by verification metrics — callers, commits, peer signers. Chronicle covers are generated for multi-milestone builder journeys.
-
-**What's implemented:**
-- [x] `agent/lib/fal_client.py` — `generate_milestone_image()` + `generate_chronicle_cover()`
-- [x] Wired into `weft_daemon.py` after successful verification (when `FAL_KEY` is set)
-- [x] Swatch embedded in `milestone_card.html`; cover embedded in `chronicle.html`
-
-**Demo angle:** Milestone verified → Kimi writes the narrative → fal.ai weaves the visual swatch → HTML card combines both into a shareable creative artifact.
-
----
-
-### Hermes Creative Hackathon — Kimi Track ($5,000)
-
-**What we have:**
-- `kimi_client.py` — `generate_narrative()` for single attestations + `generate_chronicle()` for multi-chapter Builder Journey narratives
-- `chronicle.py` — HTML milestone achievement cards (woven-fabric visual motif) and full chronicle pages
-- `CHRONICLE_SYSTEM_PROMPT` instructs Kimi to use textile/weaving metaphors naturally (threads, fabric, tapestry, interlacing)
-- `weft-chronicle` Hermes skill — "tell me my project's story" loads all attestations and generates the full tapestry
-- Integrated into daemon pipeline: chronicle + milestone card generated after each verification, included in 0G bundle
-- Graceful fallback when KIMI_API_KEY unset
-
-**What judges want:** "Prove your use of Kimi models… creativity, usefulness, presentation."
-
-**Why we're competitive now:**
-- **Creative non-fiction from the blockchain** — no other project has real onchain data feeding creative narrative output
-- Each milestone is a thread; peer consensus is the interlacing; the verified story is the fabric
-- Shareable HTML milestone cards = visual artifacts judges can see in the demo video
-- The weaving metaphor runs through the entire product, not bolted on
-
-**Gaps to close:**
-- [x] `generate_chronicle()` with `CHRONICLE_SYSTEM_PROMPT` (weaving metaphors)
-- [x] `chronicle.py` with HTML milestone cards (woven-fabric motif)
-- [x] `weft-chronicle` Hermes skill
-- [x] Daemon integration (chronicle in verification pipeline + 0G bundle)
-- [ ] Demo video showing chronicle generation + milestone card in real-time
+### 2:30–3:00 — Close
+"Weft gives the agentic economy a capital release mechanism that's autonomous, verifiable, and beautiful. **0G provides the memory. Hermes provides the mind. AXL provides the consensus. The builder keeps the story.** "
 
 ---
 
 ## Submission Checklist
 
-### All Tracks
-- [ ] Project name and short description
-- [ ] Contract deployment addresses (WeftMilestone on 0G testnet)
-- [ ] Public GitHub repo with README + setup instructions
-- [ ] Demo video (<3 min) + live demo link
-- [ ] Protocol features / SDKs used
-- [ ] Team member names + contact (Telegram & X)
+### Required by 0G APAC
+- [ ] GitHub repo link (public)
+- [ ] 0G contract/explorer link (WeftMilestone: `0x9f66158c560ce5c8b40820fdcd2874ff8d852192`)
+- [ ] Demo video (<3 minutes)
+- [ ] Detailed README with setup + architecture
+- [ ] Public X post with @0G_labs mention
 
-### 0G Specific
-- [ ] Working example agent (weft-verify skill)
-- [ ] Architecture diagram showing 0G Storage/Compute integration
-
-### fal.ai Specific
-- [ ] Confirm `FAL_KEY` env var set on snel-bot for live demo
-
-### KeeperHub Specific
-- [ ] FEEDBACK.md with KeeperHub builder feedback (already done)
-
-### Gensyn Specific
-- [ ] Communication across separate AXL nodes demonstrated
-- [ ] Clear documentation of AXL integration
-
-### ENS Specific
-- [ ] Functional demo (no hard-coded values)
-- [ ] Video or live demo link
+### Weft-specific
+- [ ] Contract addresses in README
+- [ ] Architecture diagram showing 0G integration depth
+- [ ] Demo video recorded and uploaded
+- [ ] FEEDBACK.md present
+- [ ] Team/contact block in repo
 
 ---
 
-## Demo Script (scripts/demo_e2e.sh)
+## 0G Component Mapping
 
-Single end-to-end demo covering all sponsors:
+| 0G Component | Weft Usage | Depth |
+|---|---|---|
+| **0G Chain** | WeftMilestone + VerifierRegistry deployed on Galileo | Onchain (smart contracts) |
+| **0G Storage KV** | Real-time agent memory: `weft:milestone:<hash>:state`, `weft:milestone:<hash>:consensus`, `weft:milestone:<hash>:bundle` | Deep (primary memory layer) |
+| **0G Storage Log** | Immutable history: `weft:milestone:<hash>:history`, `weft:milestone:<hash>:chronicle` | Deep (append-only event log) |
+| **0G Indexer** | Milestone metadata lookup from 0G Storage | Integration |
 
-1. **Create milestone** on 0G Chain (WeftMilestone contract)
-2. **Start 3 verifier daemons** with AXL peer routing
-3. **Evidence collection** → deployment check + unique callers
-4. **Kimi chronicle** — Builder Journey narrative with weaving metaphors
-4b. **Milestone card** — shareable HTML achievement card (woven-fabric motif)
-5. **Peer corroboration** via AXL (signed envelopes exchanged)
-6. **Consensus bundle** published to 0G Storage
-7. **KeeperHub** executes `submitVerdict()` onchain
-8. **ENS profile** updated with milestone record
-9. **fal.ai** generates AI-woven swatch image for the milestone card
-10. **Status API** shows final milestone state
-
-This single demo qualifies for all 7+ prize tracks simultaneously.
+> Weft does **not** use 0G Compute, 0G DA, or OpenClaw. It uses Hermes Agent instead of OpenClaw for the agentic layer, which is a more natural fit for a Hermes-native project.

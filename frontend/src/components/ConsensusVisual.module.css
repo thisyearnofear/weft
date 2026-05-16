@@ -1,0 +1,133 @@
+.container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.75rem 1.25rem;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(16, 18, 31, 0.95), rgba(9, 11, 21, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 45%, rgba(99, 102, 241, 0.08), transparent 65%);
+  pointer-events: none;
+}
+
+.svg {
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+}
+
+/* Node pulsing glow */
+.node {
+  filter: drop-shadow(0 0 6px rgba(99, 102, 241, 0.5));
+  transition: filter 0.3s ease;
+}
+
+/* Animated packets */
+.packet {
+  filter: drop-shadow(0 0 4px rgba(167, 139, 250, 0.8));
+}
+
+/* Verified badge animation */
+.verifiedBadge {
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* ── Legend bar ── */
+.legend {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.legendDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.legendLabel {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: monospace;
+  letter-spacing: 0.04em;
+}
+
+/* ── Status row ── */
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: monospace;
+  letter-spacing: 0.04em;
+}
+
+.pulseDot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: livePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verifiedBadge {
+    animation: none;
+  }
+  .packet {
+    display: none;
+  }
+  .pulseDot {
+    animation: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1.25rem 1rem;
+  }
+}

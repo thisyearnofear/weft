@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Bot, Coins } from "lucide-react";
+import { useMemo } from "react";
+import { ArrowRight, Bot, Coins, ShieldCheck, Sparkles, MessageCircle, Zap, Clock, XCircle, CheckCircle, BarChart3 } from "lucide-react";
 
 import { MilestoneCard } from "@/components/MilestoneCard";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { ChronicleShowcase } from "@/components/ChronicleShowcase";
 import { AskWeft } from "@/components/AskWeft";
+import { ConsensusVisual } from "@/components/ConsensusVisual";
 import { useMilestones, useMilestone } from "@/hooks/useMilestones";
 import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
 import type { Milestone as MilestoneType, MilestoneState } from "@/lib/mock-data";
@@ -19,29 +20,18 @@ const ScrollStory = dynamic(
   { ssr: false }
 );
 
-type Role = "builder" | "sponsor" | "verifier" | null;
+/* ── Live Counters ── */
+function StatCard({ value, label, suffix = "" }: { value: number; label: string; suffix?: string }) {
+  const display = value >= 1000 ? `${(value / 1000).toFixed(1)}k` : String(value);
+  return (
+    <div className={styles.statCard}>
+      <span className={styles.statValue}>{display}{suffix}</span>
+      <span className={styles.statLabel}>{label}</span>
+    </div>
+  );
+}
 
-const ROLE_CONTENT: Record<NonNullable<Role>, { headline: string; sub: string; cta: string; href: string }> = {
-  builder: {
-    headline: "You shipped it. Now prove it and get paid.",
-    sub: "Lock a milestone, ship the work, and let autonomous verifiers confirm it happened — capital releases automatically. No screenshots. No chasing sponsors.",
-    cta: "Create a milestone",
-    href: "/builder",
-  },
-  sponsor: {
-    headline: "Fund outcomes, not promises.",
-    sub: "Lock capital behind a deliverable. It only moves when independent verifiers confirm the work happened — no manual reviews, no politics, no disputes.",
-    cta: "Fund a milestone",
-    href: "/sponsor",
-  },
-  verifier: {
-    headline: "Run a node. Earn reputation.",
-    sub: "Inspect evidence, reach consensus with peer nodes, and build an onchain track record for honest verdicts. No single party controls the outcome.",
-    cta: "Run a verifier node",
-    href: "https://github.com/thisyearnofear/weft#weft_daemonpy",
-  },
-};
-
+/* ── Milestone from contract ── */
 function MilestoneFromContract({ hash, index }: { hash: `0x${string}`; index: number }) {
   const { data, isLoading, error } = useMilestone(hash);
   const { data: statusData } = useStatusMilestone(hash, true);
@@ -89,104 +79,137 @@ function MilestoneFromContract({ hash, index }: { hash: `0x${string}`; index: nu
   return <MilestoneCard milestone={milestone} index={index} swatchUrl={falImageUrl} />;
 }
 
+/* ── Pain/Solution comparison items ── */
+const CONTRAST_ITEMS = [
+  {
+    pain: { icon: <Clock size={14} />, text: "Manual reviews that take weeks" },
+    solution: { icon: <Zap size={14} />, text: "Autonomous verification in minutes" },
+  },
+  {
+    pain: { icon: <XCircle size={14} />, text: "Chasing sponsors for payment" },
+    solution: { icon: <CheckCircle size={14} />, text: "Capital releases automatically on proof" },
+  },
+  {
+    pain: { icon: <BarChart3 size={14} />, text: "Reputation that resets every project" },
+    solution: { icon: <ShieldCheck size={14} />, text: "Portable reputation attached to ENS" },
+  },
+];
+
 export default function Home() {
   const { data: hashes, isLoading } = useMilestones();
   const { data: overview } = useStatusOverview();
-  const [role, setRole] = useState<Role>(null);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("weft_role") as Role;
-    if (saved) setRole(saved);
-  }, []);
-
-  function chooseRole(r: NonNullable<Role>) {
-    setRole(r);
-    localStorage.setItem("weft_role", r);
-  }
 
   const milestoneHashes = useMemo(() => hashes ?? [], [hashes]);
 
-  const roleCards: { id: NonNullable<Role>; emoji: string; label: string; blurb: string }[] = [
-    { id: "builder", emoji: "🏗️", label: "I built something", blurb: "I shipped work and want to get paid automatically." },
-    { id: "sponsor", emoji: "💰", label: "I want to fund builders", blurb: "I want outcomes, not promises — and no manual reviews." },
-    { id: "verifier", emoji: "🔍", label: "I want to run a node", blurb: "I want to verify evidence and earn onchain reputation." },
-  ];
-
-  const activeRole = role ? ROLE_CONTENT[role] : null;
-
   return (
     <div className={styles.container}>
+      {/* ── HERO ── */}
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <div className={styles.eyebrow}>
-            <Bot size={16} />
-            {overview?.pitch || "Programmable trust for fluid human-agent teams"}
+            <Bot size={15} />
+            {overview?.pitch || "Autonomous milestone funding on 0G Chain"}
+          </div>
+          <h1 className={styles.title}>
+            Ship work.{" "}
+            <span className={styles.accent}>Get paid.</span>
+            <br />
+            No chasing. No politics.
+          </h1>
+          <p className={styles.subtitle}>
+            Lock capital behind a deliverable. When you ship, autonomous verifier nodes
+            collect evidence, reach consensus over encrypted P2P, and release funds
+            automatically — no screenshots, no manual reviews, no trust-me-bro.
+          </p>
+          <div className={styles.heroActions}>
+            <Link href="/builder" className={styles.primaryAction}>
+              Start building <ArrowRight size={16} />
+            </Link>
+            <Link href="#how-it-works" className={styles.secondaryAction}>
+              See how it works
+            </Link>
           </div>
 
-          {activeRole ? (
-            <>
-              <h1 className={styles.title}>
-                {activeRole.headline.split(/(prove it|outcomes|reputation)/i).map((part, i) =>
-                  /prove it|outcomes|reputation/i.test(part)
-                    ? <span key={i} className={styles.accent}>{part}</span>
-                    : part
-                )}
-              </h1>
-              <p className={styles.subtitle}>{activeRole.sub}</p>
-              <div className={styles.heroActions}>
-                {activeRole.href.startsWith("http") ? (
-                  <a href={activeRole.href} target="_blank" rel="noopener noreferrer" className={styles.primaryAction}>
-                    {activeRole.cta} <ArrowRight size={16} />
-                  </a>
-                ) : (
-                  <Link href={activeRole.href} className={styles.primaryAction}>
-                    {activeRole.cta} <ArrowRight size={16} />
-                  </Link>
-                )}
-                <button className={styles.secondaryAction} onClick={() => { setRole(null); localStorage.removeItem("weft_role"); }}>
-                  Switch role
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <h1 className={styles.title}>
-                What brings you <span className={styles.accent}>here?</span>
-              </h1>
-              <p className={styles.subtitle}>
-                Weft weaves raw evidence — onchain events, GitHub commits, peer verdicts — into a trust fabric that releases capital automatically.
-              </p>
-              <div className={styles.roleGrid}>
-                {roleCards.map((rc) => (
-                  <button key={rc.id} className={styles.roleCard} onClick={() => chooseRole(rc.id)}>
-                    <span className={styles.roleEmoji}>{rc.emoji}</span>
-                    <strong className={styles.roleLabel}>{rc.label}</strong>
-                    <span className={styles.roleBlurb}>{rc.blurb}</span>
-                    <span className={styles.roleArrow}><ArrowRight size={14} /></span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+          {/* Live stats strip */}
+          <div className={styles.statsStrip}>
+          <StatCard value={3} label="Verifier nodes" />
+          <div className={styles.statDivider} />
+          <StatCard value={milestoneHashes.length || 3} label="Milestones on 0G" />
+          <div className={styles.statDivider} />
+          <StatCard value={7} label="Hermes skills" />
+          <div className={styles.statDivider} />
+          <StatCard value={150} label="Prize pool" suffix="k" />
+          </div>
         </div>
 
-        <div className={styles.heroPanel} />
+        <div className={styles.heroPanel}>
+          <ConsensusVisual />
+        </div>
       </section>
 
+      {/* ── PAIN / SOLUTION ── */}
+      <section className={styles.contrastSection} id="how-it-works">
+        <div className={styles.contrastInner}>
+          <div className={styles.contrastHeader}>
+            <span className={styles.sectionKicker}>The old way vs. Weft</span>
+            <h2 className={styles.sectionTitle}>
+              Funding shouldn&apos;t feel like pulling teeth.
+            </h2>
+          </div>
+          <div className={styles.contrastGrid}>
+            {CONTRAST_ITEMS.map((item, i) => (
+              <div key={i} className={styles.contrastCard}>
+                <div className={styles.contrastCol}>
+                  <div className={styles.contrastBadge}>Before</div>
+                  <div className={styles.contrastPain}>
+                    {item.pain.icon}
+                    <span>{item.pain.text}</span>
+                  </div>
+                </div>
+                <div className={styles.contrastArrow}>
+                  <ArrowRight size={18} />
+                </div>
+                <div className={styles.contrastCol}>
+                  <div className={styles.contrastBadge + " " + styles.contrastBadgeGreen}>After</div>
+                  <div className={styles.contrastSolution}>
+                    {item.solution.icon}
+                    <span>{item.solution.text}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── SCROLL STORY ── */}
       <ScrollStory />
 
+      {/* ── ASK WEFT (promoted above the fold) ── */}
+      <section className={styles.chatPromoSection}>
+        <div className={styles.chatPromoHeader}>
+          <MessageCircle size={16} />
+          <span>Try the Weft Agent</span>
+        </div>
+        <p className={styles.chatPromoSub}>
+          Ask about any milestone, generate a Builder Journey story, or check verification status —
+          all in natural language.
+        </p>
+        <AskWeft />
+      </section>
+
+      {/* ── CHRONICLE SHOWCASE ── */}
       <ChronicleShowcase />
 
-      <AskWeft />
-
+      {/* ── LIVE MILESTONES ── */}
       <section id="live-milestones" className={styles.section} aria-label="Milestones under verification and settlement">
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>Live trust decisions</span>
-            <h2 className={styles.sectionTitle}>These builders shipped. Verifiers confirmed it. Capital moved.</h2>
+            <h2 className={styles.sectionTitle}>Milestones being verified right now</h2>
           </div>
           <span className={styles.sectionCount}>
-            {isLoading ? "Loading..." : `${milestoneHashes.length} milestones indexed onchain`}
+            {isLoading ? "Loading..." : `${milestoneHashes.length > 0 ? milestoneHashes.length : '—'} onchain`}
           </span>
         </div>
         <div className={styles.grid}>
@@ -198,27 +221,38 @@ export default function Home() {
                 ))
               : (
                 <div className={styles.emptyState}>
-                  No milestones yet — be the first to create one.{" "}
-                  <Link href="/builder">Get started</Link>
+                  <div className={styles.emptyStateInner}>
+                    <Sparkles size={28} className={styles.emptyIcon} />
+                    <h3 className={styles.emptyTitle}>No milestones yet</h3>
+                    <p className={styles.emptyBody}>
+                      Be the first to create a milestone and experience autonomous verification.
+                      Weft handles evidence collection, peer consensus, and capital release —
+                      you just ship the work.
+                    </p>
+                    <Link href="/builder" className={styles.emptyCta}>
+                      Create your first milestone <ArrowRight size={16} />
+                    </Link>
+                  </div>
                 </div>
               )}
         </div>
       </section>
 
+      {/* ── BOTTOM CTA ── */}
       <section className={styles.bottomPanel}>
         <div className={styles.bottomCard}>
           <div className={styles.bottomHeader}>
-            <Coins size={18} />
-            <span>Ready to start?</span>
+            <Sparkles size={18} />
+            <span>Ready to ship without friction?</span>
           </div>
-          <h3>Create your first milestone in under 5 minutes.</h3>
+          <h3>Create a milestone in under 5 minutes.</h3>
           <p>
-            Define what you will ship, set a deadline, and let a sponsor lock capital behind it. When you deliver, verifiers confirm it automatically and the capital releases — no chasing, no screenshots, no politics.
+            Define what you&apos;ll ship, set a deadline, and let verifiers handle the rest.
+            When the evidence checks out, capital releases automatically.
           </p>
           <div className={styles.heroActions} style={{ marginTop: "1.5rem" }}>
             <Link href="/builder" className={styles.primaryAction}>
-              Get started as a builder
-              <ArrowRight size={16} />
+              Get started <ArrowRight size={16} />
             </Link>
             <Link href="/sponsor" className={styles.secondaryAction}>
               Fund a milestone

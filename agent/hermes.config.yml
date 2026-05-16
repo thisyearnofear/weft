@@ -1,9 +1,12 @@
-# Hermes Agent Configuration for Weft
+# Hermes Agent Configuration for Weft — 0G APAC Hackathon
 
 ## Overview
 
 Weft extends Hermes with deterministic onchain evidence collection.
 See `AGENTS.md` for the canonical agent workflow.
+
+**0G APAC Hackathon**: Submitted to Track 3 (Agentic Economy & Autonomous Applications) and
+Track 4 (Web 4.0 Open Innovation). Deadline: May 16, 2026.
 
 ## Agent Workflow (End-to-End)
 
@@ -13,7 +16,7 @@ See `AGENTS.md` for the canonical agent workflow.
 4. **AXL Consensus** — broadcast verdict, poll peers, tally quorum (optional)
 5. **Store** — `zero_storage` writes evidence to 0G Storage (auto if configured)
 6. **ENS** — update builder profile with verified milestone (auto if config)
-7. **Submit** — call `submitVerbid()` onchain
+7. **Submit** — call `submitVerdict()` onchain via KeeperHub (preferred) or cast send (fallback)
 
 ## CLI Usage
 

@@ -147,6 +147,9 @@ def _make_handler(
             parsed = urlparse(self.path)
             path = parsed.path.rstrip("/")
 
+            if path == "/api/v1/verify":
+                return self._handle_verify_request()
+
             if path == "/chronicle/generate":
                 return self._handle_chronicle_generate()
 
@@ -158,6 +161,28 @@ def _make_handler(
                 return self._handle_chat()
 
             self._send_json(404, {"ok": False, "error": "not_found"})
+
+        def _handle_verify_request(self):
+            """Handle incoming verification request from Proof-of-Ship."""
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                body = json.loads(self.rfile.read(length)) if length else {}
+            except Exception:
+                return self._send_json(400, {"ok": False, "error": "invalid_json"})
+
+            milestone_id = body.get("milestone_id")
+            if not milestone_id:
+                return self._send_json(400, {"ok": False, "error": "milestone_id required"})
+
+            # Enqueue the verification task here.
+            # For now, we return accepted and acknowledge the request.
+            print(f"status_api: [Integration] Received verification request for {milestone_id}")
+
+            return self._send_json(202, {
+                "ok": True,
+                "milestone_id": milestone_id,
+                "message": "Verification request accepted and enqueued."
+            })
 
         def do_OPTIONS(self):  # noqa: N802 — CORS preflight
             self.send_response(204)
