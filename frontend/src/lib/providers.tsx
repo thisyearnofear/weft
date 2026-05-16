@@ -19,9 +19,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       ],
       transports: {
         [zeroGTestnet.id]: http('https://evmrpc-testnet.0g.ai'),
-        [base.id]: http(),
-        [mainnet.id]: http(),
-        [sepolia.id]: http(),
+        [base.id]: http('https://base-rpc.publicnode.com'),
+        [mainnet.id]: http('https://ethereum-rpc.publicnode.com'),
+        [sepolia.id]: http('https://ethereum-sepolia-rpc.publicnode.com'),
       },
     })
   );

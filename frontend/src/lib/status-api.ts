@@ -100,6 +100,7 @@ export interface StatusApiOverview {
     metadataIndexer: string | null;
     builderEns: string | null;
     agentEns: string | null;
+    milestones?: `0x${string}`[];
   };
   falConfigured?: boolean;
 }

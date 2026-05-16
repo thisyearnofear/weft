@@ -812,6 +812,29 @@ def _axl_status(inbox_dir: str) -> dict:
     }
 
 
+def _known_demo_milestones(inbox_dir: str) -> list[str]:
+    found: set[str] = set()
+
+    configured = os.environ.get("DEMO_MILESTONE_HASH") or os.environ.get("NEXT_PUBLIC_DEMO_MILESTONE_HASH")
+    if configured and configured.startswith("0x") and len(configured) == 66:
+        found.add(configured)
+
+    inbox_path = Path(inbox_dir)
+    if inbox_path.is_dir():
+        for envelope in inbox_path.glob("*.json"):
+            stem = envelope.stem.split("_")[0]
+            if stem.startswith("0x") and len(stem) == 66:
+                found.add(stem)
+
+    attestations_path = Path(_ATTESTATIONS_DIR)
+    if attestations_path.is_dir():
+        for child in attestations_path.iterdir():
+            if child.is_dir() and child.name.startswith("0x") and len(child.name) == 66:
+                found.add(child.name)
+
+    return sorted(found)
+
+
 def _demo_payload(metadata_indexer: str, inbox_dir: str, builder_ens: str, agent_ens: str) -> dict:
     return {
         "ok": True,
@@ -830,6 +853,7 @@ def _demo_payload(metadata_indexer: str, inbox_dir: str, builder_ens: str, agent
             "metadataIndexer": metadata_indexer or None,
             "builderEns": builder_ens or None,
             "agentEns": agent_ens or None,
+            "milestones": _known_demo_milestones(inbox_dir),
         },
     }
 

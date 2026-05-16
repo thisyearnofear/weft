@@ -17,8 +17,15 @@ export interface BuilderPassport {
   weftReputationScore: number;
 }
 
-function safeJsonParse(v: string): string[] {
-  try { return JSON.parse(v || "[]"); } catch { return []; }
+function safeJsonParse(v: unknown): string[] {
+  if (Array.isArray(v)) return v.filter((item): item is string => typeof item === "string");
+  if (typeof v !== "string") return [];
+  try {
+    const parsed = JSON.parse(v || "[]");
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
+  } catch {
+    return [];
+  }
 }
 
 export function useBuilderPassport(ens: string) {

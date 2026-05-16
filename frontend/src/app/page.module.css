@@ -372,6 +372,41 @@
   box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
 }
 
+.profileMilestoneCard {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: rgba(34, 197, 94, 0.06);
+  border: 1px solid rgba(34, 197, 94, 0.22);
+}
+
+.profileMilestoneKicker {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(74, 222, 128, 0.86);
+}
+
+.profileMilestoneCard h3 {
+  font-size: 1.2rem;
+  line-height: 1.25;
+  margin-bottom: 0.5rem;
+}
+
+.profileMilestoneCard p {
+  max-width: 68ch;
+  color: var(--c-text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
 /* ════════════════════════════════════════════
    BOTTOM CTA
    ════════════════════════════════════════════ */
@@ -477,5 +512,10 @@
 
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .profileMilestoneCard {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

@@ -12,6 +12,7 @@ import { AskWeft } from "@/components/AskWeft";
 import { ConsensusVisual } from "@/components/ConsensusVisual";
 import { useMilestones, useMilestone } from "@/hooks/useMilestones";
 import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
+import { useBuilderPassport } from "@/hooks/useBuilderPassport";
 import type { Milestone as MilestoneType, MilestoneState } from "@/lib/mock-data";
 import styles from "./page.module.css";
 
@@ -98,8 +99,15 @@ const CONTRAST_ITEMS = [
 export default function Home() {
   const { data: hashes, isLoading } = useMilestones();
   const { data: overview } = useStatusOverview();
+  const builderEns = overview?.demoHints?.builderEns || "weft.thisyearnofear.eth";
+  const { data: builderPassport } = useBuilderPassport(builderEns);
 
-  const milestoneHashes = useMemo(() => hashes ?? [], [hashes]);
+  const statusMilestones = overview?.demoHints?.milestones ?? [];
+  const milestoneHashes = useMemo(() => {
+    const source = hashes && hashes.length > 0 ? hashes : statusMilestones;
+    return Array.from(new Set(source));
+  }, [hashes, statusMilestones]);
+  const verifiedOutcomeCount = Math.max(milestoneHashes.length, builderPassport?.weftMilestonesVerified ?? 0);
 
   return (
     <div className={styles.container}>
@@ -134,7 +142,7 @@ export default function Home() {
           <div className={styles.statsStrip}>
           <StatCard value={3} label="Verifier nodes" />
           <div className={styles.statDivider} />
-          <StatCard value={isLoading ? 0 : milestoneHashes.length} label="Milestones on 0G" suffix={isLoading ? "…" : ""} />
+          <StatCard value={isLoading ? 0 : verifiedOutcomeCount} label="Verified outcomes" suffix={isLoading ? "…" : ""} />
           <div className={styles.statDivider} />
           <StatCard value={7} label="Hermes skills" />
           <div className={styles.statDivider} />
@@ -209,7 +217,7 @@ export default function Home() {
             <h2 className={styles.sectionTitle}>Milestones being verified right now</h2>
           </div>
           <span className={styles.sectionCount}>
-            {isLoading ? "Loading..." : `${milestoneHashes.length > 0 ? milestoneHashes.length : '—'} onchain`}
+            {isLoading ? "Loading..." : `${verifiedOutcomeCount > 0 ? verifiedOutcomeCount : '—'} verified`}
           </span>
         </div>
         <div className={styles.grid}>
@@ -219,6 +227,22 @@ export default function Home() {
               ? milestoneHashes.map((hash, i) => (
                   <MilestoneFromContract key={hash} hash={hash} index={i} />
                 ))
+              : verifiedOutcomeCount > 0
+                ? (
+                  <div className={styles.profileMilestoneCard}>
+                    <div>
+                      <span className={styles.profileMilestoneKicker}>Verified trust profile</span>
+                      <h3>{builderEns}</h3>
+                      <p>
+                        This identity already has {verifiedOutcomeCount} verified outcome{verifiedOutcomeCount === 1 ? "" : "s"}.
+                        Open the profile to show judges the portable reputation record while onchain milestone discovery catches up.
+                      </p>
+                    </div>
+                    <Link href={`/builder/${builderEns}`} className={styles.emptyCta}>
+                      View verified profile <ArrowRight size={16} />
+                    </Link>
+                  </div>
+                )
               : (
                 <div className={styles.emptyState}>
                   <div className={styles.emptyStateInner}>
