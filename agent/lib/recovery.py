@@ -60,12 +60,15 @@ class RecoveryEvent:
         return d
 
 
+from .hydradb_client import get_client as get_hydradb
+
 class RecoveryLog:
     """Thread-safe append-only recovery event log."""
 
     def __init__(self) -> None:
         self._events: List[RecoveryEvent] = []
         self._lock = threading.Lock()
+        self._hydra = get_hydradb()
 
     def emit(
         self,
@@ -88,6 +91,29 @@ class RecoveryLog:
         )
         with self._lock:
             self._events.append(entry)
+        
+        # Capture in HydraDB for long-term operational memory
+        if self._hydra:
+            text = f"Recovery Event: {event.value}."
+            if action:
+                text += f" Action taken: {action}."
+            if target:
+                text += f" Target: {target}."
+            if outcome != Outcome.SUCCESS:
+                text += f" Outcome: {outcome.value}."
+            
+            self._hydra.capture(
+                text=text,
+                metadata={
+                    "event_type": event.value,
+                    "outcome": outcome.value,
+                    "latency_ms": latency_ms,
+                    "target": target,
+                    **entry.context
+                },
+                modality="event"
+            )
+
         return entry
 
     def events(self, since: float = 0) -> List[Dict[str, Any]]:
@@ -120,6 +146,12 @@ class RecoveryLog:
                     e.event == EventType.VERDICT_SUBMITTED for e in self._events
                 ),
             }
+
+    def recall_insights(self, query: str = "What are the most frequent infrastructure failures?") -> str:
+        """Query HydraDB for historical operational insights."""
+        if not self._hydra:
+            return "HydraDB not configured."
+        return self._hydra.recall(query)
 
 
 # Global singleton — all modules emit to this log

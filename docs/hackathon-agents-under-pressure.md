@@ -56,6 +56,7 @@ Endpoint that injects real failures into a running verification:
 
 Single frontend page showing:
 - Live recovery timeline (event stream)
+- **Operational Memory Insights**: AI-generated analysis of frequent failures powered by **HydraDB**
 - "Trigger Chaos" button panel
 - Milestone verification progress bar
 - Final outcome: verdict lands onchain despite failures
@@ -69,16 +70,17 @@ agent/
   lib/
     recovery.py              ← NEW: RecoveryLog class + event types
     chaos.py                 ← NEW: Chaos injection (toggles failure flags)
+    hydradb_client.py        ← NEW: Operational Memory layer wrapper
   scripts/
     weft_status_api.py       ← ENHANCED: +GET /recovery, +POST /chaos
     weft_daemon.py           ← ENHANCED: emit recovery events at failure points
 
 frontend/
   src/app/recovery/
-    page.tsx                 ← NEW: Recovery dashboard
+    page.tsx                 ← NEW: Recovery dashboard + HydraDB insights
 ```
 
-**4 files changed/added. Zero new dependencies.**
+**6 files changed/added.**
 
 ---
 

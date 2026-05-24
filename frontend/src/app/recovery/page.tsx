@@ -24,6 +24,7 @@ interface RecoveryResponse {
   ok: boolean;
   events: RecoveryEvent[];
   summary: RecoverySummary;
+  insights?: string;
   chaos: { active: string[]; activatedAt: Record<string, number> };
 }
 
@@ -242,6 +243,25 @@ export default function RecoveryPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Operational Memory (HydraDB) ── */}
+      {data?.insights && data.insights !== "HydraDB not configured." && (
+        <div className={styles.insightsSection}>
+          <div className={styles.insightsHeader}>
+            <span className={styles.insightsIcon}>🧠</span>
+            <div className={styles.insightsTitleGroup}>
+              <h3>Operational Memory</h3>
+              <span className={styles.insightsBadge}>Powered by HydraDB</span>
+            </div>
+          </div>
+          <div className={styles.insightsBody}>
+            <p>{data.insights}</p>
+          </div>
+          <div className={styles.insightsFooter}>
+            Recall: "What are the most frequent infrastructure failures?"
+          </div>
+        </div>
+      )}
 
       {/* ── Main Content ── */}
       <div className={styles.layout}>

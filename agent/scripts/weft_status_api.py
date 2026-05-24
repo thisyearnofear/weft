@@ -118,6 +118,7 @@ def _make_handler(
                     "ok": True,
                     "events": rlog.events(since=since),
                     "summary": rlog.summary(),
+                    "insights": rlog.recall_insights() if not since else None,
                     "chaos": get_chaos_state().status(),
                 })
 
