@@ -77,6 +77,27 @@ const EVENT_DESCRIPTIONS: Record<string, string> = {
   chaos_injected: "Fault injected into system",
 };
 
+const NARRATOR_MESSAGES: Record<string, string> = {
+  idle: "The agent is idle, monitoring infrastructure. Click \"Run The Demo\" to begin.",
+  injecting: "Injecting simultaneous failures across all 4 infrastructure layers...",
+  verifying: "The agent is attempting to verify a milestone while under pressure. Watch the timeline.",
+  complete: "The agent recovered from every failure and delivered a correct onchain verdict.",
+  rpc_timeout: "The primary RPC endpoint is unreachable. The agent will attempt a fallback...",
+  rpc_fallback: "Fallback RPC connected successfully. Blockchain reads have resumed.",
+  peer_offline: "A verifier peer has dropped from the mesh. Rerouting consensus...",
+  peer_reroute: "Consensus rerouted through remaining peers. The mesh is healing.",
+  kimi_unavailable: "The narrative AI is unresponsive. The agent will serve from cache.",
+  kimi_cache_hit: "Cached narrative served. The agent degraded gracefully instead of crashing.",
+  keeperhub_503: "The execution service is down. The agent will retry with backoff...",
+  keeperhub_retry: "Retry succeeded. The onchain transaction is being submitted.",
+  keeperhub_confirmed: "Onchain execution confirmed by KeeperHub.",
+  verdict_submitted: "The verdict has landed onchain. Despite every failure, the agent succeeded.",
+  verification_started: "Beginning milestone verification. Collecting evidence...",
+  evidence_collected: "Evidence collected from onchain and offchain sources.",
+  narrative_generated: "AI narrative synthesized for the milestone story.",
+  chaos_injected: "Chaos injected. All 4 layers are now compromised.",
+};
+
 function dotClass(outcome: string): string {
   switch (outcome) {
     case "success": return styles.dotSuccess;
@@ -100,6 +121,8 @@ export default function RecoveryPage() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [copied, setCopied] = useState(false);
+  const [hoveredEvent, setHoveredEvent] = useState<number | null>(null);
+  const [celebrate, setCelebrate] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
 
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
@@ -142,6 +165,34 @@ export default function RecoveryPage() {
       timelineRef.current.scrollTop = timelineRef.current.scrollHeight;
     }
   }, [data?.events.length]);
+
+  useEffect(() => {
+    if (phase === "complete") {
+      setCelebrate(true);
+      const t = setTimeout(() => setCelebrate(false), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [phase]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.code === "Space" && phase === "idle") {
+        e.preventDefault();
+        runFullDemo();
+      }
+      if (e.code === "KeyR" && (phase === "complete" || phase === "idle")) {
+        e.preventDefault();
+        resetDemo();
+      }
+      if (e.code === "KeyC" && phase !== "verifying") {
+        e.preventDefault();
+        clearChaos();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [phase]);
 
   const runFullDemo = async () => {
     // Reset everything
@@ -199,6 +250,11 @@ export default function RecoveryPage() {
   const summary = data?.summary ?? { totalEvents: 0, failures: 0, recoveries: 0, verdictLanded: false };
   const activeFaults = data?.chaos?.active ?? [];
 
+  const latestEvent = data && data.events.length > 0 ? data.events[data.events.length - 1] : null;
+  const narratorMessage = latestEvent
+    ? (NARRATOR_MESSAGES[latestEvent.event] ?? NARRATOR_MESSAGES[phase] ?? "")
+    : NARRATOR_MESSAGES[phase];
+
   return (
     <div className={styles.container} data-theme={theme}>
       {/* ── Weaving Background ── */}
@@ -235,6 +291,7 @@ export default function RecoveryPage() {
             <div className={styles.heroActions}>
               <button className={styles.heroButton} onClick={runFullDemo}>
                 Run The Demo
+                <span className={styles.keyHint}>Space</span>
               </button>
               <button className={styles.shareButton} onClick={shareDemo}>
                 {copied ? "Copied!" : "Share Demo"}
@@ -260,6 +317,7 @@ export default function RecoveryPage() {
               </div>
               <button className={styles.resetButton} onClick={resetDemo}>
                 Run Again
+                <span className={styles.keyHint}>R</span>
               </button>
             </div>
           )}
@@ -277,6 +335,17 @@ export default function RecoveryPage() {
             <span className={styles.heroStatValue}>{summary.verdictLanded ? "Yes" : "—"}</span>
             <span className={styles.heroStatLabel}>Verdict Landed</span>
           </div>
+        </div>
+      </div>
+
+      {/* ── Live Narrator ── */}
+      <div className={styles.narratorSection}>
+        <div className={styles.narratorLabel}>Live Narrator</div>
+        <div className={styles.narratorText}>
+          {narratorMessage}
+          {phase === "verifying" && latestEvent && (
+            <span className={styles.narratorCursor} />
+          )}
         </div>
       </div>
 
@@ -299,6 +368,20 @@ export default function RecoveryPage() {
         </div>
       )}
 
+      {/* ── Celebration ── */}
+      {celebrate && (
+        <div className={styles.celebration} aria-hidden="true">
+          {Array.from({ length: 30 }).map((_, i) => (
+            <div key={i} className={styles.confetti} style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 2}s`,
+              animationDuration: `${2 + Math.random() * 2}s`,
+              background: ["#22c55e", "#6366f1", "#f59e0b", "#ef4444", "#8b5cf6"][i % 5],
+            }} />
+          ))}
+        </div>
+      )}
+
       {/* ── Main Content ── */}
       <div className={styles.layout}>
         {/* ── Timeline ── */}
@@ -312,13 +395,20 @@ export default function RecoveryPage() {
           {(!data || data.events.length === 0) ? (
             <div className={styles.emptyTimeline}>
               {phase === "idle" ? (
-                <>
-                  <div className={styles.emptyIcon}>&#9670;</div>
+                <div className={styles.emptyPreview}>
+                  <div className={styles.previewLayers}>
+                    {["0G Chain RPC", "AXL P2P Mesh", "Kimi AI", "KeeperHub"].map((name, i) => (
+                      <div key={name} className={styles.previewLayer} style={{ animationDelay: `${i * 0.15}s` }}>
+                        <span className={styles.previewDot} />
+                        <span className={styles.previewName}>{name}</span>
+                      </div>
+                    ))}
+                  </div>
                   <div className={styles.emptyTitle}>Ready for chaos</div>
                   <div className={styles.emptyBody}>
-                    Click &quot;Run The Demo&quot; above to inject failures and watch the agent recover in real-time.
+                    Click <strong>Run The Demo</strong> or press <kbd>Space</kbd> to inject failures into all 4 layers and watch the agent recover in real-time.
                   </div>
-                </>
+                </div>
               ) : (
                 <div className={styles.emptyBody}>Waiting for events...</div>
               )}
@@ -328,6 +418,8 @@ export default function RecoveryPage() {
               <div
                 key={`${ev.timestamp}-${i}`}
                 className={`${styles.event} ${ev.event === "verdict_submitted" ? styles.eventHighlight : ""}`}
+                onMouseEnter={() => setHoveredEvent(i)}
+                onMouseLeave={() => setHoveredEvent(null)}
               >
                 <div className={`${styles.eventDot} ${dotClass(ev.outcome)}`} />
                 <div className={styles.eventBody}>
@@ -336,6 +428,16 @@ export default function RecoveryPage() {
                     {EVENT_DESCRIPTIONS[ev.event] || ev.action}
                     {ev.target ? ` → ${ev.target}` : ""}
                   </div>
+                  {hoveredEvent === i && ev.context && Object.keys(ev.context).length > 0 && (
+                    <div className={styles.eventTooltip}>
+                      {Object.entries(ev.context).map(([k, v]) => (
+                        <div key={k} className={styles.tooltipRow}>
+                          <span className={styles.tooltipKey}>{k}:</span>
+                          <span className={styles.tooltipVal}>{String(v)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className={styles.eventMeta}>
                   <div className={styles.eventTime}>{formatTime(ev.timestamp)}</div>

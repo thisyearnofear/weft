@@ -727,3 +727,208 @@
 .container[data-theme="light"] .resetButton:hover {
   background: rgba(0, 0, 0, 0.07);
 }
+
+/* ════════════════════════════════════════════
+   LIVE NARRATOR
+   ════════════════════════════════════════════ */
+.narratorSection {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto 1.5rem;
+  background: rgba(34, 197, 94, 0.06);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  animation: narratorFade 0.4s ease;
+}
+
+@keyframes narratorFade {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.narratorLabel {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #22c55e;
+  font-weight: 700;
+  white-space: nowrap;
+  padding-top: 0.15rem;
+}
+
+.narratorText {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: rgba(232, 232, 242, 0.85);
+  flex: 1;
+}
+
+.narratorCursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: #22c55e;
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.container[data-theme="light"] .narratorSection {
+  background: rgba(34, 197, 94, 0.05);
+  border-color: rgba(34, 197, 94, 0.15);
+}
+.container[data-theme="light"] .narratorText { color: rgba(26, 26, 46, 0.8); }
+
+/* ════════════════════════════════════════════
+   KEYBOARD HINTS
+   ════════════════════════════════════════════ */
+.keyHint {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.4rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  opacity: 0.7;
+  vertical-align: middle;
+}
+
+.container[data-theme="light"] .keyHint {
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(26, 26, 46, 0.6);
+}
+
+/* ════════════════════════════════════════════
+   CELEBRATION CONFETTI
+   ════════════════════════════════════════════ */
+.celebration {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.confetti {
+  position: absolute;
+  top: -10px;
+  width: 6px;
+  height: 12px;
+  border-radius: 2px;
+  animation: confettiFall linear forwards;
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* ════════════════════════════════════════════
+   EMPTY PREVIEW LAYERS
+   ════════════════════════════════════════════ */
+.emptyPreview {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.previewLayers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.previewLayer {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  animation: previewPulse 2s ease-in-out infinite;
+  min-width: 180px;
+  justify-content: center;
+}
+
+@keyframes previewPulse {
+  0%, 100% { opacity: 0.5; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.previewDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.previewName {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(232, 232, 242, 0.5);
+}
+
+.container[data-theme="light"] .previewLayer {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+.container[data-theme="light"] .previewName { color: rgba(26, 26, 46, 0.5); }
+
+/* ════════════════════════════════════════════
+   EVENT TOOLTIP (HOVER)
+   ════════════════════════════════════════════ */
+.eventTooltip {
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  background: rgba(10, 10, 15, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-family: 'JetBrains Mono', monospace;
+  animation: tooltipIn 0.2s ease;
+  max-width: 280px;
+}
+
+@keyframes tooltipIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tooltipRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.tooltipRow:last-child { margin-bottom: 0; }
+
+.tooltipKey {
+  color: rgba(232, 232, 242, 0.4);
+  flex-shrink: 0;
+}
+
+.tooltipVal {
+  color: rgba(232, 232, 242, 0.7);
+  word-break: break-all;
+}
+
+.container[data-theme="light"] .eventTooltip {
+  background: rgba(248, 247, 252, 0.98);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+.container[data-theme="light"] .tooltipKey { color: rgba(26, 26, 46, 0.4); }
+.container[data-theme="light"] .tooltipVal { color: rgba(26, 26, 46, 0.7); }
