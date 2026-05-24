@@ -692,6 +692,35 @@ def _make_handler(
             milestone_hash = hash_match.group(0) if hash_match else ""
 
             # Route based on intent
+            if any(w in message for w in ["recovery", "failure", "chaos", "health", "uptime", "broken"]):
+                rlog = get_recovery_log()
+                summary = rlog.summary()
+                active = get_chaos_state().status()["active"]
+                
+                msg = f"Weft is currently monitoring {summary['totalEvents']} infrastructure events. "
+                if summary["recoveries"] > 0:
+                    msg += f"I have autonomously recovered from {summary['recoveries']} failures. "
+                
+                if active:
+                    msg += f"System alert: {len(active)} active faults injected ({', '.join(active)}). "
+                elif summary["totalEvents"] > 0:
+                    msg += "All infrastructure layers are currently stable."
+                else:
+                    msg += "No events logged yet. Run a verification to see me handle infrastructure pressure."
+
+                return self._send_json(200, {
+                    "ok": True,
+                    "type": "recovery",
+                    "message": msg,
+                    "data": {
+                        "recoveries": summary["recoveries"],
+                        "failures": summary["failures"],
+                        "activeFaults": len(active),
+                        "verdictLanded": summary["verdictLanded"]
+                    },
+                    "action": {"type": "navigate", "url": "/recovery"}
+                })
+
             if any(w in message for w in ["story", "chronicle", "narrate", "journey", "weave"]):
                 if milestone_hash:
                     # Try cached first, then generate
