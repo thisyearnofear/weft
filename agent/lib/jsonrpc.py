@@ -37,6 +37,9 @@ class FileCache:
         os.replace(tmp, path)
 
 
+_FALLBACK_RPC = os.environ.get("FALLBACK_RPC_URL") or "https://evmrpc-testnet.0g.ai"
+
+
 class JsonRpcClient:
     def __init__(self, url: str, cache: Optional[FileCache] = None, timeout_s: int = 30):
         self.url = url
@@ -61,8 +64,73 @@ class JsonRpcClient:
             "params": params,
         }
 
+        # Check chaos injection — simulate RPC failure
+        from .chaos import is_rpc_killed
+        from .recovery import EventType, Outcome, emit as recovery_emit
+
+        if is_rpc_killed():
+            recovery_emit(
+                EventType.RPC_TIMEOUT,
+                context={"url": self.url, "method": method},
+                action="fallback_rpc",
+                target=_FALLBACK_RPC,
+                outcome=Outcome.PENDING,
+            )
+            # Attempt fallback RPC
+            t0 = time.time()
+            result = self._raw_call(_FALLBACK_RPC, body)
+            latency = int((time.time() - t0) * 1000)
+            recovery_emit(
+                EventType.RPC_FALLBACK,
+                context={"original": self.url, "fallback": _FALLBACK_RPC, "method": method},
+                action="fallback_rpc",
+                target=_FALLBACK_RPC,
+                outcome=Outcome.SUCCESS,
+                latency_ms=latency,
+            )
+            if cache_key is not None:
+                try:
+                    self.cache.set(cache_key, result)
+                except Exception:
+                    pass
+            return result
+
+        # Normal path with fallback on failure
+        try:
+            result = self._raw_call(self.url, body)
+        except JsonRpcError:
+            # Primary failed — try fallback
+            t0 = time.time()
+            recovery_emit(
+                EventType.RPC_TIMEOUT,
+                context={"url": self.url, "method": method},
+                action="fallback_rpc",
+                target=_FALLBACK_RPC,
+                outcome=Outcome.PENDING,
+            )
+            result = self._raw_call(_FALLBACK_RPC, body)
+            latency = int((time.time() - t0) * 1000)
+            recovery_emit(
+                EventType.RPC_FALLBACK,
+                context={"original": self.url, "fallback": _FALLBACK_RPC, "method": method},
+                action="fallback_rpc",
+                target=_FALLBACK_RPC,
+                outcome=Outcome.SUCCESS,
+                latency_ms=latency,
+            )
+
+        if cache_key is not None:
+            try:
+                self.cache.set(cache_key, result)
+            except Exception:
+                pass
+
+        return result
+
+    def _raw_call(self, url: str, body: Dict[str, Any]) -> Any:
+        """Execute a single JSON-RPC call against the given URL."""
         req = urllib.request.Request(
-            self.url,
+            url,
             data=json.dumps(body).encode("utf-8"),
             headers={"Content-Type": "application/json"},
             method="POST",
@@ -72,27 +140,19 @@ class JsonRpcClient:
             with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:
                 raw = resp.read()
         except Exception as e:
-            raise JsonRpcError(f"RPC request failed for {method}: {e}") from e
+            raise JsonRpcError(f"RPC request failed for {body.get('method')}: {e}") from e
 
         try:
             payload: Dict[str, Any] = json.loads(raw.decode("utf-8"))
         except Exception as e:
-            raise JsonRpcError(f"RPC returned non-JSON for {method}: {raw[:200]!r}") from e
+            raise JsonRpcError(f"RPC returned non-JSON for {body.get('method')}: {raw[:200]!r}") from e
 
         if "error" in payload and payload["error"] is not None:
-            raise JsonRpcError(f"RPC error for {method}: {payload['error']}")
+            raise JsonRpcError(f"RPC error for {body.get('method')}: {payload['error']}")
         if "result" not in payload:
-            raise JsonRpcError(f"RPC missing result for {method}: {payload}")
+            raise JsonRpcError(f"RPC missing result for {body.get('method')}: {payload}")
 
-        result = payload["result"]
-        if cache_key is not None:
-            # Best-effort cache write.
-            try:
-                self.cache.set(cache_key, result)
-            except Exception:
-                pass
-
-        return result
+        return payload["result"]
 
 
 def default_cache() -> FileCache:

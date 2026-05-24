@@ -181,6 +181,27 @@ def execute_contract_call(
     Returns:
         KeeperHubExecution with execution_id and initial status.
     """
+    from .chaos import is_keeperhub_killed
+    from .recovery import EventType, Outcome, emit as recovery_emit
+
+    # Chaos injection — simulate KeeperHub 503
+    if is_keeperhub_killed():
+        recovery_emit(
+            EventType.KEEPERHUB_503,
+            context={"contract": contract_address, "function": function_signature},
+            action="retry_with_backoff",
+            outcome=Outcome.PENDING,
+        )
+        # Simulate backoff + retry recovering
+        time.sleep(1)
+        recovery_emit(
+            EventType.KEEPERHUB_RETRY,
+            context={"contract": contract_address, "attempt": 2},
+            action="retry_succeeded",
+            outcome=Outcome.SUCCESS,
+            latency_ms=1000,
+        )
+
     body: Dict[str, Any] = {
         "contractAddress": contract_address,
         "functionSignature": function_signature,

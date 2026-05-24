@@ -255,6 +255,9 @@ def broadcast_verdict(
     When AXL is active, peers should be hex-encoded public keys (64 chars).
     When in legacy mode, peers should be HTTP URLs.
     """
+    from .chaos import is_peer_killed
+    from .recovery import EventType, Outcome, emit as recovery_emit
+
     peer_list = peers if peers is not None else parse_peers()
     if not peer_list:
         return BroadcastResult(attempted=0, succeeded=0)
@@ -277,14 +280,40 @@ def broadcast_verdict(
 
     attempted = 0
     succeeded = 0
+    killed_peers: List[str] = []
+
     for peer in peer_list:
         attempted += 1
+
+        # Chaos injection — simulate first peer being offline
+        if is_peer_killed() and attempted == 1:
+            recovery_emit(
+                EventType.PEER_OFFLINE,
+                context={"peer": peer[:16] + "…", "milestone": milestone_hash[:16]},
+                action="skip_dead_peer",
+                outcome=Outcome.DEGRADED,
+            )
+            killed_peers.append(peer)
+            continue
+
         if use_axl and _is_axl_peer_id(peer):
             ok = _axl_send(peer, payload)
         else:
             ok = _legacy_send(peer, payload, endpoint_path)
         if ok:
             succeeded += 1
+
+    # If we skipped peers but still got quorum via remaining, emit reroute
+    if killed_peers and succeeded > 0:
+        recovery_emit(
+            EventType.PEER_REROUTE,
+            context={
+                "droppedPeers": [p[:16] + "…" for p in killed_peers],
+                "remainingSucceeded": succeeded,
+            },
+            action="reroute_through_remaining",
+            outcome=Outcome.SUCCESS,
+        )
 
     mode = "axl" if use_axl else "legacy"
     return BroadcastResult(attempted=attempted, succeeded=succeeded, mode=mode)

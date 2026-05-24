@@ -34,12 +34,14 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from agent.lib.axl_client import axl_available, axl_node_running, get_node_identity, start_axl_node  # noqa: E402
+from agent.lib.chaos import inject_fault, clear_fault, get_chaos_state  # noqa: E402
 from agent.lib.chronicle import CardData, write_card, write_chronicle  # noqa: E402
 from agent.lib.ens_client import EnsClient  # noqa: E402
 from agent.lib.jsonrpc import JsonRpcClient, default_cache  # noqa: E402
 from agent.lib.kimi_client import generate_chronicle, generate_narrative  # noqa: E402
 from agent.lib.metadata_reader import MetadataError, read_metadata_from_0g  # noqa: E402
 from agent.lib.peer_inbox import best_group, consensus_signers_for_base_root  # noqa: E402
+from agent.lib.recovery import get_recovery_log  # noqa: E402
 from agent.lib.weft_milestone_reader import read_milestone  # noqa: E402
 
 _ATTESTATIONS_DIR = os.path.join("agent", ".attestations")
@@ -109,6 +111,20 @@ def _make_handler(
             if path == "/axl":
                 return self._send_json(200, _axl_status(inbox_dir))
 
+            if path == "/recovery":
+                since = float(qs.get("since", ["0"])[0])
+                rlog = get_recovery_log()
+                return self._send_json(200, {
+                    "ok": True,
+                    "events": rlog.events(since=since),
+                    "summary": rlog.summary(),
+                    "chaos": get_chaos_state().status(),
+                })
+
+            if path == "/recovery/clear":
+                get_recovery_log().clear()
+                return self._send_json(200, {"ok": True})
+
             if path.startswith("/milestone/"):
                 milestone_hash = path.split("/milestone/", 1)[1]
                 include_metadata = (qs.get("includeMetadata", ["0"])[0] == "1")
@@ -147,6 +163,9 @@ def _make_handler(
             parsed = urlparse(self.path)
             path = parsed.path.rstrip("/")
 
+            if path == "/chaos":
+                return self._handle_chaos()
+
             if path == "/api/v1/verify":
                 return self._handle_verify_request()
 
@@ -183,6 +202,29 @@ def _make_handler(
                 "milestone_id": milestone_id,
                 "message": "Verification request accepted and enqueued."
             })
+
+        def _handle_chaos(self):
+            """Inject or clear chaos faults.
+
+            POST /chaos  {"action": "inject", "fault": "kill_rpc"}
+            POST /chaos  {"action": "clear", "fault": "all"}
+            """
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                body = json.loads(self.rfile.read(length)) if length else {}
+            except Exception:
+                return self._send_json(400, {"ok": False, "error": "invalid_json"})
+
+            action = body.get("action", "inject")
+            fault = body.get("fault", "")
+            if not fault:
+                return self._send_json(400, {"ok": False, "error": "fault required"})
+
+            if action == "clear":
+                result = clear_fault(fault)
+            else:
+                result = inject_fault(fault)
+            return self._send_json(200, result)
 
         def do_OPTIONS(self):  # noqa: N802 — CORS preflight
             self.send_response(204)

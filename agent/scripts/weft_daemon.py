@@ -36,6 +36,7 @@ from agent.lib.jsonrpc import JsonRpcClient, default_cache
 from agent.lib.keeperhub_client import ExecutionStatus, execute_verdict, keeperhub_configured
 from agent.lib.logger import get_logger
 from agent.lib.peer_inbox import consensus_signers_for_base_root, default_inbox_dir
+from agent.lib.recovery import EventType, Outcome, emit as recovery_emit
 from agent.lib.verdict_envelope import verify_envelope
 from agent.lib.verifier_registry_reader import VerifierRegistryClient, read_verifier_registry_address
 from agent.lib.metadata_reader import MetadataError, read_metadata_from_0g
@@ -255,6 +256,13 @@ def _process_one(
     keeperhub_timeout: int = 120,
     builder_ens: str = "",
 ) -> None:
+    recovery_emit(
+        EventType.VERIFICATION_STARTED,
+        context={"milestone": milestone_hash},
+        action="process_milestone",
+        outcome=Outcome.PENDING,
+    )
+
     try:
         m = read_milestone(rpc, weft, milestone_hash)
     except Exception as e:
@@ -333,6 +341,17 @@ def _process_one(
         if receipt and receipt.log_root and receipt.log_root.startswith("0x") and len(receipt.log_root) == 66:
             base_evidence_root = receipt.log_root
             evidence_root = base_evidence_root
+
+    recovery_emit(
+        EventType.EVIDENCE_COLLECTED,
+        context={
+            "milestone": milestone_hash,
+            "uniqueCallers": unique_count,
+            "codeHash": code_hash[:16] + "…",
+        },
+        action="evidence_ready",
+        outcome=Outcome.SUCCESS,
+    )
 
     verified_bool = bool(attestation["verdict"]["verified"])
     verified_arg = "true" if verified_bool else "false"
@@ -703,6 +722,12 @@ def _submit_verdict(
         if result is not None:
             if result.status == ExecutionStatus.CONFIRMED:
                 log.info("vote submitted via KeeperHub", milestone=milestone_hash, tx=result.tx_hash)
+                recovery_emit(
+                    EventType.VERDICT_SUBMITTED,
+                    context={"milestone": milestone_hash, "tx": result.tx_hash, "via": "keeperhub"},
+                    action="onchain_confirmed",
+                    outcome=Outcome.SUCCESS,
+                )
                 return
             else:
                 log.warning(
@@ -739,6 +764,12 @@ def _submit_verdict(
             log.error("cast send failed", milestone=milestone_hash, output=proc.stdout)
         else:
             log.info("vote submitted via cast", milestone=milestone_hash)
+            recovery_emit(
+                EventType.VERDICT_SUBMITTED,
+                context={"milestone": milestone_hash, "via": "cast_send"},
+                action="onchain_confirmed",
+                outcome=Outcome.SUCCESS,
+            )
     except Exception as e:
         log.error("cast send error", milestone=milestone_hash, error=str(e))
 
