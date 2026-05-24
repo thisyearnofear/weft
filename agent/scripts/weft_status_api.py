@@ -166,6 +166,9 @@ def _make_handler(
             if path == "/chaos":
                 return self._handle_chaos()
 
+            if path == "/demo/verify":
+                return self._handle_demo_verify()
+
             if path == "/api/v1/verify":
                 return self._handle_verify_request()
 
@@ -202,6 +205,70 @@ def _make_handler(
                 "milestone_id": milestone_id,
                 "message": "Verification request accepted and enqueued."
             })
+
+        def _handle_demo_verify(self):
+            """Run a simulated verification loop that exercises all recovery paths.
+
+            POST /demo/verify  {}
+            Runs in a background thread, emitting recovery events in real-time.
+            The frontend polls /recovery to watch it happen.
+            """
+            import threading
+
+            from agent.lib.recovery import EventType, Outcome, emit as _emit, get_recovery_log
+            from agent.lib.chaos import is_rpc_killed, is_peer_killed, is_kimi_killed, is_keeperhub_killed
+
+            get_recovery_log().clear()
+
+            def _run_demo():
+                import time as _t
+
+                milestone_hash = "0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f"
+
+                # Phase 1: Start
+                _emit(EventType.VERIFICATION_STARTED, context={"milestone": milestone_hash}, action="process_milestone", outcome=Outcome.PENDING)
+                _t.sleep(1)
+
+                # Phase 2: RPC call (reads milestone from chain)
+                if is_rpc_killed():
+                    _emit(EventType.RPC_TIMEOUT, context={"url": "https://evmrpc-testnet.0g.ai", "method": "eth_call"}, action="fallback_rpc", target="https://evmrpc-testnet.0g.ai", outcome=Outcome.PENDING)
+                    _t.sleep(0.8)
+                    _emit(EventType.RPC_FALLBACK, context={"original": "https://evmrpc-testnet.0g.ai", "fallback": "https://evmrpc-testnet.0g.ai", "method": "eth_call"}, action="fallback_rpc", target="https://evmrpc-testnet.0g.ai", outcome=Outcome.SUCCESS, latency_ms=1420)
+                _t.sleep(1)
+
+                # Phase 3: Evidence collection
+                _emit(EventType.EVIDENCE_COLLECTED, context={"milestone": milestone_hash, "uniqueCallers": 3, "codeHash": "0xab" * 8 + "…"}, action="evidence_ready", outcome=Outcome.SUCCESS)
+                _t.sleep(1)
+
+                # Phase 4: Narrative generation
+                if is_kimi_killed():
+                    _emit(EventType.KIMI_UNAVAILABLE, context={"reason": "chaos_injection", "milestone": milestone_hash}, action="degrade_gracefully", outcome=Outcome.DEGRADED)
+                    _t.sleep(0.5)
+                    _emit(EventType.KIMI_CACHE_HIT, context={"milestone": milestone_hash, "source": "fallback_template"}, action="serve_cached", outcome=Outcome.SUCCESS)
+                else:
+                    _emit(EventType.NARRATIVE_GENERATED, context={"milestone": milestone_hash}, action="kimi_api_call", outcome=Outcome.SUCCESS)
+                _t.sleep(1)
+
+                # Phase 5: Peer broadcast
+                if is_peer_killed():
+                    _emit(EventType.PEER_OFFLINE, context={"peer": "axl_node_02", "milestone": milestone_hash[:16]}, action="skip_dead_peer", outcome=Outcome.DEGRADED)
+                    _t.sleep(0.5)
+                    _emit(EventType.PEER_REROUTE, context={"droppedPeers": ["axl_node_02"], "remainingSucceeded": 2}, action="reroute_through_remaining", outcome=Outcome.SUCCESS)
+                _t.sleep(1)
+
+                # Phase 6: KeeperHub submission
+                if is_keeperhub_killed():
+                    _emit(EventType.KEEPERHUB_503, context={"contract": "0xcc768d…", "function": "submitVerdict"}, action="retry_with_backoff", outcome=Outcome.PENDING)
+                    _t.sleep(1.5)
+                    _emit(EventType.KEEPERHUB_RETRY, context={"contract": "0xcc768d…", "attempt": 2}, action="retry_succeeded", outcome=Outcome.SUCCESS, latency_ms=1500)
+                _t.sleep(1)
+
+                # Phase 7: Verdict lands
+                _emit(EventType.VERDICT_SUBMITTED, context={"milestone": milestone_hash, "tx": "0xdead…beef", "via": "keeperhub"}, action="onchain_confirmed", outcome=Outcome.SUCCESS)
+
+            thread = threading.Thread(target=_run_demo, daemon=True)
+            thread.start()
+            return self._send_json(200, {"ok": True, "message": "Demo verification started. Poll /recovery to watch events."})
 
         def _handle_chaos(self):
             """Inject or clear chaos faults.

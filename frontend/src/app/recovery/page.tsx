@@ -119,10 +119,16 @@ export default function RecoveryPage() {
     fetchRecovery();
   };
 
-  const clearLog = async () => {
-    await fetch("/api/recovery?since=0");
+  const startVerification = async () => {
+    // Clear previous events, clear faults, then start fresh
+    await fetch("/api/chaos", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "clear", fault: "all" }),
+    });
     setData(null);
-    lastTimestamp.current = 0;
+    await fetch("/api/chaos/verify", { method: "POST" });
+    fetchRecovery();
   };
 
   const summary = data?.summary ?? { totalEvents: 0, failures: 0, recoveries: 0, verdictLanded: false };
@@ -182,6 +188,14 @@ export default function RecoveryPage() {
           {/* Verdict Status */}
           <div className={summary.verdictLanded ? `${styles.verdictBanner} ${styles.verdictLanded}` : `${styles.verdictBanner} ${styles.verdictPending}`}>
             {summary.verdictLanded ? "Verdict Landed Onchain" : "Verdict Pending"}
+          </div>
+
+          {/* Start Verification */}
+          <div className={styles.panel}>
+            <div className={styles.panelTitle}>Verification</div>
+            <button className={styles.clearBtn} onClick={startVerification} style={{ width: "100%" }}>
+              Start Demo Verification
+            </button>
           </div>
 
           {/* Summary Stats */}
