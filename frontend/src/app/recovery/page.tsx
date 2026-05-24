@@ -34,6 +34,13 @@ const FAULT_LABELS: Record<string, string> = {
   kill_keeperhub: "Kill KeeperHub",
 };
 
+const FAULT_DESCRIPTIONS: Record<string, string> = {
+  kill_rpc: "Sever the blockchain connection",
+  kill_peer: "Drop a verifier node from the mesh",
+  kill_kimi: "Revoke the narrative AI key",
+  kill_keeperhub: "Crash the execution service",
+};
+
 const EVENT_LABELS: Record<string, string> = {
   rpc_timeout: "RPC Timeout",
   rpc_fallback: "RPC Fallback",
@@ -53,6 +60,22 @@ const EVENT_LABELS: Record<string, string> = {
   chaos_injected: "Chaos Injected",
 };
 
+const EVENT_DESCRIPTIONS: Record<string, string> = {
+  rpc_timeout: "Primary blockchain RPC is unreachable",
+  rpc_fallback: "Switched to fallback RPC endpoint",
+  peer_offline: "Verifier peer node is not responding",
+  peer_reroute: "Rerouted consensus through remaining peers",
+  kimi_unavailable: "Narrative AI service is down",
+  kimi_cache_hit: "Serving cached narrative instead",
+  keeperhub_503: "Execution service returned 503",
+  keeperhub_retry: "Retried execution with backoff",
+  verdict_submitted: "Onchain verdict confirmed",
+  verification_started: "Verification pipeline initiated",
+  evidence_collected: "Deterministic evidence gathered",
+  narrative_generated: "AI narrative synthesized",
+  chaos_injected: "Fault injected into system",
+};
+
 function dotClass(outcome: string): string {
   switch (outcome) {
     case "success": return styles.dotSuccess;
@@ -67,10 +90,13 @@ function formatTime(ts: number): string {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
+type DemoPhase = "idle" | "injecting" | "verifying" | "complete";
+
 export default function RecoveryPage() {
   const [data, setData] = useState<RecoveryResponse | null>(null);
   const [polling, setPolling] = useState(true);
-  const lastTimestamp = useRef(0);
+  const [phase, setPhase] = useState<DemoPhase>("idle");
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
 
   const fetchRecovery = useCallback(async () => {
@@ -79,14 +105,14 @@ export default function RecoveryPage() {
       if (res.ok) {
         const json: RecoveryResponse = await res.json();
         setData(json);
-        if (json.events.length > 0) {
-          lastTimestamp.current = json.events[json.events.length - 1].timestamp;
+        if (json.summary.verdictLanded && phase === "verifying") {
+          setPhase("complete");
         }
       }
     } catch {
-      // Status API unavailable — keep polling
+      // Status API unavailable
     }
-  }, []);
+  }, [phase]);
 
   useEffect(() => {
     if (!polling) return;
@@ -100,6 +126,41 @@ export default function RecoveryPage() {
       timelineRef.current.scrollTop = timelineRef.current.scrollHeight;
     }
   }, [data?.events.length]);
+
+  const runFullDemo = async () => {
+    // Reset everything
+    setPhase("injecting");
+    setData(null);
+    await fetch("/api/chaos", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "clear", fault: "all" }),
+    });
+
+    // Small pause for dramatic effect, then inject all faults
+    await new Promise(r => setTimeout(r, 800));
+    await fetch("/api/chaos", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "inject", fault: "kill_all" }),
+    });
+    await fetchRecovery();
+
+    // Start verification after a beat
+    await new Promise(r => setTimeout(r, 1200));
+    setPhase("verifying");
+    await fetch("/api/chaos/verify", { method: "POST" });
+  };
+
+  const resetDemo = async () => {
+    await fetch("/api/chaos", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "clear", fault: "all" }),
+    });
+    setData(null);
+    setPhase("idle");
+  };
 
   const injectChaos = async (fault: string) => {
     await fetch("/api/chaos", {
@@ -119,60 +180,108 @@ export default function RecoveryPage() {
     fetchRecovery();
   };
 
-  const startVerification = async () => {
-    // Clear previous events, clear faults, then start fresh
-    await fetch("/api/chaos", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "clear", fault: "all" }),
-    });
-    setData(null);
-    await fetch("/api/chaos/verify", { method: "POST" });
-    fetchRecovery();
-  };
-
   const summary = data?.summary ?? { totalEvents: 0, failures: 0, recoveries: 0, verdictLanded: false };
   const activeFaults = data?.chaos?.active ?? [];
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>Recovery Dashboard</h1>
-          <p className={styles.subtitle}>
-            Agents Under Pressure — live failure injection and autonomous recovery
+      {/* ── Hero Context ── */}
+      <div className={styles.hero}>
+        <div className={styles.heroContent}>
+          <div className={styles.heroEyebrow}>Recovery Track</div>
+          <h1 className={styles.heroTitle}>
+            Break everything.
+            <br />
+            <span className={styles.heroAccent}>Watch it recover.</span>
+          </h1>
+          <p className={styles.heroDescription}>
+            This agent verifies onchain milestones across 4 infrastructure layers.
+            Inject simultaneous failures into all of them — RPC, peers, AI, execution —
+            and watch the agent autonomously recover and deliver a correct verdict anyway.
           </p>
+          {phase === "idle" && (
+            <button className={styles.heroButton} onClick={runFullDemo}>
+              Run The Demo
+            </button>
+          )}
+          {phase === "injecting" && (
+            <div className={styles.phaseIndicator}>
+              <span className={styles.phaseDot} />
+              Injecting failures...
+            </div>
+          )}
+          {phase === "verifying" && (
+            <div className={styles.phaseIndicator}>
+              <span className={`${styles.phaseDot} ${styles.phaseDotActive}`} />
+              Verification running — watch the timeline
+            </div>
+          )}
+          {phase === "complete" && (
+            <div className={styles.completeBlock}>
+              <div className={styles.completeMessage}>
+                Verdict landed despite 4 simultaneous infrastructure failures.
+              </div>
+              <button className={styles.resetButton} onClick={resetDemo}>
+                Run Again
+              </button>
+            </div>
+          )}
         </div>
-        <div>
-          <button
-            onClick={() => setPolling(!polling)}
-            className={styles.clearBtn}
-            style={{ opacity: polling ? 1 : 0.5 }}
-          >
-            {polling ? "Polling" : "Paused"}
-          </button>
+        <div className={styles.heroStats}>
+          <div className={`${styles.heroStat} ${summary.verdictLanded ? styles.heroStatGlow : ""}`}>
+            <span className={styles.heroStatValue}>{summary.recoveries}</span>
+            <span className={styles.heroStatLabel}>Recoveries</span>
+          </div>
+          <div className={styles.heroStat}>
+            <span className={styles.heroStatValue}>{activeFaults.length}</span>
+            <span className={styles.heroStatLabel}>Active Faults</span>
+          </div>
+          <div className={`${styles.heroStat} ${summary.verdictLanded ? styles.heroStatSuccess : ""}`}>
+            <span className={styles.heroStatValue}>{summary.verdictLanded ? "Yes" : "—"}</span>
+            <span className={styles.heroStatLabel}>Verdict Landed</span>
+          </div>
         </div>
       </div>
 
+      {/* ── Main Content ── */}
       <div className={styles.layout}>
         {/* ── Timeline ── */}
         <div className={styles.timeline} ref={timelineRef}>
-          <div className={styles.timelineHeader}>Recovery Event Timeline</div>
+          <div className={styles.timelineHeader}>
+            <span>Recovery Event Timeline</span>
+            {summary.totalEvents > 0 && (
+              <span className={styles.timelineCount}>{summary.totalEvents} events</span>
+            )}
+          </div>
           {(!data || data.events.length === 0) ? (
             <div className={styles.emptyTimeline}>
-              No events yet. Trigger chaos or start a verification to see recovery in action.
+              {phase === "idle" ? (
+                <>
+                  <div className={styles.emptyIcon}>&#9670;</div>
+                  <div className={styles.emptyTitle}>Ready for chaos</div>
+                  <div className={styles.emptyBody}>
+                    Click &quot;Run The Demo&quot; above to inject failures and watch the agent recover in real-time.
+                  </div>
+                </>
+              ) : (
+                <div className={styles.emptyBody}>Waiting for events...</div>
+              )}
             </div>
           ) : (
             data.events.map((ev, i) => (
-              <div key={i} className={styles.event}>
+              <div
+                key={`${ev.timestamp}-${i}`}
+                className={`${styles.event} ${ev.event === "verdict_submitted" ? styles.eventHighlight : ""}`}
+              >
                 <div className={`${styles.eventDot} ${dotClass(ev.outcome)}`} />
                 <div className={styles.eventBody}>
                   <div className={styles.eventType}>{EVENT_LABELS[ev.event] || ev.event}</div>
                   <div className={styles.eventAction}>
-                    {ev.action}{ev.target ? ` → ${ev.target}` : ""}
+                    {EVENT_DESCRIPTIONS[ev.event] || ev.action}
+                    {ev.target ? ` → ${ev.target}` : ""}
                   </div>
                 </div>
-                <div>
+                <div className={styles.eventMeta}>
                   <div className={styles.eventTime}>{formatTime(ev.timestamp)}</div>
                   {ev.latency_ms > 0 && (
                     <div className={styles.eventLatency}>{ev.latency_ms}ms</div>
@@ -185,67 +294,91 @@ export default function RecoveryPage() {
 
         {/* ── Sidebar ── */}
         <div className={styles.sidebar}>
-          {/* Verdict Status */}
-          <div className={summary.verdictLanded ? `${styles.verdictBanner} ${styles.verdictLanded}` : `${styles.verdictBanner} ${styles.verdictPending}`}>
-            {summary.verdictLanded ? "Verdict Landed Onchain" : "Verdict Pending"}
-          </div>
+          {/* Verdict Banner */}
+          {summary.verdictLanded && (
+            <div className={`${styles.verdictBanner} ${styles.verdictLanded}`}>
+              <div className={styles.verdictIcon}>&#10003;</div>
+              <div>
+                <div className={styles.verdictTitle}>Verdict Landed Onchain</div>
+                <div className={styles.verdictSub}>
+                  {summary.recoveries} autonomous recoveries
+                </div>
+              </div>
+            </div>
+          )}
 
-          {/* Start Verification */}
+          {/* Architecture */}
           <div className={styles.panel}>
-            <div className={styles.panelTitle}>Verification</div>
-            <button className={styles.clearBtn} onClick={startVerification} style={{ width: "100%" }}>
-              Start Demo Verification
-            </button>
-          </div>
-
-          {/* Summary Stats */}
-          <div className={styles.panel}>
-            <div className={styles.panelTitle}>Recovery Summary</div>
-            <div className={styles.stats}>
-              <div className={`${styles.stat} ${styles.statBlue}`}>
-                <span className={styles.statValue}>{summary.totalEvents}</span>
-                <span className={styles.statLabel}>Events</span>
+            <div className={styles.panelTitle}>Infrastructure Layers</div>
+            <div className={styles.layerList}>
+              <div className={`${styles.layer} ${activeFaults.includes("kill_rpc") ? styles.layerFault : ""}`}>
+                <span className={styles.layerDot} />
+                <div>
+                  <div className={styles.layerName}>0G Chain RPC</div>
+                  <div className={styles.layerRole}>Blockchain reads</div>
+                </div>
               </div>
-              <div className={`${styles.stat} ${styles.statRed}`}>
-                <span className={styles.statValue}>{summary.failures}</span>
-                <span className={styles.statLabel}>Failures</span>
+              <div className={`${styles.layer} ${activeFaults.includes("kill_peer") ? styles.layerFault : ""}`}>
+                <span className={styles.layerDot} />
+                <div>
+                  <div className={styles.layerName}>AXL P2P Mesh</div>
+                  <div className={styles.layerRole}>Peer consensus</div>
+                </div>
               </div>
-              <div className={`${styles.stat} ${styles.statGreen}`}>
-                <span className={styles.statValue}>{summary.recoveries}</span>
-                <span className={styles.statLabel}>Recoveries</span>
+              <div className={`${styles.layer} ${activeFaults.includes("kill_kimi") ? styles.layerFault : ""}`}>
+                <span className={styles.layerDot} />
+                <div>
+                  <div className={styles.layerName}>Kimi AI</div>
+                  <div className={styles.layerRole}>Narrative generation</div>
+                </div>
               </div>
-              <div className={`${styles.stat} ${styles.statYellow}`}>
-                <span className={styles.statValue}>{activeFaults.length}</span>
-                <span className={styles.statLabel}>Active Faults</span>
+              <div className={`${styles.layer} ${activeFaults.includes("kill_keeperhub") ? styles.layerFault : ""}`}>
+                <span className={styles.layerDot} />
+                <div>
+                  <div className={styles.layerName}>KeeperHub</div>
+                  <div className={styles.layerRole}>Onchain execution</div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Chaos Controls */}
-          <div className={styles.panel}>
-            <div className={styles.panelTitle}>Chaos Injection</div>
-            <div className={styles.chaosGrid}>
-              {Object.entries(FAULT_LABELS).map(([fault, label]) => (
+          {/* Advanced Controls (collapsed by default) */}
+          <button
+            className={styles.advancedToggle}
+            onClick={() => setShowAdvanced(!showAdvanced)}
+          >
+            {showAdvanced ? "Hide" : "Show"} manual controls
+          </button>
+          {showAdvanced && (
+            <div className={styles.panel}>
+              <div className={styles.panelTitle}>Manual Chaos Injection</div>
+              <div className={styles.chaosGrid}>
+                {Object.entries(FAULT_LABELS).map(([fault, label]) => (
+                  <button
+                    key={fault}
+                    className={`${styles.chaosBtn} ${activeFaults.includes(fault) ? styles.chaosBtnActive : ""}`}
+                    onClick={() => injectChaos(fault)}
+                    title={FAULT_DESCRIPTIONS[fault]}
+                  >
+                    {label}
+                    {activeFaults.includes(fault) && " ●"}
+                  </button>
+                ))}
                 <button
-                  key={fault}
-                  className={`${styles.chaosBtn} ${activeFaults.includes(fault) ? styles.chaosBtnActive : ""}`}
-                  onClick={() => injectChaos(fault)}
+                  className={`${styles.chaosBtn} ${styles.killAllBtn}`}
+                  onClick={() => injectChaos("kill_all")}
                 >
-                  {label}
-                  {activeFaults.includes(fault) && " (active)"}
+                  Kill All
                 </button>
-              ))}
-              <button
-                className={`${styles.chaosBtn} ${styles.killAllBtn}`}
-                onClick={() => injectChaos("kill_all")}
-              >
-                Kill All
-              </button>
-              <button className={styles.clearBtn} onClick={clearChaos}>
-                Clear All Faults
-              </button>
+                <button className={styles.clearBtn} onClick={clearChaos}>
+                  Clear All Faults
+                </button>
+                <button className={styles.clearBtn} onClick={resetDemo}>
+                  Reset Demo
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
