@@ -98,7 +98,22 @@ export default function RecoveryPage() {
   const [polling, setPolling] = useState(true);
   const [phase, setPhase] = useState<DemoPhase>("idle");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [copied, setCopied] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
+
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+
+  const shareDemo = async () => {
+    const text = "Built @weft — an autonomous verifier agent that treats infrastructure failure as a routing problem, not a crash. Kill RPC. Kill peers. Kill AI. Kill execution. Verdict still lands. Demo: weft.thisyearnofear.com/recovery #AgentsUnderPressure #BuildYourOwnOS";
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
+    }
+  };
 
   const fetchRecovery = useCallback(async () => {
     try {
@@ -185,7 +200,23 @@ export default function RecoveryPage() {
   const activeFaults = data?.chaos?.active ?? [];
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} data-theme={theme}>
+      {/* ── Weaving Background ── */}
+      <div className={styles.weaveBg} aria-hidden="true">
+        <div className={styles.weaveLine} />
+        <div className={styles.weaveLine} />
+        <div className={styles.weaveLine} />
+        <div className={styles.weaveLine} />
+        <div className={styles.weaveLine} />
+      </div>
+
+      {/* ── Top Bar ── */}
+      <div className={styles.topBar}>
+        <button className={styles.themeToggle} onClick={toggleTheme} title="Toggle theme">
+          {theme === "dark" ? "☀" : "☾"}
+        </button>
+      </div>
+
       {/* ── Hero Context ── */}
       <div className={styles.hero}>
         <div className={styles.heroContent}>
@@ -201,9 +232,14 @@ export default function RecoveryPage() {
             and watch the agent autonomously recover and deliver a correct verdict anyway.
           </p>
           {phase === "idle" && (
-            <button className={styles.heroButton} onClick={runFullDemo}>
-              Run The Demo
-            </button>
+            <div className={styles.heroActions}>
+              <button className={styles.heroButton} onClick={runFullDemo}>
+                Run The Demo
+              </button>
+              <button className={styles.shareButton} onClick={shareDemo}>
+                {copied ? "Copied!" : "Share Demo"}
+              </button>
+            </div>
           )}
           {phase === "injecting" && (
             <div className={styles.phaseIndicator}>
