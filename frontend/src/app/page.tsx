@@ -78,7 +78,7 @@ function MilestoneFromContract({ hash, index }: { hash: `0x${string}`; index: nu
 const CONTRAST_ITEMS = [
   {
     pain: { icon: <Clock size={14} />, text: "Manual reviews that take weeks" },
-    solution: { icon: <Zap size={14} />, text: "Autonomous verification in minutes" },
+    solution: { icon: <Zap size={14} />, text: "Autonomous verification, no manual review" },
   },
   {
     pain: { icon: <XCircle size={14} />, text: "Chasing sponsors for payment" },
@@ -134,13 +134,13 @@ export default function Home() {
 
           {/* Live stats strip */}
           <div className={styles.statsStrip}>
-          <StatCard value={3} label="Verifier-ready paths" />
+          <StatCard value={3} label="Verifier paths" />
           <div className={styles.statDivider} />
           <StatCard value={isLoading ? 0 : verifiedOutcomeCount} label="Verified outcomes" suffix={isLoading ? "…" : ""} />
           <div className={styles.statDivider} />
           <StatCard value={7} label="Hermes skills" />
           <div className={styles.statDivider} />
-          <StatCard value={150} label="Prize pool" suffix="k" />
+          <StatCard value={"2"} label="Supported chains" />
           </div>
         </div>
 
@@ -186,7 +186,7 @@ export default function Home() {
       <section className={styles.chatPromoSection}>
         <div className={styles.chatPromoHeader}>
           <MessageCircle size={16} />
-          <span>AskWeft agent surface</span>
+          <span>Ask Weft</span>
         </div>
         <p className={styles.chatPromoSub}>
           Query milestone status, trigger a Builder Journey, or inspect the same status API
@@ -258,7 +258,7 @@ export default function Home() {
             <Sparkles size={18} />
             <span>Ready to ship without friction?</span>
           </div>
-          <h3>Create a milestone in under 5 minutes.</h3>
+          <h3>Create a milestone in minutes.</h3>
           <p>
             Define what you&apos;ll ship, set a deadline, and let verifiers handle the rest.
             When the evidence checks out, the verified release path opens.

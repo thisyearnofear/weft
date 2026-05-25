@@ -74,7 +74,6 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
                 <div className={styles.avatarFallback}>{passport.ens.slice(0, 2).toUpperCase()}</div>
               )}
               <div className={styles.identityBlock}>
-                <span className={styles.kicker}>Identity for fluid teams</span>
                 <h1 className={styles.ens}>{passport.ens}</h1>
                 <p className={styles.address}>{passport.address}</p>
                 {passport.description && <p className={styles.description}>{passport.description}</p>}
@@ -189,7 +188,7 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
               <div className={styles.panelHeader}>
                 <div>
                   <span className={styles.kicker}>Human-agent graph</span>
-                  <h3>Cobuilders in this trust network</h3>
+                  <h3>Collaborators in this trust network</h3>
                 </div>
                 <Users size={18} />
               </div>

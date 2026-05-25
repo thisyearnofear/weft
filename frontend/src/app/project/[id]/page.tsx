@@ -111,7 +111,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               <span className={styles.kicker}>Trust decision view</span>
               <h1 className={styles.title}>Milestone {id.slice(0, 10)}...{id.slice(-8)}</h1>
               <p className={styles.subtitle}>
-                {demo?.pitch || "This page answers the real question: should a fluid team earn capital release for this outcome?"}
+                {demo?.pitch || "This page answers the real question: did this builder deliver the outcome they were funded for?"}
               </p>
 
               <div className={styles.heroActions}>

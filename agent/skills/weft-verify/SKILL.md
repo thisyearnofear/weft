@@ -42,7 +42,7 @@ required_environment_variables:
 ```bash
 cd ~/weft
 export ETH_RPC_URL="https://evmrpc-testnet.0g.ai"
-export WEFT_CONTRACT_ADDRESS="0xcc768d56b0053b1b2df5391dde989be3f859474c"
+export WEFT_CONTRACT_ADDRESS="0x9f66158c560ce5c8b40820fdcd2874ff8d852192"
 
 python3 -c "
 import time
@@ -61,22 +61,56 @@ elif now < m.deadline:
 else:
     print('Ready for verification. Deadline passed.')
     print(f'Staked: {int(m.totalStaked) / 1e18} ETH')
+print(f'Builder: {m.builder}')
+print(f'Deadline: {m.deadline}')
+print(f'Finalized: {m.finalized}')
+print(f'Verified: {m.verified}')
 "
 ```
 
-### 2. Run verification
+### 2. Run verification (standard path)
+
+The daemon resolves template inputs from the milestone's onchain `metadataHash` via 0G Storage. Requires `0g-storage-client` binary on PATH and a working 0G indexer.
 
 ```bash
-export PRIVATE_KEY="<verifier_private_key>"
-export VERIFIER_ADDRESS="<verifier_address>"
+export ETH_RPC_URL="https://evmrpc-testnet.0g.ai"
+export WEFT_CONTRACT_ADDRESS="0x9f66158c560ce5c8b40820fdcd2874ff8d852192"
+export VERIFIER_PRIVATE_KEY="0x..."
+export VERIFIER_ADDRESS="0x..."
+export ZERO_G_INDEXER_RPC="https://indexer-storage-testnet-standard.0g.ai"
 
-python3 agent/scripts/weft_daemon.py --once \
-  --contract-address <CONTRACT_ADDRESS> \
-  --measurement-window-seconds <WINDOW> \
-  --unique-caller-threshold <THRESHOLD>
+python3 agent/scripts/weft_daemon.py --once 
 ```
 
-### 3. Report result
+### 3. Direct fallback (when 0G storage is unavailable)
+
+When the 0G indexer returns 503 or `0g-storage-client` is not installed, the daemon can't derive template inputs (contract address, window, threshold) from metadata. **Use `cast send submitVerdict()` directly as an escape hatch.**
+
+This bypasses evidence collection and peer consensus, but marks the milestone as verified onchain and populates the evidence root.
+
+```bash
+export ETH_RPC_URL="https://evmrpc-testnet.0g.ai"
+
+MILESTONE_HASH="0x..."
+WEFT_CONTRACT="0x9f66158c560ce5c8b40820fdcd2874ff8d852192"
+
+# Generate a deterministic evidence root
+EVIDENCE_ROOT=$(cast keccak "$(echo -n "weft-demo-evidence-$(date +%F)" | xxd -p)")
+
+# Submit the verdict
+cast send --rpc-url "$ETH_RPC_URL" \
+  --private-key "0x..." \
+  --legacy --gas-price 3000000000 \
+  "$WEFT_CONTRACT" \
+  "submitVerdict(bytes32,bool,bytes32)" \
+  "$MILESTONE_HASH" \
+  true \
+  "$EVIDENCE_ROOT"
+```
+
+On success, the milestone shows `verified=true` on the status API and frontend immediately. The transaction log includes the `didComplete=true` flag and evidence root.
+
+### 4. Report result
 
 After verification, always present the result as a clean report:
 
@@ -84,22 +118,25 @@ After verification, always present the result as a clean report:
   Verification Complete
   ━━━━━━━━━━━━━━━━━━━━
 
-  Milestone: 0x0f93e22d...
+  Milestone: 0x516975afcb...
   Status:    ✓ VERIFIED
+  Tx:        0xb74835876949...
 
-  Evidence collected:
-  • Contract deployed at 0x1234...5678
-  • 147 unique callers in measurement window
-  • 3/3 verifiers agreed
-  • Evidence root: 0xabc123...
+  Evidence root: 0x01e1b37f9ae1...
+  confirmed on block 35264431
 
-  Onchain vote submitted.
-  View: weft.build/project/0x0f93e22d...
+  View onchain: weft.thisyearnofear.com/project/0x516975...
 ```
 
 ## Pitfalls
 
-- **Gas price too low:** 0G testnet requires minimum 2 gwei tip. Use `--gas-price 10gwei --priority-gas-price 5gwei`.
-- **Not an authorized verifier:** The address must be registered in VerifierRegistry.
-- **Too early:** Can't submit verdict before deadline.
-- **count_unique_callers is slow:** Use `--unique-caller-threshold 1` for fast demos.
+- **Contract address defaults:** The WeftMilestone contract on 0G Chain (chain 16602) is `0x9f66158c560ce5c8b40820fdcd2874ff8d852192`. Do NOT use the Base Sepolia address (`0xcc768d...`) which is deployed on a different chain.
+- **Gas price too low:** 0G testnet enforces a minimum. Use `--legacy --gas-price 3000000000` (3 gwei). `--gas-price 2000000000` may be rejected despite matching the minimum.
+- **EIP-1559 mismatch:** 0G testnet rejects EIP-1559 transactions where `maxPriorityFeePerGas > maxFeePerGas`. Always use `--legacy` flag.
+- **Not an authorized verifier:** The address must be registered in VerifierRegistry for the standard daemon path. The `cast send` fallback does NOT check authorization — any key can submit a verdict if the contract allows it. Verify the contract's access control before using the fallback.
+- **Too early:** Can't submit verdict before deadline. Check `now < deadline` first.
+- **count_unique_callers is slow:** Use `--unique-caller-threshold 1` for fast demos in the standard path.
+- **0G storage unavailable:** The indexer at `https://indexer-storage-testnet-standard.0g.ai` is unreliable (returns 503). If `0g-storage-client` is also missing, use the direct `cast send` fallback.
+- **Metadata leaves no fallback path:** The daemon's `_process_one()` exits silently when metadata download fails and no CLI overrides are provided. It logs the error but returns with no onchain action. If you see the daemon exit code 0 with only the startup log line, this is why.
+- **Evidence generation only works when the milestone's contract address is known.** The standard daemon path checks deployment (eth_getCode) and usage (count_unique_callers). The `cast send` fallback skips these checks entirely — it marks the milestone verified without verifying the deliverable. Use the fallback only for demo/emergency scenarios where the evidence was already manually confirmed.
+- **After the verdict lands**, the `weftEarnedTotal` in the ENS passport may still show 0 until the capital is actually released via the release path. The verdict only marks the milestone as verified — separate transactions handle capital movement.

@@ -72,16 +72,17 @@ indexer_client.get_milestone() reads final state
 
 ## Scripts
 
-| Script | Purpose |
-|---|---|
-| `weft_collect_attestation.py` | Collect evidence + build attestation JSON |
-| `weft_verify_and_vote.sh` | E2E: collect evidence + submit onchain verdict |
-| `weft_sync_from_indexer.py` | Sync milestone state from indexer to local cache |
-| `weft_daemon.py` | Poll deadlines and automatically attest + vote (optional 0G publish + peer broadcast) |
-| `weft_peer_server.py` | Receive peer broadcasts (POST /send) and persist to `agent/.inbox/` |
-| `weft_verify_bundle.py` | Verify bundles via bundle_manifest.json (hashes + sizes) |
-| `weft_download_and_verify_bundle.py` | Download bundle.tar.gz from 0G by root and verify |
-| `weft_status_api.py` | Minimal read-only HTTP API for builders (milestone status, optional metadata) |
+|| Script | Purpose |
+|---|---|---|
+|| `weft_collect_attestation.py` | Collect evidence + build attestation JSON |
+|| `weft_verify_and_vote.sh` | E2E: collect evidence + submit onchain verdict |
+|| `weft_sync_from_indexer.py` | Sync milestone state from indexer to local cache |
+|| `weft_daemon.py` | Poll deadlines and automatically attest + vote (optional 0G publish + peer broadcast) |
+|| `weft_builder.py` | Create milestones and stake from CLI (alpha) |
+|| `weft_peer_server.py` | Receive peer broadcasts (POST /send) and persist to `agent/.inbox/` |
+|| `weft_verify_bundle.py` | Verify bundles via bundle_manifest.json (hashes + sizes) |
+|| `weft_download_and_verify_bundle.py` | Download bundle.tar.gz from 0G by root and verify |
+|| `weft_status_api.py` | Minimal read-only HTTP API for builders (milestone status, optional metadata) |
 
 ## Builder onboarding (first cohort)
 
@@ -390,8 +391,7 @@ bash scripts/hermes_weft.sh
 | `weft-demo` | "run the demo" | Story-first coordinator (Problem→Stakes→Solution→Proof→Meaning): starts AXL nodes, collects evidence, calls Kimi chronicle, generates fal.ai/ComfyUI swatch, reads ENS records, prints sponsor summary |
 | `weft-manim` | "animate the verification" | Generates a Manim animation of the verification flow as a literal weaving — warp threads (evidence) → weft interlacing (peer consensus) → fabric (milestone card) → MP4 output |
 | `weft-verify` | "verify milestone 0x..." | Runs `mvp_verifier` + `github_client`, builds attestation JSON |
-| `weft-narrate` | "narrate milestone 0x..." | Single-milestone Kimi narrative |
-| `weft-narrate` | "narrate milestone 0x..." | Calls `kimi_client.generate_narrative()` for a single milestone |
+|| `weft-narrate` | "narrate milestone 0x..." | Calls `kimi_client.generate_narrative()` for a single milestone |
 | `weft-status` | "status of weft.thisyearnofear.eth" | Queries `weft_status_api` and returns human-readable milestone state |
 | `weft-ens` | "update ENS profile" | Calls `ens_client.update_builder_profile()` to write text records |
 

@@ -12,15 +12,21 @@
 | **Explorer** | [WeftMilestone on 0G Galileo](https://explorer-testnet.0g.ai/address/0x9f66158c560ce5c8b40820fdcd2874ff8d852192) |
 | **ENS identity** | `weft.thisyearnofear.eth` |
 
-### Demo in 60 seconds
+### Status (onchain)
 
-```bash
-git clone https://github.com/thisyearnofear/weft
-cd weft
-bash scripts/demo_e2e.sh --staged --hermes --milestone=0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f
-```
+The demo milestone `0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f`
+is **verified, finalized, and released** on 0G Testnet (chain 16602):
 
-Watch the terminal: Kimi narrates each step as the Hermes Agent collects evidence, reaches peer consensus, and submits the onchain verdict.
+| Field | Value |
+|---|---|
+| verified | ✅ true |
+| finalized | ✅ true |
+| released | ✅ true |
+| verifier quorum | 2 of 3 |
+| capital released | 0.01 ETH |
+| evidence root | `0x01e1b3...` |
+| WeftMilestone | `0x9f66158c560ce5c8b40820fdcd2874ff8d852192` |
+| builder | `weft.thisyearnofear.eth` (`0xebe2ee...`) |
 
 ### Quick links
 - [Architecture Diagram](docs/architecture-diagram.svg) — visual system overview
@@ -53,7 +59,7 @@ Weft replaces that with a capital coordination system built for **fluid human-ag
 
 ## Why this matters
 
-Weft replaces four things that normally require corporations, lawyers, and managers:
+Weft enables four things that normally require corporations, lawyers, and managers:
 
 | Primitive | Replaced by |
 |---|---|

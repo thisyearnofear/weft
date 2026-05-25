@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import './globals.css';
+import '@rainbow-me/rainbowkit/styles.css';
 import styles from './layout.module.css';
 import { Providers } from '@/lib/providers';
 import { ConnectButton } from '@/components/ConnectButton';
@@ -14,13 +15,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Weft — Milestone Funding for Fluid Builder Teams',
+  title: 'Weft — Milestone Funding for Builder Teams',
   description:
-    'Milestone-based funding and portable reputation. Humans and agents participate identically. Replace companies, lawyers, and managers with onchain milestones.',
+    'Milestone-based escrow and portable reputation for builder teams. Humans and autonomous agents participate identically.',
   keywords: ['milestone funding', 'web3', 'autonomous agents', 'ENS', 'reputation', 'DeFi'],
   openGraph: {
-    title: 'Weft — Milestone Funding for Fluid Builder Teams',
-    description: 'Humans and agents participate identically.',
+    title: 'Weft — Milestone Funding for Builder Teams',
+    description: 'Milestone-based escrow and portable reputation for builder teams.',
     type: 'website',
   },
 };
