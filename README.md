@@ -90,6 +90,7 @@ Weft replaces four things that normally require corporations, lawyers, and manag
 | **KeeperHub** | Reliable `submitVerdict()` execution with retry/audit trail | Agents can reason about a verdict and still need a robust path to execute it onchain |
 | **ENS** | Builder / verifier profile records and discoverability | Human-readable identity and portable reputation for builders and agents |
 | **Hermes + Kimi** | Managed agent layer, narrative generation, Builder Journey chronicles | Weaves raw data threads into meaningful fabric — creative non-fiction from the blockchain |
+| **HydraDB** | Operational memory for failure events and recovery insights | The agent captures every infrastructure failure as experience and recalls patterns to improve autonomous recovery |
 
 ## What is different about Weft
 
