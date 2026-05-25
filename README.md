@@ -2,16 +2,14 @@
 
 **Weft is a Hermes Agent-powered Digital Twin for onchain builders: a long-running autonomous agent that maintains persistent memory of every milestone, commit, and user interaction — weaving raw data threads into meaningful fabric and releasing capital when outcomes are verified.**
 
-## 📋 For Judges — 0G APAC Hackathon
+## Live demo
 
-| | |
+| Surface | URL |
 |---|---|
-| **Track** | **Track 3 — Agentic Economy & Autonomous Applications** (primary) · Track 4 secondary |
-| **Prize Pool** | $150,000 · Deadline: May 16, 2026 |
-| **One-line pitch** | Autonomous milestone verification for builders — onchain escrow on 0G Chain, deterministic evidence, optional 0G Storage publishing, AXL peer corroboration, and ENS reputation |
-| **Live demo (frontend)** | [weft.thisyearnofear.com](https://weft.thisyearnofear.com) — ensure status API is online for full experience |
-| **Status API** | `/api/status/demo` — live integration status, chat, chronicle generation, MCP tools |
-| **Deployed contracts** | WeftMilestone: `0x9f66...1922` on 0G Galileo ([explorer](https://explorer-testnet.0g.ai/address/0x9f66158c560ce5c8b40820fdcd2874ff8d852192)) |
+| **Frontend** | [weft.thisyearnofear.com](https://weft.thisyearnofear.com) |
+| **Recovery dashboard** | [weft.thisyearnofear.com/recovery](https://weft.thisyearnofear.com/recovery) |
+| **Status API** | `/api/status/demo` — integration status, chat, MCP tools |
+| **Explorer** | [WeftMilestone on 0G Galileo](https://explorer-testnet.0g.ai/address/0x9f66158c560ce5c8b40820fdcd2874ff8d852192) |
 | **ENS identity** | `weft.thisyearnofear.eth` |
 
 ### Demo in 60 seconds
@@ -24,35 +22,11 @@ bash scripts/demo_e2e.sh --staged --hermes --milestone=0x516975afcb46acf3ea22657
 
 Watch the terminal: Kimi narrates each step as the Hermes Agent collects evidence, reaches peer consensus, and submits the onchain verdict.
 
-### Live Demo Status
-
-The public demo is intentionally honest about what is live versus implemented:
-
-| Surface | Current status |
-|---|---|
-| 0G Chain contracts | Live on Galileo testnet |
-| Homepage + status API | Live at `weft.thisyearnofear.com` |
-| ENS trust profile | Live at `weft.thisyearnofear.eth` with 1 verified outcome |
-| AXL | Live process visible through status API; full 3-node flow is reproducible locally |
-| 0G Storage publishing | Implemented and best-effort when `ZERO_G_*` env vars and `0g-storage-client` are configured |
-| KeeperHub | Implemented as preferred execution path; daemon falls back to `cast send` when not configured |
-| Capital release | Contract supports verified release/refund; demo focuses on verification and verdict flow |
-
-### 0G Integration Depth
-
-| Component | How Weft Uses It |
-|---|---|
-| **0G Chain** | WeftMilestone + VerifierRegistry deployed on Galileo — milestone escrow + 2-of-3 quorum |
-| **0G Storage KV** | Optional real-time pointers for milestone state, consensus proofs, bundles, and chronicles |
-| **0G Storage files** | Optional evidence bundle, `consensus.json`, and `bundle.tar.gz` publishing through `0g-storage-client` |
-| **0G Indexer** | Unified metadata lookup (KV first, onchain fallback) |
-
 ### Quick links
 - [Architecture Diagram](docs/architecture-diagram.svg) — visual system overview
-- [Hackathon Strategy](docs/hackathon-strategy.md) — per-track analysis, judging criteria mapping
-- [Submission Pack](docs/hackathon-submission.md) — 3-min demo script, sponsor stack, checklist
-- [Demo Video Script](docs/video-outline.md) — timed narration for recording
 - [Architecture](docs/architecture.md) — system design and data flow
+- [Product Plan](docs/product-plan.md) — roadmap and monetization
+- [Agent Workflow](AGENTS.md) — verification daemon and skills
 
 
 > *In weaving, the **weft** is the horizontal thread that interlaces with the vertical warp to create fabric. In Weft, raw data threads — onchain events, GitHub commits, peer verdicts — are woven by the Hermes Agent into meaningful fabric: narratives, achievement cards, ENS profiles. Technology provides the warp. Liberal arts provide the weft.*
@@ -107,9 +81,9 @@ Weft replaces four things that normally require corporations, lawyers, and manag
 - mix human and agent contributors in the same trust graph
 - turn shipped work into reusable trust for future funding
 
-## Sponsor fit at a glance
+## Integration partners
 
-| Sponsor | What Weft uses | Why it is essential |
+| Partner | What Weft uses | Why it matters |
 |---|---|---|
 | **0G** | 0G Chain, metadata lookup via indexer, 0G Storage bundle/evidence publishing | Milestones, metadata, evidence roots, and downloadable attestation artifacts live in the same workflow |
 | **Gensyn / AXL** | Peer broadcast, signed verdict envelopes, offchain corroboration | Separate verifier nodes coordinate before voting; no central coordinator |
@@ -131,46 +105,19 @@ A milestone completing is useful. A milestone completing and unlocking real capi
 ### 4. Flexible verification, onchain consequences
 Weft sits between rigid smart contracts and messy manual review: offchain evidence gathering with onchain finality.
 
-## 0G APAC Hackathon — Submission
+## Demo surfaces
 
-**Weft is submitted to the 0G APAC Hackathon** (deadline: May 16, 2026).
-
-| Detail | Value |
-|---|---|
-| **Primary Track** | **Track 3 — Agentic Economy & Autonomous Applications** |
-| **Secondary Track** | Track 4 — Web 4.0 Open Innovation (The Wildcard) |
-| **Prize Pool** | $150,000 (Grand: $45k/$35k/$20k + Excellence + Community) |
-
-See [Hackathon Strategy](docs/hackathon-strategy.md) and [Submission Pack](docs/hackathon-submission.md) for the full submission materials.
-
-### Why Weft fits Track 3
-
-Weft provides **autonomous financial rails for AI agents**:
-- A deterministic verifier daemon autonomously evaluates milestone completion
-- Contract release/refund paths are gated by verifier quorum
-- **0G Storage KV + file publishing** can persist evidence, consensus, and bundle pointers
-- Agents can coordinate via **AXL encrypted P2P** and execute onchain via **KeeperHub** when configured
-- Agents build portable reputation via **ENS** — economic actors, not just tools
-
-### 0G Integration Depth
-
-| Component | Usage |
-|---|---|
-| **0G Chain** | WeftMilestone + VerifierRegistry deployed on Galileo |
-| **0G Storage KV** | Optional agent state: `weft:milestone:<hash>:state`, `:consensus`, `:bundle`, `:chronicle` |
-| **0G Storage files** | Optional evidence and consensus artifacts uploaded as content-addressed roots |
-| **0G Indexer** | Unified milestone metadata lookup |
-
-### Demo — Live Frontend
+### 1. Live frontend
 
 Visit **https://weft.thisyearnofear.com**:
 1. Landing page hero → `ChronicleShowcase` (sample narrative) → `AskWeft` chat widget
 2. Milestone cards → **"Read the story"** → `/milestone/<hash>/story`
 3. AskWeft chat: `"tell me about milestone 0x5169..."`
-4. `/api/status/demo` — milestone state with sponsor integration status
+4. `/api/status/demo` — milestone state with integration status
 5. `app.ens.domains/weft.thisyearnofear.eth` — builder reputation records
+6. `/recovery` — autonomous failure recovery dashboard with live event timeline
 
-### Demo — Hermes Agent (most immersive)
+### 2. Hermes Agent (most immersive)
 
 ```bash
 bash scripts/hermes_weft.sh
@@ -178,7 +125,7 @@ bash scripts/hermes_weft.sh
 run the demo
 ```
 
-### Demo — Staged shell (video recording)
+### 3. Staged shell (video recording)
 
 ```bash
 bash scripts/demo_e2e.sh \
@@ -203,7 +150,7 @@ Weft's verification layer is a deterministic agent loop with optional managed He
 
 ### 0G Storage memory architecture
 
-The Hermes Agent uses both 0G Storage primitives as the 0G judges describe:
+The Hermes Agent uses both 0G Storage primitives:
 
 | Layer | Key pattern | Purpose |
 |---|---|---|
@@ -411,11 +358,10 @@ Dry-run (no onchain transactions):
 bash scripts/demo_e2e.sh --dry-run --nodes=3
 ```
 
-See [Hackathon Strategy](docs/hackathon-strategy.md) for per-track analysis.
 
-## Sponsor SDKs and protocols used
+## SDKs and protocols used
 
-| Sponsor | SDK / Protocol | Module |
+| Partner | SDK / Protocol | Module |
 |---|---|---|
 | 0G | 0G Chain (EVM RPC), 0G Storage (CLI + KV), 0G Indexer | `agent/lib/jsonrpc.py`, `agent/lib/zero_storage.py`, `agent/lib/indexer_client.py` |
 | Gensyn | AXL binary (`axl send`/`axl recv`), AXL HTTP API, legacy HTTP fallback | `agent/lib/axl_client.py` |
@@ -427,14 +373,13 @@ See [Hackathon Strategy](docs/hackathon-strategy.md) for per-track analysis.
 
 ## Links
 
-- [Hackathon Strategy](docs/hackathon-strategy.md)
-- [Hackathon Submission Pack](docs/hackathon-submission.md)
-- [Judge-Friendly Architecture Diagram](docs/architecture-diagram.md)
+- [Architecture Diagram](docs/architecture-diagram.svg)
 - [Product Plan & Monetization](docs/product-plan.md)
 - [Technical Architecture](docs/architecture.md)
 - [MVP Spec](docs/mvp.md)
 - [Agent Workflow](AGENTS.md)
 - [Builder Feedback for Uniswap](FEEDBACK.md)
+- [Hackathon Archive](docs/hackathons.md) — past submission materials
 
 ## Deployed contracts
 
