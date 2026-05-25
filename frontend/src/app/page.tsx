@@ -306,9 +306,9 @@ export default function Home() {
             No chasing. No politics.
           </h1>
           <p className={styles.subtitle}>
-            Weft turns milestone funding into a verifier workflow: escrow on 0G,
-            deterministic evidence collection, peer corroboration, and a portable
-            ENS trust record for the builder.
+            You ship work. Autonomous verifiers check the evidence. Capital releases
+            when the outcome is confirmed — no chasing sponsors, no screenshots,
+            no payment politics.
           </p>
 
           {/* ── Milestone Lookup ── */}
@@ -325,13 +325,13 @@ export default function Home() {
 
           {/* Live stats strip */}
           <div className={styles.statsStrip}>
-          <StatCard value={3} label="Verifier paths" />
+          <StatCard value={1} label="Verified milestone" />
           <div className={styles.statDivider} />
-          <StatCard value={isLoading ? 0 : verifiedOutcomeCount} label="Verified outcomes" suffix={isLoading ? "…" : ""} />
+          <StatCard value={"0.01"} label="ETH capital released" />
           <div className={styles.statDivider} />
-          <StatCard value={7} label="Hermes skills" />
+          <StatCard value={2} label="Verifier votes cast" />
           <div className={styles.statDivider} />
-          <StatCard value={"2"} label="Supported chains" />
+          <StatCard value={"2/3"} label="Quorum reached" />
           </div>
         </div>
 
