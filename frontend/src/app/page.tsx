@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
-import { ArrowRight, Bot, ShieldCheck, Sparkles, MessageCircle, Zap, Clock, XCircle, CheckCircle, BarChart3 } from "lucide-react";
+import { useState, useMemo, FormEvent } from "react";
+import { ArrowRight, Bot, ShieldCheck, Sparkles, MessageCircle, Zap, Clock, XCircle, CheckCircle, BarChart3, Search } from "lucide-react";
 
 import { MilestoneCard } from "@/components/MilestoneCard";
 import { SkeletonCard } from "@/components/SkeletonCard";
@@ -22,6 +22,193 @@ function StatCard({ value, label, suffix = "" }: { value: number | string; label
     <div className={styles.statCard}>
       <span className={styles.statValue}>{display}{suffix}</span>
       <span className={styles.statLabel}>{label}</span>
+    </div>
+  );
+}
+
+/* ── Milestone Lookup ── */
+function MilestoneLookup() {
+  const [input, setInput] = useState("");
+  const [hash, setHash] = useState("");
+  const { data, isLoading, error } = useStatusMilestone(hash, true);
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    const trimmed = input.trim();
+    const fullHash = trimmed.startsWith("0x") ? trimmed : `0x${trimmed}`;
+    if (/^0x[a-fA-F0-9]{64}$/.test(fullHash)) {
+      setHash(fullHash);
+    }
+  };
+
+  const stakedEth = data ? (Number(data.totalStaked) / 1e18).toFixed(4) : null;
+  const isVerified = data?.verified;
+  const hasResult = data && !isLoading && !error;
+
+  return (
+    <div style={{
+      width: "100%",
+      maxWidth: "480px",
+    }}>
+      <form onSubmit={handleSubmit} style={{
+        display: "flex",
+        gap: "8px",
+        background: "#fff",
+        border: "1px solid #d0d5dd",
+        borderRadius: "10px",
+        padding: "4px",
+      }}>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          flex: 1,
+          paddingLeft: "12px",
+        }}>
+          <Search size={16} color="#98a2b3" />
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Paste a milestone hash (0x...)"
+            style={{
+              flex: 1,
+              border: "none",
+              outline: "none",
+              background: "transparent",
+              fontSize: "14px",
+              color: "#162033",
+              padding: "10px 0",
+            }}
+          />
+        </div>
+        <button type="submit" style={{
+          padding: "10px 20px",
+          background: "#315fd6",
+          color: "#fff",
+          border: "none",
+          borderRadius: "8px",
+          fontSize: "14px",
+          fontWeight: 600,
+          cursor: "pointer",
+        }}>
+          Check
+        </button>
+      </form>
+
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        marginTop: "8px",
+        fontSize: "13px",
+        color: "#98a2b3",
+      }}>
+        <span>Try:</span>
+        <button
+          type="button"
+          onClick={() => {
+            setInput("0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f");
+            setHash("0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f");
+          }}
+          style={{
+            fontFamily: "monospace",
+            fontSize: "12px",
+            padding: "4px 10px",
+            background: "#f2f4f7",
+            border: "1px solid #e4e7ec",
+            borderRadius: "6px",
+            color: "#315fd6",
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            maxWidth: "220px",
+          }}
+          title="Click to check the demo milestone"
+        >
+          0x516975...b1c16f
+        </button>
+      </div>
+
+      {isLoading && (
+        <div style={{ padding: "12px 16px", fontSize: "14px", color: "#6c788a" }}>
+          Loading milestone data...
+        </div>
+      )}
+
+      {error && (
+        <div style={{ padding: "12px 16px", fontSize: "14px", color: "#d92d20" }}>
+          Milestone not found. Check the hash and try again.
+        </div>
+      )}
+
+      {hasResult && (
+        <div style={{
+          marginTop: "10px",
+          background: "#fff",
+          border: "1px solid #eaecf0",
+          borderRadius: "10px",
+          padding: "16px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{
+              fontSize: "20px",
+            }}>
+              {isVerified ? "✅" : "⏳"}
+            </span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: "15px", color: "#162033" }}>
+                {isVerified ? "Verified" : data?.finalized ? "Failed" : "Pending"}
+              </div>
+              <div style={{ fontSize: "13px", color: "#6c788a", fontFamily: "monospace" }}>
+                {hash.slice(0, 10)}...{hash.slice(-6)}
+              </div>
+            </div>
+            <div style={{ marginLeft: "auto", textAlign: "right" }}>
+              <div style={{ fontWeight: 700, fontSize: "15px", color: "#162033" }}>
+                {stakedEth} ETH
+              </div>
+              <div style={{ fontSize: "13px", color: "#6c788a" }}>
+                {data?.released ? "Released" : data?.finalized ? "Refundable" : "Locked"}
+              </div>
+            </div>
+          </div>
+          <div style={{
+            display: "flex",
+            gap: "16px",
+            fontSize: "13px",
+            color: "#6c788a",
+            flexWrap: "wrap",
+          }}>
+            {data?.builder && (
+              <span>
+                Builder: <strong style={{ color: "#315fd6" }}>
+                  {data.builder.slice(0, 6)}...{data.builder.slice(-4)}
+                </strong>
+              </span>
+            )}
+            {data?.deadline && (
+              <span>
+                Deadline: {new Date(Number(data.deadline) * 1000).toLocaleDateString()}
+              </span>
+            )}
+          </div>
+          {data?.verified && data?.verifiedVotes > 0 && (
+            <div style={{
+              display: "flex",
+              gap: "8px",
+              fontSize: "13px",
+              color: "#06974a",
+            }}>
+              ✓ {data.verifiedVotes} of {data.verifierCount} verifier votes
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -123,6 +310,10 @@ export default function Home() {
             deterministic evidence collection, peer corroboration, and a portable
             ENS trust record for the builder.
           </p>
+
+          {/* ── Milestone Lookup ── */}
+          <MilestoneLookup />
+
           <div className={styles.heroActions}>
             <Link href="/builder" className={styles.primaryAction}>
               Start building <ArrowRight size={16} />
