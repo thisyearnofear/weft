@@ -37,6 +37,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/" className={styles.logo}>
               ⬡ Weft
             </Link>
+            <nav className={styles.nav}>
+              <Link href="/recovery" className={styles.navLink}>
+                Resilience demo
+              </Link>
+            </nav>
             <ConnectButton />
           </header>
           <main id="main-content" className={styles.main}>

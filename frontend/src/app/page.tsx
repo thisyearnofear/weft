@@ -390,7 +390,8 @@ export default function Home() {
       <ChronicleShowcase />
 
       {/* ── LIVE MILESTONES ── */}
-      <section id="live-milestones" className={styles.section} aria-label="Milestones under verification and settlement">
+      {milestoneHashes.length > 0 || verifiedOutcomeCount > 0 ? (
+        <section id="live-milestones" className={styles.section} aria-label="Milestones under verification and settlement">
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>Live trust decisions</span>
@@ -440,7 +441,7 @@ export default function Home() {
                 </div>
               )}
         </div>
-      </section>
+      </section>) : null}
 
       {/* ── BOTTOM CTA ── */}
       <section className={styles.bottomPanel}>
@@ -464,6 +465,16 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ── Pricing ── */}
+      <div style={{
+        textAlign: "center",
+        padding: "0.5rem 1rem 2rem",
+        fontSize: "0.8rem",
+        color: "#98a2b3",
+      }}>
+        Protocol fee: 2% of released capital → reinvested in verifier infrastructure
+      </div>
     </div>
   );
 }

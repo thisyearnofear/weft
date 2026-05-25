@@ -1,61 +1,66 @@
 # Weft
 
-**Weft is a Hermes Agent-powered Digital Twin for onchain builders: a long-running autonomous agent that maintains persistent memory of every milestone, commit, and user interaction — weaving raw data threads into meaningful fabric and releasing capital when outcomes are verified.**
+**Trustless milestone verification for onchain builder teams.**
+A sponsor locks capital into escrow. A builder ships work. Autonomous verifier nodes
+collect evidence, reach peer consensus (2-of-3), and the capital releases automatically.
+Verified outcomes attach to the builder's ENS identity as portable reputation.
 
 ## Live demo
 
 | Surface | URL |
 |---|---|
 | **Frontend** | [weft.thisyearnofear.com](https://weft.thisyearnofear.com) |
-| **Recovery dashboard** | [weft.thisyearnofear.com/recovery](https://weft.thisyearnofear.com/recovery) |
-| **Status API** | `/api/status/demo` — integration status, chat, MCP tools |
+| **Resilience demo** | [weft.thisyearnofear.com/recovery](https://weft.thisyearnofear.com/recovery) |
 | **Explorer** | [WeftMilestone on 0G Galileo](https://explorer-testnet.0g.ai/address/0x9f66158c560ce5c8b40820fdcd2874ff8d852192) |
 | **ENS identity** | `weft.thisyearnofear.eth` |
+| **Status API** | `GET /api/status/demo` |
 
-### Status (onchain)
+### Demo milestone (verified, finalized, released)
 
-The demo milestone `0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f`
-is **verified, finalized, and released** on 0G Testnet (chain 16602):
+Paste `0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f` into the
+hero lookup at **[weft.thisyearnofear.com](https://weft.thisyearnofear.com)** to see
+the live verification result, or click the "Try" chip.
 
 | Field | Value |
 |---|---|
-| verified | ✅ true |
-| finalized | ✅ true |
-| released | ✅ true |
+| verified | ✅ |
+| finalized | ✅ |
+| released | ✅ |
 | verifier quorum | 2 of 3 |
 | capital released | 0.01 ETH |
 | evidence root | `0x01e1b3...` |
-| WeftMilestone | `0x9f66158c560ce5c8b40820fdcd2874ff8d852192` |
-| builder | `weft.thisyearnofear.eth` (`0xebe2ee...`) |
+| contract | `0x9f66158c560ce5c8b40820fdcd2874ff8d852192` |
+| builder | `weft.thisyearnofear.eth` |
 
 ### Quick links
-- [Architecture Diagram](docs/architecture-diagram.svg) — visual system overview
-- [Architecture](docs/architecture.md) — system design and data flow
-- [Product Plan](docs/product-plan.md) — roadmap and monetization
-- [Agent Workflow](AGENTS.md) — verification daemon and skills
+- [Architecture Diagram](docs/architecture-diagram.svg)
+- [Submission details](SUBMISSION.md)
+- [Agent Workflow](AGENTS.md)
+- [Product Plan](docs/product-plan.md)
 
-
-> *In weaving, the **weft** is the horizontal thread that interlaces with the vertical warp to create fabric. In Weft, raw data threads — onchain events, GitHub commits, peer verdicts — are woven by the Hermes Agent into meaningful fabric: narratives, achievement cards, ENS profiles. Technology provides the warp. Liberal arts provide the weft.*
-
-Weft helps internet-native teams release capital based on verifiable outcomes instead of manual trust.
+> *"Technology provides the warp. Liberal arts provide the weft."*
+>
+> In weaving, the **weft** is the horizontal thread that interlaces with the vertical warp
+> to create fabric. In this protocol, raw data threads — onchain events, GitHub commits,
+> peer verdicts — are woven into meaningful outcomes: verified milestones, capital released,
+> portable ENS reputation.
 
 ## The wedge
 
-Most early teams still coordinate funding with some broken combination of:
+Most early teams coordinate funding with a broken combination of:
 - Telegram chats
 - Notion checklists
 - screenshots in DMs
 - multisig payout politics
-- contractor ambiguity
 - no portable reputation
 
-Weft replaces that with a capital coordination system built for **fluid human-agent teams**:
-1. a founder, sponsor, or DAO defines a milestone and escrows capital,
-2. builders and agents work toward the objective,
-3. verifier agents gather evidence when the milestone window closes,
-4. peer nodes corroborate the outcome,
-5. funds release only when the system reaches execution-grade confidence,
-6. the builder and agent identities retain portable reputation tied to funded outcomes.
+Weft replaces that with a capital coordination system built for internet-native teams:
+1. A sponsor or DAO defines a milestone and escrows capital
+2. Builders work toward the objective
+3. Verifier agents gather evidence when the milestone window closes
+4. Peer nodes corroborate the outcome (2-of-3 quorum)
+5. Capital releases automatically when quorum confirms delivery
+6. The builder retains portable reputation tied to funded outcomes
 
 ## Why this matters
 

@@ -51,6 +51,28 @@
   background-clip: text;
 }
 
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  margin-left: 1rem;
+}
+
+.navLink {
+  font-size: 0.8rem;
+  color: #526073;
+  text-decoration: none;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.navLink:hover {
+  background: rgba(22, 32, 51, 0.06);
+  color: #162033;
+}
+
 .main {
   padding-top: var(--nav-h);
 }
