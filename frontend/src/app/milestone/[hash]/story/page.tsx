@@ -30,15 +30,23 @@ export default function StoryPage({ params }: { params: Promise<{ hash: string }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Hydrate from localStorage cache on mount
+  const didAutoTrigger = React.useRef(false);
+
+  // Hydrate from localStorage cache on mount; auto-generate if no cache
   React.useEffect(() => {
     try {
       const cached = localStorage.getItem(`weft_chronicle_${milestoneHash}`);
       if (cached) {
         const parsed = JSON.parse(cached) as ChronicleData;
         queueMicrotask(() => setChronicle(parsed));
+        return;
       }
     } catch { /* ignore */ }
+    // No cached chronicle — auto-generate on mount (once)
+    if (!didAutoTrigger.current) {
+      didAutoTrigger.current = true;
+      queueMicrotask(() => generateChronicle());
+    }
   }, [milestoneHash]);
 
   const generateChronicle = useCallback(async () => {

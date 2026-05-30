@@ -38,6 +38,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               ⬡ Weft
             </Link>
             <nav className={styles.nav}>
+              <Link href="/create-milestone" className={styles.navLink}>
+                Create milestone
+              </Link>
               <Link href="/recovery" className={styles.navLink}>
                 Resilience demo
               </Link>

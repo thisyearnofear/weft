@@ -266,7 +266,7 @@ def cmd_create_milestone(args) -> int:
         metadata_hash,
         "[]",  # empty splits => defaults to builder 100%
     ]
-    print("tx:", " ".join(cmd))
+    _log_tx(cmd)
     out = _cast(cmd)
     print(out.strip())
     return 0
@@ -294,7 +294,7 @@ def cmd_stake(args) -> int:
         "stake(bytes32)",
         args.milestone_hash,
     ]
-    print("tx:", " ".join(cmd))
+    _log_tx(cmd)
     out = _cast(cmd)
     print(out.strip())
     return 0
@@ -476,6 +476,22 @@ def _validate_metadata_dict(
                 print(" - " + f)
         return 2
     return 0
+
+
+def _log_tx(cmd: list[str]) -> None:
+    """Print a tx command to stdout, masking any private key."""
+    masked = []
+    i = 0
+    while i < len(cmd):
+        if cmd[i] == "--private-key" and i + 1 < len(cmd):
+            key = cmd[i + 1]
+            masked.append(cmd[i])
+            masked.append(key[:6] + "…" + key[-4:] if len(key) > 12 else "0x…")
+            i += 2
+        else:
+            masked.append(cmd[i])
+            i += 1
+    print("tx:", " ".join(masked))
 
 
 def _cast(cmd: list[str]) -> str:

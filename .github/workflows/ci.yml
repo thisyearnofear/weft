@@ -80,6 +80,33 @@ jobs:
           print(f'All {len(dir())} modules imported OK')
           "
 
+  secrets-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for secrets in staged changes
+        run: |
+          echo "🔍 Scanning for potential secrets..."
+          HAS_SECRET=0
+          # Patterns: private keys, API tokens
+          while IFS= read -r -d '' file; do
+            if grep -Pn '0x[0-9a-fA-F]{64,}' "$file" 2>/dev/null | grep -v '//.*0x\|/\*.*0x\|"0x[0-9a-f]\{64\}"' ; then
+              echo "⚠️  Possible private key in $file"
+              HAS_SECRET=1
+            fi
+            if grep -Pn '(sk-|kh_|modalresearch_|fal_key)[A-Za-z0-9_-]{20,}' "$file" 2>/dev/null; then
+              echo "⚠️  Possible API token in $file"
+              HAS_SECRET=1
+            fi
+          done < <(find . -name '*.py' -o -name '*.sh' -o -name '*.yml' -o -name '*.yaml' -o -name '*.md' -o -name '*.json' -o -name '*.toml' -o -name '*.sol' | grep -v node_modules | grep -v contracts/lib | grep -v .git | xargs -0 2>/dev/null || find . \( -name '*.py' -o -name '*.sh' -o -name '*.yml' -o -name '*.md' -o -name '*.json' -o -name '*.sol' \) -not -path '*/node_modules/*' -not -path '*/contracts/lib/*' -not -path '*/.git/*' -print0)
+          if [ "$HAS_SECRET" -ne 0 ]; then
+            echo "❌ Secrets found in source files!"
+            exit 1
+          fi
+          echo "✅ No secrets detected."
+
   shellcheck:
     name: Shell Script Lint
     runs-on: ubuntu-latest

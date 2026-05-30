@@ -2,21 +2,40 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowUpRight, Blocks, BookOpen, CheckCircle2, Clock3, Coins, Database, Network, ShieldCheck } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { ArrowUpRight, Blocks, BookOpen, CheckCircle2, Clock3, Coins, Database, Network, ShieldCheck, XCircle, Wallet, AlertTriangle, Loader2 } from "lucide-react";
+import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
 import { useMilestone } from "../../../hooks/useMilestones";
 import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
 import { useStatusMilestone } from "../../../hooks/useStatusApi";
 import { StakeForm } from "../../../components/StakeForm";
-import { DEFAULT_CHAIN, getAddresses } from "../../../lib/contracts";
+import { DEFAULT_CHAIN, getAddresses, WeftMilestoneAbi } from "../../../lib/contracts";
 import styles from "./page.module.css";
 
 const EXPLORER_ADDR = "https://chainscan-new.0g.ai/address";
 const ZERO_ROOT = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 function ProjectSkeleton() {
+  const [step, setStep] = React.useState(0);
+  const messages = [
+    "Connecting to 0G chain...",
+    "Reading milestone data from WeftMilestone contract...",
+    "Loading onchain evidence and verifier records...",
+    "Almost there — assembling the trust verdict...",
+  ];
+
+  React.useEffect(() => {
+    const t = setInterval(() => setStep((s) => Math.min(s + 1, messages.length - 1)), 4000);
+    return () => clearInterval(t);
+  }, [messages.length]);
+
   return (
     <div className={styles.container}>
       <div className={styles.skeletonPanel}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
+          <Loader2 size={18} className={styles.spinner} />
+          <span style={{ color: "var(--c-text-secondary)", fontSize: "0.9rem" }}>{messages[step]}</span>
+        </div>
         <div className={styles.skeletonLine} style={{ width: 180, height: 14 }} />
         <div className={styles.skeletonLine} style={{ width: "70%", height: 48, marginTop: 18 }} />
         <div className={styles.skeletonGrid}>
@@ -38,6 +57,97 @@ function StatusBadge({ milestone }: { milestone: { finalized: boolean; verified:
   return <span className={`${styles.statusBadge} ${styles.statusActive}`}>In verification</span>;
 }
 
+function EvidenceRow({ label, passed, detail }: { label: string; passed: boolean; detail: string }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: "0.75rem",
+      padding: "0.75rem 0.85rem",
+      borderRadius: "14px",
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.06)",
+    }}>
+      <span style={{ flexShrink: 0, color: passed ? "var(--c-success, #22c55e)" : "var(--c-text-muted)" }}>
+        {passed ? "✓" : "○"}
+      </span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 600, fontSize: "0.88rem" }}>{label}</div>
+        <div style={{ color: "var(--c-text-secondary)", fontSize: "0.8rem", marginTop: "0.15rem" }}>{detail}</div>
+      </div>
+    </div>
+  );
+}
+
+function ReleaseButton({ milestoneHash, contractAddress, milestone, demoMode }: {
+  milestoneHash: `0x${string}`; contractAddress: `0x${string}`;
+  milestone: { verified: boolean; released: boolean; finalized: boolean };
+  demoMode?: boolean;
+}) {
+  const { isConnected } = useAccount();
+  const [error, setError] = React.useState<string | null>(null);
+  const { writeContract, data: txHash, isPending } = useWriteContract();
+  const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash: txHash });
+
+  if (!isConnected && !demoMode) return null;
+
+  const canRelease = milestone.verified && !milestone.released;
+  const canRefund = milestone.finalized && !milestone.verified;
+
+  if (!canRelease && !canRefund) return null;
+
+  const handleAction = async (fn: "release" | "refund") => {
+    setError(null);
+    try {
+      writeContract({
+        address: contractAddress,
+        abi: WeftMilestoneAbi,
+        functionName: fn,
+        args: [milestoneHash],
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `${fn} failed`);
+    }
+  };
+
+  const actionLabel = canRelease ? "Release Capital" : "Request Refund";
+  const actionFn: "release" | "refund" = canRelease ? "release" : "refund";
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+      <button
+        onClick={() => handleAction(actionFn)}
+        disabled={isPending || isConfirming}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: "0.5rem",
+          padding: "0.85rem 1.15rem",
+          borderRadius: "999px",
+          fontWeight: 600, fontSize: "0.9rem",
+          border: "none", cursor: "pointer",
+          background: canRelease
+            ? "linear-gradient(135deg, var(--c-accent), #22c55e)"
+            : "linear-gradient(135deg, var(--c-accent), var(--c-error, #ef4444))",
+          color: "white",
+          transition: "opacity 0.15s",
+          opacity: isPending ? 0.7 : 1,
+        }}
+      >
+        {isPending ? "Signing..." : isConfirming ? "Confirming..." : (
+          <>{canRelease ? <Wallet size={16} /> : <XCircle size={16} />} {actionLabel}</>
+        )}
+      </button>
+      {error && <div style={{ color: "var(--c-error)", fontSize: "0.82rem" }}>{error}</div>}
+      {txHash && (
+        <a
+          href={`https://chainscan-new.0g.ai/tx/${txHash}`}
+          target="_blank" rel="noopener noreferrer"
+          style={{ color: "var(--c-link)", fontSize: "0.82rem", textAlign: "center" }}
+        >
+          View transaction →
+        </a>
+      )}
+    </div>
+  );
+}
+
 function ShareButtons({ url, title }: { url: string; title: string }) {
   const tweetText = encodeURIComponent(`Tracking on Weft: "${title}"\n\n${url}`);
   const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
@@ -56,6 +166,8 @@ function ShareButtons({ url, title }: { url: string; title: string }) {
 
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
+  const searchParams = useSearchParams();
+  const demoMode = searchParams.get("demo") === "1";
   const milestoneHash = (id.startsWith("0x") ? id : `0x${id}`) as `0x${string}`;
   const { data: milestone, isLoading, error } = useMilestone(milestoneHash);
   const { data: statusMilestone } = useStatusMilestone(milestoneHash, true);
@@ -165,11 +277,13 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             <strong className={styles.metricValue}>{milestone.verifiedVotes}/{milestone.verifierCount}</strong>
             <p>{verificationProgress}% of the current quorum has been satisfied.</p>
           </article>
-          <article className={styles.metricCard}>
-            <span className={styles.metricLabel}>Peer corroboration</span>
-            <strong className={styles.metricValue}>{peerGroup ? peerGroup.peerCount : 0}</strong>
-            <p>{peerGroup ? "Peer consensus is visible for this funding decision." : "No corroborating peer group surfaced yet."}</p>
-          </article>
+          {peerGroup && (
+            <article className={styles.metricCard}>
+              <span className={styles.metricLabel}>Peer corroboration</span>
+              <strong className={styles.metricValue}>{peerGroup.peerCount}</strong>
+              <p>Peer consensus is visible for this funding decision.</p>
+            </article>
+          )}
           <article className={styles.metricCard}>
             <span className={styles.metricLabel}>Evidence root</span>
             <strong className={styles.metricValueSmall}>{evidenceRoot ? `${evidenceRoot.slice(0, 12)}...${evidenceRoot.slice(-8)}` : "Pending"}</strong>
@@ -225,20 +339,41 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             <article className={styles.panel}>
               <div className={styles.panelHeader}>
                 <div>
-                  <span className={styles.kicker}>Evidence and payout path</span>
-                  <h3>What the network requires before money moves</h3>
+                  <span className={styles.kicker}>Evidence breakdown</span>
+                  <h3>What verifiers checked to reach this outcome</h3>
                 </div>
                 <CheckCircle2 size={18} />
               </div>
-              <ul className={styles.summaryList}>
-                <li>Deployment and milestone-linked usage must be verifiable.</li>
-                <li>Verifier votes need to converge on a credible outcome.</li>
-                <li>Evidence roots should be anchorable and inspectable.</li>
-                <li>Final execution should use a reliable path rather than a fragile one-off transaction.</li>
-              </ul>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "0.5rem" }}>
+                <EvidenceRow
+                  label="Contract deployment"
+                  passed={milestone.builder !== "0x0000000000000000000000000000000000000000"}
+                  detail="Deployed contract exists on 0G chain at the stated address"
+                />
+                <EvidenceRow
+                  label="Unique callers"
+                  passed={milestone.verifiedVotes > 0}
+                  detail={milestone.verifiedVotes > 0 ? `${milestone.verifiedVotes} unique caller${milestone.verifiedVotes === 1 ? "" : "s"} detected` : "Awaiting usage data"}
+                />
+                <EvidenceRow
+                  label="Verifier quorum"
+                  passed={milestone.verifierCount > 0 && milestone.verifiedVotes > 0}
+                  detail={milestone.verifierCount > 0 ? `${milestone.verifiedVotes}/${milestone.verifierCount} votes` : "No verifiers assigned"}
+                />
+                <EvidenceRow
+                  label="Final evidence"
+                  passed={!!evidenceRoot}
+                  detail={evidenceRoot ? "Anchored onchain" : "Not yet published"}
+                />
+                <EvidenceRow
+                  label="Capital release"
+                  passed={milestone.released}
+                  detail={milestone.released ? "Capital released to builder" : milestone.verified ? "Ready — call release()" : "Locked until verification"}
+                />
+              </div>
               {evidenceRoot && (
-                <div className={styles.codeBlock}>
-                  <span className={styles.codeLabel}>Final evidence root</span>
+                <div className={styles.codeBlock} style={{ marginTop: "0.75rem" }}>
+                  <span className={styles.codeLabel}>Evidence root</span>
                   <code>{evidenceRoot}</code>
                 </div>
               )}
@@ -299,9 +434,48 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                   <Coins size={18} />
                 </div>
                 <p className={styles.panelText}>
-                  Add capital to the milestone while it is still active. Funds remain governed by Weft’s trust loop until the final outcome is known.
+                  Add capital to the milestone while it is still active. Funds remain governed by Weft's trust loop until the final outcome is known.
                 </p>
                 <StakeForm milestoneHash={milestoneHash} contractAddress={addresses.weftMilestone} />
+              </article>
+            )}
+
+            {!isActive && addresses.weftMilestone && (
+              <article className={styles.panel}>
+                <div className={styles.panelHeader}>
+                  <div>
+                    <span className={styles.kicker}>Settlement</span>
+                    <h3>{milestone.verified ? "Release capital" : "Refund path"}</h3>
+                  </div>
+                  {milestone.verified ? <Wallet size={18} /> : <AlertTriangle size={18} />}
+                </div>
+                <p className={styles.panelText}>
+                  {milestone.verified
+                    ? "This milestone verified successfully. The escrowed capital can now be released to the builder."
+                    : "This milestone did not verify. Sponsors can reclaim their staked capital through the refund path."}
+                </p>
+                {milestone.released && (
+                  <div className={styles.codeBlock}>
+                    <span className={styles.codeLabel}>Already released</span>
+                    <p style={{ color: "var(--c-success)", fontSize: "0.9rem" }}>Capital has been distributed.</p>
+                  </div>
+                )}
+                {!milestone.released && (
+                  <ReleaseButton
+                    milestoneHash={milestoneHash}
+                    contractAddress={addresses.weftMilestone}
+                    milestone={milestone}
+                    demoMode={demoMode}
+                  />
+                )}
+                {milestone.released && demoMode && (
+                  <ReleaseButton
+                    milestoneHash={milestoneHash}
+                    contractAddress={addresses.weftMilestone}
+                    milestone={{ ...milestone, released: false }}
+                    demoMode={true}
+                  />
+                )}
               </article>
             )}
 

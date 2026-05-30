@@ -3,7 +3,14 @@
 # Usage: bash scripts/hermes_weft.sh
 
 set -a
-source "$(dirname "$0")/.env"
+_ENV_DIR="$(dirname "$0")"
+if [ -f "$_ENV_DIR/.env.local" ]; then
+  source "$_ENV_DIR/.env.local"
+elif [ -f "$_ENV_DIR/.env" ]; then
+  source "$_ENV_DIR/.env"
+elif [ -f "$_ENV_DIR/../.env.local" ]; then
+  source "$_ENV_DIR/../.env.local"
+fi
 set +a
 
 # Export WEFT_ROOT so skills don't rely on hardcoded paths

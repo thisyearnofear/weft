@@ -32,6 +32,26 @@ the live verification result, or click the "Try" chip.
 | contract | `0x9f66158c560ce5c8b40820fdcd2874ff8d852192` |
 | builder | `weft.thisyearnofear.eth` |
 
+### Demo walkthrough (screenshots)
+
+| Page | Screenshot |
+|---|---|
+| **Landing page** — hero section with milestone lookup widget, live stats "Verified / 0.01 ETH released / 2 verifier votes / 2/3 quorum", and verifier path diagram. | ![Landing page](assets/01-landing.png) |
+| **Milestone detail** — fully loaded onchain data for the demo milestone: capital at stake (0.01 ETH), verifier confidence (2/2), evidence root anchored onchain, Evidence breakdown (5 rows: deployment, callers, quorum, evidence root, capital release), Trust profile sidebar, and Settlement panel showing release status. | ![Milestone detail](assets/02-project.png) |
+| **Chronicle story page** — the Builder Journey narrative for this milestone, with Kimi-generated storytelling about the verification flow. Click "Weave the story" to generate. | ![Chronicle page](assets/03-chronicle.png) |
+
+> **⏯ Full demo recording:** [`assets/demo-recording.webm`](assets/demo-recording.webm) (4.1 MB, ~30s)
+
+### Demo walkthrough (screenshots)
+
+| Page | Screenshot |
+|---|---|
+| **Landing page** — hero section with milestone lookup widget, live stats "Verified / 0.01 ETH released / 2 verifier votes / 2/3 quorum", and verifier path diagram. | ![Landing page](assets/01-landing.png) |
+| **Milestone detail** — fully loaded onchain data for the demo milestone: capital at stake (0.01 ETH), verifier confidence (2/2), evidence root anchored onchain, Evidence breakdown (5 rows: deployment, callers, quorum, evidence root, capital release), Trust profile sidebar, and Settlement panel showing release status. | ![Milestone detail](assets/02-project.png) |
+| **Chronicle story page** — the Builder Journey narrative for this milestone, with Kimi-generated storytelling about the verification flow. Click "Weave the story" to generate. | ![Chronicle page](assets/03-chronicle.png) |
+
+> **⏯ Full demo recording:** [`assets/demo-recording.webm`](assets/demo-recording.webm) (4.1 MB, ~30s)
+
 ### Quick links
 - [Architecture Diagram](docs/architecture-diagram.svg)
 - [Submission details](SUBMISSION.md)
