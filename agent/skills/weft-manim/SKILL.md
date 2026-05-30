@@ -39,7 +39,7 @@ A Manim animation (MP4) showing the Weft verification flow as a literal weaving:
 Run this single script. It writes a Python file and renders it with Manim.
 
 ```bash
-cd ~/dev/weft && pip3 install manim 2>/dev/null | tail -1
+cd "$WEFT_ROOT" && pip3 install manim 2>/dev/null | tail -1
 
 cat > /tmp/weft_weaving.py << 'PYEOF'
 from manim import *
@@ -276,8 +276,8 @@ echo ""
 echo "✓ Animation rendered"
 ANIM=$(find /tmp/media/videos/weft_weaving -name "WeftWeaving.mp4" 2>/dev/null | head -1)
 if [ -n "$ANIM" ]; then
-  cp "$ANIM" ~/dev/weft/agent/.attestations/weft_weaving.mp4
-  echo "✓ Copied to: ~/dev/weft/agent/.attestations/weft_weaving.mp4"
+  cp "$ANIM" "$WEFT_ROOT"/agent/.attestations/weft_weaving.mp4
+  echo "✓ Copied to: $WEFT_ROOT/agent/.attestations/weft_weaving.mp4"
   open "$ANIM"
 else
   echo "⚠ Animation file not found — check manim output above"

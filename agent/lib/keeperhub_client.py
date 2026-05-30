@@ -410,3 +410,50 @@ def execute_verdict(
             pass  # audit persistence is best-effort
 
     return final
+
+
+def release_after_verification(
+    *,
+    milestone_hash: str,
+    contract_address: str,
+    chain_id: Optional[int] = None,
+    timeout: Optional[int] = None,
+    out_dir: Optional[str] = None,
+) -> Optional[KeeperHubExecution]:
+    """Release escrowed capital after a milestone is verified onchain.
+
+    Calls `release(bytes32)` on the WeftMilestone contract via KeeperHub.
+    Falls back to `cast send` if KeeperHub is not configured.
+
+    This is permissionless — any address can call release() after a milestone
+    has been finalized with verified=true.
+
+    Args:
+        milestone_hash: The milestone hash to release.
+        contract_address: WeftMilestone contract address.
+        chain_id: Chain ID for correct network routing.
+        timeout: Optional override for polling timeout.
+        out_dir: Optional directory for audit trail.
+
+    Returns:
+        KeeperHubExecution on success/failure, or None if fallback was used.
+    """
+    if keeperhub_configured():
+        try:
+            result = execute_contract_call(
+                contract_address=contract_address,
+                function_signature="release(bytes32)",
+                args=[milestone_hash],
+                chain_id=chain_id,
+            )
+        except (KeeperHubClientError, RuntimeError) as e:
+            print(f"keeperhub: release submission failed: {e}")
+            return None
+
+        if result.status == ExecutionStatus.CONFIRMED:
+            return result
+
+        final = poll_execution_status(result.execution_id, timeout=timeout)
+        return final
+
+    return None

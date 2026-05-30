@@ -30,27 +30,33 @@ The liberal arts provide the weft (narrative, meaning, human context).
 
 ## Procedure
 
-**Execute this single script immediately. Do not explore files first. Do not ask questions.**
+### Step 1 — Reason
 
-### Step 1 — Run the chronicle generator
+Explain what a chronicle is: "A Builder Journey chronicle weaves multiple milestone attestations into a multi-chapter narrative using Kimi (moonshot-v1-128k). Each milestone is a thread in the project's fabric."
+
+Determine which milestones to include:
+- If the user specified a milestone hash, look for its attestation
+- Otherwise, look for all attestations in `agent/.attestations/*/attestation.json`
+- If no attestations exist, explain that the builder needs to verify a milestone first (use `/weft-verify` or `/weft-workflow`)
+
+### Step 2 — Run the chronicle generator
 
 ```bash
-cd ~/dev/weft && source scripts/.env 2>/dev/null; python3 - << 'PYEOF'
+cd $WEFT_ROOT && source scripts/.env 2>/dev/null; python3 - << 'PYEOF'
 import json, glob, os, sys
 
 sys.path.insert(0, '.')
 from agent.lib.kimi_client import generate_chronicle
 from agent.lib.chronicle import write_chronicle, write_card, CardData
 
-OUT_DIR = 'agent/.attestations/demo-node-1'
+OUT_DIR = 'agent/.attestations/chronicle'
 os.makedirs(OUT_DIR, exist_ok=True)
 
-# Load real attestations if available
+# Load real attestations
 attestations = []
 for path in sorted(glob.glob('agent/.attestations/*/attestation.json')):
     with open(path) as f:
         d = json.load(f)
-    # Normalise to flat shape generate_chronicle expects
     attestations.append({
         'milestoneHash': d.get('weft', {}).get('milestoneHash', d.get('milestoneHash', '')),
         'projectId':     d.get('weft', {}).get('projectId', d.get('projectId', 'weft-protocol')),
@@ -63,25 +69,23 @@ for path in sorted(glob.glob('agent/.attestations/*/attestation.json')):
         'peerSigners':   d.get('peerSigners', 0),
     })
 
-# Use demo data if no real attestations exist
 if not attestations:
-    attestations = [{
-        'milestoneHash': '0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f',
-        'projectId': 'weft-protocol',
-        'verified': True,
-        'uniqueCallerCount': 147,
-        'commitCount': 23,
-        'narrative': '',
-        'evidenceRoot': '',
-        'peerSigners': 3,
-    }]
-    print('Using demo attestation data (no real attestations found)')
+    print('No attestation files found.')
+    print()
+    print('To generate a chronicle, you first need verified milestone attestations.')
+    print('  Run:  /weft-verify (to verify a milestone and create an attestation)')
+    print('  Or:   /weft-workflow (full multi-step verification pipeline)')
+    print()
+    print('Once attestations exist in agent/.attestations/*/attestation.json,')
+    print('run this skill again.')
+    sys.exit(1)
 
-print(f'Generating chronicle for {len(attestations)} milestone(s)...')
+print(f'Found {len(attestations)} attestation(s). Generating chronicle...')
+print()
 
 # Generate via Kimi
 chronicle = generate_chronicle(attestations)
-print(f'\nTitle: {chronicle.title}')
+print(f'Title: {chronicle.title}')
 for ch in chronicle.chapters:
     print(f'  Chapter: {ch["heading"]}')
     print(f'    {ch["body"][:120]}...')
@@ -125,8 +129,8 @@ PYEOF
 ### Step 2 — Open the files in the browser
 
 ```bash
-open ~/dev/weft/agent/.attestations/demo-node-1/chronicle.html
-open ~/dev/weft/agent/.attestations/demo-node-1/milestone_card.html
+open $WEFT_ROOT/agent/.attestations/demo-node-1/chronicle.html
+open $WEFT_ROOT/agent/.attestations/demo-node-1/milestone_card.html
 ```
 
 ### Step 3 — Present the narrative in chat
@@ -157,9 +161,8 @@ Technology provides the warp. Liberal arts provide the weft.
 
 ## Rules
 
-- **Execute immediately** — do not explore files, ask questions, or debug first
+- **Never substitute demo data** — if no real attestations exist, report what's missing and how to create them
 - **Always open the browser** — call `open <path>` after generating; never leave the user to open files manually
-- **Use demo data** — if no real attestations exist, the script uses built-in demo data; this is correct behaviour
 - **KIMI_API_KEY** — sourced from `scripts/.env` automatically; do not ask the user for it
 
 ## Pitfalls

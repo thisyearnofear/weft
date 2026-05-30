@@ -2,31 +2,77 @@
 
 Track known issues and design feedback across Weft integrations.
 
-## ENS Integration
+## Status: Fixed
 
-### Issue 1: Incorrect namehash in agent client
+### ~~Issue 1: Incorrect namehash in agent client~~ ✅ FIXED
 
-**Problem**: `ens_client._namehash()` uses `sha256` for label hashing instead of `keccak256` (per EIP-137). This causes all ENS reads and writes to target the wrong node, silently failing in production.
+**Was:** `ens_client._namehash()` used `sha256` for label hashing instead of `keccak256` (per EIP-137).
 
-**Impact**: Agent-side ENS updates will not write to the correct records. The frontend hook (`useBuilderPassport.ts`) implements namehash correctly, creating an agent↔frontend inconsistency.
+**Fix:** Rewrote `_namehash()` at `agent/lib/ens_client.py:287` to use `_keccak256()` which calls `cast keccak`. Verified matches EIP-137 spec (`node = keccak256(namehash(parent) ++ keccak256(label))` with zero starting node).
 
-**Workaround**: None — this must be fixed before enabling ENS in production.
+### ~~Issue 2: Daemon does not call ENS~~ ✅ FIXED
 
-### Issue 2: Daemon does not call ENS
+**Was:** `weft_daemon.py` never called `update_ens_after_verification`.
 
-**Problem**: `weft_daemon.py` (the autonomous verification loop) never calls `update_ens_after_verification`. Only the one-shot `weft_collect_attestation.py` CLI does.
+**Fix:** Daemon now calls `update_ens_after_verification()` at line 540 when `--builder-ens` is set and milestone is verified. Also issues verified subnames via `issue_verified_subname()` when `WEFT_ENS_PARENT` is configured.
 
-**Impact**: The primary production path skips ENS profile updates entirely.
+### ~~Issue 3: No ENS ownership validation~~ ✅ FIXED
 
-**Workaround**: Run `weft_collect_attestation.py` with `--ens-name` alongside the daemon.
+**Was:** No pre-flight check for ENS ownership.
 
-### Issue 3: No ENS ownership validation
+**Fix:** `EnsClient.check_ownership()` at `agent/lib/ens_client.py:170` validates the wallet controls the target ENS name before writing. Supports `--skip-ownership` flag for demos. Helper error messages guide the user through troubleshooting.
 
-**Problem**: The verifier's private key must own or be authorized to write text records on the builder's ENS name. There is no pre-flight check or helpful error for this.
+### ~~Missing `update_agent_record` export~~ ✅ FIXED
 
-**Impact**: Transactions will revert silently if the verifier doesn't control the target ENS name.
+**Was:** `update_agent_record` referenced in `agent/lib/__init__.py` `__all__` but not imported from `ens_client`.
 
-**Workaround**: Verify ENS ownership manually before enabling `--ens-name`.
+**Fix:** Added import at `agent/lib/__init__.py:66`. Function is properly exported.
+
+### ~~Hardcoded paths in skills~~ ✅ FIXED
+
+**Was:** All 6 Hermes skills used `~/dev/weft` or `~/weft` as hardcoded working directories.
+
+**Fix:** All 19 instances replaced with `$WEFT_ROOT` environment variable, exported by `scripts/hermes_weft.sh`. If unset, `$WEFT_ROOT` defaults to the repo root resolved from the script location.
+
+---
+
+## Current Gaps
+
+### 1. 0G Storage KV endpoint instability
+
+The 0G testnet indexer at `https://indexer-storage-testnet-standard.0g.ai` is unreliable (returns 503 intermittently). We have graceful fallback to local files and direct RPC reads, but a stable KV URL is needed for production.
+
+KV key namespace: `weft:<entity>:<id>:<artifact>` (documented in AGENTS.md).
+
+### 2. KeeperHub `scheduleRelease()` not deployed
+
+The capital-release flow via KeeperHub is the last missing piece for full end-to-end automation. Currently, `release()` must be called manually. Contract-level integration is in design.
+
+### 3. Test coverage
+
+`agent/test/` has 4 test files. The production daemon (`weft_daemon.py`, 778 lines) and status API (`weft_status_api.py`, 1361 lines) have no tests. Coverage needs to expand for production.
+
+### 4. CI pipeline
+
+No `.github/` CI configuration. No automated linting, typechecking, or test runs. Important for team contributions.
+
+### 5. Hermes skills still use demo data fallback
+
+`weft-chronicle` and `weft-demo` fall back to hardcoded demo data (147 callers, 23 commits, hash `0x5169...c16f`) when no real attestations exist. The new `weft-workflow` skill fixes this (no demo data), but older skills still use it for demo convenience.
+
+---
+
+## Current: Hermes Agent Integration Quality
+
+| Aspect | Rating | Notes |
+|---|---|---|
+| Multi-step agentic workflow | ✅ Created | `weft-workflow` skill with reasoning gates at every phase |
+| Auto-loading skills | ✅ 8 skills | 7 original + weft-workflow, all via `external_dirs` |
+| Planning/reasoning demonstration | ✅ | Workflow skill requires REASON → EXECUTE → EVALUATE at each phase |
+| Failure recovery | ✅ | Documented fallback table in weft-workflow |
+| Path independence | ✅ | All skills use `$WEFT_ROOT` |
+| Export correctness | ✅ | `__init__.py` imports match `__all__` |
+| Submission-ready | ✅ | Multi-step workflow demonstrates Hermes Agent as reasoning layer |
 
 ---
 

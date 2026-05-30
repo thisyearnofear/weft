@@ -33,7 +33,7 @@ if REPO_ROOT not in sys.path:
 from agent.lib.axl_client import broadcast_verdict
 from agent.lib.ens_client import update_ens_after_verification, issue_verified_subname
 from agent.lib.jsonrpc import JsonRpcClient, default_cache
-from agent.lib.keeperhub_client import ExecutionStatus, execute_verdict, keeperhub_configured
+from agent.lib.keeperhub_client import ExecutionStatus, execute_verdict, keeperhub_configured, release_after_verification
 from agent.lib.logger import get_logger
 from agent.lib.peer_inbox import consensus_signers_for_base_root, default_inbox_dir
 from agent.lib.recovery import EventType, Outcome, emit as recovery_emit
@@ -267,7 +267,7 @@ def _process_one(
         m = read_milestone(rpc, weft, milestone_hash)
     except Exception as e:
         log.error("read_milestone failed", milestone=milestone_hash, error=str(e))
-        return
+        return False
 
     # Derive template inputs from metadataHash (preferred).
     try:
@@ -276,7 +276,7 @@ def _process_one(
         # If overrides are present, allow operating without metadata as an emergency path.
         if not (contract_address_override and measurement_window_seconds_override and unique_caller_threshold_override):
             log.error("metadata download/validation failed", milestone=milestone_hash, error=str(e))
-            return
+            return False
         meta = None
 
     contract_address = contract_address_override or (meta.contractAddress if meta else "")
@@ -285,7 +285,7 @@ def _process_one(
 
     if not contract_address or measurement_window_seconds <= 0 or unique_caller_threshold <= 0:
         log.error("missing template inputs", milestone=milestone_hash, contract=contract_address, window=measurement_window_seconds, threshold=unique_caller_threshold)
-        return
+        return False
 
     # Window is defined relative to the onchain milestone deadline (source of truth).
     window_start = int(m.deadline)
@@ -532,6 +532,22 @@ def _process_one(
         out_dir=out_dir,
     )
 
+    # Release escrowed capital via KeeperHub after a verified verdict
+    if verified_bool and keeperhub_configured():
+        release_result = release_after_verification(
+            milestone_hash=milestone_hash,
+            contract_address=weft,
+            chain_id=cached_chain_id,
+            timeout=keeperhub_timeout,
+            out_dir=out_dir,
+        )
+        if release_result and release_result.status == ExecutionStatus.CONFIRMED:
+            log.info("capital released via KeeperHub", milestone=milestone_hash, tx=release_result.tx_hash)
+        elif release_result:
+            log.warning("release via KeeperHub did not confirm", milestone=milestone_hash, status=release_result.status.value)
+        else:
+            log.info("release via KeeperHub not attempted (fallback: anyone can call release() directly)")
+
     # Update ENS text records if a builder ENS name is configured (verified milestones only)
     if builder_ens and verified_bool:
         class _Receipt:
@@ -694,6 +710,8 @@ def _process_one(
                     log.warning("chronicle generation returned empty title", milestone=milestone_hash)
         except Exception as e:
             log.warning("chronicle generation failed (non-fatal)", milestone=milestone_hash, error=str(e))
+
+    return True
 
 
 def _submit_verdict(

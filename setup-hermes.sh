@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
-# Setup Hermes Agent with Weft skills for 0G APAC Hackathon
+# Setup Hermes Agent with Weft skills
 # Run once after cloning the repo
 
 set -e
 
 echo "🧵 Setting up Weft Hermes Agent..."
+
+# Determine WEFT_ROOT from script location
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+WEFT_ROOT="$SCRIPT_DIR"
+export WEFT_ROOT
 
 # 1. Install Hermes if not present
 if ! command -v hermes &>/dev/null; then
@@ -17,20 +22,18 @@ HERMES_VER=$(hermes --version 2>&1 | head -1)
 echo "✓ Hermes $HERMES_VER"
 
 # 2. Wire Weft skills into Hermes config
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SKILLS_DIR="$(cd "$SCRIPT_DIR/agent/skills" 2>/dev/null && pwd || echo "$SCRIPT_DIR/agent/skills")"
+SKILLS_DIR="$WEFT_ROOT/agent/skills"
 CONFIG="$HOME/.hermes/config.yaml"
 
 mkdir -p "$HOME/.hermes"
 
 if [ ! -f "$CONFIG" ]; then
-  cat > "$CONFIG" << 'HERMES_CONFIG'
+  cat > "$CONFIG" << HERMES_CONFIG
 # Hermes Agent configuration
 skills:
   external_dirs:
+    - $SKILLS_DIR
 HERMES_CONFIG
-  echo "  external_dirs:" >> "$CONFIG"
-  echo "    - $SKILLS_DIR" >> "$CONFIG"
   echo "✓ Created Hermes config with Weft skills"
 elif grep -q "external_dirs: \[\]" "$CONFIG" 2>/dev/null; then
   sed -i.bak "s|  external_dirs: \[\]|  external_dirs:\n    - $SKILLS_DIR|" "$CONFIG"
@@ -49,24 +52,28 @@ else
 fi
 
 # 3. Copy Weft SOUL.md (identity)
-if [ -f "$SCRIPT_DIR/agent/skills/SOUL.md" ]; then
-  cp "$SCRIPT_DIR/agent/skills/SOUL.md" "$HOME/.hermes/SOUL.md"
+if [ -f "$WEFT_ROOT/agent/skills/SOUL.md" ]; then
+  cp "$WEFT_ROOT/agent/skills/SOUL.md" "$HOME/.hermes/SOUL.md"
   echo "✓ Weft identity written to ~/.hermes/SOUL.md"
 else
-  echo "⚠ SOUL.md not found at agent/skills/SOUL.md"
+  echo "⚠ SOUL.md not found at $WEFT_ROOT/agent/skills/SOUL.md"
 fi
 
 echo ""
-echo "✓ Setup complete. Launch with:"
-echo "  bash scripts/hermes_weft.sh"
+echo "✓ Setup complete. 8 skills loaded:"
+echo "   - weft-workflow   (multi-step verification with reasoning)"
+echo "   - weft-verify     (evidence collection + attestation)"
+echo "   - weft-narrate    (Kimi narrative generation)"
+echo "   - weft-chronicle  (Builder Journey HTML chronicle)"
+echo "   - weft-status     (milestone state check)"
+echo "   - weft-ens        (ENS reputation records)"
+echo "   - weft-manim      (verification weaving animation)"
+echo "   - weft-demo       (coordinated end-to-end demo)"
 echo ""
-echo "  Or set env vars manually and run: hermes"
+echo "Launch with:  bash scripts/hermes_weft.sh"
 echo ""
-echo "  Example prompts:"
+echo "Example prompts:"
+echo "  > verify milestone 0x..."
 echo "  > run the demo"
 echo "  > tell me the story of the Weft Protocol"
-echo "  > verify milestone <milestoneHash>"
 echo "  > what is the status of weft.thisyearnofear.eth?"
-echo ""
-echo "  0G APAC Hackathon — Track 3 (Agentic Economy) & Track 4 (Open Innovation)"
-echo "  Deadline: May 16, 2026"

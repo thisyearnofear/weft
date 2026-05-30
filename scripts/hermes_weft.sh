@@ -6,6 +6,10 @@ set -a
 source "$(dirname "$0")/.env"
 set +a
 
+# Export WEFT_ROOT so skills don't rely on hardcoded paths
+WEFT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+export WEFT_ROOT
+
 # Ensure Kimi key is available to Hermes
 export KIMI_API_KEY="${KIMI_API_KEY}"
 export ETH_RPC_URL="${ETH_RPC_URL}"

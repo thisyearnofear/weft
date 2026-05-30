@@ -28,7 +28,7 @@ required_environment_variables:
 ### 1. Collect attestation data
 
 ```bash
-cd ~/weft
+cd "$WEFT_ROOT"
 export ETH_RPC_URL="https://evmrpc-testnet.0g.ai"
 export WEFT_CONTRACT_ADDRESS="0xcc768d56b0053b1b2df5391dde989be3f859474c"
 

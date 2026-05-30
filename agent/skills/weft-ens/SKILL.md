@@ -49,7 +49,7 @@ Weft writes these ENS text records to the builder's name:
 When `--builder-ens` is set, the daemon writes ENS records after verification:
 
 ```bash
-cd ~/weft
+cd "$WEFT_ROOT"
 export ETH_RPC_URL="https://evmrpc-testnet.0g.ai"
 export PRIVATE_KEY="<verifier_key>"
 
@@ -63,7 +63,7 @@ python3 agent/scripts/weft_daemon.py --once \
 ### 2. Update records manually
 
 ```bash
-cd ~/weft
+cd "$WEFT_ROOT"
 export ETH_RPC_URL="https://evmrpc-testnet.0g.ai"
 export PRIVATE_KEY="<verifier_key>"
 

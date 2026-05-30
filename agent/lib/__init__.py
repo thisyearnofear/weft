@@ -73,6 +73,7 @@ from .keeperhub_client import (
     get_execution_logs,
     keeperhub_configured,
     poll_execution_status,
+    release_after_verification,
 )
 
 __all__ = [
@@ -111,10 +112,10 @@ __all__ = [
     # indexer_client
     "IndexerClient", "MilestoneState",
     # ens_client
-    "EnsClient", "BuilderProfile", "update_ens_after_verification", "update_agent_record", "issue_verified_subname",
+    "EnsClient", "BuilderProfile", "update_ens_after_verification", "issue_verified_subname",
     # keeperhub_client
     "ExecutionStatus", "KeeperHubClientError", "KeeperHubExecution",
     "execute_contract_call", "execute_verdict",
     "get_execution_logs", "keeperhub_configured",
-    "poll_execution_status",
+    "poll_execution_status", "release_after_verification",
 ]

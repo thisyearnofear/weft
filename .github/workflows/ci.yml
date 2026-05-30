@@ -10,36 +10,45 @@ jobs:
   contracts:
     name: Solidity Tests
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
 
-      - name: Install forge-std
-        run: cd contracts && forge install foundry-rs/forge-std && cd ..
+      - name: Install dependencies
+        run: forge install
 
       - name: Run Forge tests
-        run: forge test
+        run: forge test -vvv
 
   agent:
     name: Python Tests
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
-      - name: Run all agent tests
-        run: python -m pytest agent/test/ -v
+      - name: Install test dependencies
+        run: pip install pytest
 
-  imports:
-    name: Import Check
+      - name: Run agent tests
+        run: python -m pytest agent/test/ -v --tb=short
+
+  lint:
+    name: Python Lint + Import Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,18 +58,41 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Verify imports
+      - name: Install lint dependencies
+        run: pip install ruff
+
+      - name: Run ruff
+        run: ruff check --output-format=github agent/
+
+      - name: Verify all imports
         run: |
           python -c "
           from agent.lib import (
-              mvp_verifier, github_client, kimi_client, deadline_scheduler,
-              zero_storage, indexer_client, jsonrpc, abi, weft_milestone_reader,
-              axl_client, peer_inbox, verdict_envelope, keeperhub_client,
-              ens_client, verifier_registry_reader, metadata_reader,
-              bundle_manifest, bundle_pack
+              abi, axl_client, bundle_manifest, bundle_pack,
+              chronicle, deadline_scheduler, ens_client,
+              eth_rpc, fal_client, github_client,
+              hydradb_client, indexer_client, jsonrpc,
+              keeperhub_client, kimi_client, metadata_reader,
+              mvp_verifier, peer_inbox, recovery,
+              verdict_envelope, verifier_registry_reader,
+              weft_milestone_reader, zero_storage,
           )
-          print('All imports OK')
+          print(f'All {len(dir())} modules imported OK')
           "
+
+  shellcheck:
+    name: Shell Script Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run shellcheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: ./
+          severity: warning
+          ignore_paths: >
+            node_modules .git contracts/lib
 
   frontend:
     name: Frontend Build

@@ -641,5 +641,87 @@ class TestRequestFunction(unittest.TestCase):
         self.assertIn("NOT_FOUND", str(ctx.exception))
 
 
+class TestReleaseAfterVerification(unittest.TestCase):
+    """Test release_after_verification() with mocked API."""
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_not_configured_returns_none(self):
+        """Returns None when KeeperHub is not configured."""
+        from agent.lib.keeperhub_client import release_after_verification
+        result = release_after_verification(
+            milestone_hash="0x1234",
+            contract_address="0xWeft",
+        )
+        self.assertIsNone(result)
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test"})
+    @patch("agent.lib.keeperhub_client.execute_contract_call")
+    def test_calls_release_function(self, mock_call):
+        """Calls release(bytes32) on the milestone contract."""
+        mock_call.return_value = KeeperHubExecution(
+            execution_id="exec-rel-1",
+            tx_hash=None,
+            status=ExecutionStatus.CONFIRMED,
+            explorer_url=None,
+        )
+
+        from agent.lib.keeperhub_client import release_after_verification
+        result = release_after_verification(
+            milestone_hash="0x1234",
+            contract_address="0xWeftContract",
+            chain_id=16600,
+        )
+
+        self.assertEqual(result.status, ExecutionStatus.CONFIRMED)
+        mock_call.assert_called_once_with(
+            contract_address="0xWeftContract",
+            function_signature="release(bytes32)",
+            args=["0x1234"],
+            chain_id=16600,
+        )
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test"})
+    @patch("agent.lib.keeperhub_client.execute_contract_call")
+    def test_release_submission_failure_returns_none(self, mock_call):
+        """Returns None when release submission fails."""
+        mock_call.side_effect = RuntimeError("API error")
+
+        from agent.lib.keeperhub_client import release_after_verification
+        result = release_after_verification(
+            milestone_hash="0x1234",
+            contract_address="0xWeft",
+        )
+        self.assertIsNone(result)
+
+    @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test"})
+    @patch("agent.lib.keeperhub_client.poll_execution_status")
+    @patch("agent.lib.keeperhub_client.execute_contract_call")
+    def test_polls_when_pending(self, mock_call, mock_poll):
+        """Polls for confirmation when initial response is pending."""
+        mock_call.return_value = KeeperHubExecution(
+            execution_id="exec-rel-2",
+            tx_hash=None,
+            status=ExecutionStatus.PENDING,
+            explorer_url=None,
+        )
+        mock_poll.return_value = KeeperHubExecution(
+            execution_id="exec-rel-2",
+            tx_hash="0xreleasetx",
+            status=ExecutionStatus.CONFIRMED,
+            explorer_url="https://explorer/tx/0xreleasetx",
+        )
+
+        from agent.lib.keeperhub_client import release_after_verification
+        result = release_after_verification(
+            milestone_hash="0x1234",
+            contract_address="0xWeft",
+            timeout=60,
+        )
+
+        self.assertEqual(result.status, ExecutionStatus.CONFIRMED)
+        self.assertEqual(result.tx_hash, "0xreleasetx")
+        mock_poll.assert_called_once_with("exec-rel-2", timeout=60)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -40,7 +40,7 @@ required_environment_variables:
 ### 1. Check milestone state
 
 ```bash
-cd ~/weft
+cd "$WEFT_ROOT"
 export ETH_RPC_URL="https://evmrpc-testnet.0g.ai"
 export WEFT_CONTRACT_ADDRESS="0x9f66158c560ce5c8b40820fdcd2874ff8d852192"
 
