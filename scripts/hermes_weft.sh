@@ -20,6 +20,13 @@ export ZERO_G_INDEXER_RPC="${ZERO_G_INDEXER_RPC}"
 export FAL_KEY="${FAL_KEY}"
 export KEEPERHUB_API_KEY="${KEEPERHUB_API_KEY}"
 
+# Daemon uses PRIVATE_KEY — alias from VERIFIER_PRIVATE_KEY if set
+export PRIVATE_KEY="${VERIFIER_PRIVATE_KEY:-$PRIVATE_KEY}"
+export VERIFIER_ADDRESS="${VERIFIER_ADDRESS}"
+
+# KeeperHubRelayer contract for automated capital release
+export KEEPERHUB_RELAYER_ADDRESS="${KEEPERHUB_RELAYER_ADDRESS:-0x5EB72B6576581c38fa44BdFa6EcDFe8C13a1fB9c}"
+
 # Change to weft root so relative paths work in skills
 cd "$(dirname "$0")/.."
 

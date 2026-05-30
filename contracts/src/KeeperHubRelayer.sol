@@ -6,6 +6,10 @@ import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 import {IWeftMilestone} from "./interfaces/IWeftMilestone.sol";
 import {IKeeperHub} from "./interfaces/IKeeperHub.sol";
 
+error AlreadyReleased();
+error MilestoneNotFound();
+error TransferFailed();
+
 /// @title KeeperHubRelayer
 /// @notice On-chain relayer that KeeperHub calls to trigger capital release.
 /// @dev Implements IKeeperHub.scheduleRelease() by calling WeftMilestone.release().
@@ -32,28 +36,28 @@ contract KeeperHubRelayer is Ownable, ReentrancyGuard {
     event ReleaseFailed(bytes32 indexed milestoneHash, string reason);
 
     /// @param _weftMilestone Address of the deployed WeftMilestone contract.
-    constructor(address _weftMilestone) {
+    /// @param _owner Address of the contract owner (verifier node operator).
+    constructor(address _weftMilestone, address _owner) Ownable(_owner) {
         if (_weftMilestone == address(0)) revert ZeroAddress();
         weftMilestone = IWeftMilestone(_weftMilestone);
     }
 
-    /// @inheritdoc IKeeperHub
     /// @dev Called by KeeperHub after off-chain verification confirms the onchain verdict.
     ///      Relays the call to WeftMilestone.release().
     ///      Uses nonReentrant to prevent re-entrancy from the milestone's ETH transfer.
     function scheduleRelease(
         bytes32 milestoneHash,
-        address,      /* recipient — unused, milestone contract handles splits */
-        uint256       /* amount — unused, milestone contract knows totalStaked */
+        address,
+        uint256
     ) external payable nonReentrant {
         if (released[milestoneHash]) revert AlreadyReleased();
 
         // Delegate to the milestone contract — it validates verified + finalized state
         released[milestoneHash] = true;
 
-        // Get the milestone's totalStaked before release for the event
-        (,,, address builder,,,,,,,,,) = IWeftMilestone(weftMilestone).milestones(milestoneHash);
-        if (builder == address(0)) revert MilestoneNotFound();
+        // Verify the milestone exists
+        IWeftMilestone.MilestoneCore memory m = IWeftMilestone(weftMilestone).milestones(milestoneHash);
+        if (m.builder == address(0)) revert MilestoneNotFound();
 
         try weftMilestone.release(milestoneHash) {
             emit ReleaseTriggered(milestoneHash, address(weftMilestone).balance);
