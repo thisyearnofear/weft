@@ -94,7 +94,7 @@ Print to chat (no code):
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🧵 WEFT
+🧵 WEFT — Agent-Run Verification Company
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Every day, builders ship working code and get ghosted by sponsors.
@@ -103,7 +103,16 @@ Manual reviews take weeks. Capital sits locked behind someone's inbox.
 The builder shipped. The code works. The users came.
 But the money hasn't moved.
 
-Weft fixes this.
+Worse: no agent today can both EARN and PAY ITS OWN BILLS.
+They're tools, not companies. They need humans to provision them.
+
+Weft is different. It's an agent that runs a real business:
+  - EARNS 3% of every milestone it verifies (onchain revenue)
+  - SPENDS that revenue via Stripe Skills to pay for Kimi, fal.ai, KeeperHub
+  - PROVISIONS its own SaaS when it needs to scale
+  - Runs on Nemotron 3 Ultra for fast, safe reasoning (via NemoClaw)
+
+This isn't a chatbot. It's an autonomous company.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -471,19 +480,22 @@ Print to chat:
 A builder shipped. Verifiers confirmed it — independently,
 cryptographically, without a coordinator.
 
-Evidence lives on 0G Storage. The verdict was submitted via
-KeeperHub. Identity is anchored in ENS. The story was woven
-by Kimi. The weaving was animated by Manim.
+The agent earned 3% of the released capital. It swept that revenue
+into its Stripe account and used it to pay for the services it
+consumed: Nemotron for narratives, fal.ai for imagery, KeeperHub
+for execution. No human touched the finances.
 
-  0G Chain     ✓  Milestone contract + evidence storage
-  Gensyn AXL   ✓  Encrypted P2P peer consensus
-  KeeperHub    ✓  Reliable onchain execution
-  ENS          ✓  Human-readable identity + reputation
-  Kimi         ✓  Builder Journey narrative
-  fal.ai       ✓  AI-woven milestone swatch
-  Manim        ✓  Animated verification weaving
+  0G Chain      ✓  Milestone contract + evidence storage
+  Gensyn AXL    ✓  Encrypted P2P peer consensus
+  KeeperHub     ✓  Reliable onchain execution
+  ENS           ✓  Human-readable identity + reputation
+  Nemotron 3    ✓  Fast, safe narrative reasoning (via NemoClaw)
+  fal.ai        ✓  AI-woven milestone swatch
+  Stripe Skills ✓  Autonomous earn→spend loop (agent pays its own bills)
+  Manim         ✓  Animated verification weaving
 
 Technology provides the warp. Liberal arts provide the weft.
+The agent runs the loom — and pays for the thread.
 
   Live:    https://weft.thisyearnofear.com
   GitHub:  https://github.com/thisyearnofear/weft

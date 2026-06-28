@@ -27,6 +27,13 @@ export ZERO_G_INDEXER_RPC="${ZERO_G_INDEXER_RPC}"
 export FAL_KEY="${FAL_KEY}"
 export KEEPERHUB_API_KEY="${KEEPERHUB_API_KEY}"
 
+# Autonomous spend loop (Stripe Skills) + pluggable LLM backend (Nemotron/Kimi/Nous)
+export STRIPE_SKILLS_KEY="${STRIPE_SKILLS_KEY}"
+export LLM_BACKEND="${LLM_BACKEND:-kimi}"
+export NVIDIA_API_KEY="${NVIDIA_API_KEY}"
+export NEMOCLAW_GUARD="${NEMOCLAW_GUARD}"
+export NOUS_API_KEY="${NOUS_API_KEY}"
+
 # Daemon uses PRIVATE_KEY — alias from VERIFIER_PRIVATE_KEY if set
 export PRIVATE_KEY="${VERIFIER_PRIVATE_KEY:-$PRIVATE_KEY}"
 export VERIFIER_ADDRESS="${VERIFIER_ADDRESS}"
@@ -40,11 +47,13 @@ cd "$(dirname "$0")/.."
 echo "🧵 Starting Weft Hermes Agent..."
 echo "   Contract:  $WEFT_CONTRACT_ADDRESS"
 echo "   ENS:       weft.thisyearnofear.eth"
-echo "   Kimi:      $([ -n "$KIMI_API_KEY" ] && echo "✓ configured" || echo "✗ missing")"
+echo "   LLM:       ${LLM_BACKEND} ($([ -n "${NVIDIA_API_KEY}" ] && echo "Nemotron ✓" || [ -n "${KIMI_API_KEY}" ] && echo "Kimi ✓" || echo "✗ missing"))"
 echo "   fal.ai:    $([ -n "$FAL_KEY" ] && echo "✓ configured" || echo "✗ missing")"
+echo "   Stripe:    $([ -n "$STRIPE_SKILLS_KEY" ] && echo "✓ spend loop active" || echo "✗ spend loop inactive")"
 echo ""
 echo "   Try: 'tell me the story of the Weft Protocol'"
 echo "   Try: 'verify milestone 0x516975...'"
+echo "   Try: 'show me the agent''s books'"
 echo "   Try: 'what is the status of weft.thisyearnofear.eth?'"
 echo ""
 

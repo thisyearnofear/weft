@@ -40,6 +40,8 @@ The single source of truth for all shared agent logic. All scripts import from h
 | `axl_client.py` | AXL binary P2P transport for peer verdict broadcast (env: `AXL_PORT`, auto-starts node) |
 | `keeperhub_client.py` | KeeperHub reliable onchain execution (env: `KEEPERHUB_API_KEY`, retry + gas opt + audit trail) |
 | `fal_client.py` | fal.ai text-to-image client for AI-woven milestone swatch + chronicle cover images (env: `FAL_KEY`) |
+| `stripe_skills_client.py` | Stripe Skills autonomous spend layer — agent pays for its own services + sweeps earned revenue (env: `STRIPE_SKILLS_KEY`) |
+| `llm_backend.py` | Pluggable LLM backend selector: Nemotron 3 Ultra (NVIDIA/NemoClaw), Kimi, NousResearch (env: `LLM_BACKEND`) |
 | `__init__.py` | Re-exports all public symbols |
 
 ## Verification Flow
@@ -348,9 +350,30 @@ VERIFIER_ADDRESS        # This node's wallet (for attestation metadata)
 Optional:
 ```bash
 GITHUB_TOKEN             # GitHub personal access token (repo:read)
-KIMI_API_KEY             # Kimi/Moonshot API key
+KIMI_API_KEY             # Kimi/Moonshot API key (used when LLM_BACKEND=kimi, the default)
 FAL_KEY                  # fal.ai API key (get one at fal.ai) — AI-woven milestone swatches + chronicle covers
 POLL_INTERVAL           # Seconds between poll cycles (default: 3600)
+```
+
+Stripe Skills (optional — autonomous spend loop: agent earns 3% and pays its own bills):
+```bash
+STRIPE_SKILLS_KEY        # Stripe Skills API key (enables autonomous earn→spend loop)
+STRIPE_SKILLS_API_URL    # Optional API URL override (default: https://api.stripe.com/v1)
+ETH_PRICE_USD            # ETH price for revenue sweep calculation (default: 2500)
+WEFT_FEE_BPS             # Platform fee in basis points (default: 300 = 3%)
+WEFT_SWEEP_PCT           # Fraction of fee swept to Stripe (default: 1.0 = 100%)
+```
+
+LLM Backend (optional — pluggable inference: Nemotron / Kimi / NousResearch):
+```bash
+LLM_BACKEND              # nemotron | kimi | nous (default: kimi)
+NVIDIA_API_KEY           # NVIDIA API key for Nemotron 3 Ultra (when LLM_BACKEND=nemotron)
+NEMOTRON_MODEL           # Model name (default: nvidia/nemotron-3-ultra-8b)
+NEMOTRON_API_BASE        # NVIDIA API base URL (default: https://integrate.api.nvidia.com/v1)
+NEMOCLAW_GUARD           # Set "1" to wrap LLM calls in NemoClaw safe-execution guard
+NOUS_API_KEY             # NousResearch API key (when LLM_BACKEND=nous)
+NOUS_BASE_URL            # NousResearch API base URL (default: https://api.nousresearch.com/v1)
+NOUS_MODEL               # NousResearch model name (default: NousResearch/Hermes-3-Llama-3.1-70B)
 ```
 
 KeeperHub (optional — reliable onchain execution with retry, gas optimization, and audit trails):
@@ -394,6 +417,7 @@ bash scripts/hermes_weft.sh
 || `weft-narrate` | "narrate milestone 0x..." | Calls `kimi_client.generate_narrative()` for a single milestone |
 | `weft-status` | "status of weft.thisyearnofear.eth" | Queries `weft_status_api` and returns human-readable milestone state |
 | `weft-ens` | "update ENS profile" | Calls `ens_client.update_builder_profile()` to write text records |
+| `weft-treasury` | "show me the agent's books" | Reads Stripe Skills charge history + balance, returns P&L report (earned vs spent) |
 
 ### Identity (`~/.hermes/SOUL.md`)
 

@@ -74,33 +74,36 @@ def generate_narrative(
 
     prompt = build_prompt(project_id, milestone_hash, deployment, usage, github)
 
-    payload = {
-        "model": model,
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
-        ],
-        "temperature": 0.3,
-    }
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": prompt},
+    ]
 
-    _base = os.environ.get("KIMI_API_BASE", "https://api.moonshot.ai/v1")
-    req = urllib.request.Request(
-        f"{_base}/chat/completions",
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {key}",
-        },
-        method="POST",
-    )
+    # Determine which LLM backend to use (nemotron / kimi / nous)
+    from .llm_backend import generate_chat, _backend as _llm_backend_name
+    _backend_name = _llm_backend_name()
+    _cost_env = {"kimi": "KIMI_COST_USD", "nemotron": "NEMOTRON_COST_USD", "nous": "NOUS_COST_USD"}.get(_backend_name, "KIMI_COST_USD")
+    _default_cost = {"kimi": 0.01, "nemotron": 0.008, "nous": 0.005}.get(_backend_name, 0.01)
+
+    # Autonomous spend: agent pays for its own LLM call via Stripe Skills
+    from .stripe_skills_client import pay_for_service as _stripe_pay
+    _stripe_pay(_backend_name, float(os.environ.get(_cost_env, _default_cost)),
+                memo=f"narrative for {milestone_hash[:10]}", milestone_hash=milestone_hash)
 
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            raw = json.loads(resp.read().decode("utf-8"))
+        result = generate_chat(messages, temperature=0.3)
+        if not result.ok:
+            recovery_emit(
+                EventType.KIMI_UNAVAILABLE,
+                context={"milestone": milestone_hash, "reason": result.error, "backend": result.backend},
+                action="degrade_gracefully",
+                outcome=Outcome.DEGRADED,
+            )
+            return Narrative(summary="", confidence=0.0)
         recovery_emit(
             EventType.NARRATIVE_GENERATED,
-            context={"milestone": milestone_hash},
-            action="kimi_api_call",
+            context={"milestone": milestone_hash, "backend": result.backend, "model": result.model},
+            action="llm_api_call",
             outcome=Outcome.SUCCESS,
         )
     except Exception:
@@ -113,7 +116,7 @@ def generate_narrative(
         return Narrative(summary="", confidence=0.0)
 
     try:
-        content = raw["choices"][0]["message"]["content"]
+        content = result.content
         parsed = json.loads(content)
         return Narrative(
             summary=parsed.get("summary", ""),
@@ -184,34 +187,31 @@ def generate_chronicle(
 
     prompt = _build_chronicle_prompt(attestations, project_id)
 
-    payload = {
-        "model": model,
-        "messages": [
-            {"role": "system", "content": CHRONICLE_SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
-        ],
-        "temperature": 0.5,
-    }
+    messages = [
+        {"role": "system", "content": CHRONICLE_SYSTEM_PROMPT},
+        {"role": "user", "content": prompt},
+    ]
 
-    _base = os.environ.get("KIMI_API_BASE", "https://api.moonshot.ai/v1")
-    req = urllib.request.Request(
-        f"{_base}/chat/completions",
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {key}",
-        },
-        method="POST",
-    )
+    # Determine which LLM backend to use (nemotron / kimi / nous)
+    from .llm_backend import generate_chat, _backend as _llm_backend_name
+    _backend_name = _llm_backend_name()
+    _cost_env = {"kimi": "KIMI_CHRONICLE_COST_USD", "nemotron": "NEMOTRON_CHRONICLE_COST_USD", "nous": "NOUS_CHRONICLE_COST_USD"}.get(_backend_name, "KIMI_CHRONICLE_COST_USD")
+    _default_cost = {"kimi": 0.02, "nemotron": 0.015, "nous": 0.01}.get(_backend_name, 0.02)
+
+    # Autonomous spend: agent pays for its own chronicle LLM call via Stripe Skills
+    from .stripe_skills_client import pay_for_service as _stripe_pay
+    _stripe_pay(_backend_name, float(os.environ.get(_cost_env, _default_cost)),
+                memo="chronicle generation")
 
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            raw = json.loads(resp.read().decode("utf-8"))
+        result = generate_chat(messages, temperature=0.5)
+        if not result.ok:
+            return Chronicle(title="", chapters=[], epilogue="", confidence=0.0)
     except Exception:
         return Chronicle(title="", chapters=[], epilogue="", confidence=0.0)
 
     try:
-        content = raw["choices"][0]["message"]["content"]
+        content = result.content
         # Strip markdown code fences if present
         if content.strip().startswith("```"):
             lines = content.strip().split("\n")
@@ -227,13 +227,13 @@ def generate_chronicle(
         )
     except Exception:
         # Fallback: use raw text as a single-chapter chronicle
-        text = raw.get("choices", [{}])[0].get("message", {}).get("content", "")
+        text = result.content
         return Chronicle(
             title="Builder Journey",
             chapters=[{"heading": "The Weave", "body": text}],
             epilogue="",
             confidence=0.0,
-            raw=raw,
+            raw={"content": text, "backend": result.backend},
         )
 
 

@@ -34,6 +34,11 @@ class EventType(str, Enum):
     EVIDENCE_COLLECTED = "evidence_collected"
     NARRATIVE_GENERATED = "narrative_generated"
     CHAOS_INJECTED = "chaos_injected"
+    # Autonomous spend loop (Stripe Skills)
+    STRIPE_PAYMENT = "stripe_payment"
+    STRIPE_PROVISION = "stripe_provision"
+    STRIPE_REVENUE_SWEEP = "stripe_revenue_sweep"
+    STRIPE_UNAVAILABLE = "stripe_unavailable"
 
 
 class Outcome(str, Enum):

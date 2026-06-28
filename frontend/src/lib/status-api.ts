@@ -104,3 +104,29 @@ export interface StatusApiOverview {
   };
   falConfigured?: boolean;
 }
+
+export interface TreasuryCharge {
+  id: string;
+  service: string;
+  amount: number;
+  memo: string;
+  created: number;
+}
+
+export interface TreasuryPayload {
+  ok: boolean;
+  activated: boolean;
+  message?: string;
+  estimatedCosts?: Record<string, number>;
+  earned?: number;
+  spent?: number;
+  net?: number;
+  profitable?: boolean;
+  spendByService?: Record<string, number>;
+  chargeCount?: number;
+  balance?: {
+    available: number | null;
+    pending: number | null;
+  } | null;
+  recentCharges?: TreasuryCharge[];
+}

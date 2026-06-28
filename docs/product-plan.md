@@ -40,19 +40,21 @@ Weft is the verification infrastructure layer for onchain work. Builders create 
 | Persistent memory across milestones | ✅ |
 | Auto-generated verification skills | ✅ |
 | Telegram/Discord interface | ✅ |
-| Kimi narrative generation | ✅ |
+| LLM narrative generation (Nemotron/Kimi/Nous) | ✅ |
 | Anomaly detection | ✅ |
 | Automatic 0G Storage publishing | ✅ |
 | Multi-node peer consensus (AXL) | ✅ |
 | KeeperHub reliable execution | ✅ |
 | ENS record updates | ✅ |
+| Autonomous spend via Stripe Skills | ✅ |
+| Pluggable LLM backend (Nemotron/Kimi/Nous) | ✅ |
 | Human-readable verification reports | ✅ |
 
 **Value prop:** "An AI agent that verifies your work and tells the story."
 
 **Strategic role:** Revenue driver. This is the product.
 
-**Cost to Weft:** Hosting (minimal — e2-micro), Kimi API calls, 0G Storage writes.
+**Cost to Weft:** Hosting (minimal — e2-micro), LLM API calls (Nemotron/Kimi/Nous), fal.ai image generation, 0G Storage writes — all paid autonomously via Stripe Skills from earned revenue.
 
 ---
 
@@ -281,7 +283,7 @@ The narrative is the product. The automation is the moat.
 
 ### Hackathon (now — 0G APAC)
 - [x] Contracts deployed on 0G Galileo
-- [x] Hermes Agent with 7 auto-loaded skills (verify, chronicle, narrate, demo, manim, status, ens)
+- [x] Hermes Agent with 9 auto-loaded skills (verify, chronicle, narrate, demo, manim, status, ens, workflow, treasury)
 - [x] Landing page with consensus visualization, AskWeft, verified profile fallback, and live status data
 - [x] 0G Storage KV/file-publishing evidence memory architecture
 - [x] AXL encrypted P2P path implemented; public demo runs one live AXL process, local demo can run multiple nodes
@@ -289,6 +291,9 @@ The narrative is the product. The automation is the moat.
 - [x] ENS text record updates for portable builder reputation
 - [x] Live frontend at weft.thisyearnofear.com
 - [x] Comprehensive architecture docs, data model, hackathon strategy
+- [x] Autonomous spend loop via Stripe Skills (agent earns 3% → sweeps to Stripe → pays for Kimi/fal/KeeperHub)
+- [x] Pluggable LLM backend: Nemotron 3 Ultra (NVIDIA/NemoClaw), Kimi, NousResearch
+- [x] Treasury widget on landing page (live agent P&L — earned vs spent)
 - [ ] Record demo video
 - [ ] Submit to 0G APAC Hackathon
 

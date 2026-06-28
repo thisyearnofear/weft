@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { StatusApiMilestone, StatusApiOverview } from "@/lib/status-api";
+import type { StatusApiMilestone, StatusApiOverview, TreasuryPayload } from "@/lib/status-api";
 
 async function fetchJson<T>(url: string): Promise<T> {
   const res = await fetch(url, { cache: "no-store" });
@@ -23,5 +23,13 @@ export function useStatusMilestone(milestoneHash: string, includeMetadata = true
     queryFn: () => fetchJson<StatusApiMilestone>(`/api/status/milestone/${milestoneHash}?includeMetadata=${includeMetadata ? "1" : "0"}`),
     enabled: !!milestoneHash,
     staleTime: 15_000,
+  });
+}
+
+export function useTreasury() {
+  return useQuery({
+    queryKey: ["treasury"],
+    queryFn: () => fetchJson<TreasuryPayload>("/api/treasury"),
+    staleTime: 30_000,
   });
 }

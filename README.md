@@ -295,7 +295,7 @@ The milestone payload includes a `demo` section that surfaces:
 
 ### 2. Hermes skills
 
-Weft's 7 skills auto-load into Hermes via `external_dirs` — no manual `Load` prompts needed.
+Weft's 9 skills auto-load into Hermes via `external_dirs` — no manual `Load` prompts needed.
 
 ```bash
 # One-time setup (installs Hermes, wires skills, writes SOUL.md)
@@ -359,11 +359,20 @@ export WEFT_CONTRACT_ADDRESS="0x9f66158c560ce5c8b40820fdcd2874ff8d852192"
 export PRIVATE_KEY="0x..."
 
 # Optional sponsor features
-export KIMI_API_KEY="..."           # Kimi narrative generation
+export KIMI_API_KEY="..."           # LLM narrative generation (default backend)
 export KEEPERHUB_API_KEY="..."      # KeeperHub reliable execution
 export ZERO_G_INDEXER_RPC="..."     # 0G Storage publishing
 export WEFT_BUILDER_ENS="builder.weft.eth"  # ENS profile updates
 export FAL_KEY="..."                # fal.ai — AI-woven swatch + chronicle cover imagery
+
+# Autonomous spend loop (agent earns 3% → pays its own bills via Stripe)
+export STRIPE_SKILLS_KEY="..."      # Stripe Skills API key
+
+# Pluggable LLM backend (defaults to kimi; nemotron = NVIDIA Nemotron 3 Ultra)
+export LLM_BACKEND="kimi"           # kimi | nemotron | nous
+export NVIDIA_API_KEY="..."         # NVIDIA API key (when LLM_BACKEND=nemotron)
+export NEMOCLAW_GUARD=1             # Wrap LLM calls in NemoClaw safe-execution guard
+export NOUS_API_KEY="..."           # NousResearch API key (when LLM_BACKEND=nous)
 
 bash scripts/demo_e2e.sh --nodes=3
 ```
@@ -400,8 +409,11 @@ bash scripts/demo_e2e.sh --dry-run --nodes=3
 | KeeperHub | KeeperHub REST API (execute, poll, logs) | `agent/lib/keeperhub_client.py` |
 | ENS | ENS Registry + Public Resolver via `cast` (namehash, setText, text) | `agent/lib/ens_client.py` |
 | fal.ai | fal.ai text-to-image API — AI-woven milestone swatches + chronicle covers | `agent/lib/fal_client.py` |
+| NVIDIA | Nemotron 3 Ultra via NemoClaw safe-execution guard | `agent/lib/llm_backend.py` |
+| Stripe | Stripe Skills — autonomous spend loop (agent pays its own bills) | `agent/lib/stripe_skills_client.py` |
+| NousResearch | Hermes open-weights models (Hermes-3-Llama-3.1-70B) | `agent/lib/llm_backend.py` |
 | Kimi / Moonshot | `moonshot-v1-128k` via OpenAI-compatible API (`api.moonshot.ai/v1`) | `agent/lib/kimi_client.py` |
-| Hermes | Hermes Agent v0.11.0 — 7 auto-loaded skills via `external_dirs`, `SOUL.md` identity | `setup-hermes.sh`, `scripts/hermes_weft.sh` |
+| Hermes | Hermes Agent v0.11.0 — 9 auto-loaded skills via `external_dirs`, `SOUL.md` identity | `setup-hermes.sh`, `scripts/hermes_weft.sh` |
 
 ## Links
 

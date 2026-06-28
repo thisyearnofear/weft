@@ -60,13 +60,14 @@ else
 fi
 
 echo ""
-echo "✓ Setup complete. 8 skills loaded:"
+echo "✓ Setup complete. 9 skills loaded:"
 echo "   - weft-workflow   (multi-step verification with reasoning)"
 echo "   - weft-verify     (evidence collection + attestation)"
-echo "   - weft-narrate    (Kimi narrative generation)"
+echo "   - weft-narrate    (LLM narrative generation — Nemotron/Kimi/Nous)"
 echo "   - weft-chronicle  (Builder Journey HTML chronicle)"
 echo "   - weft-status     (milestone state check)"
 echo "   - weft-ens        (ENS reputation records)"
+echo "   - weft-treasury   (agent P&L — autonomous earn→spend books)"
 echo "   - weft-manim      (verification weaving animation)"
 echo "   - weft-demo       (coordinated end-to-end demo)"
 echo ""

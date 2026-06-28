@@ -111,6 +111,9 @@ def _make_handler(
             if path == "/axl":
                 return self._send_json(200, _axl_status(inbox_dir))
 
+            if path == "/treasury":
+                return self._send_json(200, _treasury_payload())
+
             if path == "/recovery":
                 since = float(qs.get("since", ["0"])[0])
                 rlog = get_recovery_log()
@@ -897,6 +900,57 @@ def _milestone_demo_summary(
             "keeperhubVisible": True,
             "ensVisible": bool(builder_ens or agent_ens),
         },
+    }
+
+
+def _treasury_payload() -> dict:
+    """Return the agent's autonomous P&L — earned vs spent via Stripe Skills."""
+    try:
+        from agent.lib.stripe_skills_client import (
+            stripe_configured,
+            get_profit_loss,
+            list_recent_charges,
+        )
+    except ImportError:
+        return {"ok": False, "error": "stripe_skills_client not available", "activated": False}
+
+    if not stripe_configured():
+        return {
+            "ok": True,
+            "activated": False,
+            "message": "Spend loop not activated. Set STRIPE_SKILLS_KEY to enable autonomous earn→spend.",
+            "estimatedCosts": {
+                "kimi": 0.01,
+                "fal": 0.05,
+                "keeperhub": 0.10,
+            },
+        }
+
+    pnl = get_profit_loss()
+    charges = list_recent_charges(20)
+    return {
+        "ok": True,
+        "activated": True,
+        "earned": round(pnl.total_earned_usd, 2),
+        "spent": round(pnl.total_spent_usd, 2),
+        "net": round(pnl.net_usd, 2),
+        "profitable": pnl.profitable,
+        "spendByService": {k: round(v, 2) for k, v in pnl.spend_by_service.items()},
+        "chargeCount": pnl.charge_count,
+        "balance": {
+            "available": round(pnl.balance.available_usd, 2) if pnl.balance and pnl.balance.ok else None,
+            "pending": round(pnl.balance.pending_usd, 2) if pnl.balance and pnl.balance.ok else None,
+        } if pnl.balance else None,
+        "recentCharges": [
+            {
+                "id": c.charge_id,
+                "service": c.service,
+                "amount": round(c.amount_usd, 2),
+                "memo": c.memo,
+                "created": c.created,
+            }
+            for c in charges
+        ],
     }
 
 

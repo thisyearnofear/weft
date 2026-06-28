@@ -75,6 +75,26 @@ from .keeperhub_client import (
     poll_execution_status,
     release_after_verification,
 )
+from .stripe_skills_client import (
+    Balance,
+    Charge,
+    PaymentResult,
+    ProfitLoss,
+    ProvisionResult,
+    StripeSkillsError,
+    fund_wallet_from_revenue,
+    get_balance,
+    get_profit_loss,
+    list_recent_charges,
+    pay_for_service,
+    provision_saas,
+    stripe_configured,
+)
+from .llm_backend import (
+    ChatResult,
+    backend_info,
+    generate_chat,
+)
 
 __all__ = [
     # abi
@@ -118,4 +138,12 @@ __all__ = [
     "execute_contract_call", "execute_verdict",
     "get_execution_logs", "keeperhub_configured",
     "poll_execution_status", "release_after_verification",
+    # stripe_skills_client
+    "Balance", "Charge", "PaymentResult", "ProfitLoss", "ProvisionResult",
+    "StripeSkillsError",
+    "fund_wallet_from_revenue", "get_balance", "get_profit_loss",
+    "list_recent_charges", "pay_for_service", "provision_saas",
+    "stripe_configured",
+    # llm_backend
+    "ChatResult", "backend_info", "generate_chat",
 ]

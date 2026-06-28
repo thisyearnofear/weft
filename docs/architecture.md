@@ -61,7 +61,9 @@ Single source of truth — all shared agent logic. All scripts import from here.
 | `verifier_registry_reader.py` | Reads verifier list from VerifierRegistry |
 | `mvp_verifier.py` | Deterministic evidence: deployment + usage + attestation |
 | `github_client.py` | GitHub commits/PRs in milestone window |
-| `kimi_client.py` | Kimi API for narrative generation (optional) |
+| `kimi_client.py` | LLM narrative + chronicle generation (routes through `llm_backend.py`; env: `KIMI_API_KEY`) |
+| `llm_backend.py` | Pluggable LLM backend selector: Nemotron 3 Ultra (NVIDIA/NemoClaw), Kimi, NousResearch (env: `LLM_BACKEND`) |
+| `stripe_skills_client.py` | Stripe Skills autonomous spend layer — agent pays for its own services + sweeps earned revenue (env: `STRIPE_SKILLS_KEY`) |
 | `zero_storage.py` | 0G Storage read/write (env: `ZERO_G_*`, falls back gracefully) |
 | `ens_client.py` | ENS text record updates |
 | `axl_client.py` | AXL binary P2P transport for peer verdict broadcast (env: `AXL_PORT`) |

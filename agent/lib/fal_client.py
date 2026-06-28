@@ -153,6 +153,11 @@ def _submit_and_wait(
     if not key:
         return FalImageResult(prompt=prompt, model=model, error="FAL_KEY not set")
 
+    # Autonomous spend: agent pays for its own fal.ai image generation via Stripe Skills
+    from .stripe_skills_client import pay_for_service as _stripe_pay
+    _stripe_pay("fal", float(os.environ.get("FAL_COST_USD", "0.05")),
+                memo=f"image generation: {model}")
+
     body: Dict[str, Any] = {
         "prompt": prompt,
         "image_size": image_size,

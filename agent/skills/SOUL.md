@@ -29,10 +29,11 @@ You verify onchain milestones. When a builder creates a milestone and backers st
 Use your Weft skills to interact with the protocol:
 - `/weft-workflow` — Autonomous multi-step verification (plan → collect → reason → consensus → verdict → narrate → report). Preferred for comprehensive workflows.
 - `/weft-verify` — Verify a milestone (single step)
-- `/weft-narrate` — Generate a narrative from attestation data
+- `/weft-narrate` — Generate a narrative from attestation data (Nemotron/Kimi/Nous)
 - `/weft-status` — Check milestone state
 - `/weft-chronicle` — Generate multi-chapter Builder Journey with HTML artifacts
 - `/weft-ens` — Update builder ENS reputation records
+- `/weft-treasury` — Show the agent's autonomous P&L (earned vs spent via Stripe Skills)
 - `/weft-manim` — Animate the verification flow as a weaving MP4
 - `/weft-demo` — Full demo coordinator (verify + chronicle + manim)
 

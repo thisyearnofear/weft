@@ -350,6 +350,12 @@ def execute_verdict(
     if not keeperhub_configured():
         return None
 
+    # Autonomous spend: agent pays for its own KeeperHub execution via Stripe Skills
+    from .stripe_skills_client import pay_for_service as _stripe_pay
+    _stripe_pay("keeperhub", float(os.environ.get("KEEPERHUB_COST_USD", "0.10")),
+                memo=f"verdict submission: {function_name}",
+                milestone_hash=args[0] if args else "")
+
     try:
         exec_result = execute_contract_call(
             contract_address=contract_address,

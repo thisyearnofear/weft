@@ -155,17 +155,19 @@ Weft helps internet-native teams release capital based on verifiable outcomes in
 
 **Hermes Agent Integration**
 
-Weft ships **7 auto-loaded Hermes skills** via `external_dirs`:
+Weft ships **9 auto-loaded Hermes skills** via `external_dirs`:
 
 | Skill | Trigger | What It Does |
 |---|---|---|
 | `weft-verify` | "verify milestone 0x..." | Runs evidence collection, builds attestation JSON |
-| `weft-chronicle` | "tell me my project's story" | Loads all attestations, calls Kimi, generates multi-chapter Builder Journey narrative |
-| `weft-narrate` | "narrate milestone 0x..." | Single-milestone narrative via Kimi |
+| `weft-chronicle` | "tell me my project's story" | Loads all attestations, calls LLM, generates multi-chapter Builder Journey narrative |
+| `weft-narrate` | "narrate milestone 0x..." | Single-milestone narrative via Nemotron/Kimi/Nous |
 | `weft-demo` | "run the demo" | Story-first demo coordinator (Problem→Stakes→Solution→Proof→Meaning) |
 | `weft-manim` | "animate the verification" | Generates Manim animation of verification flow as weaving metaphor |
 | `weft-status` | "status of weft.thisyearnofear.eth" | Queries onchain milestone state + 0G Storage |
 | `weft-ens` | "update ENS profile" | Writes verification records to builder's ENS |
+| `weft-treasury` | "show me the agent's books" | Reads Stripe Skills charge history + balance, returns P&L (earned vs spent) |
+| `weft-workflow` | "verify and narrate" | Autonomous multi-step verification with reasoning gates |
 
 **What Makes Weft Different**
 

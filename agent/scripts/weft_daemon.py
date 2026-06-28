@@ -543,6 +543,26 @@ def _process_one(
         )
         if release_result and release_result.status == ExecutionStatus.CONFIRMED:
             log.info("capital released via KeeperHub", milestone=milestone_hash, tx=release_result.tx_hash)
+
+            # ── Earn → Fund → Spend loop ──────────────────────────────
+            # The agent earned its 3% fee from this milestone release.
+            # Sweep the USD-equivalent into its Stripe operating balance
+            # so it can autonomously pay for Kimi, fal.ai, KeeperHub, etc.
+            from agent.lib.stripe_skills_client import stripe_configured as _stripe_ok, fund_wallet_from_revenue as _sweep
+            if _stripe_ok():
+                eth_price = float(os.environ.get("ETH_PRICE_USD", "2500"))
+                fee_bps = int(os.environ.get("WEFT_FEE_BPS", "300"))  # 3% default
+                sweep_pct = float(os.environ.get("WEFT_SWEEP_PCT", "1.0"))  # what % of fee to sweep
+                fee_eth = (m.totalStaked / 1e18) * (fee_bps / 10_000)
+                sweep_usd = fee_eth * eth_price * sweep_pct
+                if sweep_usd > 0:
+                    _r = _sweep(sweep_usd, source=f"milestone {milestone_hash[:10]}")
+                    if _r.ok:
+                        log.info("revenue swept to Stripe", milestone=milestone_hash,
+                                 sweep_usd=round(sweep_usd, 2), topup_id=_r.charge_id)
+                    else:
+                        log.warning("revenue sweep failed", milestone=milestone_hash, error=_r.error)
+
         elif release_result:
             log.warning("release via KeeperHub did not confirm", milestone=milestone_hash, status=release_result.status.value)
         else:

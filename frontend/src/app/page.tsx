@@ -9,6 +9,7 @@ import { SkeletonCard } from "@/components/SkeletonCard";
 import { ChronicleShowcase } from "@/components/ChronicleShowcase";
 import { AskWeft } from "@/components/AskWeft";
 import { ConsensusVisual } from "@/components/ConsensusVisual";
+import { TreasuryWidget } from "@/components/TreasuryWidget";
 import { useMilestones, useMilestone } from "@/hooks/useMilestones";
 import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
 import { useBuilderPassport } from "@/hooks/useBuilderPassport";
@@ -388,6 +389,22 @@ export default function Home() {
 
       {/* ── CHRONICLE SHOWCASE ── */}
       <ChronicleShowcase />
+
+      {/* ── THE AGENT'S BOOKS — autonomous earn→spend proof ── */}
+      <section className={styles.section} aria-label="Agent treasury — autonomous P&L">
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>Autonomous operations</span>
+            <h2 className={styles.sectionTitle}>The agent runs its own finances</h2>
+          </div>
+        </div>
+        <p className={styles.sectionText} style={{ marginBottom: "20px", maxWidth: "640px" }}>
+          Weft earns 3% of every milestone it verifies and autonomously pays for the services
+          it consumes — Kimi for narratives, fal.ai for imagery, KeeperHub for execution.
+          No human touches the finances. This is an agent-run company.
+        </p>
+        <TreasuryWidget />
+      </section>
 
       {/* ── LIVE MILESTONES ── */}
       {milestoneHashes.length > 0 || verifiedOutcomeCount > 0 ? (

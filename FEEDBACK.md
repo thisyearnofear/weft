@@ -67,7 +67,7 @@ No `.github/` CI configuration. No automated linting, typechecking, or test runs
 | Aspect | Rating | Notes |
 |---|---|---|
 | Multi-step agentic workflow | ✅ Created | `weft-workflow` skill with reasoning gates at every phase |
-| Auto-loading skills | ✅ 8 skills | 7 original + weft-workflow, all via `external_dirs` |
+| Auto-loading skills | ✅ 9 skills | 7 original + weft-workflow + weft-treasury, all via `external_dirs` |
 | Planning/reasoning demonstration | ✅ | Workflow skill requires REASON → EXECUTE → EVALUATE at each phase |
 | Failure recovery | ✅ | Documented fallback table in weft-workflow |
 | Path independence | ✅ | All skills use `$WEFT_ROOT` |
