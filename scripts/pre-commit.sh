@@ -10,6 +10,14 @@ NC='\033[0m' # No Color
 
 echo "🔍 Checking for secrets in staged changes..."
 
+# Use ripgrep if available (supports PCRE on all platforms),
+# otherwise fall back to grep -P (Linux only).
+if command -v rg &>/dev/null; then
+  GREP_CMD="rg -q"
+else
+  GREP_CMD="grep -Pq"
+fi
+
 # Patterns that look like private keys or API tokens
 SECRET_PATTERNS=(
   # Private keys (Ethereum / generic hex keys 64+ chars)
@@ -37,7 +45,7 @@ while IFS= read -r -d '' file; do
   staged_content=$(git diff --cached -- "$file" 2>/dev/null || true)
 
   for pattern in "${SECRET_PATTERNS[@]}"; do
-    if echo "$staged_content" | grep -Pq "$pattern"; then
+    if echo "$staged_content" | $GREP_CMD "$pattern"; then
       echo -e "${RED}⚠️  Possible secret detected in $file${NC}"
       echo "   Matched pattern: $pattern"
       FOUND=1
