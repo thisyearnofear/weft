@@ -1,6 +1,11 @@
 # Weft — Submission for 0G APAC Hackathon
 
-**Trustless milestone verification for onchain builder teams.**
+**Escrow that releases itself.**
+
+A sponsor locks ETH behind a deliverable. The builder ships. Autonomous agents verify
+the work onchain — and if 2 of 3 agree, capital releases instantly. The agent earns 3%
+of every milestone it verifies and pays for its own infrastructure via Stripe Skills.
+No manual reviews. No chasing sponsors. No payment politics.
 
 | Field | Value |
 |---|---|

@@ -37,11 +37,12 @@ export function ChronicleShowcase() {
           <BookOpen size={14} /> Builder Journey
         </span>
         <h2 className={styles.title}>
-          Every milestone has a <span className={styles.accent}>story</span>
+          Every verification becomes a <span className={styles.accent}>narrative</span>
         </h2>
         <p className={styles.subtitle}>
-          Kimi reads the onchain evidence and weaves it into narrative non-fiction.
-          Not a dashboard. Not a JSON blob. A story.
+          When a milestone is verified, the agent reads the onchain evidence — deployments,
+          usage signals, commit history, peer consensus — and writes a human-readable story
+          of what happened. Not a dashboard. Not a JSON blob. A narrative you can share.
         </p>
       </div>
 

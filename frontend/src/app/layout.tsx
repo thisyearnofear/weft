@@ -15,13 +15,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Weft — Milestone Funding for Builder Teams',
+  title: 'Weft — Escrow That Releases Itself',
   description:
-    'Milestone-based escrow and portable reputation for builder teams. Humans and autonomous agents participate identically.',
-  keywords: ['milestone funding', 'web3', 'autonomous agents', 'ENS', 'reputation', 'DeFi'],
+    'A sponsor locks ETH behind a deliverable. The builder ships. Autonomous agents verify the work onchain — and capital releases automatically. No manual reviews. No chasing. No politics.',
+  keywords: ['milestone funding', 'autonomous agents', 'escrow', 'ENS', 'reputation', '0G Chain', 'builder verification'],
   openGraph: {
-    title: 'Weft — Milestone Funding for Builder Teams',
-    description: 'Milestone-based escrow and portable reputation for builder teams.',
+    title: 'Weft — Escrow That Releases Itself',
+    description: 'Autonomous agents verify onchain work and release escrowed capital. No manual reviews. No chasing sponsors.',
     type: 'website',
   },
 };
@@ -38,11 +38,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               ⬡ Weft
             </Link>
             <nav className={styles.nav}>
-              <Link href="/create-milestone" className={styles.navLink}>
-                Create milestone
+              <Link href="/sponsor" className={styles.navLink}>
+                Sponsor
+              </Link>
+              <Link href="/builder" className={styles.navLink}>
+                Builder
               </Link>
               <Link href="/recovery" className={styles.navLink}>
-                Resilience demo
+                Resilience
               </Link>
             </nav>
             <ConnectButton />

@@ -282,6 +282,11 @@ export function ConsensusVisual() {
           Status API · AXL path active
         </div>
       </div>
+
+      <p className={styles.caption}>
+        Three independent agents verify the same evidence.
+        If 2 of 3 agree, capital releases — no human approval required.
+      </p>
     </div>
   );
 }

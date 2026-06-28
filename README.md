@@ -1,9 +1,15 @@
 # Weft
 
-**Trustless milestone verification for onchain builder teams.**
-A sponsor locks capital into escrow. A builder ships work. Autonomous verifier nodes
-collect evidence, reach peer consensus (2-of-3), and the capital releases automatically.
-Verified outcomes attach to the builder's ENS identity as portable reputation.
+**Escrow that releases itself.**
+
+A sponsor locks ETH behind a deliverable. The builder ships. Autonomous agents verify
+the work onchain — and if 2 of 3 agree, capital releases instantly. No manual reviews.
+No chasing sponsors. No payment politics.
+
+The agent earns 3% of every milestone it verifies, uses that revenue to pay for its own
+infrastructure (LLM inference, image generation, onchain execution), and runs as a
+self-sustaining company. Verified outcomes attach to the builder's ENS identity as
+portable reputation.
 
 ## Live demo
 

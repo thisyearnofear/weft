@@ -199,7 +199,7 @@
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(22, 32, 51, 0.1);
   box-shadow: 0 10px 28px rgba(28, 39, 61, 0.06);
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color 0.2s, background  0.2s;
 }
 
 .contrastCard:hover {
@@ -246,6 +246,165 @@
 .contrastArrow {
   color: rgba(22, 32, 51, 0.25);
   flex-shrink: 0;
+}
+
+/* ════════════════════════════════════════════
+   PROBLEM SECTION
+   ════════════════════════════════════════════ */
+.problemSection {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 2.5rem 3rem 1.5rem;
+}
+
+.problemGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.problemCard {
+  padding: 1.5rem 1.25rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(22, 32, 51, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.problemCardTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #162033;
+  margin: 0;
+}
+
+.problemCardBody {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: #526073;
+  margin: 0;
+}
+
+.problemStat {
+  font-size: 1.8rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: #b23b44;
+  line-height: 1;
+  margin-top: 0.25rem;
+}
+
+.problemStatLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6c788a;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ════════════════════════════════════════════
+   HOW IT WORKS SECTION
+   ════════════════════════════════════════════ */
+.howItWorksSection {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 1rem 3rem 2.5rem;
+}
+
+/* ════════════════════════════════════════════
+   DEMO SECTION (hash lookup + consensus)
+   ════════════════════════════════════════════ */
+.demoSection {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 1rem 3rem 2.5rem;
+}
+
+.demoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+  margin-top: 1.5rem;
+}
+
+.demoCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.demoColTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--c-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ════════════════════════════════════════════
+   AGENT COMPANY SECTION
+   ════════════════════════════════════════════ */
+.agentSection {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 1rem 3rem 2.5rem;
+}
+
+.agentIntro {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 2rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.agentIntroText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.agentBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(49, 95, 214, 0.08);
+  border: 1px solid rgba(49, 95, 214, 0.15);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #244ca9;
+}
+
+.agentFeatureList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.agentFeatureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--c-text-secondary);
+  line-height: 1.6;
+}
+
+.agentFeatureCheck {
+  color: #22c55e;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
 }
 
 /* ════════════════════════════════════════════
@@ -532,5 +691,17 @@
   .profileMilestoneCard {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .problemGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .demoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .agentIntro {
+    grid-template-columns: 1fr;
   }
 }

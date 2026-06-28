@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useMemo, FormEvent } from "react";
-import { ArrowRight, Bot, ShieldCheck, Sparkles, MessageCircle, Zap, Clock, XCircle, CheckCircle, BarChart3, Search } from "lucide-react";
+import { ArrowRight, Bot, Sparkles, Clock, Search, AlertTriangle, TrendingDown } from "lucide-react";
 
 import { MilestoneCard } from "@/components/MilestoneCard";
 import { SkeletonCard } from "@/components/SkeletonCard";
@@ -10,6 +10,7 @@ import { ChronicleShowcase } from "@/components/ChronicleShowcase";
 import { AskWeft } from "@/components/AskWeft";
 import { ConsensusVisual } from "@/components/ConsensusVisual";
 import { TreasuryWidget } from "@/components/TreasuryWidget";
+import { HowItWorks } from "@/components/HowItWorks";
 import { useMilestones, useMilestone } from "@/hooks/useMilestones";
 import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
 import { useBuilderPassport } from "@/hooks/useBuilderPassport";
@@ -47,10 +48,7 @@ function MilestoneLookup() {
   const hasResult = data && !isLoading && !error;
 
   return (
-    <div style={{
-      width: "100%",
-      maxWidth: "480px",
-    }}>
+    <div style={{ width: "100%", maxWidth: "480px" }}>
       <form onSubmit={handleSubmit} style={{
         display: "flex",
         gap: "8px",
@@ -156,9 +154,7 @@ function MilestoneLookup() {
           gap: "12px",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span style={{
-              fontSize: "20px",
-            }}>
+            <span style={{ fontSize: "20px" }}>
               {isVerified ? "✅" : "⏳"}
             </span>
             <div>
@@ -262,19 +258,28 @@ function MilestoneFromContract({ hash, index }: { hash: `0x${string}`; index: nu
   return <MilestoneCard milestone={milestone} index={index} swatchUrl={falImageUrl} />;
 }
 
-/* ── Pain/Solution comparison items ── */
-const CONTRAST_ITEMS = [
+/* ── Problem section cards ── */
+const PROBLEM_CARDS = [
   {
-    pain: { icon: <Clock size={14} />, text: "Manual reviews that take weeks" },
-    solution: { icon: <Zap size={14} />, text: "Autonomous verification, no manual review" },
+    icon: Clock,
+    title: "Reviews take weeks",
+    body: "A sponsor receives a grant report. They need to manually verify deployments, check usage, review code. Weeks pass. The builder waits.",
+    stat: "3+ weeks",
+    statLabel: "Average manual review time",
   },
   {
-    pain: { icon: <XCircle size={14} />, text: "Chasing sponsors for payment" },
-    solution: { icon: <CheckCircle size={14} />, text: "Verified proof opens the release path" },
+    icon: TrendingDown,
+    title: "Capital sits idle",
+    body: "ETH locked in a multisig or waiting for a sponsor's approval earns nothing for the builder. Every day of delay is opportunity cost.",
+    stat: "100%",
+    statLabel: "Capital frozen during review",
   },
   {
-    pain: { icon: <BarChart3 size={14} />, text: "Reputation that resets every project" },
-    solution: { icon: <ShieldCheck size={14} />, text: "Portable reputation attached to ENS" },
+    icon: AlertTriangle,
+    title: "Trust is subjective",
+    body: "Did the builder actually ship? Did users actually come? Without onchain evidence, the sponsor guesses. The builder argues. Disputes escalate.",
+    stat: "0",
+    statLabel: "Objective proof in manual reviews",
   },
 ];
 
@@ -293,7 +298,9 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      {/* ── HERO ── */}
+      {/* ════════════════════════════════════════════════════════════════
+          HERO — What is Weft? (one sentence + how it works visual)
+          ════════════════════════════════════════════════════════════════ */}
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <div className={styles.eyebrow}>
@@ -301,38 +308,33 @@ export default function Home() {
             {overview?.pitch || "Autonomous milestone funding on 0G Chain"}
           </div>
           <h1 className={styles.title}>
-            Ship work.{" "}
-            <span className={styles.accent}>Get paid.</span>
-            <br />
-            No chasing. No politics.
+            Escrow that{" "}
+            <span className={styles.accent}>releases itself.</span>
           </h1>
           <p className={styles.subtitle}>
-            You ship work. Autonomous verifiers check the evidence. Capital releases
-            when the outcome is confirmed — no chasing sponsors, no screenshots,
-            no payment politics.
+            A sponsor locks ETH behind a deliverable. The builder ships.
+            Autonomous agents verify the work onchain — and if 2 of 3 agree,
+            capital releases instantly. No manual reviews. No chasing. No politics.
           </p>
 
-          {/* ── Milestone Lookup ── */}
-          <MilestoneLookup />
-
           <div className={styles.heroActions}>
-            <Link href="/builder" className={styles.primaryAction}>
-              Start building <ArrowRight size={16} />
+            <Link href="/sponsor" className={styles.primaryAction}>
+              Fund a milestone <ArrowRight size={16} />
             </Link>
-            <Link href="#how-it-works" className={styles.secondaryAction}>
-              See how it works
+            <Link href="/builder" className={styles.secondaryAction}>
+              I&apos;m a builder
             </Link>
           </div>
 
           {/* Live stats strip */}
           <div className={styles.statsStrip}>
-          <StatCard value={1} label="Verified milestone" />
-          <div className={styles.statDivider} />
-          <StatCard value={"0.01"} label="ETH capital released" />
-          <div className={styles.statDivider} />
-          <StatCard value={2} label="Verifier votes cast" />
-          <div className={styles.statDivider} />
-          <StatCard value={"2/3"} label="Quorum reached" />
+            <StatCard value={1} label="Verified milestone" />
+            <div className={styles.statDivider} />
+            <StatCard value={"0.01"} label="ETH capital released" />
+            <div className={styles.statDivider} />
+            <StatCard value={2} label="Verifier votes cast" />
+            <div className={styles.statDivider} />
+            <StatCard value={"2/3"} label="Quorum reached" />
           </div>
         </div>
 
@@ -341,72 +343,134 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── PROOF STRIP ── */}
-      <section className={styles.contrastSection} id="how-it-works">
-        <div className={styles.contrastInner}>
-          <div className={styles.contrastHeader}>
-            <span className={styles.sectionKicker}>Judge-ready proof path</span>
-            <h2 className={styles.sectionTitle}>What the demo proves</h2>
+      {/* ════════════════════════════════════════════════════════════════
+          THE PROBLEM — Why this matters
+          ════════════════════════════════════════════════════════════════ */}
+      <section className={styles.problemSection} aria-label="The problem Weft solves">
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>The problem</span>
+            <h2 className={styles.sectionTitle}>Builders ship. Sponsors ghost.</h2>
           </div>
-          <div className={styles.contrastGrid}>
-            {CONTRAST_ITEMS.map((item, i) => (
-              <div key={i} className={styles.contrastCard}>
-                <div className={styles.contrastCol}>
-                  <div className={styles.contrastBadge}>Before</div>
-                  <div className={styles.contrastPain}>
-                    {item.pain.icon}
-                    <span>{item.pain.text}</span>
-                  </div>
+        </div>
+        <p className={styles.sectionText} style={{ maxWidth: "640px" }}>
+          Every day, builders in crypto deliver work — contracts deployed, code shipped,
+          users acquired. And every day, payment sits behind a sponsor&apos;s inbox.
+          Manual reviews take weeks. Capital freezes. Trust is subjective. Weft replaces
+          that entire process with autonomous agents that verify evidence and release
+          capital without a human in the loop.
+        </p>
+        <div className={styles.problemGrid}>
+          {PROBLEM_CARDS.map((card) => {
+            const Icon = card.icon;
+            return (
+              <div key={card.title} className={styles.problemCard}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <Icon size={18} color="#b23b44" />
+                  <h3 className={styles.problemCardTitle}>{card.title}</h3>
                 </div>
-                <div className={styles.contrastArrow}>
-                  <ArrowRight size={18} />
-                </div>
-                <div className={styles.contrastCol}>
-                  <div className={styles.contrastBadge + " " + styles.contrastBadgeGreen}>After</div>
-                  <div className={styles.contrastSolution}>
-                    {item.solution.icon}
-                    <span>{item.solution.text}</span>
-                  </div>
+                <p className={styles.problemCardBody}>{card.body}</p>
+                <div style={{ marginTop: "auto", paddingTop: "0.5rem" }}>
+                  <div className={styles.problemStat}>{card.stat}</div>
+                  <div className={styles.problemStatLabel}>{card.statLabel}</div>
                 </div>
               </div>
-            ))}
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          HOW IT WORKS — 4-step visual
+          ════════════════════════════════════════════════════════════════ */}
+      <section className={styles.howItWorksSection} id="how-it-works" aria-label="How Weft works">
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>How it works</span>
+            <h2 className={styles.sectionTitle}>From lock to release in four steps</h2>
+          </div>
+        </div>
+        <HowItWorks />
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SEE IT IN ACTION — hash lookup + live consensus
+          ════════════════════════════════════════════════════════════════ */}
+      <section className={styles.demoSection} aria-label="See Weft in action">
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>Live demo</span>
+            <h2 className={styles.sectionTitle}>See it in action</h2>
+          </div>
+        </div>
+        <p className={styles.sectionText} style={{ maxWidth: "640px", marginBottom: "0.5rem" }}>
+          A real milestone has been verified on 0G Testnet. 0.01 ETH was released to the
+          builder after 2 of 3 verifier nodes reached consensus. Check the onchain proof
+          yourself, or talk to the agent that verified it.
+        </p>
+        <div className={styles.demoGrid}>
+          {/* Left: hash lookup */}
+          <div className={styles.demoCol}>
+            <span className={styles.demoColTitle}>Check a milestone</span>
+            <MilestoneLookup />
+          </div>
+          {/* Right: Ask Weft */}
+          <div className={styles.demoCol}>
+            <span className={styles.demoColTitle}>Talk to the agent</span>
+            <AskWeft />
           </div>
         </div>
       </section>
 
-      {/* ── ASK WEFT ── */}
-      <section className={styles.chatPromoSection}>
-        <div className={styles.chatPromoHeader}>
-          <MessageCircle size={16} />
-          <span>Ask Weft</span>
-        </div>
-        <p className={styles.chatPromoSub}>
-          Query milestone status, trigger a Builder Journey, or inspect the same status API
-          that powers the frontend.
-        </p>
-        <AskWeft />
-      </section>
-
-      {/* ── CHRONICLE SHOWCASE ── */}
-      <ChronicleShowcase />
-
-      {/* ── THE AGENT'S BOOKS — autonomous earn→spend proof ── */}
-      <section className={styles.section} aria-label="Agent treasury — autonomous P&L">
+      {/* ════════════════════════════════════════════════════════════════
+          THE AGENT RUNS A COMPANY — Treasury + autonomous ops
+          ════════════════════════════════════════════════════════════════ */}
+      <section className={styles.agentSection} aria-label="The agent runs its own company">
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>Autonomous operations</span>
-            <h2 className={styles.sectionTitle}>The agent runs its own finances</h2>
+            <h2 className={styles.sectionTitle}>Weft is an agent-run company</h2>
           </div>
         </div>
-        <p className={styles.sectionText} style={{ marginBottom: "20px", maxWidth: "640px" }}>
-          Weft earns 3% of every milestone it verifies and autonomously pays for the services
-          it consumes — Kimi for narratives, fal.ai for imagery, KeeperHub for execution.
-          No human touches the finances. This is an agent-run company.
-        </p>
-        <TreasuryWidget />
+        <div className={styles.agentIntro}>
+          <div className={styles.agentIntroText}>
+            <p className={styles.sectionText}>
+              Weft isn&apos;t just a smart contract. It&apos;s a self-sustaining business
+              operated by autonomous agents. Every time a milestone is verified, the agent
+              earns 3% of the released capital. It uses that revenue to pay for its own
+              infrastructure — LLM inference, image generation, onchain execution.
+            </p>
+            <ul className={styles.agentFeatureList}>
+              <li className={styles.agentFeatureItem}>
+                <span className={styles.agentFeatureCheck}>✓</span>
+                <span><strong>Earns</strong> 3% of every milestone it verifies (onchain revenue)</span>
+              </li>
+              <li className={styles.agentFeatureItem}>
+                <span className={styles.agentFeatureCheck}>✓</span>
+                <span><strong>Spends</strong> that revenue via Stripe to pay for Kimi, fal.ai, KeeperHub</span>
+              </li>
+              <li className={styles.agentFeatureItem}>
+                <span className={styles.agentFeatureCheck}>✓</span>
+                <span><strong>Provisions</strong> its own SaaS when it needs to scale</span>
+              </li>
+              <li className={styles.agentFeatureItem}>
+                <span className={styles.agentFeatureCheck}>✓</span>
+                <span><strong>Reports</strong> its P&amp;L transparently — no human touches the finances</span>
+              </li>
+            </ul>
+          </div>
+          <TreasuryWidget />
+        </div>
       </section>
 
-      {/* ── LIVE MILESTONES ── */}
+      {/* ════════════════════════════════════════════════════════════════
+          EVERY VERIFICATION BECOMES A STORY — Chronicle
+          ════════════════════════════════════════════════════════════════ */}
+      <ChronicleShowcase />
+
+      {/* ════════════════════════════════════════════════════════════════
+          LIVE MILESTONES
+          ════════════════════════════════════════════════════════════════ */}
       {milestoneHashes.length > 0 || verifiedOutcomeCount > 0 ? (
         <section id="live-milestones" className={styles.section} aria-label="Milestones under verification and settlement">
         <div className={styles.sectionHeader}>
@@ -460,24 +524,27 @@ export default function Home() {
         </div>
       </section>) : null}
 
-      {/* ── BOTTOM CTA ── */}
+      {/* ════════════════════════════════════════════════════════════════
+          BOTTOM CTA — two paths
+          ════════════════════════════════════════════════════════════════ */}
       <section className={styles.bottomPanel}>
         <div className={styles.bottomCard}>
           <div className={styles.bottomHeader}>
             <Sparkles size={18} />
             <span>Ready to ship without friction?</span>
           </div>
-          <h3>Create a milestone in minutes.</h3>
+          <h3>Two ways to use Weft</h3>
           <p>
-            Define what you&apos;ll ship, set a deadline, and let verifiers handle the rest.
-            When the evidence checks out, the verified release path opens.
+            <strong>Sponsors</strong> lock capital behind a deliverable and get cryptographic
+            proof when it&apos;s done. <strong>Builders</strong> ship work and get paid
+            automatically when verifiers confirm the outcome.
           </p>
           <div className={styles.heroActions} style={{ marginTop: "1.5rem" }}>
-            <Link href="/builder" className={styles.primaryAction}>
-              Get started <ArrowRight size={16} />
+            <Link href="/sponsor" className={styles.primaryAction}>
+              Fund a milestone <ArrowRight size={16} />
             </Link>
-            <Link href="/sponsor" className={styles.secondaryAction}>
-              Fund a milestone
+            <Link href="/builder" className={styles.secondaryAction}>
+              Create a milestone
             </Link>
           </div>
         </div>
@@ -490,7 +557,7 @@ export default function Home() {
         fontSize: "0.8rem",
         color: "#98a2b3",
       }}>
-        Protocol fee: 2% of released capital → reinvested in verifier infrastructure
+        Protocol fee: 3% of released capital → funds the agent&apos;s autonomous operations
       </div>
     </div>
   );
