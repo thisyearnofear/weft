@@ -47,10 +47,10 @@ class JsonRpcClient:
         self.timeout_s = timeout_s
         self._id = 0
 
-    def call(self, method: str, params: Any) -> Any:
+    def call(self, method: str, params: Any, use_cache: bool = True) -> Any:
         # Cache only idempotent reads.
         cache_key = None
-        if self.cache is not None and method.startswith("eth_"):
+        if use_cache and self.cache is not None and method.startswith("eth_"):
             cache_key = f"{method}:{json.dumps(params, sort_keys=True, separators=(',', ':'))}"
             cached = self.cache.get(cache_key)
             if cached is not None:

@@ -326,7 +326,7 @@ def _make_handler(
 
             # Read milestone from chain for context
             try:
-                m = read_milestone(rpc, weft, milestone_hash)
+                m = read_milestone(rpc, weft, milestone_hash, use_cache=False)
             except Exception:
                 m = None
 
@@ -424,7 +424,7 @@ def _make_handler(
 
         def _handle_milestone(self, milestone_hash: str, include_metadata: bool):
             try:
-                m = read_milestone(rpc, weft, milestone_hash)
+                m = read_milestone(rpc, weft, milestone_hash, use_cache=False)
             except Exception as e:
                 return self._send_json(400, {"ok": False, "error": "milestone_read_failed", "detail": str(e)})
 
@@ -634,7 +634,7 @@ def _make_handler(
                 if not milestone_hash:
                     return self._send_json(400, {"ok": False, "error": "milestoneHash required"})
                 try:
-                    m = read_milestone(rpc, weft, milestone_hash)
+                    m = read_milestone(rpc, weft, milestone_hash, use_cache=False)
                     return self._send_json(200, {
                         "ok": True,
                         "tool": "status",
@@ -653,7 +653,7 @@ def _make_handler(
                     return self._send_json(400, {"ok": False, "error": "milestoneHash required"})
                 # Return current verification evidence
                 try:
-                    m = read_milestone(rpc, weft, milestone_hash)
+                    m = read_milestone(rpc, weft, milestone_hash, use_cache=False)
                     return self._send_json(200, {
                         "ok": True,
                         "tool": "verify",
@@ -756,7 +756,7 @@ def _make_handler(
             if any(w in message for w in ["status", "check", "verify", "milestone"]):
                 if milestone_hash:
                     try:
-                        m = read_milestone(rpc, weft, milestone_hash)
+                        m = read_milestone(rpc, weft, milestone_hash, use_cache=False)
                         staked_eth = int(m.totalStaked) / 1e18
                         status = "verified ✓" if m.verified else ("finalized" if m.finalized else "pending ⏳")
                         return self._send_json(200, {
@@ -851,7 +851,7 @@ def _milestone_demo_summary(
         ]
 
     try:
-        read_milestone(rpc, weft, milestone_hash)
+        read_milestone(rpc, weft, milestone_hash, use_cache=False)
         metadata_available = bool(metadata_indexer)
     except Exception:
         metadata_available = False
@@ -1012,6 +1012,12 @@ def _known_demo_milestones(inbox_dir: str) -> list[str]:
     if configured and configured.startswith("0x") and len(configured) == 66:
         found.add(configured)
 
+    # Fallback: the known verified demo milestone on 0G Galileo testnet.
+    # This ensures the landing page always shows the demo even if env vars
+    # and local artifact directories are not configured on the server.
+    if not found:
+        found.add("0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f")
+
     inbox_path = Path(inbox_dir)
     if inbox_path.is_dir():
         for envelope in inbox_path.glob("*.json"):
@@ -1029,6 +1035,13 @@ def _known_demo_milestones(inbox_dir: str) -> list[str]:
 
 
 def _demo_payload(metadata_indexer: str, inbox_dir: str, builder_ens: str, agent_ens: str) -> dict:
+    # Fallbacks: ensure demo data is always populated even if the server
+    # wasn't launched with --builder-ens or --agent-ens flags.
+    if not builder_ens:
+        builder_ens = os.environ.get("WEFT_BUILDER_ENS") or "weft.thisyearnofear.eth"
+    if not agent_ens:
+        agent_ens = os.environ.get("WEFT_AGENT_ENS") or os.environ.get("VERIFIER_ENS") or "weft.thisyearnofear.eth"
+
     return {
         "ok": True,
         "pitch": "Weft is a decentralized verifier swarm for milestone-based capital release.",

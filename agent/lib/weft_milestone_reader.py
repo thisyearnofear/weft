@@ -37,9 +37,9 @@ class MilestoneView:
     finalEvidenceRoot: str
 
 
-def read_milestone(rpc: JsonRpcClient, weft_milestone_address: str, milestone_hash: str) -> MilestoneView:
+def read_milestone(rpc: JsonRpcClient, weft_milestone_address: str, milestone_hash: str, use_cache: bool = True) -> MilestoneView:
     data = encode_call(MILESTONES_SELECTOR, [encode_bytes32(milestone_hash)])
-    result = rpc.call("eth_call", [{"to": weft_milestone_address, "data": data}, "latest"])
+    result = rpc.call("eth_call", [{"to": weft_milestone_address, "data": data}, "latest"], use_cache=use_cache)
     words = chunk_words(result)
     if len(words) != 13:
         raise RuntimeError(f"Unexpected milestones() return word count: {len(words)}")
