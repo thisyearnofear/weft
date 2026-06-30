@@ -22,6 +22,7 @@ import json
 import os
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
@@ -115,16 +116,26 @@ class StripeSkillsError(RuntimeError):
 # ---------------------------------------------------------------------------
 
 def _request(method: str, path: str, *, data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """Make an authenticated Stripe Skills API request. Returns parsed JSON."""
+    """Make an authenticated Stripe API request. Returns parsed JSON."""
     url = f"{_api_url()}/{path.lstrip('/')}"
     body = None
     headers = {
         "Authorization": f"Bearer {_api_key()}",
-        "Stripe-Version": os.environ.get("STRIPE_API_VERSION", "2024-12-18"),
     }
     if data is not None:
-        body = json.dumps(data).encode("utf-8")
-        headers["Content-Type"] = "application/json"
+        # Stripe API uses form-encoded data, not JSON.
+        # Flatten nested dicts (e.g. metadata[key]=value) for Stripe's format.
+        flat: list[tuple[str, str]] = []
+        for k, v in data.items():
+            if isinstance(v, dict):
+                for sub_k, sub_v in v.items():
+                    flat.append((f"{k}[{sub_k}]", str(sub_v)))
+            elif isinstance(v, bool):
+                flat.append((k, "true" if v else "false"))
+            else:
+                flat.append((k, str(v)))
+        body = urllib.parse.urlencode(flat).encode("utf-8")
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
     req = urllib.request.Request(url, data=body, headers=headers, method=method)
     try:
         with urllib.request.urlopen(req, timeout=_timeout()) as resp:
@@ -175,11 +186,10 @@ def pay_for_service(
 
     try:
         resp = _request("POST", "/charges", data={
-            "amount_cents": int(round(amount_usd * 100)),
+            "amount": int(round(amount_usd * 100)),
             "currency": "usd",
-            "service": service,
-            "memo": memo or f"Weft agent — {service}",
-            "metadata": {"milestone": milestone_hash} if milestone_hash else {},
+            "description": memo or f"Weft agent — {service}",
+            "metadata": {"service": service, "milestone": milestone_hash} if milestone_hash else {"service": service},
         })
         result = PaymentResult(
             charge_id=resp.get("id", ""),
@@ -332,7 +342,7 @@ def fund_wallet_from_revenue(amount_usd: float, *, source: str = "onchain_revenu
 
     try:
         resp = _request("POST", "/topups", data={
-            "amount_cents": int(round(amount_usd * 100)),
+            "amount": int(round(amount_usd * 100)),
             "currency": "usd",
             "description": f"Weft revenue sweep — {source}",
             "metadata": {"source": source},
