@@ -146,7 +146,7 @@ def _call_nemotron(
     if not key:
         return ChatResult(backend="nemotron", error="NVIDIA_API_KEY not set")
 
-    model = os.environ.get("NEMOTRON_MODEL", "nvidia/nemotron-3-ultra-8b")
+    model = os.environ.get("NEMOTRON_MODEL", "nvidia/nemotron-3-ultra-550b-a55b")
     base = os.environ.get("NEMOTRON_API_BASE", "https://integrate.api.nvidia.com/v1")
 
     # NemoClaw safe-execution guard: wraps the call in a safety boundary
@@ -228,7 +228,7 @@ def _openai_compatible_call(
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
+        with urllib.request.urlopen(req, timeout=120) as resp:
             raw = json.loads(resp.read().decode("utf-8"))
         content = raw.get("choices", [{}])[0].get("message", {}).get("content", "")
         return ChatResult(content=content, model=model, backend=backend_name)
@@ -271,7 +271,7 @@ def backend_info() -> Dict[str, Any]:
         "backend": b,
         "configured": _configured(),
         "model": {
-            "nemotron": os.environ.get("NEMOTRON_MODEL", "nvidia/nemotron-3-ultra-8b"),
+            "nemotron": os.environ.get("NEMOTRON_MODEL", "nvidia/nemotron-3-ultra-550b-a55b"),
             "kimi": os.environ.get("KIMI_MODEL", "moonshot-v1-128k"),
             "nous": os.environ.get("NOUS_MODEL", "NousResearch/Hermes-3-Llama-3.1-70B"),
         }.get(b, "unknown"),
