@@ -1,0 +1,28 @@
+name: TestSprite Verification
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  testsprite:
+    name: TestSprite Loop Verification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install TestSprite CLI
+        run: npm install -g @testsprite/testsprite-cli
+
+      - name: Run all tests
+        env:
+          TESTSPRITE_API_KEY: ${{ secrets.TESTSPRITE_API_KEY }}
+          PROJECT_ID: ${{ secrets.TESTSPRITE_PROJECT_ID }}
+        run: |
+          testsprite setup --from-env --yes --no-agent
+          testsprite test run --all --project "$PROJECT_ID" --wait --output json

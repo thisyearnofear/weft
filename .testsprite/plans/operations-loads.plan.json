@@ -1,0 +1,16 @@
+{
+  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "type": "frontend",
+  "name": "Operations dashboard loads with ledger and verification log",
+  "description": "The /operations page loads, shows KPI cards, a financial ledger with transactions, a verification log, and infrastructure health indicators.",
+  "planSteps": [
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/operations", "description": "Navigate to the operations dashboard" },
+    { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Operations title is visible" },
+    { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "open books", "description": "Title says 'open books'" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Financial Ledger", "description": "Financial ledger section is visible" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Verification Log", "description": "Verification log section is visible" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Infrastructure Health", "description": "Infrastructure health section is visible" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "KeeperHub", "description": "Ledger shows KeeperHub transaction" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "weft.thisyearnofear.eth", "description": "Verification log shows builder ENS" }
+  ]
+}

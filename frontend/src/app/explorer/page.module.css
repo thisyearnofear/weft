@@ -1,0 +1,262 @@
+.container {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 248, 252, 0.98) 44%, rgba(239, 247, 244, 0.96)),
+    radial-gradient(circle at 12% 8%, rgba(91, 141, 239, 0.16), transparent 28%),
+    radial-gradient(circle at 82% 14%, rgba(17, 148, 105, 0.12), transparent 26%);
+  color: #162033;
+  padding: 3rem 3rem 4rem;
+}
+
+.inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid rgba(49, 95, 214, 0.2);
+  background: rgba(49, 95, 214, 0.08);
+  border-radius: 999px;
+  color: #244ca9;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.5rem;
+}
+
+.subtitle {
+  font-size: 1.05rem;
+  color: #526073;
+  max-width: 60ch;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Stats bar ── */
+.statsBar {
+  display: flex;
+  gap: 1.5rem;
+  margin: 1.5rem 0 2rem;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #162033;
+}
+
+.statLabel {
+  font-size: 0.8rem;
+  color: #6c788a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Filters ── */
+.filters {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filterBtn {
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(25, 37, 56, 0.12);
+  background: #fff;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #526073;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filterBtn:hover {
+  border-color: rgba(49, 95, 214, 0.3);
+  color: #315fd6;
+}
+
+.filterBtnActive {
+  background: #315fd6;
+  color: #fff;
+  border-color: #315fd6;
+}
+
+/* ── Table ── */
+.tableWrap {
+  background: #fff;
+  border: 1px solid rgba(25, 37, 56, 0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(28, 39, 61, 0.06);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 0.85rem 1rem;
+  background: rgba(22, 32, 51, 0.03);
+  border-bottom: 1px solid rgba(25, 37, 56, 0.1);
+  font-weight: 600;
+  color: #526073;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(25, 37, 56, 0.06);
+  color: #162033;
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr {
+  transition: background 0.1s ease;
+}
+
+.tableRow:hover {
+  background: rgba(49, 95, 214, 0.03);
+}
+
+.hashCell {
+  font-family: monospace;
+  font-size: 0.82rem;
+  color: #315fd6;
+  text-decoration: none;
+}
+
+.hashCell:hover {
+  text-decoration: underline;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.statusVerified {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+
+.statusPending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+}
+
+.statusFailed {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+
+.builderCell {
+  font-family: monospace;
+  font-size: 0.82rem;
+  color: #526073;
+}
+
+.stakeCell {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.voteCell {
+  font-size: 0.82rem;
+  color: #526073;
+  white-space: nowrap;
+}
+
+.dateCell {
+  font-size: 0.82rem;
+  color: #6c788a;
+  white-space: nowrap;
+}
+
+/* ── Empty / loading states ── */
+.emptyState {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6c788a;
+}
+
+.emptyState h3 {
+  font-size: 1.1rem;
+  color: #162033;
+  margin: 0 0 0.5rem;
+}
+
+.emptyState p {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.loadingRow {
+  padding: 2rem;
+  text-align: center;
+  color: #6c788a;
+  font-size: 0.9rem;
+}
+
+.errorState {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
+/* ── Back link ── */
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #315fd6;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  margin-bottom: 1rem;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}

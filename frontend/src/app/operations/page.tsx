@@ -1,0 +1,318 @@
+"use client";
+
+import { useMemo } from "react";
+import Link from "next/link";
+import { ArrowLeft, Activity, DollarSign, CheckCircle, Zap } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import styles from "./page.module.css";
+
+interface TreasuryData {
+  activated: boolean;
+  earned: number;
+  spent: number;
+  net: number;
+  profitable: boolean;
+  spendByService: Record<string, number>;
+  chargeCount: number;
+  balance: { available: number | null; pending: number | null } | null;
+  recentCharges: Array<{
+    id: string;
+    service: string;
+    amount: number;
+    memo: string;
+    created: number;
+  }>;
+}
+
+interface RecoveryData {
+  totalEvents: number;
+  failures: number;
+  recoveries: number;
+  verdictLanded: boolean;
+  chaosActive: string[];
+  recentEvents: unknown[];
+}
+
+interface VerificationEntry {
+  milestoneHash: string;
+  verified: boolean;
+  released: boolean;
+  verifierCount: number;
+  verifiedVotes: number;
+  finalEvidenceRoot: string;
+  builderEns: string | null;
+  stakedEth: string;
+  statusLabel: string;
+  deadline: number;
+}
+
+interface OperationsData {
+  ok: boolean;
+  treasury: TreasuryData | null;
+  recovery: RecoveryData | null;
+  verifications: VerificationEntry[];
+  overview: {
+    pitch: string;
+    totalMilestones: number;
+    verifiedCount: number;
+    totalStakedEth: number;
+  } | null;
+}
+
+async function fetchOperations(): Promise<OperationsData> {
+  const res = await fetch("/api/operations", { cache: "no-store" });
+  if (!res.ok) throw new Error(`Operations fetch failed: ${res.status}`);
+  return res.json();
+}
+
+function useOperations() {
+  return useQuery({
+    queryKey: ["operations"],
+    queryFn: fetchOperations,
+    staleTime: 15_000,
+  });
+}
+
+function formatCurrency(amount: number): string {
+  return `$${amount.toFixed(2)}`;
+}
+
+function formatDate(ts: number): string {
+  if (!ts) return "—";
+  return new Date(ts * 1000).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function shortHash(hash: string): string {
+  if (!hash || hash.length < 12) return hash;
+  return `${hash.slice(0, 10)}...${hash.slice(-6)}`;
+}
+
+const SERVICE_LABELS: Record<string, string> = {
+  keeperhub: "KeeperHub",
+  fal: "fal.ai",
+  kimi: "Kimi",
+  nemotron: "Nemotron",
+  revenue_sweep: "Revenue Sweep",
+};
+
+export default function OperationsPage() {
+  const { data, isLoading, error } = useOperations();
+
+  const treasury = data?.treasury ?? null;
+  const recovery = data?.recovery ?? null;
+  const verifications = data?.verifications ?? [];
+  const overview = data?.overview ?? null;
+
+  const charges = useMemo(() => {
+    if (!treasury?.recentCharges) return [];
+    return [...treasury.recentCharges].sort((a, b) => b.created - a.created);
+  }, [treasury]);
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.inner}>
+        <Link href="/" className={styles.backLink}>
+          <ArrowLeft size={14} /> Back to Weft
+        </Link>
+
+        <div className={styles.header}>
+          <div className={styles.eyebrow}>
+            <Activity size={15} /> Agent Operations
+          </div>
+          <h1 className={styles.title}>The agent&apos;s open books.</h1>
+          <p className={styles.subtitle}>
+            Every verification the agent submitted, every dollar it earned and spent,
+            and the health of its infrastructure — all publicly auditable.
+          </p>
+        </div>
+
+        {isLoading && <div className={styles.loadingState}>Loading operations data...</div>}
+        {error && (
+          <div className={styles.errorState}>
+            Failed to load operations: {error instanceof Error ? error.message : "Unknown error"}
+          </div>
+        )}
+
+        {!isLoading && !error && (
+          <>
+            {/* KPI Cards */}
+            <div className={styles.kpiGrid}>
+              <div className={styles.kpiCard}>
+                <div className={styles.kpiLabel}>Milestones Verified</div>
+                <div className={styles.kpiValue}>{overview?.verifiedCount ?? 0}</div>
+                <div className={styles.kpiSub}>of {overview?.totalMilestones ?? 0} total</div>
+              </div>
+              <div className={styles.kpiCard}>
+                <div className={styles.kpiLabel}>Capital Processed</div>
+                <div className={styles.kpiValue}>{overview?.totalStakedEth.toFixed(4) ?? "0"}</div>
+                <div className={styles.kpiSub}>ETH staked</div>
+              </div>
+              <div className={styles.kpiCard}>
+                <div className={styles.kpiLabel}>Revenue Earned</div>
+                <div className={`${styles.kpiValue} ${(treasury?.net ?? 0) >= 0 ? styles.kpiPositive : styles.kpiNegative}`}>
+                  {formatCurrency(treasury?.earned ?? 0)}
+                </div>
+                <div className={styles.kpiSub}>{treasury?.chargeCount ?? 0} charges</div>
+              </div>
+              <div className={styles.kpiCard}>
+                <div className={styles.kpiLabel}>Net P&amp;L</div>
+                <div className={`${styles.kpiValue} ${(treasury?.net ?? 0) >= 0 ? styles.kpiPositive : styles.kpiNegative}`}>
+                  {formatCurrency(treasury?.net ?? 0)}
+                </div>
+                <div className={styles.kpiSub}>
+                  {treasury?.profitable ? "Profitable" : "Not yet profitable"}
+                </div>
+              </div>
+            </div>
+
+            {/* Financial Ledger */}
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>
+                <DollarSign size={18} /> Financial Ledger
+                <span className={styles.sectionBadge}>{charges.length} transactions</span>
+              </h2>
+              {charges.length === 0 ? (
+                <div className={styles.emptyState}>No transactions recorded yet.</div>
+              ) : (
+                <table className={styles.ledgerTable}>
+                  <thead>
+                    <tr>
+                      <th>Service</th>
+                      <th>Description</th>
+                      <th>Amount</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {charges.map((charge) => {
+                      const isRevenue = charge.service === "revenue_sweep";
+                      return (
+                        <tr key={charge.id}>
+                          <td className={styles.chargeService}>
+                            {SERVICE_LABELS[charge.service] ?? charge.service}
+                          </td>
+                          <td className={styles.chargeMemo}>{charge.memo}</td>
+                          <td className={`${styles.chargeAmount} ${isRevenue ? styles.amountPositive : styles.amountNegative}`}>
+                            {isRevenue ? "+" : "−"}{formatCurrency(charge.amount)}
+                          </td>
+                          <td className={styles.chargeDate}>{formatDate(charge.created)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+              {treasury && (
+                <div style={{ marginTop: "1rem", display: "flex", gap: "1.5rem", fontSize: "0.85rem", color: "#526073", flexWrap: "wrap" }}>
+                  <span>
+                    Balance: <strong>{formatCurrency(treasury.balance?.available ?? 0)}</strong> available
+                    {treasury.balance?.pending ? `, ${formatCurrency(treasury.balance.pending)} pending` : ""}
+                  </span>
+                  {Object.entries(treasury.spendByService ?? {}).map(([service, amount]) => (
+                    <span key={service}>
+                      {SERVICE_LABELS[service] ?? service}: <strong>{formatCurrency(amount)}</strong>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Verification Log */}
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>
+                <CheckCircle size={18} /> Verification Log
+                <span className={styles.sectionBadge}>{verifications.length} milestones</span>
+              </h2>
+              {verifications.length === 0 ? (
+                <div className={styles.emptyState}>No verifications recorded yet.</div>
+              ) : (
+                verifications.map((v) => {
+                  const state = v.verified ? "verified" : v.released ? "verified" : "pending";
+                  return (
+                    <div key={v.milestoneHash} className={styles.verificationItem}>
+                      <span className={styles.verificationIcon}>
+                        {v.verified ? "✅" : "⏳"}
+                      </span>
+                      <div className={styles.verificationBody}>
+                        <Link
+                          href={`/project/${v.milestoneHash}`}
+                          className={styles.verificationHash}
+                        >
+                          {shortHash(v.milestoneHash)}
+                        </Link>
+                        <div className={styles.verificationMeta}>
+                          {v.builderEns ?? "Unknown builder"} · {v.stakedEth} ETH ·{" "}
+                          {v.verifiedVotes}/{v.verifierCount} verifier votes ·{" "}
+                          deadline {formatDate(v.deadline)}
+                        </div>
+                      </div>
+                      <span
+                        className={`${styles.verificationStatus} ${
+                          state === "verified"
+                            ? styles.statusVerified
+                            : state === "pending"
+                              ? styles.statusPending
+                              : styles.statusFailed
+                        }`}
+                      >
+                        {v.statusLabel}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Infrastructure Health */}
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>
+                <Zap size={18} /> Infrastructure Health
+              </h2>
+              <div className={styles.healthGrid}>
+                <div className={styles.healthItem}>
+                  <span className={`${styles.healthDot} ${recovery && recovery.totalEvents > 0 ? styles.healthDotWarn : styles.healthDotOk}`} />
+                  <span className={styles.healthLabel}>Recovery Events</span>
+                  <span className={styles.healthValue}>{recovery?.totalEvents ?? 0}</span>
+                </div>
+                <div className={styles.healthItem}>
+                  <span className={`${styles.healthDot} ${recovery && recovery.failures > 0 ? styles.healthDotWarn : styles.healthDotOk}`} />
+                  <span className={styles.healthLabel}>Failures</span>
+                  <span className={styles.healthValue}>{recovery?.failures ?? 0}</span>
+                </div>
+                <div className={styles.healthItem}>
+                  <span className={`${styles.healthDot} ${recovery && recovery.recoveries > 0 ? styles.healthDotOk : styles.healthDotOk}`} />
+                  <span className={styles.healthLabel}>Recoveries</span>
+                  <span className={styles.healthValue}>{recovery?.recoveries ?? 0}</span>
+                </div>
+                <div className={styles.healthItem}>
+                  <span className={`${styles.healthDot} ${recovery?.verdictLanded ? styles.healthDotOk : styles.healthDotWarn}`} />
+                  <span className={styles.healthLabel}>Verdict Landed</span>
+                  <span className={styles.healthValue}>{recovery?.verdictLanded ? "Yes" : "No"}</span>
+                </div>
+                <div className={styles.healthItem}>
+                  <span className={`${styles.healthDot} ${recovery && recovery.chaosActive.length > 0 ? styles.healthDotErr : styles.healthDotOk}`} />
+                  <span className={styles.healthLabel}>Chaos Active</span>
+                  <span className={styles.healthValue}>
+                    {recovery && recovery.chaosActive.length > 0
+                      ? recovery.chaosActive.join(", ")
+                      : "None"}
+                  </span>
+                </div>
+                <div className={styles.healthItem}>
+                  <span className={`${styles.healthDot} ${treasury?.activated ? styles.healthDotOk : styles.healthDotWarn}`} />
+                  <span className={styles.healthLabel}>Stripe Active</span>
+                  <span className={styles.healthValue}>{treasury?.activated ? "Yes" : "No"}</span>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

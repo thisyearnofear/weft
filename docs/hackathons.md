@@ -242,4 +242,24 @@ The builder keeps the story — and a portable trust record.
 
 ---
 
-*Archived: May 2026*
+## 3. TestSprite S3 — CLI Launch & Loop Engineering (Jul 2026)
+
+**Active hackathon.** See [testsprite-s3-plan.md](testsprite-s3-plan.md) for the full plan.
+
+**One-line pitch:** Weft is a verification business. We used a verification loop (TestSprite CLI) to build its public audit surface — the Verifier's Ledger — so the verifier itself is verified.
+
+**What we're building during the week:**
+- `/explorer` — public registry of every milestone Weft verified
+- `/operations` — agent operations dashboard (verification log + financial ledger + consensus participation)
+- `/builder/[ens]` — builder reputation profiles from ENS text records
+
+**The loop:** write → TestSprite verify → fix → rerun, logged in LOOP.md, backed by commits + run history.
+
+**Links:**
+- **Live site**: https://weft.thisyearnofear.com
+- **Repo**: https://github.com/thisyearnofear/weft
+- **Plan**: [docs/testsprite-s3-plan.md](testsprite-s3-plan.md)
+
+---
+
+*Archived: May 2026 (entries 1-2) · Active: Jul 2026 (entry 3)*

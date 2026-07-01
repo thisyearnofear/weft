@@ -1,0 +1,14 @@
+{
+  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "type": "frontend",
+  "name": "Explorer page loads with milestone table",
+  "description": "The /explorer page loads, shows the title, stats bar, and at least one milestone in the table.",
+  "planSteps": [
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/explorer", "description": "Navigate to the explorer page" },
+    { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Explorer title is visible" },
+    { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "Every milestone", "description": "Title says 'Every milestone'" },
+    { "type": "assertion", "selector": "table", "condition": "visible", "description": "Milestone table is visible" },
+    { "type": "assertion", "selector": "table tbody tr", "condition": "visible", "description": "At least one milestone row is visible" },
+    { "type": "assertion", "selector": "table tbody tr", "condition": "text-contains", "value": "Verified", "description": "Milestone row shows Verified status" }
+  ]
+}

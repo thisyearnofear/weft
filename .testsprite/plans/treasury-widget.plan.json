@@ -1,0 +1,11 @@
+{
+  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "type": "frontend",
+  "name": "Treasury widget shows agent P&L",
+  "description": "Baseline: the landing page shows the treasury widget with earned/spent figures.",
+  "planSteps": [
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com", "description": "Navigate to the Weft landing page" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Agent", "description": "Page mentions Agent" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "earned", "description": "Page shows earned figure" }
+  ]
+}

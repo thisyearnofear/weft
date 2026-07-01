@@ -38,6 +38,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               ⬡ Weft
             </Link>
             <nav className={styles.nav}>
+              <Link href="/explorer" className={styles.navLink}>
+                Explorer
+              </Link>
+              <Link href="/operations" className={styles.navLink}>
+                Operations
+              </Link>
               <Link href="/sponsor" className={styles.navLink}>
                 Sponsor
               </Link>

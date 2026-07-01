@@ -16,10 +16,14 @@ portable reputation.
 | Surface | URL |
 |---|---|
 | **Frontend** | [weft.thisyearnofear.com](https://weft.thisyearnofear.com) |
+| **Verification Explorer** | [weft.thisyearnofear.com/explorer](https://weft.thisyearnofear.com/explorer) |
+| **Agent Operations** | [weft.thisyearnofear.com/operations](https://weft.thisyearnofear.com/operations) |
+| **Builder Profile** | [weft.thisyearnofear.com/builder/weft.thisyearnofear.eth](https://weft.thisyearnofear.com/builder/weft.thisyearnofear.eth) |
 | **Resilience demo** | [weft.thisyearnofear.com/recovery](https://weft.thisyearnofear.com/recovery) |
 | **Explorer** | [WeftMilestone on 0G Galileo](https://explorer-testnet.0g.ai/address/0x9f66158c560ce5c8b40820fdcd2874ff8d852192) |
 | **ENS identity** | `weft.thisyearnofear.eth` |
 | **Status API** | `GET /api/status/demo` |
+| **TestSprite tests** | `testsprite test run --all --project cdf9309d-9283-4db7-84a4-a6eee8599458` |
 
 ### Demo milestone (verified, finalized, released)
 

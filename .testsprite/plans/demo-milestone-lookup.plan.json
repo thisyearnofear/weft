@@ -1,0 +1,13 @@
+{
+  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "type": "frontend",
+  "name": "Demo milestone lookup works",
+  "description": "Baseline: clicking the demo milestone chip (0x516975...) populates the lookup and shows verified status with stake amount.",
+  "planSteps": [
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com", "description": "Navigate to the Weft landing page" },
+    { "type": "action", "action": "click", "selector": "button[title='Click to check the demo milestone']", "description": "Click the demo milestone chip" },
+    { "type": "assertion", "selector": "input[placeholder*='milestone hash']", "condition": "visible", "description": "Milestone lookup input is populated" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Verified", "description": "Page shows Verified status" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "ETH", "description": "Page shows ETH stake amount" }
+  ]
+}

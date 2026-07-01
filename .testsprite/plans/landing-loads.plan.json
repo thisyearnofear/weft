@@ -1,0 +1,12 @@
+{
+  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "type": "frontend",
+  "name": "Landing page loads and shows hero",
+  "description": "Baseline: the Weft landing page loads, shows the hero title 'Escrow that releases itself', and the milestone lookup input is visible.",
+  "planSteps": [
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com", "description": "Navigate to the Weft landing page" },
+    { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Hero title h1 is visible" },
+    { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "Escrow", "description": "Hero title contains 'Escrow'" },
+    { "type": "assertion", "selector": "input[placeholder*='milestone hash']", "condition": "visible", "description": "Milestone lookup input is visible" }
+  ]
+}
