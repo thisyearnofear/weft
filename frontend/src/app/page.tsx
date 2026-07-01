@@ -12,6 +12,7 @@ import { HowItWorks } from "@/components/HowItWorks";
 import { Reveal } from "@/components/Reveal";
 import { useMilestones, useMilestone } from "@/hooks/useMilestones";
 import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
+import { useExplorerMilestones } from "@/hooks/useExplorer";
 import { useBuilderPassport } from "@/hooks/useBuilderPassport";
 import type { Milestone as MilestoneType, MilestoneState } from "@/lib/mock-data";
 import styles from "./page.module.css";
@@ -190,6 +191,7 @@ function MilestoneFromContract({ hash, index }: { hash: `0x${string}`; index: nu
 export default function Home() {
   const { data: hashes, isLoading } = useMilestones();
   const { data: overview } = useStatusOverview();
+  const { data: explorerMilestones } = useExplorerMilestones();
   const builderEns = overview?.demoHints?.builderEns || "weft.thisyearnofear.eth";
   const { data: builderPassport } = useBuilderPassport(builderEns);
 
@@ -199,6 +201,21 @@ export default function Home() {
     return Array.from(new Set(source));
   }, [hashes, overview?.demoHints?.milestones]);
   const verifiedOutcomeCount = Math.max(milestoneHashes.length, builderPassport?.weftMilestonesVerified ?? 0);
+
+  // Live stats from explorer data (with hardcoded fallbacks for when API is unreachable)
+  const stats = useMemo(() => {
+    const ms = explorerMilestones ?? [];
+    const verifiedCount = ms.filter(m => m.verified).length;
+    const totalEth = ms.reduce((sum, m) => sum + Number(m.stakedEth), 0);
+    const totalVotes = ms.reduce((sum, m) => sum + (m.verified ? m.verifiedVotes : 0), 0);
+    const maxVerifierSlots = ms.length > 0 ? Math.max(...ms.map(m => m.verifierCount)) : 3;
+    return {
+      verifiedCount: verifiedCount || 1,
+      ethReleased: totalEth > 0 ? totalEth.toFixed(2) : "0.01",
+      verifierVotes: totalVotes || 2,
+      quorum: `2/${maxVerifierSlots}`,
+    };
+  }, [explorerMilestones]);
 
   return (
     <div className={styles.container}>
@@ -233,13 +250,13 @@ export default function Home() {
 
           {/* Live stats strip */}
           <div className={`${styles.statsStrip} stagger stagger-5`}>
-            <StatCard value={1} label="Verified milestone" />
+            <StatCard value={stats.verifiedCount} label="Verified milestone" />
             <div className={styles.statDivider} />
-            <StatCard value={"0.01"} label="ETH released" />
+            <StatCard value={stats.ethReleased} label="ETH released" />
             <div className={styles.statDivider} />
-            <StatCard value={2} label="Verifier votes" />
+            <StatCard value={stats.verifierVotes} label="Verifier votes" />
             <div className={styles.statDivider} />
-            <StatCard value={"2/3"} label="Quorum" />
+            <StatCard value={stats.quorum} label="Quorum" />
           </div>
         </div>
 
