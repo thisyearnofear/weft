@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { ArrowLeft, Activity as ActivityIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -42,14 +43,48 @@ const TYPE_LABELS: Record<string, string> = {
   verification: "Verification",
   charge: "Spend",
   revenue: "Revenue",
-  chaos: "Chaos",
+  chaos: "Resilience",
   deadline: "Milestone",
   consensus: "Consensus",
 };
 
+const TYPE_DESCRIPTIONS: Record<string, string> = {
+  verification: "Milestone verified and capital released to builder",
+  charge: "Agent paid for a service it uses",
+  revenue: "Agent earned revenue from a verification",
+  chaos: "Agent recovered from a simulated failure",
+  deadline: "A milestone reached its deadline",
+  consensus: "Verifier nodes reached agreement on a milestone",
+};
+
+const FILTER_GROUPS = [
+  { key: "all", label: "All", types: null },
+  { key: "verification", label: "Verifications", types: ["verification", "consensus"] },
+  { key: "financial", label: "Financial", types: ["charge", "revenue"] },
+  { key: "infrastructure", label: "Infrastructure", types: ["chaos", "deadline"] },
+];
+
 export default function ActivityPage() {
   const { data, isLoading, error, refetch, isFetching } = useActivity();
-  const events = data?.events ?? [];
+  const [activeFilter, setActiveFilter] = useState("all");
+
+  const allEvents = data?.events ?? [];
+
+  const filteredEvents = useMemo(() => {
+    const filter = FILTER_GROUPS.find((f) => f.key === activeFilter);
+    if (!filter || !filter.types) return allEvents;
+    return allEvents.filter((e) => filter.types!.includes(e.type));
+  }, [allEvents, activeFilter]);
+
+  const filterCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: allEvents.length };
+    for (const f of FILTER_GROUPS) {
+      if (f.types) {
+        counts[f.key] = allEvents.filter((e) => f.types!.includes(e.type)).length;
+      }
+    }
+    return counts;
+  }, [allEvents]);
 
   return (
     <div className={styles.container}>
@@ -65,12 +100,28 @@ export default function ActivityPage() {
           <h1 className={styles.title}>Every action, timestamped.</h1>
           <p className={styles.subtitle}>
             A chronological feed of everything the Weft agent has done — verifications submitted,
-            infrastructure paid for, revenue swept, and milestones created.
+            infrastructure paid for, revenue earned, and milestones created.
           </p>
           <div style={{ marginTop: "1rem" }}>
             <RefreshButton onClick={() => refetch()} isFetching={isFetching} />
           </div>
         </div>
+
+        {/* Filter chips */}
+        {!isLoading && !error && allEvents.length > 0 && (
+          <div className={styles.filterChips}>
+            {FILTER_GROUPS.map((f) => (
+              <button
+                key={f.key}
+                className={`${styles.filterChip} ${activeFilter === f.key ? styles.filterChipActive : ""}`}
+                onClick={() => setActiveFilter(f.key)}
+              >
+                {f.label}
+                <span className={styles.filterCount}>{filterCounts[f.key] ?? 0}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {isLoading && <ListSkeleton rows={6} />}
         {error && (
@@ -79,13 +130,17 @@ export default function ActivityPage() {
           </div>
         )}
 
-        {!isLoading && !error && events.length === 0 && (
+        {!isLoading && !error && allEvents.length === 0 && (
           <div className={styles.emptyState}>No activity recorded yet.</div>
         )}
 
-        {!isLoading && !error && events.length > 0 && (
+        {!isLoading && !error && filteredEvents.length === 0 && allEvents.length > 0 && (
+          <div className={styles.emptyState}>No events in this category.</div>
+        )}
+
+        {!isLoading && !error && filteredEvents.length > 0 && (
           <div className={styles.timeline}>
-            {events.map((event, i) => (
+            {filteredEvents.map((event, i) => (
               <div key={`${event.timestamp}-${i}`} className={`${styles.event} ${styles[`event${event.type.charAt(0).toUpperCase() + event.type.slice(1)}`]}`}>
                 <div className={styles.eventHeader}>
                   <span className={styles.eventTitle}>
@@ -96,7 +151,9 @@ export default function ActivityPage() {
                   </span>
                   <span className={styles.eventTime}>{formatTime(event.timestamp)}</span>
                 </div>
-                <p className={styles.eventDesc}>{event.description}</p>
+                <p className={styles.eventDesc}>
+                  {event.description || TYPE_DESCRIPTIONS[event.type] || ""}
+                </p>
               </div>
             ))}
           </div>

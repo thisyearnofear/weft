@@ -1,10 +1,9 @@
 .container {
   min-height: 100vh;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 248, 252, 0.98) 44%, rgba(239, 247, 244, 0.96)),
-    radial-gradient(circle at 12% 8%, rgba(91, 141, 239, 0.16), transparent 28%),
-    radial-gradient(circle at 82% 14%, rgba(17, 148, 105, 0.12), transparent 26%);
-  color: #162033;
+    radial-gradient(circle at 12% 8%, rgba(59, 130, 246, 0.06), transparent 28%),
+    radial-gradient(circle at 82% 14%, rgba(20, 184, 166, 0.04), transparent 26%);
+  color: var(--c-text);
   padding: 3rem 3rem 4rem;
 }
 
@@ -22,10 +21,10 @@
   align-items: center;
   gap: 0.6rem;
   padding: 0.55rem 0.85rem;
-  border: 1px solid rgba(49, 95, 214, 0.2);
-  background: rgba(49, 95, 214, 0.08);
+  border: 1px solid var(--c-accent-20);
+  background: var(--c-accent-20);
   border-radius: 999px;
-  color: #244ca9;
+  color: var(--c-accent);
   font-size: 0.8rem;
   font-weight: 600;
   margin-bottom: 1rem;
@@ -41,7 +40,7 @@
 
 .subtitle {
   font-size: 1.05rem;
-  color: #526073;
+  color: var(--c-text-2);
   max-width: 60ch;
   line-height: 1.5;
   margin: 0;
@@ -64,12 +63,12 @@
 .statValue {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #162033;
+  color: var(--c-text);
 }
 
 .statLabel {
   font-size: 0.8rem;
-  color: #6c788a;
+  color: var(--c-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -85,35 +84,35 @@
 
 .filterBtn {
   padding: 0.5rem 1rem;
-  border: 1px solid rgba(25, 37, 56, 0.12);
-  background: #fff;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
   border-radius: 8px;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #526073;
+  color: var(--c-text-2);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .filterBtn:hover {
-  border-color: rgba(49, 95, 214, 0.3);
-  color: #315fd6;
+  border-color: var(--c-accent);
+  color: var(--c-accent);
 }
 
 .filterBtnActive {
-  background: #315fd6;
+  background: var(--c-accent);
   color: #fff;
-  border-color: #315fd6;
+  border-color: var(--c-accent);
 }
 
 /* ── Table ── */
 .tableWrap {
-  background: #fff;
-  border: 1px solid rgba(25, 37, 56, 0.12);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
   border-radius: 12px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  box-shadow: 0 4px 20px rgba(28, 39, 61, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .table {
@@ -126,10 +125,10 @@
 .table th {
   text-align: left;
   padding: 0.85rem 1rem;
-  background: rgba(22, 32, 51, 0.03);
-  border-bottom: 1px solid rgba(25, 37, 56, 0.1);
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
   font-weight: 600;
-  color: #526073;
+  color: var(--c-text-2);
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -138,8 +137,8 @@
 
 .table td {
   padding: 0.85rem 1rem;
-  border-bottom: 1px solid rgba(25, 37, 56, 0.06);
-  color: #162033;
+  border-bottom: 1px solid var(--c-border);
+  color: var(--c-text);
   vertical-align: middle;
 }
 
@@ -152,13 +151,13 @@
 }
 
 .tableRow:hover {
-  background: rgba(49, 95, 214, 0.03);
+  background: var(--c-accent-20);
 }
 
 .hashCell {
   font-family: monospace;
   font-size: 0.82rem;
-  color: #315fd6;
+  color: var(--c-accent);
   text-decoration: none;
 }
 
@@ -178,24 +177,24 @@
 }
 
 .statusVerified {
-  background: rgba(34, 197, 94, 0.12);
-  color: #15803d;
+  background: var(--c-verified-20);
+  color: var(--c-verified);
 }
 
 .statusPending {
-  background: rgba(245, 158, 11, 0.12);
-  color: #b45309;
+  background: var(--c-pending-20);
+  color: var(--c-pending);
 }
 
 .statusFailed {
-  background: rgba(239, 68, 68, 0.12);
-  color: #b91c1c;
+  background: var(--c-failed-20);
+  color: var(--c-failed);
 }
 
 .builderCell {
   font-family: monospace;
   font-size: 0.82rem;
-  color: #526073;
+  color: var(--c-text-2);
 }
 
 .stakeCell {
@@ -205,13 +204,13 @@
 
 .voteCell {
   font-size: 0.82rem;
-  color: #526073;
+  color: var(--c-text-2);
   white-space: nowrap;
 }
 
 .dateCell {
   font-size: 0.82rem;
-  color: #6c788a;
+  color: var(--c-text-muted);
   white-space: nowrap;
 }
 
@@ -219,12 +218,12 @@
 .emptyState {
   text-align: center;
   padding: 3rem 1rem;
-  color: #6c788a;
+  color: var(--c-text-muted);
 }
 
 .emptyState h3 {
   font-size: 1.1rem;
-  color: #162033;
+  color: var(--c-text);
   margin: 0 0 0.5rem;
 }
 
@@ -236,14 +235,14 @@
 .loadingRow {
   padding: 2rem;
   text-align: center;
-  color: #6c788a;
+  color: var(--c-text-muted);
   font-size: 0.9rem;
 }
 
 .errorState {
   text-align: center;
   padding: 2rem 1rem;
-  color: #b91c1c;
+  color: var(--c-failed);
   font-size: 0.9rem;
 }
 
@@ -252,7 +251,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: #315fd6;
+  color: var(--c-accent);
   font-size: 0.85rem;
   font-weight: 500;
   text-decoration: none;

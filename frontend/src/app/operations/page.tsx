@@ -95,11 +95,11 @@ function shortHash(hash: string): string {
 }
 
 const SERVICE_LABELS: Record<string, string> = {
-  keeperhub: "KeeperHub",
-  fal: "fal.ai",
-  kimi: "Kimi",
-  nemotron: "Nemotron",
-  revenue_sweep: "Revenue Sweep",
+  keeperhub: "Reliable Execution",
+  fal: "AI Image Generation",
+  kimi: "AI Reasoning",
+  nemotron: "AI Reasoning",
+  revenue_sweep: "Revenue Earned",
 };
 
 export default function OperationsPage() {
@@ -128,8 +128,9 @@ export default function OperationsPage() {
           </div>
           <h1 className={styles.title}>The agent&apos;s open books.</h1>
           <p className={styles.subtitle}>
-            Every verification the agent submitted, every dollar it earned and spent,
-            and the health of its infrastructure — all publicly auditable.
+            Weft is an agent-run business. It earns 3% of every milestone it verifies,
+            then spends that revenue on AI inference, image generation, and onchain execution.
+            Every transaction is publicly auditable — no human touches the finances.
           </p>
           <div style={{ marginTop: "1rem" }}>
             <RefreshButton onClick={() => refetch()} isFetching={isFetching} />
@@ -150,32 +151,40 @@ export default function OperationsPage() {
 
         {!isLoading && !error && (
           <>
-            {/* KPI Cards */}
-            <div className={styles.kpiGrid}>
-              <div className={styles.kpiCard}>
-                <div className={styles.kpiLabel}>Milestones Verified</div>
-                <div className={styles.kpiValue}>{overview?.verifiedCount ?? 0}</div>
-                <div className={styles.kpiSub}>of {overview?.totalMilestones ?? 0} total</div>
-              </div>
-              <div className={styles.kpiCard}>
-                <div className={styles.kpiLabel}>Capital Processed</div>
-                <div className={styles.kpiValue}>{overview?.totalStakedEth.toFixed(4) ?? "0"}</div>
-                <div className={styles.kpiSub}>ETH staked</div>
-              </div>
-              <div className={styles.kpiCard}>
-                <div className={styles.kpiLabel}>Revenue Earned</div>
-                <div className={`${styles.kpiValue} ${(treasury?.net ?? 0) >= 0 ? styles.kpiPositive : styles.kpiNegative}`}>
-                  {formatCurrency(treasury?.earned ?? 0)}
+            {/* KPI Cards — grouped by intent */}
+            <div className={styles.kpiGroup}>
+              <span className={styles.kpiGroupLabel}>Performance</span>
+              <div className={styles.kpiGrid}>
+                <div className={styles.kpiCard}>
+                  <div className={styles.kpiLabel}>Milestones Verified</div>
+                  <div className={styles.kpiValue}>{overview?.verifiedCount ?? 0}</div>
+                  <div className={styles.kpiSub}>of {overview?.totalMilestones ?? 0} total</div>
                 </div>
-                <div className={styles.kpiSub}>{treasury?.chargeCount ?? 0} charges</div>
-              </div>
-              <div className={styles.kpiCard}>
-                <div className={styles.kpiLabel}>Net P&amp;L</div>
-                <div className={`${styles.kpiValue} ${(treasury?.net ?? 0) >= 0 ? styles.kpiPositive : styles.kpiNegative}`}>
-                  {formatCurrency(treasury?.net ?? 0)}
+                <div className={styles.kpiCard}>
+                  <div className={styles.kpiLabel}>Capital Processed</div>
+                  <div className={styles.kpiValue}>{overview?.totalStakedEth.toFixed(4) ?? "0"}</div>
+                  <div className={styles.kpiSub}>ETH staked</div>
                 </div>
-                <div className={styles.kpiSub}>
-                  {treasury?.profitable ? "Profitable" : "Not yet profitable"}
+              </div>
+            </div>
+            <div className={styles.kpiGroup}>
+              <span className={styles.kpiGroupLabel}>Financials</span>
+              <div className={styles.kpiGrid}>
+                <div className={styles.kpiCard}>
+                  <div className={styles.kpiLabel}>Revenue Earned</div>
+                  <div className={`${styles.kpiValue} ${(treasury?.net ?? 0) >= 0 ? styles.kpiPositive : styles.kpiNegative}`}>
+                    {formatCurrency(treasury?.earned ?? 0)}
+                  </div>
+                  <div className={styles.kpiSub}>{treasury?.chargeCount ?? 0} charges</div>
+                </div>
+                <div className={styles.kpiCard}>
+                  <div className={styles.kpiLabel}>Net P&amp;L</div>
+                  <div className={`${styles.kpiValue} ${(treasury?.net ?? 0) >= 0 ? styles.kpiPositive : styles.kpiNegative}`}>
+                    {formatCurrency(treasury?.net ?? 0)}
+                  </div>
+                  <div className={styles.kpiSub}>
+                    {treasury?.profitable ? "Profitable" : "Not yet profitable"}
+                  </div>
                 </div>
               </div>
             </div>
@@ -218,7 +227,7 @@ export default function OperationsPage() {
                 </table>
               )}
               {treasury && (
-                <div style={{ marginTop: "1rem", display: "flex", gap: "1.5rem", fontSize: "0.85rem", color: "#526073", flexWrap: "wrap" }}>
+                <div style={{ marginTop: "1rem", display: "flex", gap: "1.5rem", fontSize: "0.85rem", color: "var(--c-text-2)", flexWrap: "wrap" }}>
                   <span>
                     Balance: <strong>{formatCurrency(treasury.balance?.available ?? 0)}</strong> available
                     {treasury.balance?.pending ? `, ${formatCurrency(treasury.balance.pending)} pending` : ""}

@@ -54,8 +54,8 @@ export function HowItWorks() {
               {i < STEPS.length - 1 && (
                 <div className={styles.connector} aria-hidden="true">
                   <svg viewBox="0 0 40 12" fill="none" className={styles.connectorSvg}>
-                    <line x1="0" y1="6" x2="36" y2="6" stroke="#315fd6" strokeWidth="2" strokeDasharray="4 3" opacity="0.4" />
-                    <path d="M32 2 L38 6 L32 10" stroke="#315fd6" strokeWidth="2" fill="none" opacity="0.5" />
+                    <line x1="0" y1="6" x2="36" y2="6" stroke="var(--c-accent)" strokeWidth="2" strokeDasharray="4 3" opacity="0.4" />
+                    <path d="M32 2 L38 6 L32 10" stroke="var(--c-accent)" strokeWidth="2" fill="none" opacity="0.5" />
                   </svg>
                 </div>
               )}

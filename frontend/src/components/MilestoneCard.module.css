@@ -34,7 +34,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(49, 95, 214, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -107,7 +107,7 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, var(--c-accent), #119469);
+  background: linear-gradient(90deg, var(--c-accent), var(--c-verified));
   border-radius: 2px;
   transition: width 0.5s ease;
 }

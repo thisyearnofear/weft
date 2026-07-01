@@ -52,8 +52,8 @@ function MilestoneLookup() {
       <form onSubmit={handleSubmit} style={{
         display: "flex",
         gap: "8px",
-        background: "#fff",
-        border: "1px solid #d0d5dd",
+        background: "var(--c-surface)",
+        border: "1px solid var(--c-border-2)",
         borderRadius: "10px",
         padding: "4px",
       }}>
@@ -64,7 +64,7 @@ function MilestoneLookup() {
           flex: 1,
           paddingLeft: "12px",
         }}>
-          <Search size={16} color="#98a2b3" />
+          <Search size={16} color="var(--c-text-3)" />
           <input
             type="text"
             value={input}
@@ -76,14 +76,14 @@ function MilestoneLookup() {
               outline: "none",
               background: "transparent",
               fontSize: "14px",
-              color: "#162033",
+              color: "var(--c-text)",
               padding: "10px 0",
             }}
           />
         </div>
         <button type="submit" style={{
           padding: "10px 20px",
-          background: "#315fd6",
+          background: "var(--c-accent)",
           color: "#fff",
           border: "none",
           borderRadius: "8px",
@@ -101,7 +101,7 @@ function MilestoneLookup() {
         gap: "8px",
         marginTop: "8px",
         fontSize: "13px",
-        color: "#98a2b3",
+        color: "var(--c-text-3)",
       }}>
         <span>Try:</span>
         <button
@@ -114,10 +114,10 @@ function MilestoneLookup() {
             fontFamily: "monospace",
             fontSize: "12px",
             padding: "4px 10px",
-            background: "#f2f4f7",
-            border: "1px solid #e4e7ec",
+            background: "var(--c-surface-2)",
+            border: "1px solid var(--c-border)",
             borderRadius: "6px",
-            color: "#315fd6",
+            color: "var(--c-accent)",
             cursor: "pointer",
             whiteSpace: "nowrap",
             overflow: "hidden",
@@ -131,13 +131,13 @@ function MilestoneLookup() {
       </div>
 
       {isLoading && (
-        <div style={{ padding: "12px 16px", fontSize: "14px", color: "#6c788a" }}>
+        <div style={{ padding: "12px 16px", fontSize: "14px", color: "var(--c-text-muted)" }}>
           Loading milestone data...
         </div>
       )}
 
       {error && (
-        <div style={{ padding: "12px 16px", fontSize: "14px", color: "#d92d20" }}>
+        <div style={{ padding: "12px 16px", fontSize: "14px", color: "var(--c-error)" }}>
           Milestone not found. Check the hash and try again.
         </div>
       )}
@@ -145,8 +145,8 @@ function MilestoneLookup() {
       {hasResult && (
         <div style={{
           marginTop: "10px",
-          background: "#fff",
-          border: "1px solid #eaecf0",
+          background: "var(--c-surface)",
+          border: "1px solid var(--c-border)",
           borderRadius: "10px",
           padding: "16px",
           display: "flex",
@@ -158,18 +158,18 @@ function MilestoneLookup() {
               {isVerified ? "✅" : "⏳"}
             </span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: "15px", color: "#162033" }}>
+              <div style={{ fontWeight: 700, fontSize: "15px", color: "var(--c-text)" }}>
                 {isVerified ? "Verified" : data?.finalized ? "Failed" : "Pending"}
               </div>
-              <div style={{ fontSize: "13px", color: "#6c788a", fontFamily: "monospace" }}>
+              <div style={{ fontSize: "13px", color: "var(--c-text-muted)", fontFamily: "monospace" }}>
                 {hash.slice(0, 10)}...{hash.slice(-6)}
               </div>
             </div>
             <div style={{ marginLeft: "auto", textAlign: "right" }}>
-              <div style={{ fontWeight: 700, fontSize: "15px", color: "#162033" }}>
+              <div style={{ fontWeight: 700, fontSize: "15px", color: "var(--c-text)" }}>
                 {stakedEth} ETH
               </div>
-              <div style={{ fontSize: "13px", color: "#6c788a" }}>
+              <div style={{ fontSize: "13px", color: "var(--c-text-muted)" }}>
                 {data?.released ? "Released" : data?.finalized ? "Refundable" : "Locked"}
               </div>
             </div>
@@ -178,12 +178,12 @@ function MilestoneLookup() {
             display: "flex",
             gap: "16px",
             fontSize: "13px",
-            color: "#6c788a",
+            color: "var(--c-text-muted)",
             flexWrap: "wrap",
           }}>
             {data?.builder && (
               <span>
-                Builder: <strong style={{ color: "#315fd6" }}>
+                Builder: <strong style={{ color: "var(--c-accent)" }}>
                   {data.builder.slice(0, 6)}...{data.builder.slice(-4)}
                 </strong>
               </span>
@@ -199,7 +199,7 @@ function MilestoneLookup() {
               display: "flex",
               gap: "8px",
               fontSize: "13px",
-              color: "#06974a",
+              color: "var(--c-verified)",
             }}>
               ✓ {data.verifiedVotes} of {data.verifierCount} verifier votes
             </div>
@@ -308,13 +308,14 @@ export default function Home() {
             {overview?.pitch || "Autonomous milestone funding on 0G Chain"}
           </div>
           <h1 className={styles.title}>
-            Escrow that{" "}
-            <span className={styles.accent}>releases itself.</span>
+            Autonomous escrow for{" "}
+            <span className={styles.accent}>onchain builders.</span>
           </h1>
           <p className={styles.subtitle}>
             A sponsor locks ETH behind a deliverable. The builder ships.
-            Autonomous agents verify the work onchain — and if 2 of 3 agree,
-            capital releases instantly. No manual reviews. No chasing. No politics.
+            AI agents verify the work onchain — deployment, usage, code activity.
+            If 2 of 3 agents agree, capital releases instantly.
+            No manual reviews. No chasing sponsors. No payment politics.
           </p>
 
           <div className={styles.heroActions}>
@@ -366,7 +367,7 @@ export default function Home() {
             return (
               <div key={card.title} className={styles.problemCard}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <Icon size={18} color="#b23b44" />
+                  <Icon size={18} color="var(--c-failed)" />
                   <h3 className={styles.problemCardTitle}>{card.title}</h3>
                 </div>
                 <p className={styles.problemCardBody}>{card.body}</p>
@@ -555,7 +556,7 @@ export default function Home() {
         textAlign: "center",
         padding: "0.5rem 1rem 2rem",
         fontSize: "0.8rem",
-        color: "#98a2b3",
+        color: "var(--c-text-3)",
       }}>
         Protocol fee: 3% of released capital → funds the agent&apos;s autonomous operations
       </div>

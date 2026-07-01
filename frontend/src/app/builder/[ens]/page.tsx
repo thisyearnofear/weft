@@ -83,11 +83,18 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
             <div className={styles.reputationCard}>
               <div className={styles.reputationHeader}>
                 <CheckCircle2 size={18} />
-                <span>Trust signal</span>
+                <span>Reputation Score</span>
               </div>
               <h2>{passport.weftReputationScore}</h2>
-              <p>
-                This profile matters because it ties funded outcomes, collaborator history, and released capital to one portable identity that future sponsors can trust.
+              <div className={styles.scoreBar}>
+                <div className={styles.scoreFill} style={{ width: `${Math.min((passport.weftReputationScore / 1000) * 100, 100)}%` }} />
+              </div>
+              <p className={styles.scoreScale}>
+                {passport.weftReputationScore >= 800 ? "Top tier — highly trusted" :
+                 passport.weftReputationScore >= 500 ? "Established — reliable track record" :
+                 passport.weftReputationScore >= 200 ? "Building — early reputation" :
+                 "New — no track record yet"}
+                {" · scale 0–1000"}
               </p>
             </div>
           </div>
@@ -119,24 +126,24 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
 
         <section className={styles.metricsGrid}>
           <article className={styles.metricCard}>
-            <span className={styles.metricLabel}>Verified outcomes</span>
+            <span className={styles.metricLabel}>Verified Outcomes</span>
             <strong className={styles.metricValue}>{passport.weftMilestonesVerified}</strong>
-            <p>Completed milestones that translated into capital-worthy trust.</p>
+            <p>Milestones verified by AI agents with capital released.</p>
           </article>
           <article className={styles.metricCard}>
-            <span className={styles.metricLabel}>Capital unlocked</span>
+            <span className={styles.metricLabel}>Capital Unlocked</span>
             <strong className={styles.metricValue}>{earnedEth} ETH</strong>
-            <p>Total value attributed to this identity through Weft’s trust loop.</p>
+            <p>Total earned through verified milestone deliveries.</p>
           </article>
           <article className={styles.metricCard}>
             <span className={styles.metricLabel}>Collaborators</span>
             <strong className={styles.metricValue}>{passport.weftCobuilders.length}</strong>
-            <p>Humans and agents visible directly in the same funding graph.</p>
+            <p>Builders and agents who shipped on the same milestones.</p>
           </article>
           <article className={styles.metricCard}>
-            <span className={styles.metricLabel}>Trust density</span>
-            <strong className={styles.metricValue}>{collaborationDensity}</strong>
-            <p>Combined signal from shipped work and retained collaborators.</p>
+            <span className={styles.metricLabel}>Projects</span>
+            <strong className={styles.metricValue}>{passport.weftProjects.length}</strong>
+            <p>Funded projects linked to this identity.</p>
           </article>
         </section>
 
@@ -145,18 +152,19 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
             <article className={styles.panel}>
               <div className={styles.panelHeader}>
                 <div>
-                  <span className={styles.kicker}>Why this profile matters</span>
-                  <h3>Trust that can actually move money</h3>
+                  <span className={styles.kicker}>Why this matters</span>
+                  <h3>Trust that moves money</h3>
                 </div>
                 <Coins size={18} />
               </div>
               <p className={styles.panelText}>
-                Weft treats this record as infrastructure for funding decisions. Past verified outcomes, capital unlocked, and collaborator history make it easier to evaluate whether future milestones from this identity deserve trust.
+                This profile is portable — it follows the builder across projects and sponsors.
+                Past verified outcomes make it easier to evaluate future milestones.
               </p>
               <ul className={styles.summaryList}>
-                <li>Identity is portable instead of trapped inside a single app or company shell.</li>
-                <li>Proof of work is tied to funded outcomes, not just social claims.</li>
-                <li>Human and agent collaborators are first-class economic actors in the same trust graph.</li>
+                <li>Portable identity — not locked to one platform</li>
+                <li>Proof of work tied to funded outcomes, not social claims</li>
+                <li>Human and agent collaborators in the same trust graph</li>
               </ul>
             </article>
 

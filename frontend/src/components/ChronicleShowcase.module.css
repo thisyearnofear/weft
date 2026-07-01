@@ -41,11 +41,11 @@
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(22, 32, 51, 0.1);
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
   border-radius: 8px;
   padding: 1.35rem;
-  box-shadow: 0 16px 44px rgba(28, 39, 61, 0.08);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.3);
 }
 
 .sampleBadge {
@@ -54,11 +54,11 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #315fd6;
+  color: var(--c-accent);
   padding: 0.2rem 0.65rem;
   border-radius: 999px;
-  background: rgba(49, 95, 214, 0.08);
-  border: 1px solid rgba(49, 95, 214, 0.16);
+  background: var(--c-accent-20);
+  border: 1px solid var(--c-accent);
   margin-bottom: 0.75rem;
 }
 
@@ -87,7 +87,7 @@
 
 .chapter {
   padding-left: 1rem;
-  border-left: 2px solid rgba(49, 95, 214, 0.24);
+  border-left: 2px solid var(--c-accent);
 }
 
 .chapterHeading {
@@ -108,7 +108,7 @@
   color: var(--c-accent);
   padding: 0.2rem 0.5rem;
   border-radius: 999px;
-  background: rgba(49, 95, 214, 0.1);
+  background: var(--c-accent-20);
 }
 
 .chapterBody {
@@ -121,8 +121,8 @@
   margin-top: 1.5rem;
   padding: 1rem;
   border-radius: var(--radius-md);
-  background: rgba(22, 32, 51, 0.03);
-  border: 1px solid rgba(22, 32, 51, 0.08);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
 }
 
 .epilogueHeading {

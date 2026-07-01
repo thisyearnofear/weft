@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Coins } from "lucide-react";
+import { ArrowLeft, ArrowRight, Coins, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
@@ -89,10 +89,14 @@ export default function SponsorDashboardPage() {
           </div>
           <h1 className={styles.title}>Your capital, verified.</h1>
           <p className={styles.subtitle}>
-            Track every milestone you&apos;ve funded — capital at stake, verification status,
-            and the exact moment your funds moved. Full transparency, no manual follow-up.
+            Lock ETH behind a deliverable. AI agents verify the work onchain.
+            Capital releases automatically when 2 of 3 agents agree.
+            No manual reviews, no chasing, no disputes.
           </p>
-          <div style={{ marginTop: "1rem" }}>
+          <div style={{ marginTop: "1.25rem", display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
+            <Link href="/explorer" className={styles.primaryCta}>
+              <Plus size={16} /> Fund a milestone
+            </Link>
             <RefreshButton onClick={() => refetch()} isFetching={isFetching} />
           </div>
         </div>
@@ -111,6 +115,49 @@ export default function SponsorDashboardPage() {
 
         {!isLoading && !error && (
           <>
+            {/* Capital flow — hero element */}
+            {totalCapital > 0 && (
+              <div className={styles.capitalHero}>
+                <div className={styles.capitalHeroHeader}>
+                  <h2 className={styles.capitalHeroTitle}>Capital Flow</h2>
+                  <span className={styles.capitalHeroTotal}>{totalCapital.toFixed(4)} ETH total</span>
+                </div>
+                <p className={styles.capitalHeroSummary}>
+                  {totalReleased > 0 && `${Math.round((totalReleased / totalCapital) * 100)}% released to builders`}
+                  {totalReleased > 0 && totalLocked > 0 && ", "}
+                  {totalLocked > 0 && `${Math.round((totalLocked / totalCapital) * 100)}% locked awaiting verification`}
+                  {totalRefundable > 0 && `, ${Math.round((totalRefundable / totalCapital) * 100)}% refundable`}
+                </p>
+                <div className={styles.flowBar}>
+                  {totalReleased > 0 && (
+                    <div className={styles.flowReleased} style={{ width: `${(totalReleased / totalCapital) * 100}%` }} />
+                  )}
+                  {totalLocked > 0 && (
+                    <div className={styles.flowLocked} style={{ width: `${(totalLocked / totalCapital) * 100}%` }} />
+                  )}
+                  {totalRefundable > 0 && (
+                    <div className={styles.flowRefundable} style={{ width: `${(totalRefundable / totalCapital) * 100}%` }} />
+                  )}
+                </div>
+                <div className={styles.flowLegend}>
+                  <div className={styles.legendItem}>
+                    <span className={styles.legendDot} style={{ background: "var(--c-verified)" }} />
+                    Released ({totalReleased.toFixed(4)} ETH)
+                  </div>
+                  <div className={styles.legendItem}>
+                    <span className={styles.legendDot} style={{ background: "var(--c-pending)" }} />
+                    Locked ({totalLocked.toFixed(4)} ETH)
+                  </div>
+                  {totalRefundable > 0 && (
+                    <div className={styles.legendItem}>
+                      <span className={styles.legendDot} style={{ background: "var(--c-failed)" }} />
+                      Refundable ({totalRefundable.toFixed(4)} ETH)
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className={styles.kpiGrid}>
               <div className={styles.kpiCard}>
                 <div className={styles.kpiLabel}>Total Funded</div>
@@ -135,40 +182,6 @@ export default function SponsorDashboardPage() {
                 <div className={styles.kpiSub}>{summary?.verifiedCount ?? 0} of {summary?.totalMilestones ?? 0}</div>
               </div>
             </div>
-
-            {/* Capital flow bar */}
-            {totalCapital > 0 && (
-              <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>Capital Flow</h2>
-                <div className={styles.flowBar}>
-                  {totalReleased > 0 && (
-                    <div className={styles.flowReleased} style={{ width: `${(totalReleased / totalCapital) * 100}%` }} />
-                  )}
-                  {totalLocked > 0 && (
-                    <div className={styles.flowLocked} style={{ width: `${(totalLocked / totalCapital) * 100}%` }} />
-                  )}
-                  {totalRefundable > 0 && (
-                    <div className={styles.flowRefundable} style={{ width: `${(totalRefundable / totalCapital) * 100}%` }} />
-                  )}
-                </div>
-                <div className={styles.flowLegend}>
-                  <div className={styles.legendItem}>
-                    <span className={styles.legendDot} style={{ background: "#22c55e" }} />
-                    Released ({totalReleased.toFixed(4)} ETH)
-                  </div>
-                  <div className={styles.legendItem}>
-                    <span className={styles.legendDot} style={{ background: "#f59e0b" }} />
-                    Locked ({totalLocked.toFixed(4)} ETH)
-                  </div>
-                  {totalRefundable > 0 && (
-                    <div className={styles.legendItem}>
-                      <span className={styles.legendDot} style={{ background: "#ef4444" }} />
-                      Refundable ({totalRefundable.toFixed(4)} ETH)
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* Funded milestones */}
             <div className={styles.section}>
@@ -203,20 +216,8 @@ export default function SponsorDashboardPage() {
                         <span className={styles.metaValue}>{m.stakedEth} ETH</span>
                       </div>
                       <div className={styles.metaItem}>
-                        <span className={styles.metaLabel}>Verifier Votes</span>
-                        <span className={styles.metaValue}>{m.verifiedVotes}/{m.verifierCount}</span>
-                      </div>
-                      <div className={styles.metaItem}>
-                        <span className={styles.metaLabel}>Created</span>
-                        <span className={styles.metaValue}>{formatDate(m.createdAt)}</span>
-                      </div>
-                      <div className={styles.metaItem}>
-                        <span className={styles.metaLabel}>Deadline</span>
-                        <span className={styles.metaValue}>{formatDate(m.deadline)}</span>
-                      </div>
-                      <div className={styles.metaItem}>
-                        <span className={styles.metaLabel}>Time to Verdict</span>
-                        <span className={styles.metaValue}>{formatDuration(m.timeToVerdict ?? 0)}</span>
+                        <span className={styles.metaLabel}>Verifiers</span>
+                        <span className={styles.metaValue}>{m.verifiedVotes}/{m.verifierCount} agreed</span>
                       </div>
                     </div>
                   </div>

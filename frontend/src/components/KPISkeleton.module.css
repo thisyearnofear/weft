@@ -6,11 +6,11 @@
 }
 
 .kpiCard {
-  background: #fff;
-  border: 1px solid rgba(25, 37, 56, 0.08);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
   border-radius: 12px;
   padding: 1.25rem;
-  box-shadow: 0 2px 8px rgba(28, 39, 61, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .skeletonLabel,
@@ -21,9 +21,9 @@
 .skeletonLineShort {
   background: linear-gradient(
     90deg,
-    rgba(22, 32, 51, 0.06) 25%,
-    rgba(22, 32, 51, 0.1) 50%,
-    rgba(22, 32, 51, 0.06) 75%
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
@@ -48,8 +48,8 @@
 }
 
 .listWrap {
-  background: #fff;
-  border: 1px solid rgba(25, 37, 56, 0.08);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
   border-radius: 12px;
   overflow: hidden;
 }
@@ -59,7 +59,7 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(25, 37, 56, 0.04);
+  border-bottom: 1px solid var(--c-border);
 }
 
 .listRow:last-child {

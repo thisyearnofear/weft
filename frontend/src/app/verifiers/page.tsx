@@ -63,9 +63,10 @@ export default function VerifiersPage() {
           </div>
           <h1 className={styles.title}>The swarm that signs your capital.</h1>
           <p className={styles.subtitle}>
-            Every milestone is verified by an independent swarm of AI agent nodes. They collect
-            evidence, reach consensus offchain, and submit signed verdicts onchain. No single
-            party can fake a result.
+            Independent AI agents that verify milestones and release capital.
+            Each agent collects evidence independently — deployment, usage, code activity —
+            then signs a verdict onchain. 2 of 3 must agree before capital moves.
+            No single party can fake a result.
           </p>
           <div style={{ marginTop: "1rem" }}>
             <RefreshButton onClick={() => refetch()} isFetching={isFetching} />
@@ -102,19 +103,35 @@ export default function VerifiersPage() {
                 <div className={styles.kpiValue}>{consensus?.agreementRate ?? "0"}%</div>
                 <div className={styles.kpiSub}>{consensus?.dissentFlags ?? 0} dissent flags</div>
               </div>
-              <div className={styles.kpiCard}>
-                <div className={styles.kpiLabel}>Peer Inbox</div>
-                <div className={styles.kpiValue}>{consensus?.peerInboxExists ? "Active" : "Idle"}</div>
-                <div className={styles.kpiSub}>{consensus?.peerInboxDir ?? "N/A"}</div>
-              </div>
             </div>
 
-            {/* Verifier list */}
+            {/* Network Status — merged verifier list + consensus details */}
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>
-                Verifier Nodes
-                <span className={styles.sectionBadge}>{verifiers.length}</span>
+                Network Status
+                <span className={styles.sectionBadge}>{verifiers.length} nodes</span>
               </h2>
+
+              {/* Consensus summary — inline */}
+              <div className={styles.consensusBar}>
+                <div className={styles.consensusStat}>
+                  <span className={styles.consensusStatValue}>{consensus?.totalVotes ?? 0}</span>
+                  <span className={styles.consensusStatLabel}>Total Votes</span>
+                </div>
+                <div className={styles.consensusStat}>
+                  <span className={styles.consensusStatValue}>{consensus?.totalVerifierSlots ?? 0}</span>
+                  <span className={styles.consensusStatLabel}>Slots</span>
+                </div>
+                <div className={styles.consensusStat}>
+                  <span className={styles.consensusStatValue}>{consensus?.agreementRate ?? "0"}%</span>
+                  <span className={styles.consensusStatLabel}>Agreement</span>
+                </div>
+                <div className={styles.consensusStat}>
+                  <span className={styles.consensusStatValue}>{consensus?.dissentFlags ?? 0}</span>
+                  <span className={styles.consensusStatLabel}>Dissent Flags</span>
+                </div>
+              </div>
+
               {verifiers.length === 0 ? (
                 <div className={styles.emptyState}>No verifier nodes registered yet.</div>
               ) : (
@@ -147,33 +164,6 @@ export default function VerifiersPage() {
                   </div>
                 ))
               )}
-            </div>
-
-            {/* Consensus details */}
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Consensus Participation</h2>
-              <div className={styles.consensusGrid}>
-                <div className={styles.consensusItem}>
-                  <span className={styles.consensusLabel}>Total Votes</span>
-                  <span className={styles.consensusValue}>{consensus?.totalVotes ?? 0}</span>
-                </div>
-                <div className={styles.consensusItem}>
-                  <span className={styles.consensusLabel}>Verifier Slots</span>
-                  <span className={styles.consensusValue}>{consensus?.totalVerifierSlots ?? 0}</span>
-                </div>
-                <div className={styles.consensusItem}>
-                  <span className={styles.consensusLabel}>Agreement</span>
-                  <span className={styles.consensusValue}>{consensus?.agreementRate ?? "0"}%</span>
-                </div>
-                <div className={styles.consensusItem}>
-                  <span className={styles.consensusLabel}>Dissent Flags</span>
-                  <span className={styles.consensusValue}>{consensus?.dissentFlags ?? 0}</span>
-                </div>
-                <div className={styles.consensusItem}>
-                  <span className={styles.consensusLabel}>Peer Inbox</span>
-                  <span className={styles.consensusValue}>{consensus?.peerInboxExists ? "Active" : "Idle"}</span>
-                </div>
-              </div>
             </div>
           </>
         )}

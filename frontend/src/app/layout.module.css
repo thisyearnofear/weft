@@ -25,18 +25,14 @@
   right: 0;
   z-index: 50;
   padding: 0 1.5rem;
-  background: rgba(255, 255, 255, 0.86);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(22, 32, 51, 0.1);
+  background: rgba(7, 7, 15, 0.82);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--c-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
   height: var(--nav-h);
-  --c-text: #162033;
-  --c-text-secondary: #526073;
-  --c-border-2: rgba(22, 32, 51, 0.14);
-  --c-surface-2: rgba(22, 32, 51, 0.04);
-  --c-surface-3: rgba(22, 32, 51, 0.08);
+  gap: 1rem;
 }
 
 .logo {
@@ -45,32 +41,11 @@
   gap: 0.5rem;
   font-weight: 700;
   font-size: 1.25rem;
-  background: linear-gradient(135deg, #315fd6, #119469);
+  background: linear-gradient(135deg, var(--c-accent), var(--c-verified));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  flex: 1;
-  margin-left: 1rem;
-}
-
-.navLink {
-  font-size: 0.8rem;
-  color: #526073;
-  text-decoration: none;
-  padding: 0.35rem 0.65rem;
-  border-radius: 6px;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.navLink:hover {
-  background: rgba(22, 32, 51, 0.06);
-  color: #162033;
+  white-space: nowrap;
 }
 
 .main {
