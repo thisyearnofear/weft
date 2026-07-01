@@ -1,0 +1,21 @@
+{
+  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "type": "frontend",
+  "name": "API contract tests — all public endpoints return valid JSON",
+  "description": "Navigate to each API endpoint and verify it returns valid JSON with expected schema fields.",
+  "planSteps": [
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/api/explorer/milestones", "description": "Navigate to explorer API" },
+    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "milestones", "description": "Explorer API returns milestones array" },
+    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "ok", "description": "Explorer API returns ok field" },
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/api/operations", "description": "Navigate to operations API" },
+    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "treasury", "description": "Operations API returns treasury data" },
+    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "verifications", "description": "Operations API returns verifications array" },
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/api/sponsor", "description": "Navigate to sponsor API" },
+    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "summary", "description": "Sponsor API returns summary object" },
+    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "totalReleased", "description": "Sponsor API returns capital flow data" },
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/api/activity", "description": "Navigate to activity API" },
+    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "events", "description": "Activity API returns events array" },
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/api/verifiers", "description": "Navigate to verifiers API" },
+    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "consensus", "description": "Verifiers API returns consensus data" }
+  ]
+}

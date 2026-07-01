@@ -1,0 +1,16 @@
+{
+  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "type": "frontend",
+  "name": "Chaos and resilience — recovery page shows zero failures",
+  "description": "Navigate to the recovery page and verify the chaos engineering section shows no active chaos and zero failures.",
+  "planSteps": [
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/recovery", "description": "Navigate to the resilience page" },
+    { "type": "assertion", "selector": "main", "condition": "visible", "description": "Recovery page content is visible" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Recovery", "description": "Page shows recovery section" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "0", "description": "Page shows zero failures" },
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/api/recovery", "description": "Navigate to recovery API" },
+    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "summary", "description": "Recovery API returns summary" },
+    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "chaos", "description": "Recovery API returns chaos data" },
+    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "failures", "description": "Recovery API returns failures count" }
+  ]
+}

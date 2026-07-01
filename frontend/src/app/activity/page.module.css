@@ -1,0 +1,70 @@
+.container {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 248, 252, 0.98) 44%, rgba(239, 247, 244, 0.96)),
+    radial-gradient(circle at 12% 8%, rgba(91, 141, 239, 0.16), transparent 28%),
+    radial-gradient(circle at 82% 14%, rgba(17, 148, 105, 0.12), transparent 26%);
+  color: #162033; padding: 3rem 3rem 4rem;
+}
+.inner { max-width: 900px; margin: 0 auto; }
+.backLink {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  color: #315fd6; font-size: 0.85rem; font-weight: 500;
+  text-decoration: none; margin-bottom: 1rem;
+}
+.backLink:hover { text-decoration: underline; }
+.header { margin-bottom: 2rem; }
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 0.6rem;
+  padding: 0.55rem 0.85rem; border: 1px solid rgba(49, 95, 214, 0.2);
+  background: rgba(49, 95, 214, 0.08); border-radius: 999px;
+  color: #244ca9; font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem;
+}
+.title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1; letter-spacing: -0.03em; margin: 0 0 0.5rem; }
+.subtitle { font-size: 1.05rem; color: #526073; max-width: 60ch; line-height: 1.5; margin: 0; }
+
+.timeline { position: relative; padding-left: 2rem; }
+.timeline::before {
+  content: ''; position: absolute; left: 7px; top: 0; bottom: 0;
+  width: 2px; background: rgba(25, 37, 56, 0.1);
+}
+
+.event {
+  position: relative; padding: 1rem 1.25rem; margin-bottom: 0.75rem;
+  background: #fff; border: 1px solid rgba(25, 37, 56, 0.08);
+  border-radius: 10px; box-shadow: 0 1px 6px rgba(28, 39, 61, 0.03);
+}
+.event::before {
+  content: ''; position: absolute; left: -2rem; top: 1.25rem;
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(25, 37, 56, 0.15);
+}
+.eventVerification::before { background: #22c55e; }
+.eventCharge::before { background: #ef4444; }
+.eventRevenue::before { background: #22c55e; }
+.eventChaos::before { background: #f59e0b; }
+.eventDeadline::before { background: #315fd6; }
+.eventConsensus::before { background: #8b5cf6; }
+
+.eventHeader {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 1rem; margin-bottom: 0.35rem;
+}
+.eventTitle { font-weight: 600; font-size: 0.95rem; color: #162033; }
+.eventTime { font-size: 0.78rem; color: #6c788a; white-space: nowrap; }
+.eventDesc { font-size: 0.85rem; color: #526073; line-height: 1.4; }
+.eventType {
+  display: inline-block; font-size: 0.7rem; font-weight: 600;
+  padding: 0.1rem 0.4rem; border-radius: 4px; margin-right: 0.5rem;
+  text-transform: uppercase; letter-spacing: 0.03em;
+}
+.typeVerification { background: rgba(34, 197, 94, 0.12); color: #15803d; }
+.typeCharge { background: rgba(239, 68, 68, 0.12); color: #b91c1c; }
+.typeRevenue { background: rgba(34, 197, 94, 0.12); color: #15803d; }
+.typeChaos { background: rgba(245, 158, 11, 0.12); color: #b45309; }
+.typeDeadline { background: rgba(49, 95, 214, 0.12); color: #315fd6; }
+.typeConsensus { background: rgba(139, 92, 246, 0.12); color: #7c3aed; }
+
+.emptyState { text-align: center; padding: 2rem 1rem; color: #6c788a; font-size: 0.9rem; }
+.errorState { text-align: center; padding: 1.5rem; color: #b91c1c; font-size: 0.9rem; }
+.loadingState { text-align: center; padding: 2rem; color: #6c788a; font-size: 0.9rem; }

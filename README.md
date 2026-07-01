@@ -18,6 +18,10 @@ portable reputation.
 | **Frontend** | [weft.thisyearnofear.com](https://weft.thisyearnofear.com) |
 | **Verification Explorer** | [weft.thisyearnofear.com/explorer](https://weft.thisyearnofear.com/explorer) |
 | **Agent Operations** | [weft.thisyearnofear.com/operations](https://weft.thisyearnofear.com/operations) |
+| **Sponsor Dashboard** | [weft.thisyearnofear.com/sponsor](https://weft.thisyearnofear.com/sponsor) |
+| **Activity Feed** | [weft.thisyearnofear.com/activity](https://weft.thisyearnofear.com/activity) |
+| **Verifier Network** | [weft.thisyearnofear.com/verifiers](https://weft.thisyearnofear.com/verifiers) |
+| **API Docs** | [weft.thisyearnofear.com/api/docs](https://weft.thisyearnofear.com/api/docs) |
 | **Builder Profile** | [weft.thisyearnofear.com/builder/weft.thisyearnofear.eth](https://weft.thisyearnofear.com/builder/weft.thisyearnofear.eth) |
 | **Resilience demo** | [weft.thisyearnofear.com/recovery](https://weft.thisyearnofear.com/recovery) |
 | **Explorer** | [WeftMilestone on 0G Galileo](https://explorer-testnet.0g.ai/address/0x9f66158c560ce5c8b40820fdcd2874ff8d852192) |

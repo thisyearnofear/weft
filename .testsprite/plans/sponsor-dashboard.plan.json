@@ -1,0 +1,16 @@
+{
+  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "type": "frontend",
+  "name": "Sponsor dashboard loads with capital flow and milestones",
+  "description": "The /sponsor page loads as a data-driven dashboard with KPI cards, capital flow bar, and funded milestone cards.",
+  "planSteps": [
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/sponsor", "description": "Navigate to sponsor dashboard" },
+    { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Sponsor title is visible" },
+    { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "capital", "description": "Title says 'capital'" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Total Funded", "description": "KPI card shows Total Funded" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Capital Released", "description": "KPI card shows Capital Released" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Capital Flow", "description": "Capital flow section is visible" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Funded Milestones", "description": "Funded milestones section is visible" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Released", "description": "Milestone shows Released status" }
+  ]
+}

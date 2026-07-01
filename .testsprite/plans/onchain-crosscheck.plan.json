@@ -1,0 +1,16 @@
+{
+  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "type": "frontend",
+  "name": "Onchain cross-check — explorer data matches milestone detail",
+  "description": "Verify that the explorer page data matches the milestone detail page data — same hash, same verified status, same stake amount.",
+  "planSteps": [
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/explorer", "description": "Navigate to explorer" },
+    { "type": "assertion", "selector": "table tbody tr", "condition": "visible", "description": "Explorer has at least one milestone row" },
+    { "type": "assertion", "selector": "table tbody tr", "condition": "text-contains", "value": "0x516975", "description": "Explorer shows the demo milestone hash" },
+    { "type": "assertion", "selector": "table tbody tr", "condition": "text-contains", "value": "Verified", "description": "Explorer shows Verified status" },
+    { "type": "assertion", "selector": "table tbody tr", "condition": "text-contains", "value": "0.0100", "description": "Explorer shows 0.0100 ETH stake" },
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/project/0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f", "description": "Navigate to milestone detail page" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "0.01", "description": "Milestone detail shows 0.01 ETH stake (matches explorer)" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "verified", "description": "Milestone detail shows verified status (matches explorer)" }
+  ]
+}

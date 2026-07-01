@@ -47,8 +47,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/sponsor" className={styles.navLink}>
                 Sponsor
               </Link>
+              <Link href="/activity" className={styles.navLink}>
+                Activity
+              </Link>
+              <Link href="/verifiers" className={styles.navLink}>
+                Verifiers
+              </Link>
               <Link href="/builder" className={styles.navLink}>
                 Builder
+              </Link>
+              <Link href="/api/docs" className={styles.navLink}>
+                API
               </Link>
               <Link href="/recovery" className={styles.navLink}>
                 Resilience

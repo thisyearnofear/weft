@@ -1,0 +1,14 @@
+{
+  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "type": "frontend",
+  "name": "Verifier network page loads with node list and consensus stats",
+  "description": "The /verifiers page loads and shows verifier nodes, votes cast, and consensus agreement rate.",
+  "planSteps": [
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/verifiers", "description": "Navigate to verifier network page" },
+    { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Verifiers title is visible" },
+    { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "swarm", "description": "Title says 'swarm'" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Active Verifiers", "description": "KPI shows Active Verifiers" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Agreement", "description": "KPI shows Agreement rate" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Consensus", "description": "Consensus section is visible" }
+  ]
+}

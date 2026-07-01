@@ -1,0 +1,13 @@
+{
+  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "type": "frontend",
+  "name": "Activity feed loads with timeline events",
+  "description": "The /activity page loads and shows a chronological timeline of agent actions.",
+  "planSteps": [
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/activity", "description": "Navigate to activity feed" },
+    { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Activity title is visible" },
+    { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "timestamped", "description": "Title says 'timestamped'" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Revenue", "description": "Timeline shows Revenue event" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Milestone", "description": "Timeline shows Milestone event" }
+  ]
+}

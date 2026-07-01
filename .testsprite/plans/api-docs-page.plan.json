@@ -1,0 +1,15 @@
+{
+  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "type": "frontend",
+  "name": "API docs page loads with endpoint reference",
+  "description": "The /api/docs page loads and shows documented API endpoints with methods, paths, and examples.",
+  "planSteps": [
+    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/api/docs", "description": "Navigate to API docs page" },
+    { "type": "assertion", "selector": "h1", "condition": "visible", "description": "API docs title is visible" },
+    { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "Public REST API", "description": "Title says 'Public REST API'" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "/api/explorer/milestones", "description": "Docs show explorer endpoint" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "/api/operations", "description": "Docs show operations endpoint" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "GET", "description": "Docs show GET method badges" },
+    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Try it", "description": "Docs have try-it links" }
+  ]
+}
