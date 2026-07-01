@@ -73,7 +73,8 @@
   padding: 0.4rem 0.85rem; border-radius: 999px;
   background: var(--c-surface); border: 1px solid var(--c-border);
   color: var(--c-text-2); font-size: 0.82rem; font-weight: 500;
-  cursor: pointer; transition: all var(--transition-fast);
+  cursor: pointer;
+  transition: background 200ms var(--ease-out), border-color 200ms var(--ease-out), color 200ms var(--ease-out), transform 160ms var(--ease-out);
 }
 .filterChip:hover {
   background: var(--c-surface-2); color: var(--c-text);

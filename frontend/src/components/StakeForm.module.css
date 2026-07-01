@@ -114,3 +114,75 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ── CreateMilestoneForm preview step ── */
+
+.previewGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.previewLabel {
+  color: var(--c-text-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.previewValue {
+  font-weight: 600;
+}
+
+.previewValueMuted {
+  color: var(--c-text-secondary);
+  font-size: 0.9rem;
+}
+
+.previewValueMono {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  word-break: break-all;
+}
+
+.previewActions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.buttonSecondary {
+  background: var(--c-border-2);
+  flex: 1;
+}
+
+.buttonFlex {
+  flex: 1;
+}
+
+/* ── Done step ── */
+
+.doneHash {
+  font-size: 0.85rem;
+  color: var(--c-text-secondary);
+  text-align: center;
+}
+
+.doneHash code {
+  word-break: break-all;
+}
+
+.linkBold {
+  font-weight: 600;
+}
+
+/* ── Form overrides ── */
+
+.textarea {
+  min-height: 80px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.select {
+  cursor: pointer;
+}

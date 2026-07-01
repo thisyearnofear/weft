@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 
 const STATUS_API = process.env.WEFT_STATUS_API_URL || "http://127.0.0.1:9010";
 
 export async function POST() {
   try {
-    const res = await fetch(`${STATUS_API}/demo/verify`, {
+    const res = await fetchWithTimeout(`${STATUS_API}/demo/verify`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: "{}",

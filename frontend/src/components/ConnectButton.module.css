@@ -1,62 +1,116 @@
-.container {
-  display: flex;
-  gap: 0.5rem;
+.wrapper {
+  display: contents;
 }
 
-.button {
-  padding: 0.625rem 1rem;
-  background: var(--c-surface-2);
-  border: 1px solid var(--c-border-2);
-  border-radius: var(--radius-md);
-  color: var(--c-text);
-  font-size: 0.875rem;
+.wrapperHidden {
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Connect button (disconnected state) */
+.connectBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  background: var(--c-accent, #6366f1);
+  padding: 8px 16px;
+  font-size: 14px;
   font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-base);
-}
-
-.button:hover:not(:disabled) {
-  background: var(--c-surface-3);
-  border-color: var(--c-border-2);
-}
-
-.button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.connected {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: var(--c-accent-20);
-  border: 1px solid hsla(224, 88%, 65%, 0.3);
-  border-radius: var(--radius-md);
-}
-
-.address {
-  font-size: 0.75rem;
-  font-family: var(--font-mono);
-  color: var(--c-accent);
-}
-
-.disconnect {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  background: transparent;
+  color: #fff;
   border: none;
-  color: var(--c-text-secondary);
   cursor: pointer;
-  border-radius: 4px;
-  transition: all var(--transition-base);
+  transition: background 0.15s ease, transform 0.1s ease;
 }
 
-.disconnect:hover {
-  color: var(--c-error);
-  background: hsla(350, 74%, 56%, 0.1);
+.connectBtn:hover {
+  background: var(--c-accent-hover, #5558e6);
+}
+
+.connectBtn:active {
+  transform: scale(0.97);
+}
+
+/* Wrong network button */
+.wrongNetworkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  background: #ef4444;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+/* Connected state container */
+.connectedRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Chain button (hidden on mobile, shown on desktop) */
+.chainBtn {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  background: #1a1a2e;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #a0aec0;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.chainBtn:hover {
+  background: #252540;
+}
+
+@media (min-width: 640px) {
+  .chainBtn {
+    display: inline-flex;
+  }
+}
+
+.chainIconWrap {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.chainIcon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Account button */
+.accountBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  background: #1a1a2e;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #e8e8f2;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.accountBtn:hover {
+  background: #252540;
+}
+
+.accountBtn:active {
+  transform: scale(0.97);
 }

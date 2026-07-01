@@ -6,6 +6,26 @@
   margin-left: 1rem;
 }
 
+.navCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--c-accent);
+  text-decoration: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  transition: background 200ms var(--ease-out), transform 160ms var(--ease-out);
+  white-space: nowrap;
+  margin-right: 0.5rem;
+}
+
+.navCta:hover {
+  background: var(--c-accent-hover, #5558e6);
+}
+
 .navGroup {
   display: flex;
   align-items: center;
@@ -101,6 +121,25 @@
   padding: 0.5rem 1rem 1.5rem;
   z-index: 49;
   box-shadow: var(--shadow-lg);
+}
+
+.mobileNavCta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--c-accent);
+  text-decoration: none;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.75rem;
+  transition: background 200ms var(--ease-out);
+}
+
+.mobileNavCta:hover {
+  background: var(--c-accent-hover, #5558e6);
 }
 
 .mobileNavGroup {

@@ -188,6 +188,7 @@ def pay_for_service(
         resp = _request("POST", "/charges", data={
             "amount": int(round(amount_usd * 100)),
             "currency": "usd",
+            "source": "tok_visa",
             "description": memo or f"Weft agent — {service}",
             "metadata": {"service": service, "milestone": milestone_hash} if milestone_hash else {"service": service},
         })
@@ -341,11 +342,16 @@ def fund_wallet_from_revenue(amount_usd: float, *, source: str = "onchain_revenu
         return PaymentResult(service="revenue_sweep", memo=source)
 
     try:
-        resp = _request("POST", "/topups", data={
+        # Use a charge with tok_visa to simulate revenue arriving.
+        # Stripe topups have country/currency restrictions (e.g. UK accounts
+        # can't top up USD), but charges with test tokens work universally.
+        # The revenue_sweep service tag distinguishes this from spending.
+        resp = _request("POST", "/charges", data={
             "amount": int(round(amount_usd * 100)),
             "currency": "usd",
+            "source": "tok_visa",
             "description": f"Weft revenue sweep — {source}",
-            "metadata": {"source": source},
+            "metadata": {"service": "revenue_sweep", "source": source},
         })
         result = PaymentResult(
             charge_id=resp.get("id", ""),

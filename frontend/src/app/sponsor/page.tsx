@@ -6,6 +6,8 @@ import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
 import { CountUp } from "@/components/CountUp";
+import { ErrorState } from "@/components/ErrorState";
+import { OfflineBadge } from "@/components/OfflineBadge";
 import styles from "./page.module.css";
 
 interface SponsorMilestone {
@@ -95,7 +97,7 @@ export default function SponsorDashboardPage() {
             No manual reviews, no chasing, no disputes.
           </p>
           <div style={{ marginTop: "1.25rem", display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
-            <Link href="/explorer" className={styles.primaryCta}>
+            <Link href="/create-milestone" className={styles.primaryCta}>
               <Plus size={16} /> Fund a milestone
             </Link>
             <RefreshButton onClick={() => refetch()} isFetching={isFetching} />
@@ -108,13 +110,13 @@ export default function SponsorDashboardPage() {
             <ListSkeleton rows={4} />
           </>
         )}
-        {error && (
-          <div className={styles.errorState}>
-            Failed to load: {error instanceof Error ? error.message : "Unknown error"}
-          </div>
+        {error && !data && (
+          <ErrorState message={`Failed to load: ${error instanceof Error ? error.message : "Unknown error"}`} onRetry={() => refetch()} isRetrying={isFetching} />
         )}
 
-        {!isLoading && !error && (
+        {error && data && <OfflineBadge />}
+
+        {!isLoading && data && (
           <>
             {/* Capital flow — hero element */}
             {totalCapital > 0 && (

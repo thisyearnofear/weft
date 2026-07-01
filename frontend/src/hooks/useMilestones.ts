@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { usePublicClient } from "wagmi";
 import { Address } from "viem";
 import { DEFAULT_CHAIN, getAddresses, WeftMilestoneAbi, VerifierRegistryAbi } from "../lib/contracts";
+import { queryDefaults, STALE_TIMES } from "@/lib/queryConfig";
 
 export interface Milestone {
   projectId: string;
@@ -73,7 +74,8 @@ export function useMilestone(milestoneHash: string) {
       return m;
     },
     enabled: !!milestoneHash,
-    retry: false,
+    staleTime: STALE_TIMES.onchain,
+    ...queryDefaults,
   });
 }
 
@@ -107,7 +109,8 @@ export function useMilestones() {
       });
       return logs.map((log) => log.args.milestoneHash as `0x${string}`);
     },
-    retry: false,
+    staleTime: STALE_TIMES.onchain,
+    ...queryDefaults,
   });
 }
 

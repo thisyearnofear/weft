@@ -164,11 +164,11 @@ function ShareButtons({ url, title }: { url: string; title: string }) {
   );
 }
 
-export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
+export default function ProjectPage({ params }: { params: Promise<{ hash: string }> }) {
+  const { hash } = React.use(params);
   const searchParams = useSearchParams();
   const demoMode = searchParams.get("demo") === "1";
-  const milestoneHash = (id.startsWith("0x") ? id : `0x${id}`) as `0x${string}`;
+  const milestoneHash = (hash.startsWith("0x") ? hash : `0x${hash}`) as `0x${string}`;
   const { data: milestone, isLoading, error } = useMilestone(milestoneHash);
   const { data: statusMilestone } = useStatusMilestone(milestoneHash, true);
   const addresses = getAddresses(DEFAULT_CHAIN);
@@ -202,7 +202,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   if (error || !milestone) {
     return (
       <div className={styles.container}>
-        <div className={styles.error}>Milestone not found: {id}</div>
+        <div className={styles.error}>Milestone not found: {hash}</div>
       </div>
     );
   }
@@ -221,7 +221,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
           <div className={styles.heroGrid}>
             <div className={styles.heroCopy}>
               <span className={styles.kicker}>Trust decision view</span>
-              <h1 className={styles.title}>Milestone {id.slice(0, 10)}...{id.slice(-8)}</h1>
+              <h1 className={styles.title}>Milestone {hash.slice(0, 10)}...{hash.slice(-8)}</h1>
               <p className={styles.subtitle}>
                 {demo?.pitch || "This page answers the real question: did this builder deliver the outcome they were funded for?"}
               </p>
@@ -390,7 +390,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               <p className={styles.panelText}>
                 If this milestone verifies, it does more than unlock capital. It strengthens the reusable trust graph around the builder and collaborators. If it fails, that is useful too: Weft makes failure legible instead of hiding it behind social ambiguity.
               </p>
-              <ShareButtons url={shareUrl} title={`Milestone ${id.slice(0, 10)}`} />
+              <ShareButtons url={shareUrl} title={`Milestone ${hash.slice(0, 10)}`} />
             </article>
           </div>
 

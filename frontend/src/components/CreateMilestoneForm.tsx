@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
-import { keccak256, encodePacked, toHex, pad, stringToHex, hexToBytes } from "viem";
+import { keccak256, encodePacked, stringToHex } from "viem";
 import { WeftMilestoneAbi, getAddresses, DEFAULT_CHAIN } from "../lib/contracts";
 import styles from "./StakeForm.module.css";
 
@@ -64,13 +64,12 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
         <div className={styles.success}>
           Milestone created successfully!
         </div>
-        <p style={{ fontSize: "0.85rem", color: "var(--c-text-secondary)", textAlign: "center" }}>
-          Hash: <code style={{ wordBreak: "break-all" }}>{milestoneHash}</code>
+        <p className={styles.doneHash}>
+          Hash: <code>{milestoneHash}</code>
         </p>
         <a
           href={`/project/${milestoneHash}`}
-          className={styles.link}
-          style={{ fontWeight: 600 }}
+          className={`${styles.link} ${styles.linkBold}`}
         >
           View milestone →
         </a>
@@ -114,60 +113,46 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
   if (step === "preview") {
     return (
       <div className={styles.container}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        <div className={styles.previewGroup}>
           <div>
-            <span style={{ color: "var(--c-text-muted)", fontSize: "0.78rem", textTransform: "uppercase" }}>
-              Project Name
-            </span>
-            <p style={{ fontWeight: 600 }}>{name}</p>
+            <span className={styles.previewLabel}>Project Name</span>
+            <p className={styles.previewValue}>{name}</p>
           </div>
           {description && (
             <div>
-              <span style={{ color: "var(--c-text-muted)", fontSize: "0.78rem", textTransform: "uppercase" }}>
-                Description
-              </span>
-              <p style={{ color: "var(--c-text-secondary)", fontSize: "0.9rem" }}>{description}</p>
+              <span className={styles.previewLabel}>Description</span>
+              <p className={styles.previewValueMuted}>{description}</p>
             </div>
           )}
           <div>
-            <span style={{ color: "var(--c-text-muted)", fontSize: "0.78rem", textTransform: "uppercase" }}>
-              Deadline
-            </span>
-            <p style={{ fontWeight: 600 }}>
+            <span className={styles.previewLabel}>Deadline</span>
+            <p className={styles.previewValue}>
               {new Date(Number(deadlineUnix) * 1000).toLocaleDateString("en-US", {
                 weekday: "long", year: "numeric", month: "long", day: "numeric",
               })}
             </p>
           </div>
           <div>
-            <span style={{ color: "var(--c-text-muted)", fontSize: "0.78rem", textTransform: "uppercase" }}>
-              Milestone Hash
-            </span>
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.82rem", wordBreak: "break-all" }}>
-              {computedHash}
-            </p>
+            <span className={styles.previewLabel}>Milestone Hash</span>
+            <p className={styles.previewValueMono}>{computedHash}</p>
           </div>
           <div>
-            <span style={{ color: "var(--c-text-muted)", fontSize: "0.78rem", textTransform: "uppercase" }}>
-              Builder
-            </span>
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.82rem" }}>{address}</p>
+            <span className={styles.previewLabel}>Builder</span>
+            <p className={styles.previewValueMono}>{address}</p>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
+        <div className={styles.previewActions}>
           <button
             onClick={() => setStep("form")}
-            className={styles.button}
-            style={{ background: "var(--c-border-2)", flex: 1 }}
+            className={`${styles.button} ${styles.buttonSecondary}`}
           >
             Edit
           </button>
           <button
             onClick={handleCreate}
             disabled={isPending || !addresses.weftMilestone}
-            className={styles.button}
-            style={{ flex: 1 }}
+            className={`${styles.button} ${styles.buttonFlex}`}
           >
             {isPending ? "Signing..." : "Create Milestone"}
           </button>
@@ -197,8 +182,7 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Brief description of what you'll ship (optional)"
-          className={styles.input}
-          style={{ minHeight: "80px", resize: "vertical", fontFamily: "inherit" }}
+          className={`${styles.input} ${styles.textarea}`}
           rows={3}
         />
       </div>
@@ -207,8 +191,7 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
         <select
           value={deadlineDays}
           onChange={(e) => setDeadlineDays(Number(e.target.value))}
-          className={styles.input}
-          style={{ cursor: "pointer" }}
+          className={`${styles.input} ${styles.select}`}
         >
           <option value={7}>Deadline: 7 days</option>
           <option value={14}>Deadline: 14 days</option>

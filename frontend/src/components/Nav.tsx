@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { Plus } from "lucide-react";
 import styles from "./Nav.module.css";
 
 const NAV_GROUPS = [
@@ -10,23 +11,21 @@ const NAV_GROUPS = [
     label: "Explore",
     links: [
       { href: "/explorer", label: "Explorer" },
-      { href: "/sponsor", label: "Sponsors" },
-      { href: "/builder", label: "Builders" },
+      { href: "/activity", label: "Activity" },
     ],
   },
   {
-    label: "System",
+    label: "Network",
     links: [
-      { href: "/operations", label: "Operations" },
-      { href: "/activity", label: "Activity" },
       { href: "/verifiers", label: "Verifiers" },
+      { href: "/operations", label: "Operations" },
       { href: "/recovery", label: "Recovery" },
     ],
   },
   {
     label: "Dev",
     links: [
-      { href: "/api/docs", label: "API Docs" },
+      { href: "/api/docs", label: "API" },
     ],
   },
 ];
@@ -57,6 +56,15 @@ export function Nav() {
       </button>
 
       <nav className={styles.desktopNav} aria-label="Main navigation">
+        {/* Primary action — visually distinct */}
+        <Link
+          href="/create-milestone"
+          className={styles.navCta}
+          aria-label="Create a milestone"
+        >
+          <Plus size={14} /> Create
+        </Link>
+
         {NAV_GROUPS.map((group, gi) => (
           <div key={group.label} className={styles.navGroup}>
             {gi > 0 && <span className={styles.navDivider} />}
@@ -76,6 +84,13 @@ export function Nav() {
 
       {open && (
         <nav className={styles.mobileNav} id="mobile-nav" aria-label="Mobile navigation">
+          <Link
+            href="/create-milestone"
+            className={styles.mobileNavCta}
+            onClick={() => setOpen(false)}
+          >
+            <Plus size={16} /> Create a milestone
+          </Link>
           {NAV_GROUPS.map((group) => (
             <div key={group.label} className={styles.mobileNavGroup}>
               <span className={styles.mobileNavLabel}>{group.label}</span>

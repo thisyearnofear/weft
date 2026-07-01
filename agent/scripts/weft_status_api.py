@@ -920,9 +920,9 @@ def _treasury_payload() -> dict:
             "activated": False,
             "message": "Spend loop not activated. Set STRIPE_SKILLS_KEY to enable autonomous earn→spend.",
             "estimatedCosts": {
-                "kimi": 0.01,
-                "fal": 0.05,
-                "keeperhub": 0.10,
+                "kimi": 0.50,
+                "fal": 0.50,
+                "keeperhub": 0.50,
             },
         }
 

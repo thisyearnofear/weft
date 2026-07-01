@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { fetchJsonWithRetry } from "@/lib/fetchWithTimeout";
+import { queryDefaults, STALE_TIMES } from "@/lib/queryConfig";
 
 export interface ExplorerMilestone {
   milestoneHash: string;
@@ -27,18 +29,15 @@ interface ExplorerResponse {
   count: number;
 }
 
-async function fetchExplorer(): Promise<ExplorerMilestone[]> {
-  const res = await fetch("/api/explorer/milestones", { cache: "no-store" });
-  if (!res.ok) throw new Error(`Explorer fetch failed: ${res.status}`);
-  const data: ExplorerResponse = await res.json();
-  if (!data.ok) throw new Error("Explorer API returned not-ok");
-  return data.milestones;
-}
-
 export function useExplorerMilestones() {
   return useQuery({
     queryKey: ["explorer-milestones"],
-    queryFn: fetchExplorer,
-    staleTime: 15_000,
+    queryFn: async () => {
+      const data = await fetchJsonWithRetry<ExplorerResponse>("/api/explorer/milestones");
+      if (!data.ok) throw new Error("Explorer API returned not-ok");
+      return data.milestones;
+    },
+    staleTime: STALE_TIMES.explorer,
+    ...queryDefaults,
   });
 }

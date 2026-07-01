@@ -1,0 +1,55 @@
+.main {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, rgba(99, 102, 241, 0.14), transparent 28%),
+    radial-gradient(circle at 85% 12%, rgba(34, 197, 94, 0.08), transparent 24%),
+    var(--c-bg);
+  padding: 3rem 1.25rem 5rem;
+}
+
+.shell {
+  max-width: 540px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.heading {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1;
+  margin-bottom: 0.75rem;
+}
+
+.subtitle {
+  color: var(--c-text-secondary);
+  line-height: 1.7;
+  max-width: 48ch;
+}
+
+.formCard {
+  background: rgba(17, 17, 24, 0.9);
+  border: 1px solid var(--c-border);
+  border-radius: 28px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.guideCard {
+  background: rgba(17, 17, 24, 0.9);
+  border: 1px solid var(--c-border);
+  border-radius: 28px;
+  padding: 1.25rem 1.5rem;
+}
+
+.guideTitle {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.guideList {
+  color: var(--c-text-secondary);
+  line-height: 1.8;
+  padding-left: 1.25rem;
+  font-size: 0.9rem;
+}

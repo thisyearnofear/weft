@@ -7,6 +7,8 @@ import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
 import { CountUp } from "@/components/CountUp";
+import { ErrorState } from "@/components/ErrorState";
+import { OfflineBadge } from "@/components/OfflineBadge";
 import styles from "./page.module.css";
 
 interface TreasuryData {
@@ -144,13 +146,13 @@ export default function OperationsPage() {
             <ListSkeleton rows={5} />
           </>
         )}
-        {error && (
-          <div className={styles.errorState}>
-            Failed to load operations: {error instanceof Error ? error.message : "Unknown error"}
-          </div>
+        {error && !data && (
+          <ErrorState message={`Failed to load operations: ${error instanceof Error ? error.message : "Unknown error"}`} onRetry={() => refetch()} isRetrying={isFetching} />
         )}
 
-        {!isLoading && !error && (
+        {error && data && <OfflineBadge />}
+
+        {!isLoading && data && (
           <>
             {/* KPI Cards — grouped by intent */}
             <div className={styles.kpiGroup}>

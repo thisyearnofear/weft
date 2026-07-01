@@ -6,6 +6,8 @@ import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
 import { CountUp } from "@/components/CountUp";
+import { ErrorState } from "@/components/ErrorState";
+import { OfflineBadge } from "@/components/OfflineBadge";
 import styles from "./page.module.css";
 
 interface Verifier {
@@ -80,13 +82,13 @@ export default function VerifiersPage() {
             <ListSkeleton rows={3} />
           </>
         )}
-        {error && (
-          <div className={styles.errorState}>
-            Failed to load: {error instanceof Error ? error.message : "Unknown error"}
-          </div>
+        {error && !data && (
+          <ErrorState message={`Failed to load: ${error instanceof Error ? error.message : "Unknown error"}`} onRetry={() => refetch()} isRetrying={isFetching} />
         )}
 
-        {!isLoading && !error && (
+        {error && data && <OfflineBadge />}
+
+        {!isLoading && data && (
           <>
             <div className={styles.kpiGrid}>
               <div className={`${styles.kpiCard} stagger stagger-1 lift`}>
