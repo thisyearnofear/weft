@@ -19,10 +19,32 @@ jobs:
       - name: Install TestSprite CLI
         run: npm install -g @testsprite/testsprite-cli
 
-      - name: Run all tests
+      - name: Run frontend tests
         env:
           TESTSPRITE_API_KEY: ${{ secrets.TESTSPRITE_API_KEY }}
-          PROJECT_ID: ${{ secrets.TESTSPRITE_PROJECT_ID }}
+          FRONTEND_PROJECT_ID: ${{ secrets.TESTSPRITE_PROJECT_ID }}
         run: |
           testsprite setup --from-env --yes --no-agent
-          testsprite test run --all --project "$PROJECT_ID" --wait --output json
+          testsprite test rerun --all --project "$FRONTEND_PROJECT_ID" --wait --output json
+
+      - name: Run backend API tests
+        env:
+          TESTSPRITE_API_KEY: ${{ secrets.TESTSPRITE_API_KEY }}
+          BACKEND_PROJECT_ID: "1f6f51ae-f210-4d01-bdae-9b2e72a2e412"
+        run: |
+          testsprite test rerun --all --project "$BACKEND_PROJECT_ID" --wait --output json
+
+      - name: Download failure artifacts
+        if: failure()
+        run: |
+          mkdir -p .testsprite/failures
+          testsprite test list --project "${{ secrets.TESTSPRITE_PROJECT_ID }}" --status failed,blocked --output json \
+            | jq -r '.items[].id' \
+            | xargs -I{} testsprite test artifact get {} --out ".testsprite/failures/{}" || true
+
+      - name: Upload failure bundle
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testsprite-failure-bundles
+          path: .testsprite/failures/

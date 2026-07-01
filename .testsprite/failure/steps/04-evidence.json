@@ -1,0 +1,8 @@
+[
+  {
+    "kind": "snapshot",
+    "stepIndex": 4,
+    "summary": "Step 4 'Click the 'Open trust profile' button to open the builder's trust profile page and verify the ENS and trust/reputation section load' passed.",
+    "path": "steps/04-snapshot.html"
+  }
+]
