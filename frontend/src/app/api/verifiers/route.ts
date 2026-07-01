@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
+import { fetchJsonWithTimeout } from "@/lib/fetchWithTimeout";
 
 const STATUS_API = process.env.WEFT_STATUS_API_URL || "http://127.0.0.1:9010";
 
 async function fetchJson(url: string): Promise<Record<string, unknown>> {
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error(`${url} returned ${res.status}`);
-  return res.json();
+  return fetchJsonWithTimeout(url);
 }
 
 export async function GET() {
@@ -96,7 +95,7 @@ export async function GET() {
       },
       agentEns,
       builderEns,
-    }, { headers: { "cache-control": "no-store" } });
+    }, { headers: { "cache-control": "public, s-maxage=60, stale-while-revalidate=120" } });
   } catch (error) {
     return NextResponse.json(
       { ok: false, error: "verifiers_fetch_failed", detail: error instanceof Error ? error.message : String(error) },

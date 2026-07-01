@@ -5,6 +5,7 @@ import '@rainbow-me/rainbowkit/styles.css';
 import styles from './layout.module.css';
 import { Providers } from '@/lib/providers';
 import { ConnectButton } from '@/components/ConnectButton';
+import { Nav } from '@/components/Nav';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ClientToasts } from '@/components/ClientToasts';
 import { SmoothScroll } from '@/components/SmoothScroll';
@@ -37,32 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/" className={styles.logo}>
               ⬡ Weft
             </Link>
-            <nav className={styles.nav}>
-              <Link href="/explorer" className={styles.navLink}>
-                Explorer
-              </Link>
-              <Link href="/operations" className={styles.navLink}>
-                Operations
-              </Link>
-              <Link href="/sponsor" className={styles.navLink}>
-                Sponsor
-              </Link>
-              <Link href="/activity" className={styles.navLink}>
-                Activity
-              </Link>
-              <Link href="/verifiers" className={styles.navLink}>
-                Verifiers
-              </Link>
-              <Link href="/builder" className={styles.navLink}>
-                Builder
-              </Link>
-              <Link href="/api/docs" className={styles.navLink}>
-                API
-              </Link>
-              <Link href="/recovery" className={styles.navLink}>
-                Resilience
-              </Link>
-            </nav>
+            <Nav />
             <ConnectButton />
           </header>
           <main id="main-content" className={styles.main}>

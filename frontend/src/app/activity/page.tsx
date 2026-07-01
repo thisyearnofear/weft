@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { ArrowLeft, Activity as ActivityIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { RefreshButton } from "@/components/RefreshButton";
+import { ListSkeleton } from "@/components/KPISkeleton";
 import styles from "./page.module.css";
 
 interface ActivityEvent {
@@ -46,7 +48,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function ActivityPage() {
-  const { data, isLoading, error } = useActivity();
+  const { data, isLoading, error, refetch, isFetching } = useActivity();
   const events = data?.events ?? [];
 
   return (
@@ -65,9 +67,12 @@ export default function ActivityPage() {
             A chronological feed of everything the Weft agent has done — verifications submitted,
             infrastructure paid for, revenue swept, and milestones created.
           </p>
+          <div style={{ marginTop: "1rem" }}>
+            <RefreshButton onClick={() => refetch()} isFetching={isFetching} />
+          </div>
         </div>
 
-        {isLoading && <div className={styles.loadingState}>Loading activity...</div>}
+        {isLoading && <ListSkeleton rows={6} />}
         {error && (
           <div className={styles.errorState}>
             Failed to load: {error instanceof Error ? error.message : "Unknown error"}

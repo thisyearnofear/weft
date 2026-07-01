@@ -118,6 +118,7 @@ export default function RecoveryPage() {
   const [data, setData] = useState<RecoveryResponse | null>(null);
   const [polling, setPolling] = useState(true);
   const [phase, setPhase] = useState<DemoPhase>("idle");
+  const [apiError, setApiError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [copied, setCopied] = useState(false);
@@ -144,14 +145,19 @@ export default function RecoveryPage() {
       if (res.ok) {
         const json: RecoveryResponse = await res.json();
         setData(json);
+        setApiError(null);
         if (json.summary.verdictLanded && phase === "verifying") {
           setPhase("complete");
         }
+      } else if (!apiError) {
+        setApiError(`Recovery API returned ${res.status}`);
       }
-    } catch {
-      // Status API unavailable
+    } catch (err) {
+      if (!apiError) {
+        setApiError("Recovery API unavailable. The status service may be down.");
+      }
     }
-  }, [phase]);
+  }, [phase, apiError]);
 
   useEffect(() => {
     if (!polling) return;
@@ -272,6 +278,19 @@ export default function RecoveryPage() {
           {theme === "dark" ? "☀" : "☾"}
         </button>
       </div>
+
+      {apiError && (
+        <div style={{
+          padding: "0.75rem 1.5rem",
+          background: "rgba(239, 68, 68, 0.1)",
+          borderBottom: "1px solid rgba(239, 68, 68, 0.2)",
+          color: "#b91c1c",
+          fontSize: "0.85rem",
+          textAlign: "center",
+        }}>
+          {apiError}
+        </div>
+      )}
 
       {/* ── Hero Context ── */}
       <div className={styles.hero}>

@@ -1,5 +1,5 @@
 {
-  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "projectId": "498234da-24b8-4311-9fdf-879ad0a0df3a",
   "type": "frontend",
   "name": "Verifier network page loads with node list and consensus stats",
   "description": "The /verifiers page loads and shows verifier nodes, votes cast, and consensus agreement rate.",

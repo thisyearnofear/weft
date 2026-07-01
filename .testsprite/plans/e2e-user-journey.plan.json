@@ -1,5 +1,5 @@
 {
-  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "projectId": "498234da-24b8-4311-9fdf-879ad0a0df3a",
   "type": "frontend",
   "name": "E2E user journey — landing to explorer to milestone to builder profile",
   "description": "Full user journey: land on home page, navigate to explorer, click a milestone, then navigate to the builder profile. Verify each step loads correctly.",

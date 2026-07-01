@@ -1,5 +1,5 @@
 {
-  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "projectId": "498234da-24b8-4311-9fdf-879ad0a0df3a",
   "type": "frontend",
   "name": "Demo milestone lookup works",
   "description": "Baseline: clicking the demo milestone chip (0x516975...) populates the lookup and shows verified status with stake amount.",

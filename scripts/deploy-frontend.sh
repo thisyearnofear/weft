@@ -37,4 +37,22 @@ ssh "$SERVER" "cd $FRONTEND_DIR && npm run build 2>&1 | tail -10"
 echo "▶ Restarting weft-frontend..."
 ssh "$SERVER" "pm2 restart weft-frontend 2>&1"
 
-echo "✅ Deploy complete. Check https://weft.thisyearnofear.com"
+echo "▶ Waiting for app to start..."
+sleep 5
+
+echo "▶ Health check..."
+HEALTH_URL="https://weft.thisyearnofear.com/api/status/demo"
+for i in $(seq 1 30); do
+  HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" 2>/dev/null || echo "000")
+  if [ "$HTTP_CODE" = "200" ]; then
+    echo "✅ Health check passed (attempt $i)"
+    echo "✅ Deploy complete. Check https://weft.thisyearnofear.com"
+    exit 0
+  fi
+  echo "⏳ Attempt $i/30 — HTTP $HTTP_CODE..."
+  sleep 2
+done
+
+echo "❌ Health check failed after 60 seconds"
+echo "❌ Deploy may be broken. Check PM2 logs: ssh $SERVER 'pm2 logs weft-frontend --lines 50'"
+exit 1

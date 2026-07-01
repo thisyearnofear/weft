@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { ArrowLeft, Coins } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { RefreshButton } from "@/components/RefreshButton";
+import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
 import styles from "./page.module.css";
 
 interface SponsorMilestone {
@@ -65,7 +67,7 @@ function formatDuration(seconds: number): string {
 }
 
 export default function SponsorDashboardPage() {
-  const { data, isLoading, error } = useSponsor();
+  const { data, isLoading, error, refetch, isFetching } = useSponsor();
   const milestones = data?.milestones ?? [];
   const summary = data?.summary;
 
@@ -90,9 +92,17 @@ export default function SponsorDashboardPage() {
             Track every milestone you&apos;ve funded — capital at stake, verification status,
             and the exact moment your funds moved. Full transparency, no manual follow-up.
           </p>
+          <div style={{ marginTop: "1rem" }}>
+            <RefreshButton onClick={() => refetch()} isFetching={isFetching} />
+          </div>
         </div>
 
-        {isLoading && <div className={styles.loadingState}>Loading sponsor data...</div>}
+        {isLoading && (
+          <>
+            <KPISkeleton count={4} />
+            <ListSkeleton rows={4} />
+          </>
+        )}
         {error && (
           <div className={styles.errorState}>
             Failed to load: {error instanceof Error ? error.message : "Unknown error"}

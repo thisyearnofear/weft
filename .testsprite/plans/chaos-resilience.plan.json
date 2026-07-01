@@ -1,5 +1,5 @@
 {
-  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "projectId": "498234da-24b8-4311-9fdf-879ad0a0df3a",
   "type": "frontend",
   "name": "Chaos and resilience — recovery page shows zero failures",
   "description": "Navigate to the recovery page and verify the chaos engineering section shows no active chaos and zero failures.",

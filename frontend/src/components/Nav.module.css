@@ -1,0 +1,109 @@
+.desktopNav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  margin-left: 1rem;
+}
+
+.navLink {
+  font-size: 0.8rem;
+  color: #526073;
+  text-decoration: none;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.navLink:hover {
+  background: rgba(22, 32, 51, 0.06);
+  color: #162033;
+}
+
+.menuBtn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-left: auto;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.menuBtn:hover {
+  background: rgba(22, 32, 51, 0.06);
+}
+
+.menuIcon {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 22px;
+  height: 18px;
+  justify-content: center;
+}
+
+.menuIcon span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: #162033;
+  border-radius: 2px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.menuIcon[data-open="true"] span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+.menuIcon[data-open="true"] span:nth-child(2) {
+  opacity: 0;
+}
+.menuIcon[data-open="true"] span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.mobileNav {
+  position: fixed;
+  top: var(--nav-h, 56px);
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(22, 32, 51, 0.1);
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 1rem 1rem;
+  z-index: 49;
+  box-shadow: 0 4px 20px rgba(28, 39, 61, 0.08);
+}
+
+.mobileNavLink {
+  font-size: 0.95rem;
+  color: #162033;
+  text-decoration: none;
+  padding: 0.75rem 0.5rem;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+  border-bottom: 1px solid rgba(22, 32, 51, 0.04);
+}
+
+.mobileNavLink:hover {
+  background: rgba(49, 95, 214, 0.06);
+  color: #315fd6;
+}
+
+.mobileNavLink:last-child {
+  border-bottom: none;
+}
+
+@media (max-width: 768px) {
+  .desktopNav {
+    display: none;
+  }
+
+  .menuBtn {
+    display: flex;
+    align-items: center;
+  }
+}

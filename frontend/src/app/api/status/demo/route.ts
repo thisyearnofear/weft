@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 
 const DEFAULT_STATUS_API = process.env.WEFT_STATUS_API_URL || "http://127.0.0.1:9010";
 
 async function proxy(path: string) {
   const url = `${DEFAULT_STATUS_API}${path}`;
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetchWithTimeout(url, { cache: "no-store" });
   const text = await res.text();
   return new NextResponse(text, {
     status: res.status,

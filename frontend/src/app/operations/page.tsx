@@ -4,6 +4,8 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { ArrowLeft, Activity, DollarSign, CheckCircle, Zap } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { RefreshButton } from "@/components/RefreshButton";
+import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
 import styles from "./page.module.css";
 
 interface TreasuryData {
@@ -101,7 +103,7 @@ const SERVICE_LABELS: Record<string, string> = {
 };
 
 export default function OperationsPage() {
-  const { data, isLoading, error } = useOperations();
+  const { data, isLoading, error, refetch, isFetching } = useOperations();
 
   const treasury = data?.treasury ?? null;
   const recovery = data?.recovery ?? null;
@@ -129,9 +131,17 @@ export default function OperationsPage() {
             Every verification the agent submitted, every dollar it earned and spent,
             and the health of its infrastructure — all publicly auditable.
           </p>
+          <div style={{ marginTop: "1rem" }}>
+            <RefreshButton onClick={() => refetch()} isFetching={isFetching} />
+          </div>
         </div>
 
-        {isLoading && <div className={styles.loadingState}>Loading operations data...</div>}
+        {isLoading && (
+          <>
+            <KPISkeleton count={4} />
+            <ListSkeleton rows={5} />
+          </>
+        )}
         {error && (
           <div className={styles.errorState}>
             Failed to load operations: {error instanceof Error ? error.message : "Unknown error"}

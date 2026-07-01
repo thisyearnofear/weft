@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 
 const CONTRACT = "0xcc768d56b0053b1b2df5391dde989be3f859474c";
 const RPC = "https://evmrpc-testnet.0g.ai";
@@ -8,7 +9,7 @@ async function checkMilestone(hash: string): Promise<{ verified: boolean; finali
     const padded = hash.startsWith("0x") ? hash : `0x${hash}`;
     const data = padded.slice(2).padStart(64, "0") + "0".repeat(64 * 12);
     const sig = "0x8e84bc20" + data;
-    const res = await fetch(RPC, {
+    const res = await fetchWithTimeout(RPC, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

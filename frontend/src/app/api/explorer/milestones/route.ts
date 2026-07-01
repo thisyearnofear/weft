@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 
 const DEFAULT_STATUS_API = process.env.WEFT_STATUS_API_URL || "http://127.0.0.1:9010";
 
@@ -37,7 +38,7 @@ function deriveState(m: {
 export async function GET() {
   try {
     // Step 1: get known milestone hashes from the status API overview
-    const overviewRes = await fetch(`${DEFAULT_STATUS_API}/demo`, { cache: "no-store" });
+    const overviewRes = await fetchWithTimeout(`${DEFAULT_STATUS_API}/demo`, { cache: "no-store" });
     if (!overviewRes.ok) {
       return NextResponse.json(
         { ok: false, error: "status_api_unavailable", detail: `overview returned ${overviewRes.status}` },
@@ -54,7 +55,7 @@ export async function GET() {
     // Step 2: fetch each milestone's details in parallel
     const milestoneResults = await Promise.allSettled(
       hashes.map(async (hash) => {
-        const res = await fetch(`${DEFAULT_STATUS_API}/milestone/${hash}`, { cache: "no-store" });
+        const res = await fetchWithTimeout(`${DEFAULT_STATUS_API}/milestone/${hash}`, { cache: "no-store" });
         if (!res.ok) throw new Error(`Failed to fetch ${hash}: ${res.status}`);
         const data = await res.json();
         const stakedEth = (Number(data.totalStaked) / 1e18).toFixed(4);
@@ -88,7 +89,7 @@ export async function GET() {
 
     return NextResponse.json(
       { ok: true, milestones, count: milestones.length },
-      { headers: { "cache-control": "no-store" } }
+      { headers: { "cache-control": "public, s-maxage=30, stale-while-revalidate=60" } }
     );
   } catch (error) {
     return NextResponse.json(

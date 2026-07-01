@@ -1,5 +1,5 @@
 {
-  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "projectId": "498234da-24b8-4311-9fdf-879ad0a0df3a",
   "type": "frontend",
   "name": "API contract tests — all public endpoints return valid JSON",
   "description": "Navigate to each API endpoint and verify it returns valid JSON with expected schema fields.",

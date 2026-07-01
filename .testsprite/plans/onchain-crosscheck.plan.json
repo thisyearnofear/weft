@@ -1,5 +1,5 @@
 {
-  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "projectId": "498234da-24b8-4311-9fdf-879ad0a0df3a",
   "type": "frontend",
   "name": "Onchain cross-check — explorer data matches milestone detail",
   "description": "Verify that the explorer page data matches the milestone detail page data — same hash, same verified status, same stake amount.",

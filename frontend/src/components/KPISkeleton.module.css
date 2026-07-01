@@ -1,0 +1,102 @@
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.kpiCard {
+  background: #fff;
+  border: 1px solid rgba(25, 37, 56, 0.08);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(28, 39, 61, 0.04);
+}
+
+.skeletonLabel,
+.skeletonValue,
+.skeletonSub,
+.skeletonIcon,
+.skeletonLine,
+.skeletonLineShort {
+  background: linear-gradient(
+    90deg,
+    rgba(22, 32, 51, 0.06) 25%,
+    rgba(22, 32, 51, 0.1) 50%,
+    rgba(22, 32, 51, 0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+.skeletonLabel {
+  height: 0.7rem;
+  width: 60%;
+  margin-bottom: 0.75rem;
+}
+
+.skeletonValue {
+  height: 1.5rem;
+  width: 40%;
+  margin-bottom: 0.5rem;
+}
+
+.skeletonSub {
+  height: 0.7rem;
+  width: 50%;
+}
+
+.listWrap {
+  background: #fff;
+  border: 1px solid rgba(25, 37, 56, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.listRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(25, 37, 56, 0.04);
+}
+
+.listRow:last-child {
+  border-bottom: none;
+}
+
+.skeletonIcon {
+  height: 1.5rem;
+  width: 1.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeletonLine {
+  height: 0.8rem;
+  width: 30%;
+  flex: 1;
+}
+
+.skeletonLineShort {
+  height: 0.8rem;
+  width: 80px;
+  flex-shrink: 0;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .kpiGrid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+}

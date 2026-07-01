@@ -111,7 +111,8 @@
   background: #fff;
   border: 1px solid rgba(25, 37, 56, 0.12);
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   box-shadow: 0 4px 20px rgba(28, 39, 61, 0.06);
 }
 
@@ -119,6 +120,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+  min-width: 700px;
 }
 
 .table th {
@@ -259,4 +261,27 @@
 
 .backLink:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 2rem 1rem 3rem;
+  }
+
+  .statsBar {
+    gap: 1rem;
+  }
+
+  .statValue {
+    font-size: 1.25rem;
+  }
+
+  .filters {
+    gap: 0.5rem;
+  }
+
+  .filterBtn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+  }
 }

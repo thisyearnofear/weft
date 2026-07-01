@@ -1,5 +1,5 @@
 {
-  "projectId": "cdf9309d-9283-4db7-84a4-a6eee8599458",
+  "projectId": "498234da-24b8-4311-9fdf-879ad0a0df3a",
   "type": "frontend",
   "name": "Builder profile page shows reputation",
   "description": "The /builder/weft.thisyearnofear.eth page loads, shows the ENS name, reputation score, and verified milestones count.",

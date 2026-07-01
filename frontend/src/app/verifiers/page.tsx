@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { ArrowLeft, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { RefreshButton } from "@/components/RefreshButton";
+import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
 import styles from "./page.module.css";
 
 interface Verifier {
@@ -44,7 +46,7 @@ function shortAddr(addr: string): string {
 }
 
 export default function VerifiersPage() {
-  const { data, isLoading, error } = useVerifiers();
+  const { data, isLoading, error, refetch, isFetching } = useVerifiers();
   const verifiers = data?.verifiers ?? [];
   const consensus = data?.consensus;
 
@@ -65,9 +67,17 @@ export default function VerifiersPage() {
             evidence, reach consensus offchain, and submit signed verdicts onchain. No single
             party can fake a result.
           </p>
+          <div style={{ marginTop: "1rem" }}>
+            <RefreshButton onClick={() => refetch()} isFetching={isFetching} />
+          </div>
         </div>
 
-        {isLoading && <div className={styles.loadingState}>Loading verifier network...</div>}
+        {isLoading && (
+          <>
+            <KPISkeleton count={3} />
+            <ListSkeleton rows={3} />
+          </>
+        )}
         {error && (
           <div className={styles.errorState}>
             Failed to load: {error instanceof Error ? error.message : "Unknown error"}

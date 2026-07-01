@@ -116,6 +116,8 @@ export default function ExplorerPage() {
               key={btn.key}
               className={`${styles.filterBtn} ${statusFilter === btn.key ? styles.filterBtnActive : ""}`}
               onClick={() => setStatusFilter(btn.key)}
+              aria-pressed={statusFilter === btn.key}
+              aria-label={`Filter by ${btn.label}`}
             >
               {btn.label} ({btn.count})
             </button>
