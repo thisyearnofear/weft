@@ -125,22 +125,22 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
         </section>
 
         <section className={styles.metricsGrid}>
-          <article className={styles.metricCard}>
+          <article className={`${styles.metricCard} stagger stagger-1 lift`}>
             <span className={styles.metricLabel}>Verified Outcomes</span>
             <strong className={styles.metricValue}>{passport.weftMilestonesVerified}</strong>
             <p>Milestones verified by AI agents with capital released.</p>
           </article>
-          <article className={styles.metricCard}>
+          <article className={`${styles.metricCard} stagger stagger-2 lift`}>
             <span className={styles.metricLabel}>Capital Unlocked</span>
             <strong className={styles.metricValue}>{earnedEth} ETH</strong>
             <p>Total earned through verified milestone deliveries.</p>
           </article>
-          <article className={styles.metricCard}>
+          <article className={`${styles.metricCard} stagger stagger-3 lift`}>
             <span className={styles.metricLabel}>Collaborators</span>
             <strong className={styles.metricValue}>{passport.weftCobuilders.length}</strong>
             <p>Builders and agents who shipped on the same milestones.</p>
           </article>
-          <article className={styles.metricCard}>
+          <article className={`${styles.metricCard} stagger stagger-4 lift`}>
             <span className={styles.metricLabel}>Projects</span>
             <strong className={styles.metricValue}>{passport.weftProjects.length}</strong>
             <p>Funded projects linked to this identity.</p>

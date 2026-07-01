@@ -6,6 +6,7 @@ import { ArrowLeft, Activity, DollarSign, CheckCircle, Zap } from "lucide-react"
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
+import { CountUp } from "@/components/CountUp";
 import styles from "./page.module.css";
 
 interface TreasuryData {
@@ -155,14 +156,18 @@ export default function OperationsPage() {
             <div className={styles.kpiGroup}>
               <span className={styles.kpiGroupLabel}>Performance</span>
               <div className={styles.kpiGrid}>
-                <div className={styles.kpiCard}>
+                <div className={`${styles.kpiCard} stagger stagger-1 lift`}>
                   <div className={styles.kpiLabel}>Milestones Verified</div>
-                  <div className={styles.kpiValue}>{overview?.verifiedCount ?? 0}</div>
+                  <div className={styles.kpiValue}>
+                    <CountUp value={overview?.verifiedCount ?? 0} />
+                  </div>
                   <div className={styles.kpiSub}>of {overview?.totalMilestones ?? 0} total</div>
                 </div>
-                <div className={styles.kpiCard}>
+                <div className={`${styles.kpiCard} stagger stagger-2 lift`}>
                   <div className={styles.kpiLabel}>Capital Processed</div>
-                  <div className={styles.kpiValue}>{overview?.totalStakedEth.toFixed(4) ?? "0"}</div>
+                  <div className={styles.kpiValue}>
+                    <CountUp value={overview?.totalStakedEth ?? 0} decimals={4} suffix=" ETH" />
+                  </div>
                   <div className={styles.kpiSub}>ETH staked</div>
                 </div>
               </div>
@@ -170,14 +175,14 @@ export default function OperationsPage() {
             <div className={styles.kpiGroup}>
               <span className={styles.kpiGroupLabel}>Financials</span>
               <div className={styles.kpiGrid}>
-                <div className={styles.kpiCard}>
+                <div className={`${styles.kpiCard} stagger stagger-3 lift`}>
                   <div className={styles.kpiLabel}>Revenue Earned</div>
                   <div className={`${styles.kpiValue} ${(treasury?.net ?? 0) >= 0 ? styles.kpiPositive : styles.kpiNegative}`}>
                     {formatCurrency(treasury?.earned ?? 0)}
                   </div>
                   <div className={styles.kpiSub}>{treasury?.chargeCount ?? 0} charges</div>
                 </div>
-                <div className={styles.kpiCard}>
+                <div className={`${styles.kpiCard} stagger stagger-4 lift`}>
                   <div className={styles.kpiLabel}>Net P&amp;L</div>
                   <div className={`${styles.kpiValue} ${(treasury?.net ?? 0) >= 0 ? styles.kpiPositive : styles.kpiNegative}`}>
                     {formatCurrency(treasury?.net ?? 0)}

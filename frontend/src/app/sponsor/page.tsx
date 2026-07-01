@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Coins, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
+import { CountUp } from "@/components/CountUp";
 import styles from "./page.module.css";
 
 interface SponsorMilestone {
@@ -159,25 +160,25 @@ export default function SponsorDashboardPage() {
             )}
 
             <div className={styles.kpiGrid}>
-              <div className={styles.kpiCard}>
+              <div className={`${styles.kpiCard} stagger stagger-1 lift`}>
                 <div className={styles.kpiLabel}>Total Funded</div>
-                <div className={styles.kpiValue}>{totalCapital.toFixed(4)} ETH</div>
+                <div className={styles.kpiValue}><CountUp value={totalCapital} decimals={4} suffix=" ETH" /></div>
                 <div className={styles.kpiSub}>{summary?.totalMilestones ?? 0} milestones</div>
               </div>
-              <div className={styles.kpiCard}>
+              <div className={`${styles.kpiCard} stagger stagger-2 lift`}>
                 <div className={styles.kpiLabel}>Capital Released</div>
-                <div className={`${styles.kpiValue} ${styles.kpiPositive}`}>{totalReleased.toFixed(4)} ETH</div>
+                <div className={`${styles.kpiValue} ${styles.kpiPositive}`}><CountUp value={totalReleased} decimals={4} suffix=" ETH" /></div>
                 <div className={styles.kpiSub}>{summary?.releasedCount ?? 0} released</div>
               </div>
-              <div className={styles.kpiCard}>
+              <div className={`${styles.kpiCard} stagger stagger-3 lift`}>
                 <div className={styles.kpiLabel}>Capital Locked</div>
-                <div className={`${styles.kpiValue} ${styles.kpiNegative}`}>{totalLocked.toFixed(4)} ETH</div>
+                <div className={`${styles.kpiValue} ${styles.kpiNegative}`}><CountUp value={totalLocked} decimals={4} suffix=" ETH" /></div>
                 <div className={styles.kpiSub}>Awaiting verification</div>
               </div>
-              <div className={styles.kpiCard}>
+              <div className={`${styles.kpiCard} stagger stagger-4 lift`}>
                 <div className={styles.kpiLabel}>Verified Rate</div>
                 <div className={styles.kpiValue}>
-                  {summary?.totalMilestones ? Math.round((summary.verifiedCount / summary.totalMilestones) * 100) : 0}%
+                  <CountUp value={summary?.totalMilestones ? Math.round((summary.verifiedCount / summary.totalMilestones) * 100) : 0} suffix="%" />
                 </div>
                 <div className={styles.kpiSub}>{summary?.verifiedCount ?? 0} of {summary?.totalMilestones ?? 0}</div>
               </div>
@@ -192,8 +193,8 @@ export default function SponsorDashboardPage() {
               {milestones.length === 0 ? (
                 <div className={styles.emptyState}>No milestones funded yet.</div>
               ) : (
-                milestones.map((m) => (
-                  <div key={m.milestoneHash} className={styles.milestoneCard}>
+                milestones.map((m, i) => (
+                  <div key={m.milestoneHash} className={`${styles.milestoneCard} stagger stagger-${Math.min(i + 1, 6)} lift`}>
                     <div className={styles.milestoneHeader}>
                       <Link href={`/project/${m.milestoneHash}`} className={styles.milestoneHash}>
                         {shortHash(m.milestoneHash)}

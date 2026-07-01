@@ -30,7 +30,7 @@ export function MilestoneCard({ milestone, index = 0, swatchUrl }: MilestoneCard
     >
       <div className={styles.header}>
         <div className={styles.projectName}>{milestone.projectName}</div>
-        <div className={styles.state} style={{ backgroundColor: config.color }}>
+        <div className={`${styles.state} scale-in`} style={{ backgroundColor: config.color }}>
           {config.label}
         </div>
       </div>

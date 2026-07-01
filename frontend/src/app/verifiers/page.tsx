@@ -5,6 +5,7 @@ import { ArrowLeft, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
+import { CountUp } from "@/components/CountUp";
 import styles from "./page.module.css";
 
 interface Verifier {
@@ -88,19 +89,19 @@ export default function VerifiersPage() {
         {!isLoading && !error && (
           <>
             <div className={styles.kpiGrid}>
-              <div className={styles.kpiCard}>
+              <div className={`${styles.kpiCard} stagger stagger-1 lift`}>
                 <div className={styles.kpiLabel}>Active Verifiers</div>
-                <div className={styles.kpiValue}>{verifiers.length}</div>
+                <div className={styles.kpiValue}><CountUp value={verifiers.length} /></div>
                 <div className={styles.kpiSub}>authorized nodes</div>
               </div>
-              <div className={styles.kpiCard}>
+              <div className={`${styles.kpiCard} stagger stagger-2 lift`}>
                 <div className={styles.kpiLabel}>Total Votes</div>
-                <div className={styles.kpiValue}>{consensus?.totalVotes ?? 0}</div>
+                <div className={styles.kpiValue}><CountUp value={consensus?.totalVotes ?? 0} /></div>
                 <div className={styles.kpiSub}>verifier votes cast</div>
               </div>
-              <div className={styles.kpiCard}>
+              <div className={`${styles.kpiCard} stagger stagger-3 lift`}>
                 <div className={styles.kpiLabel}>Agreement Rate</div>
-                <div className={styles.kpiValue}>{consensus?.agreementRate ?? "0"}%</div>
+                <div className={styles.kpiValue}><CountUp value={Number(consensus?.agreementRate ?? 0)} suffix="%" /></div>
                 <div className={styles.kpiSub}>{consensus?.dissentFlags ?? 0} dissent flags</div>
               </div>
             </div>
@@ -135,8 +136,8 @@ export default function VerifiersPage() {
               {verifiers.length === 0 ? (
                 <div className={styles.emptyState}>No verifier nodes registered yet.</div>
               ) : (
-                verifiers.map((v) => (
-                  <div key={v.address} className={styles.verifierCard}>
+                verifiers.map((v, i) => (
+                  <div key={v.address} className={`${styles.verifierCard} stagger stagger-${Math.min(i + 1, 6)} lift`}>
                     <div className={styles.verifierAvatar}>
                       {(v.ens ?? v.address).slice(0, 2).toUpperCase()}
                     </div>
@@ -160,7 +161,7 @@ export default function VerifiersPage() {
                         <span className={styles.verifierStatLabel}>Milestones</span>
                       </div>
                     </div>
-                    {v.authorized && <span className={styles.authorizedBadge}>Authorized</span>}
+                    {v.authorized && <span className={`${styles.authorizedBadge} scale-in`}>Authorized</span>}
                   </div>
                 ))
               )}

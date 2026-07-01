@@ -11,6 +11,7 @@ import { AskWeft } from "@/components/AskWeft";
 import { ConsensusVisual } from "@/components/ConsensusVisual";
 import { TreasuryWidget } from "@/components/TreasuryWidget";
 import { HowItWorks } from "@/components/HowItWorks";
+import { Reveal } from "@/components/Reveal";
 import { useMilestones, useMilestone } from "@/hooks/useMilestones";
 import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
 import { useBuilderPassport } from "@/hooks/useBuilderPassport";
@@ -303,22 +304,22 @@ export default function Home() {
           ════════════════════════════════════════════════════════════════ */}
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
-          <div className={styles.eyebrow}>
+          <div className={`${styles.eyebrow} stagger stagger-1`}>
             <Bot size={15} />
             {overview?.pitch || "Autonomous milestone funding on 0G Chain"}
           </div>
-          <h1 className={styles.title}>
+          <h1 className={`${styles.title} stagger stagger-2`}>
             Autonomous escrow for{" "}
             <span className={styles.accent}>onchain builders.</span>
           </h1>
-          <p className={styles.subtitle}>
+          <p className={`${styles.subtitle} stagger stagger-3`}>
             A sponsor locks ETH behind a deliverable. The builder ships.
             AI agents verify the work onchain — deployment, usage, code activity.
             If 2 of 3 agents agree, capital releases instantly.
             No manual reviews. No chasing sponsors. No payment politics.
           </p>
 
-          <div className={styles.heroActions}>
+          <div className={`${styles.heroActions} stagger stagger-4`}>
             <Link href="/sponsor" className={styles.primaryAction}>
               Fund a milestone <ArrowRight size={16} />
             </Link>
@@ -328,7 +329,7 @@ export default function Home() {
           </div>
 
           {/* Live stats strip */}
-          <div className={styles.statsStrip}>
+          <div className={`${styles.statsStrip} stagger stagger-5`}>
             <StatCard value={1} label="Verified milestone" />
             <div className={styles.statDivider} />
             <StatCard value={"0.01"} label="ETH capital released" />
@@ -347,7 +348,7 @@ export default function Home() {
       {/* ════════════════════════════════════════════════════════════════
           THE PROBLEM — Why this matters
           ════════════════════════════════════════════════════════════════ */}
-      <section className={styles.problemSection} aria-label="The problem Weft solves">
+      <Reveal as="section" className={styles.problemSection}>
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>The problem</span>
@@ -379,12 +380,12 @@ export default function Home() {
             );
           })}
         </div>
-      </section>
+      </Reveal>
 
       {/* ════════════════════════════════════════════════════════════════
           HOW IT WORKS — 4-step visual
           ════════════════════════════════════════════════════════════════ */}
-      <section className={styles.howItWorksSection} id="how-it-works" aria-label="How Weft works">
+      <Reveal as="section" className={styles.howItWorksSection} delay={100}>
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>How it works</span>
@@ -392,12 +393,12 @@ export default function Home() {
           </div>
         </div>
         <HowItWorks />
-      </section>
+      </Reveal>
 
       {/* ════════════════════════════════════════════════════════════════
           SEE IT IN ACTION — hash lookup + live consensus
           ════════════════════════════════════════════════════════════════ */}
-      <section className={styles.demoSection} aria-label="See Weft in action">
+      <Reveal as="section" className={styles.demoSection} delay={100}>
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>Live demo</span>
@@ -421,12 +422,12 @@ export default function Home() {
             <AskWeft />
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* ════════════════════════════════════════════════════════════════
           THE AGENT RUNS A COMPANY — Treasury + autonomous ops
           ════════════════════════════════════════════════════════════════ */}
-      <section className={styles.agentSection} aria-label="The agent runs its own company">
+      <Reveal as="section" className={styles.agentSection} delay={100}>
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>Autonomous operations</span>
@@ -462,7 +463,7 @@ export default function Home() {
           </div>
           <TreasuryWidget />
         </div>
-      </section>
+      </Reveal>
 
       {/* ════════════════════════════════════════════════════════════════
           EVERY VERIFICATION BECOMES A STORY — Chronicle
@@ -473,7 +474,7 @@ export default function Home() {
           LIVE MILESTONES
           ════════════════════════════════════════════════════════════════ */}
       {milestoneHashes.length > 0 || verifiedOutcomeCount > 0 ? (
-        <section id="live-milestones" className={styles.section} aria-label="Milestones under verification and settlement">
+        <Reveal as="section" className={styles.section} delay={100}>
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>Live trust decisions</span>
@@ -523,12 +524,12 @@ export default function Home() {
                 </div>
               )}
         </div>
-      </section>) : null}
+      </Reveal>) : null}
 
       {/* ════════════════════════════════════════════════════════════════
           BOTTOM CTA — two paths
           ════════════════════════════════════════════════════════════════ */}
-      <section className={styles.bottomPanel}>
+      <Reveal as="section" className={styles.bottomPanel} delay={100}>
         <div className={styles.bottomCard}>
           <div className={styles.bottomHeader}>
             <Sparkles size={18} />
@@ -549,7 +550,7 @@ export default function Home() {
             </Link>
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* ── Pricing ── */}
       <div style={{

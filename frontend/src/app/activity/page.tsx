@@ -141,7 +141,7 @@ export default function ActivityPage() {
         {!isLoading && !error && filteredEvents.length > 0 && (
           <div className={styles.timeline}>
             {filteredEvents.map((event, i) => (
-              <div key={`${event.timestamp}-${i}`} className={`${styles.event} ${styles[`event${event.type.charAt(0).toUpperCase() + event.type.slice(1)}`]}`}>
+              <div key={`${event.timestamp}-${i}`} className={`${styles.event} ${styles[`event${event.type.charAt(0).toUpperCase() + event.type.slice(1)}`]} stagger stagger-${Math.min(i + 1, 6)}`}>
                 <div className={styles.eventHeader}>
                   <span className={styles.eventTitle}>
                     <span className={`${styles.eventType} ${styles[`type${event.type.charAt(0).toUpperCase() + event.type.slice(1)}`]}`}>
