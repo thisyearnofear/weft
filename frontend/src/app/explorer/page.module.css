@@ -91,7 +91,7 @@
   font-weight: 500;
   color: var(--c-text-2);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 200ms var(--ease-out), border-color 200ms var(--ease-out), color 200ms var(--ease-out);
 }
 
 .filterBtn:hover {
@@ -102,6 +102,34 @@
 .filterBtnActive {
   background: var(--c-accent);
   color: #fff;
+  border-color: var(--c-accent);
+}
+
+/* ── Search input ── */
+.searchWrap {
+  flex: 1;
+  min-width: 200px;
+  max-width: 360px;
+  margin-left: auto;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  outline: none;
+  background: var(--c-surface);
+  color: var(--c-text);
+  transition: border-color 200ms var(--ease-out);
+}
+
+.searchInput::placeholder {
+  color: var(--c-text-3);
+}
+
+.searchInput:focus {
   border-color: var(--c-accent);
 }
 
@@ -147,7 +175,7 @@
 }
 
 .table tr {
-  transition: background 0.1s ease;
+  transition: background 150ms var(--ease-out);
 }
 
 .tableRow:hover {

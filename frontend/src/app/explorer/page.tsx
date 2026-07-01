@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { ArrowLeft, Search } from "lucide-react";
 import { useExplorerMilestones } from "@/hooks/useExplorer";
+import { CountUp } from "@/components/CountUp";
 import styles from "./page.module.css";
 
 type StatusFilter = "all" | "verified" | "pending" | "failed";
@@ -91,20 +92,20 @@ export default function ExplorerPage() {
 
         {/* Stats bar */}
         <div className={styles.statsBar}>
-          <div className={styles.stat}>
-            <span className={styles.statValue}>{stats.total}</span>
+          <div className={`${styles.stat} stagger stagger-1 lift`}>
+            <span className={styles.statValue}><CountUp value={stats.total} /></span>
             <span className={styles.statLabel}>Total Milestones</span>
           </div>
-          <div className={styles.stat}>
-            <span className={styles.statValue}>{stats.verified}</span>
+          <div className={`${styles.stat} stagger stagger-2 lift`}>
+            <span className={styles.statValue}><CountUp value={stats.verified} /></span>
             <span className={styles.statLabel}>Verified</span>
           </div>
-          <div className={styles.stat}>
-            <span className={styles.statValue}>{stats.totalStaked.toFixed(4)}</span>
+          <div className={`${styles.stat} stagger stagger-3 lift`}>
+            <span className={styles.statValue}><CountUp value={stats.totalStaked} decimals={4} suffix=" ETH" /></span>
             <span className={styles.statLabel}>ETH Staked</span>
           </div>
-          <div className={styles.stat}>
-            <span className={styles.statValue}>{stats.pending}</span>
+          <div className={`${styles.stat} stagger stagger-4 lift`}>
+            <span className={styles.statValue}><CountUp value={stats.pending} /></span>
             <span className={styles.statLabel}>Pending</span>
           </div>
         </div>
@@ -122,22 +123,13 @@ export default function ExplorerPage() {
               {btn.label} ({btn.count})
             </button>
           ))}
-          <div style={{ flex: 1, minWidth: 200, maxWidth: 360, marginLeft: "auto" }}>
+          <div className={styles.searchWrap}>
             <input
               type="text"
+              className={styles.searchInput}
               placeholder="Search by hash, builder, or ENS..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "0.5rem 0.85rem",
-                border: "1px solid rgba(25, 37, 56, 0.12)",
-                borderRadius: 8,
-                fontSize: "0.85rem",
-                outline: "none",
-                background: "#fff",
-                color: "#162033",
-              }}
             />
           </div>
         </div>
@@ -177,8 +169,8 @@ export default function ExplorerPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((m) => (
-                  <tr key={m.milestoneHash} className={styles.tableRow}>
+                {filtered.map((m, i) => (
+                  <tr key={m.milestoneHash} className={`${styles.tableRow} stagger stagger-${Math.min(i + 1, 6)}`}>
                     <td>
                       <Link
                         href={`/project/${m.milestoneHash}`}
@@ -190,7 +182,7 @@ export default function ExplorerPage() {
                     </td>
                     <td>
                       <span
-                        className={`${styles.statusBadge} ${
+                        className={`${styles.statusBadge} scale-in ${
                           m.state === "verified"
                             ? styles.statusVerified
                             : m.state === "pending"
