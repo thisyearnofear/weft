@@ -1,0 +1,157 @@
+[
+  {
+    "id": "TC001",
+    "title": "Landing page loads with hero title",
+    "description": "Verify the landing page loads and shows the hero title containing 'Escrow'",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      { "type": "action", "description": "Navigate to http://localhost:3001" },
+      { "type": "assertion", "description": "Verify an h1 element is visible" },
+      { "type": "assertion", "description": "Verify the h1 text contains 'Escrow'" },
+      { "type": "assertion", "description": "Verify a text input with placeholder containing 'milestone hash' is visible" }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Navigation links are visible and functional",
+    "description": "Verify all navigation links are present in the header",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      { "type": "action", "description": "Navigate to http://localhost:3001" },
+      { "type": "assertion", "description": "Verify a link with text 'Explorer' is visible" },
+      { "type": "assertion", "description": "Verify a link with text 'Operations' is visible" },
+      { "type": "assertion", "description": "Verify a link with text 'Sponsor' is visible" },
+      { "type": "assertion", "description": "Verify a link with text 'Activity' is visible" },
+      { "type": "assertion", "description": "Verify a link with text 'Verifiers' is visible" }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Explorer page loads with milestone table",
+    "description": "Verify the Explorer page loads and shows a table of milestones",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      { "type": "action", "description": "Navigate to http://localhost:3001/explorer" },
+      { "type": "assertion", "description": "Verify the page title contains 'Explorer' or 'milestone'" },
+      { "type": "assertion", "description": "Verify a table element is visible or milestone cards are shown" },
+      { "type": "assertion", "description": "Verify at least one milestone row or card is visible" }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Explorer filter buttons work",
+    "description": "Verify the status filter buttons are visible on the Explorer page",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      { "type": "action", "description": "Navigate to http://localhost:3001/explorer" },
+      { "type": "assertion", "description": "Verify filter buttons are visible (All, Verified, Pending)" }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Operations dashboard loads with KPIs",
+    "description": "Verify the Operations page loads and shows KPI cards",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      { "type": "action", "description": "Navigate to http://localhost:3001/operations" },
+      { "type": "assertion", "description": "Verify the page title contains 'operations' or 'open books'" },
+      { "type": "assertion", "description": "Verify KPI cards or values are visible" },
+      { "type": "assertion", "description": "Verify a Refresh button is visible" }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Sponsor dashboard loads with capital flow",
+    "description": "Verify the Sponsor page loads and shows capital flow data",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      { "type": "action", "description": "Navigate to http://localhost:3001/sponsor" },
+      { "type": "assertion", "description": "Verify the page title contains 'capital'" },
+      { "type": "assertion", "description": "Verify KPI cards are visible" },
+      { "type": "assertion", "description": "Verify a Refresh button is visible" }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Activity feed loads with timeline",
+    "description": "Verify the Activity page loads and shows a timeline of events",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      { "type": "action", "description": "Navigate to http://localhost:3001/activity" },
+      { "type": "assertion", "description": "Verify the page title contains 'timestamped' or 'activity'" },
+      { "type": "assertion", "description": "Verify timeline events are visible" },
+      { "type": "assertion", "description": "Verify a Refresh button is visible" }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Verifier network page loads",
+    "description": "Verify the Verifiers page loads and shows verifier network data",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      { "type": "action", "description": "Navigate to http://localhost:3001/verifiers" },
+      { "type": "assertion", "description": "Verify the page title contains 'swarm' or 'verifier'" },
+      { "type": "assertion", "description": "Verify KPI cards are visible" },
+      { "type": "assertion", "description": "Verify a Refresh button is visible" }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "API docs page loads",
+    "description": "Verify the API documentation page loads and shows endpoint documentation",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      { "type": "action", "description": "Navigate to http://localhost:3001/api/docs" },
+      { "type": "assertion", "description": "Verify the page contains 'API' or 'endpoint'" },
+      { "type": "assertion", "description": "Verify at least one endpoint is documented on the page" }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Recovery page loads with timeline",
+    "description": "Verify the Recovery page loads and shows the chaos recovery demo",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      { "type": "action", "description": "Navigate to http://localhost:3001/recovery" },
+      { "type": "assertion", "description": "Verify the page loads without error" },
+      { "type": "assertion", "description": "Verify recovery-related content is visible" }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Builder lookup page loads",
+    "description": "Verify the Builder lookup page loads with a search input",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      { "type": "action", "description": "Navigate to http://localhost:3001/builder" },
+      { "type": "assertion", "description": "Verify the page loads without error" },
+      { "type": "assertion", "description": "Verify a search input or lookup form is visible" }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "All pages return HTTP 200",
+    "description": "Verify all main pages return HTTP 200 status code",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      { "type": "action", "description": "Navigate to http://localhost:3001/" },
+      { "type": "assertion", "description": "Verify the page loads successfully (no error page)" },
+      { "type": "action", "description": "Navigate to http://localhost:3001/explorer" },
+      { "type": "assertion", "description": "Verify the page loads successfully" },
+      { "type": "action", "description": "Navigate to http://localhost:3001/operations" },
+      { "type": "assertion", "description": "Verify the page loads successfully" }
+    ]
+  }
+]

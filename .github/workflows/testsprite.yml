@@ -30,7 +30,7 @@ jobs:
       - name: Run backend API tests
         env:
           TESTSPRITE_API_KEY: ${{ secrets.TESTSPRITE_API_KEY }}
-          BACKEND_PROJECT_ID: "1f6f51ae-f210-4d01-bdae-9b2e72a2e412"
+          BACKEND_PROJECT_ID: ${{ secrets.TESTSPRITE_BACKEND_PROJECT_ID }}
         run: |
           testsprite test rerun --all --project "$BACKEND_PROJECT_ID" --wait --output json
 
@@ -48,3 +48,10 @@ jobs:
         with:
           name: testsprite-failure-bundles
           path: .testsprite/failures/
+
+      - name: Upload MCP test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testsprite-mcp-report
+          path: frontend/testsprite_tests/testsprite-mcp-test-report.html

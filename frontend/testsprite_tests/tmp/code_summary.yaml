@@ -1,0 +1,248 @@
+version: "2"
+type: frontend
+tech_stack:
+  - TypeScript
+  - Next.js 16 (App Router, Turbopack)
+  - React 19
+  - TanStack React Query
+  - Wagmi v2 + RainbowKit (wallet connection)
+  - CSS Modules
+  - lucide-react (icons)
+routes:
+  - path: /
+    file: src/app/page.tsx
+    auth_required: false
+    description: Landing page with hero, milestone hash lookup, live demo, and CTA
+  - path: /explorer
+    file: src/app/explorer/page.tsx
+    auth_required: false
+    description: Filterable table of all verified milestones with search and status filters
+  - path: /operations
+    file: src/app/operations/page.tsx
+    auth_required: false
+    description: Agent operations dashboard with KPIs, financial ledger, verification log, and infrastructure health
+  - path: /sponsor
+    file: src/app/sponsor/page.tsx
+    auth_required: false
+    description: Sponsor dashboard showing capital flow, funded milestones, and verification status
+  - path: /activity
+    file: src/app/activity/page.tsx
+    auth_required: false
+    description: Chronological timeline of all agent actions (verifications, charges, revenue, milestones)
+  - path: /verifiers
+    file: src/app/verifiers/page.tsx
+    auth_required: false
+    description: Verifier network page showing authorized nodes, votes cast, and consensus agreement rate
+  - path: /builder
+    file: src/app/builder/page.tsx
+    auth_required: false
+    description: Builder lookup page with ENS name search
+  - path: /builder/[ens]
+    file: src/app/builder/[ens]/page.tsx
+    auth_required: false
+    description: Builder reputation profile from ENS text records (trust score, verified outcomes, milestone history)
+  - path: /project/[id]
+    file: src/app/project/[id]/page.tsx
+    auth_required: false
+    description: Milestone detail page with evidence breakdown, verifier votes, and onchain state
+  - path: /create-milestone
+    file: src/app/create-milestone/page.tsx
+    auth_required: false
+    description: Milestone creation form
+  - path: /recovery
+    file: src/app/recovery/page.tsx
+    auth_required: false
+    description: Chaos engineering demo page showing fault injection, recovery timeline, and verdict landing
+  - path: /api/docs
+    file: src/app/api/docs/page.tsx
+    auth_required: false
+    description: Interactive API reference documenting 12 public REST endpoints
+  - path: /milestone/[hash]/story
+    file: src/app/milestone/[hash]/story/page.tsx
+    auth_required: false
+    description: Milestone story page with narrative timeline
+features:
+  - name: Landing Page with Milestone Lookup
+    description: Hero section with milestone hash input, live demo CTA, and navigation to all surfaces
+    files:
+      - src/app/page.tsx
+      - src/app/layout.tsx
+      - src/components/Nav.tsx
+    entry_route: /
+    user_interactions:
+      - Read hero title and subtitle
+      - Paste a milestone hash into the search input
+      - Click Submit to navigate to milestone detail page
+      - Click navigation links to Explorer, Operations, Sponsor, Activity, Verifiers, Builder, API, Resilience
+      - Click Fund a milestone CTA button
+      - Toggle mobile hamburger menu on small screens
+    api_calls:
+      - method: GET
+        endpoint: /api/status/demo
+    auth_required: false
+  - name: Verification Explorer
+    description: Filterable table of all verified milestones with status filters, search, and links to detail pages
+    files:
+      - src/app/explorer/page.tsx
+      - src/app/explorer/page.module.css
+    entry_route: /explorer
+    user_interactions:
+      - View stats bar (total milestones, verified count, ETH staked, pending count)
+      - Click status filter buttons (All, Verified, Pending, Failed)
+      - Type in search box to filter by hash, builder, or ENS
+      - Click milestone hash link to navigate to project detail page
+      - Click builder ENS link to navigate to builder profile
+      - Scroll table horizontally on mobile
+    api_calls:
+      - method: GET
+        endpoint: /api/explorer/milestones
+    auth_required: false
+  - name: Agent Operations Dashboard
+    description: Operations dashboard with KPI cards, financial ledger, verification log, and infrastructure health
+    files:
+      - src/app/operations/page.tsx
+      - src/app/operations/page.module.css
+    entry_route: /operations
+    user_interactions:
+      - View KPI cards (milestones verified, ETH earned, infrastructure status)
+      - Scroll through financial ledger with Stripe charges
+      - View verification log with builder ENS and timestamps
+      - Click Refresh button to refetch data
+      - View loading skeletons while data loads
+    api_calls:
+      - method: GET
+        endpoint: /api/operations
+    auth_required: false
+  - name: Sponsor Dashboard
+    description: Capital flow visualization with KPI cards, funded milestones, and verification status
+    files:
+      - src/app/sponsor/page.tsx
+      - src/app/sponsor/page.module.css
+    entry_route: /sponsor
+    user_interactions:
+      - View KPI cards (Total Funded, Capital Released, Capital Locked, Refundable)
+      - View capital flow progress bar with Released vs Locked breakdown
+      - Scroll through funded milestones list with status badges
+      - Click Refresh button to refetch data
+    api_calls:
+      - method: GET
+        endpoint: /api/sponsor
+    auth_required: false
+  - name: Activity Feed
+    description: Chronological timeline of all agent actions with event type badges and timestamps
+    files:
+      - src/app/activity/page.tsx
+      - src/app/activity/page.module.css
+    entry_route: /activity
+    user_interactions:
+      - Scroll through chronological activity timeline
+      - View event type badges (Verification, Spend, Revenue, Chaos, Milestone, Consensus)
+      - Read event descriptions with timestamps
+      - Click Refresh button to refetch data
+    api_calls:
+      - method: GET
+        endpoint: /api/activity
+    auth_required: false
+  - name: Verifier Network
+    description: Verifier network page showing authorized nodes, votes cast, consensus agreement rate, and peer inbox status
+    files:
+      - src/app/verifiers/page.tsx
+      - src/app/verifiers/page.module.css
+    entry_route: /verifiers
+    user_interactions:
+      - View KPI cards (Active Verifiers, Total Votes, Agreement Rate, Dissent Flags)
+      - View verifier node list with addresses, ENS names, and vote counts
+      - View consensus participation section
+      - Click Refresh button to refetch data
+    api_calls:
+      - method: GET
+        endpoint: /api/verifiers
+    auth_required: false
+  - name: Builder Reputation Profile
+    description: Builder profile page aggregating ENS text records into trust score, verified outcomes, and milestone history
+    files:
+      - src/app/builder/[ens]/page.tsx
+      - src/app/builder/page.tsx
+    entry_route: /builder
+    user_interactions:
+      - Type an ENS name in the lookup input
+      - Click Lookup to navigate to builder profile
+      - View trust signal, verified outcomes, and capital unlocked
+      - Scroll through milestone history with evidence links
+    api_calls:
+      - method: GET
+        endpoint: /api/ens/[name]
+    auth_required: false
+  - name: Milestone Detail Page
+    description: Individual milestone detail with evidence breakdown, verifier votes, evidence root, and onchain state
+    files:
+      - src/app/project/[id]/page.tsx
+      - src/app/project/[id]/loading.tsx
+    entry_route: /project/[id]
+    user_interactions:
+      - View milestone status badge (Verified, Pending, Failed)
+      - View stake amount, builder address, deadline
+      - View evidence breakdown (deployment, usage, GitHub)
+      - View verifier votes and consensus status
+      - View onchain cross-check data
+    api_calls:
+      - method: GET
+        endpoint: /api/status/milestone/[hash]
+    auth_required: false
+  - name: Chaos Recovery Demo
+    description: Interactive chaos engineering demo showing fault injection, recovery timeline, and verdict landing
+    files:
+      - src/app/recovery/page.tsx
+      - src/app/recovery/page.module.css
+    entry_route: /recovery
+    user_interactions:
+      - View recovery timeline with fault events
+      - Click Inject Fault button to trigger chaos
+      - Watch recovery progress animation
+      - View verdict landing status
+      - Toggle dark/light theme
+    api_calls:
+      - method: GET
+        endpoint: /api/recovery
+    auth_required: false
+  - name: API Documentation
+    description: Interactive API reference page documenting 12 public REST endpoints with example curl commands
+    files:
+      - src/app/api/docs/page.tsx
+    entry_route: /api/docs
+    user_interactions:
+      - Browse list of API endpoints
+      - Read endpoint descriptions and parameters
+      - Copy example curl commands
+      - Click try-it links to open endpoints in browser
+    auth_required: false
+  - name: Wallet Connection
+    description: Connect Ethereum wallet via RainbowKit for onchain interactions
+    files:
+      - src/components/ConnectButton.tsx
+      - src/lib/providers.tsx
+    entry_route: /
+    user_interactions:
+      - Click Connect Wallet button in header
+      - Select wallet provider from RainbowKit modal
+      - View connected address in header
+      - Click disconnect to disconnect wallet
+    auth_required: false
+  - name: Mobile Navigation
+    description: Responsive hamburger menu for mobile navigation
+    files:
+      - src/components/Nav.tsx
+      - src/components/Nav.module.css
+    entry_route: /
+    user_interactions:
+      - Click hamburger menu button on mobile screens
+      - View expanded navigation drawer with all page links
+      - Click a link to navigate and close menu
+    auth_required: false
+known_limitations:
+  - issue: Wallet connection is optional and not required for any page
+    location: src/lib/providers.tsx
+    impact: All pages are viewable without connecting a wallet
+  - issue: Milestone creation form exists but contract interaction requires backend daemon
+    location: src/app/create-milestone/page.tsx
+    impact: Form submission does not directly create onchain milestones
