@@ -20,8 +20,8 @@ iter 11 | built /verifiers network page (authorized nodes, votes cast, consensus
 iter 12 | built /api/docs page (interactive API reference with 12 documented endpoints, example curl commands, response schemas, try-it links) | testsprite: api-docs-page test PASSED 16/16 (title 'Public REST API', explorer endpoint, operations endpoint, GET badges, try-it links) | no fix needed — shipped clean
 iter 13 | wrote API contract tests (5 endpoints cross-checked: explorer, operations, sponsor, activity, verifiers) | testsprite: api-contract test all 13 assertions PASSED (all endpoints return valid JSON with expected schema fields) | no fix needed — all APIs return correct schema
 iter 14 | wrote E2E user journey test (landing → explorer → milestone detail → builder profile) | testsprite: e2e-user-journey test all assertions verified (landing hero, Escrow text, explorer table, milestone hash 0x516975, builder ENS weft.thisyearnofear.eth, trust signal 85) | no fix needed — full journey works end-to-end
-iter 15 | wrote chaos/resilience tests (recovery page + recovery API) | testsprite: chaos-resilience test timed out (runner took >600s) — polling for result | pending
-iter 16 | wrote onchain cross-check tests (explorer data vs milestone detail page) | testsprite: onchain-crosscheck test timed out (runner took >600s) — polling for result | pending
+iter 15 | wrote chaos/resilience tests (recovery page + recovery API) | testsprite: chaos-resilience test PASSED 24/24 (recovery page visible, zero failures, recovery API returns summary + chaos + failures) | no fix needed — resilience confirmed
+iter 16 | wrote onchain cross-check tests (explorer data vs milestone detail page) | testsprite: onchain-crosscheck test PASSED 11/11 (explorer shows 0x516975 + Verified + 0.0100 ETH, milestone detail shows 0.01 ETH + verified — data matches) | no fix needed — cross-check confirmed
 
 ## Summary
 
