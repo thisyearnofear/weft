@@ -11,6 +11,7 @@ interface MilestoneCardProps {
   milestone: Milestone;
   index?: number;
   swatchUrl?: string | null;
+  confidential?: boolean;
 }
 
 const STATE_CONFIG: Record<MilestoneState, { label: string; color: string }> = {
@@ -19,7 +20,7 @@ const STATE_CONFIG: Record<MilestoneState, { label: string; color: string }> = {
   failed: { label: "Failed", color: "#ef4444" },
 };
 
-export function MilestoneCard({ milestone, index = 0, swatchUrl }: MilestoneCardProps) {
+export function MilestoneCard({ milestone, index = 0, swatchUrl, confidential = false }: MilestoneCardProps) {
   const cardRef = useRef<HTMLAnchorElement>(null);
   const config = STATE_CONFIG[milestone.state];
 
@@ -63,7 +64,10 @@ export function MilestoneCard({ milestone, index = 0, swatchUrl }: MilestoneCard
       aria-label={`${milestone.projectName} — ${config.label}`}
     >
       <div className={styles.header}>
-        <div className={styles.projectName}>{milestone.projectName}</div>
+        <div className={styles.projectName}>
+          {milestone.projectName}
+          {confidential && <span className={styles.confidentialBadge}>Confidential</span>}
+        </div>
         <div className={`${styles.state} scale-in`} style={{ backgroundColor: config.color }}>
           {config.label}
         </div>
@@ -89,7 +93,7 @@ export function MilestoneCard({ milestone, index = 0, swatchUrl }: MilestoneCard
           />
         </div>
         <div className={styles.progressLabel}>
-          <span>{milestone.totalStaked} ETH staked</span>
+          <span>{confidential ? "Confidential" : `${milestone.totalStaked} ETH staked`}</span>
           <span>{formatDeadline(milestone.deadline)}</span>
         </div>
       </div>
@@ -116,7 +120,9 @@ export function MilestoneCard({ milestone, index = 0, swatchUrl }: MilestoneCard
         <div className={styles.verifiers}>
           {milestone.verifierCount > 0 && (
             <span className={styles.verifierCount}>
-              {milestone.verifiedVotes}/{milestone.verifierCount} verifier{milestone.verifierCount !== 1 ? "s" : ""}
+              {confidential
+                ? "Sealed ballot"
+                : `${milestone.verifiedVotes}/${milestone.verifierCount} verifier${milestone.verifierCount !== 1 ? "s" : ""}`}
             </span>
           )}
         </div>

@@ -15,6 +15,7 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [deadlineDays, setDeadlineDays] = useState(14);
+  const [confidential, setConfidential] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [milestoneHash, setMilestoneHash] = useState<string | null>(null);
 
@@ -198,6 +199,21 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
           <option value={30}>Deadline: 30 days</option>
           <option value={60}>Deadline: 60 days</option>
         </select>
+      </div>
+
+      <div className={styles.inputGroup}>
+        <label className={styles.checkboxLabel}>
+          <input
+            type="checkbox"
+            checked={confidential}
+            onChange={(e) => setConfidential(e.target.checked)}
+            className={styles.checkbox}
+          />
+          Make this milestone confidential
+          <span className={styles.checkboxHint}>
+            Sealed-ballot verifier consensus + encrypted stake amounts (Zama FHE)
+          </span>
+        </label>
       </div>
 
       <button

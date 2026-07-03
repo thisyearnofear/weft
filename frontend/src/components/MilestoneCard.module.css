@@ -97,6 +97,20 @@
   letter-spacing: 0.05em;
 }
 
+.confidentialBadge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--c-accent);
+  background: var(--c-accent-20);
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+}
+
 .description {
   color: var(--c-text-secondary);
   font-size: 0.875rem;

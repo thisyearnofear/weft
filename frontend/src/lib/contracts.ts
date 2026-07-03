@@ -3,6 +3,7 @@ import { mainnet, base, sepolia } from "wagmi/chains";
 import { Address } from "viem";
 
 import WeftMilestoneAbi from "./abis/WeftMilestone.json";
+import WeftMilestoneConfidentialAbi from "./abis/WeftMilestoneConfidential.json";
 import VerifierRegistryAbi from "./abis/VerifierRegistry.json";
 
 export const zeroGTestnet = defineChain({
@@ -26,6 +27,7 @@ export const WEFT_CHAINS = {
 export const CONTRACT_ADDRESSES = {
   sepolia: {
     weftMilestone: process.env.NEXT_PUBLIC_WEFT_MILESTONE_SEPOLIA as Address,
+    weftMilestoneConfidential: process.env.NEXT_PUBLIC_WEFT_MILESTONE_CONFIDENTIAL_SEPOLIA as Address,
     verifierRegistry: process.env.NEXT_PUBLIC_VERIFIER_REGISTRY_SEPOLIA as Address,
   },
   baseSepolia: {
@@ -54,4 +56,4 @@ export function getAddresses(chain: ChainName = DEFAULT_CHAIN) {
   return CONTRACT_ADDRESSES[chain];
 }
 
-export { WeftMilestoneAbi, VerifierRegistryAbi };
+export { WeftMilestoneAbi, WeftMilestoneConfidentialAbi, VerifierRegistryAbi };
