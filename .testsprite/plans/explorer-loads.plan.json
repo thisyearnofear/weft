@@ -1,5 +1,5 @@
 {
-  "projectId": "498234da-24b8-4311-9fdf-879ad0a0df3a",
+  "projectId": "6121d8fe-a142-48e1-8522-585c22f6099d",
   "type": "frontend",
   "name": "Explorer page loads with milestone table",
   "description": "The /explorer page loads, shows the title, stats bar, and at least one milestone in the table.",

@@ -1,0 +1,110 @@
+/* ── Chronicle scroll-rig layout ────────────────── */
+
+.rig {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 2.5rem;
+  align-items: start;
+  transition: background-color 0.6s var(--ease-out);
+  border-radius: var(--radius-lg);
+}
+
+/* Pinned visual panel — desktop only */
+.visual {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.weaveSvg {
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  overflow: visible;
+}
+
+/* Scrolling chapters — right column */
+.chapters {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+/* Chapter card */
+.chapter {
+  padding: 2rem;
+  border-left: 3px solid rgba(139, 92, 246, 0.3);
+  border-radius: 0 12px 12px 0;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.chapterHeading {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chapterNum {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #a78bfa;
+  font-weight: 500;
+}
+
+.chapterBody {
+  color: var(--muted, #ccc);
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+.chapterBody p {
+  margin: 0 0 0.75rem;
+}
+
+.chapterBody p:last-child {
+  margin-bottom: 0;
+}
+
+/* Epilogue */
+.epilogue {
+  padding: 2rem;
+  border-radius: 12px;
+  background: rgba(139, 92, 246, 0.06);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+.epilogueHeading {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  color: #a78bfa;
+}
+
+.epilogue p {
+  color: var(--muted, #ccc);
+  line-height: 1.7;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* ── Mobile: single column, visual hidden ──────── */
+@media (max-width: 768px) {
+  .rig {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .visual {
+    display: none;
+  }
+
+  .chapters {
+    gap: 2rem;
+  }
+}

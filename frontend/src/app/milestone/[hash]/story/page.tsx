@@ -4,8 +4,8 @@ import React, { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, Loader2, Sparkles } from "lucide-react";
 import { useStatusMilestone } from "../../../../hooks/useStatusApi";
-import { Reveal } from "@/components/Reveal";
 import { ReadingProgress } from "@/components/ReadingProgress";
+import { ChronicleScrollRig } from "@/components/ChronicleScrollRig";
 import styles from "./page.module.css";
 
 interface Chapter {
@@ -146,26 +146,11 @@ export default function StoryPage({ params }: { params: Promise<{ hash: string }
           <article ref={articleRef} className={styles.chronicle}>
             <h2 className={styles.chronicleTitle}>{chronicle.title}</h2>
 
-            {chronicle.chapters.map((ch, i) => (
-              <Reveal key={i} as="section" delay={i * 90} className={styles.chapter}>
-                <h3 className={styles.chapterHeading}>
-                  <span className={styles.chapterNum}>Chapter {i + 1}</span>
-                  {ch.heading}
-                </h3>
-                <div className={styles.chapterBody}>
-                  {ch.body.split("\n").map((p, j) => (
-                    <p key={j}>{p}</p>
-                  ))}
-                </div>
-              </Reveal>
-            ))}
-
-            {chronicle.epilogue && (
-              <Reveal as="section" delay={chronicle.chapters.length * 90} className={styles.epilogue}>
-                <h3 className={styles.epilogueHeading}>Epilogue</h3>
-                <p>{chronicle.epilogue}</p>
-              </Reveal>
-            )}
+            <ChronicleScrollRig
+              chapters={chronicle.chapters}
+              epilogue={chronicle.epilogue}
+              isVerified={isVerified}
+            />
 
             {chronicle.confidence > 0 && (
               <div className={styles.confidence}>
