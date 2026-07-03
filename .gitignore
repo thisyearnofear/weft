@@ -60,3 +60,10 @@ out/
 .blackboxcli/
 .output.txt
 .claude/
+
+# Demo recordings (keep locally, never commit binaries / presigned URLs)
+weft-demo-recording.mp4
+weft-demo-project.mp4
+weft-demo-recording-url.txt
+assets/demo-recording.webm
+assets/weft-demo-hackathon.mp4

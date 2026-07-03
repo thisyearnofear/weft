@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, Loader2, Sparkles } from "lucide-react";
 import { useStatusMilestone } from "../../../../hooks/useStatusApi";
+import { Reveal } from "@/components/Reveal";
+import { ReadingProgress } from "@/components/ReadingProgress";
 import styles from "./page.module.css";
 
 interface Chapter {
@@ -31,6 +33,7 @@ export default function StoryPage({ params }: { params: Promise<{ hash: string }
   const [error, setError] = useState<string | null>(null);
 
   const didAutoTrigger = React.useRef(false);
+  const articleRef = useRef<HTMLElement>(null);
 
   // Hydrate from localStorage cache on mount; auto-generate if no cache
   React.useEffect(() => {
@@ -78,6 +81,7 @@ export default function StoryPage({ params }: { params: Promise<{ hash: string }
 
   return (
     <div className={styles.container}>
+      <ReadingProgress targetRef={articleRef} />
       <div className={styles.shell}>
         <div className={styles.topNav}>
           <Link href={`/project/${milestoneHash}`} className={styles.backLink}>
@@ -139,11 +143,11 @@ export default function StoryPage({ params }: { params: Promise<{ hash: string }
         )}
 
         {chronicle && (
-          <article className={styles.chronicle}>
+          <article ref={articleRef} className={styles.chronicle}>
             <h2 className={styles.chronicleTitle}>{chronicle.title}</h2>
 
             {chronicle.chapters.map((ch, i) => (
-              <section key={i} className={styles.chapter}>
+              <Reveal key={i} as="section" delay={i * 90} className={styles.chapter}>
                 <h3 className={styles.chapterHeading}>
                   <span className={styles.chapterNum}>Chapter {i + 1}</span>
                   {ch.heading}
@@ -153,14 +157,14 @@ export default function StoryPage({ params }: { params: Promise<{ hash: string }
                     <p key={j}>{p}</p>
                   ))}
                 </div>
-              </section>
+              </Reveal>
             ))}
 
             {chronicle.epilogue && (
-              <section className={styles.epilogue}>
+              <Reveal as="section" delay={chronicle.chapters.length * 90} className={styles.epilogue}>
                 <h3 className={styles.epilogueHeading}>Epilogue</h3>
                 <p>{chronicle.epilogue}</p>
-              </section>
+              </Reveal>
             )}
 
             {chronicle.confidence > 0 && (

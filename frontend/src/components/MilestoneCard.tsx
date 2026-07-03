@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import type { Milestone, MilestoneState } from "../lib/mock-data";
 import { formatDeadline } from "../lib/mock-data";
 import styles from "./MilestoneCard.module.css";
+import { useProximity } from "@/hooks/useProximity";
 
 interface MilestoneCardProps {
   milestone: Milestone;
@@ -18,10 +20,42 @@ const STATE_CONFIG: Record<MilestoneState, { label: string; color: string }> = {
 };
 
 export function MilestoneCard({ milestone, index = 0, swatchUrl }: MilestoneCardProps) {
+  const cardRef = useRef<HTMLAnchorElement>(null);
   const config = STATE_CONFIG[milestone.state];
+
+  // Cursor-proximity feedback — desktop + motion-OK only (no-op otherwise)
+  useProximity(cardRef, { radius: 160, tilt: 5 });
+
+  // One-shot glow when a verified card scrolls into view
+  useEffect(() => {
+    if (milestone.state !== "verified") return;
+    const el = cardRef.current;
+    if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          el.animate(
+            [
+              { boxShadow: "0 0 0 0 rgba(34, 197, 94, 0)" },
+              { boxShadow: "0 0 32px 2px rgba(34, 197, 94, 0.35)" },
+              { boxShadow: "0 0 0 0 rgba(34, 197, 94, 0)" },
+            ],
+            { duration: 1400, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+          );
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.45 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [milestone.state]);
 
   return (
     <Link
+      ref={cardRef}
       href={`/project/${milestone.hash}`}
       className={styles.card}
       style={{ animationDelay: `${index * 0.1}s` }}

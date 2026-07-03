@@ -1,4 +1,11 @@
 .card {
+  /* Proximity-feedback vars (set by useProximity hook; defaults = no effect) */
+  --prox: 0;
+  --mx: 50%;
+  --my: 50%;
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+
   background: var(--c-surface);
   border: 1px solid var(--c-border);
   border-radius: 8px;
@@ -6,16 +13,22 @@
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  opacity: 0;
-  transform: translateY(40px) scale(0.95);
-  animation: cardEntrance 0.6s var(--ease-out) forwards;
-  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+  isolation: isolate;
+  opacity: 1;
+  transform: translateY(0) scale(1) perspective(800px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+  animation: cardEntrance 0.6s var(--ease-out) backwards;
+  transition: transform 0.2s var(--ease-out), box-shadow 0.3s var(--ease-out);
+  box-shadow: 0 0 calc(var(--prox) * 30px) rgba(59, 130, 246, calc(var(--prox) * 0.18));
   text-decoration: none;
   color: inherit;
   display: block;
 }
 
 @keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -23,8 +36,25 @@
 }
 
 .card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px) scale(1) perspective(800px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+  box-shadow: var(--shadow-lg), 0 0 calc(var(--prox) * 40px) rgba(59, 130, 246, calc(var(--prox) * 0.22));
+}
+
+/* Cursor-following spotlight (proximity feedback) — sits above the card
+   background, below the in-flow text (isolation: isolate + z-index: -1) */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle 180px at var(--mx, 50%) var(--my, 50%),
+    rgba(255, 255, 255, 0.06),
+    transparent 65%
+  );
+  opacity: var(--prox, 0);
+  transition: opacity 0.2s var(--ease-out);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .card::before {
