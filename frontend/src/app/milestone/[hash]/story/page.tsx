@@ -35,23 +35,6 @@ export default function StoryPage({ params }: { params: Promise<{ hash: string }
   const didAutoTrigger = React.useRef(false);
   const articleRef = useRef<HTMLElement>(null);
 
-  // Hydrate from localStorage cache on mount; auto-generate if no cache
-  React.useEffect(() => {
-    try {
-      const cached = localStorage.getItem(`weft_chronicle_${milestoneHash}`);
-      if (cached) {
-        const parsed = JSON.parse(cached) as ChronicleData;
-        queueMicrotask(() => setChronicle(parsed));
-        return;
-      }
-    } catch { /* ignore */ }
-    // No cached chronicle — auto-generate on mount (once)
-    if (!didAutoTrigger.current) {
-      didAutoTrigger.current = true;
-      queueMicrotask(() => generateChronicle());
-    }
-  }, [milestoneHash]);
-
   const generateChronicle = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -74,6 +57,23 @@ export default function StoryPage({ params }: { params: Promise<{ hash: string }
       setLoading(false);
     }
   }, [milestoneHash]);
+
+  // Hydrate from localStorage cache on mount; auto-generate if no cache
+  React.useEffect(() => {
+    try {
+      const cached = localStorage.getItem(`weft_chronicle_${milestoneHash}`);
+      if (cached) {
+        const parsed = JSON.parse(cached) as ChronicleData;
+        queueMicrotask(() => setChronicle(parsed));
+        return;
+      }
+    } catch { /* ignore */ }
+    // No cached chronicle — auto-generate on mount (once)
+    if (!didAutoTrigger.current) {
+      didAutoTrigger.current = true;
+      queueMicrotask(() => generateChronicle());
+    }
+  }, [milestoneHash, generateChronicle]);
 
   const stakedEth = statusData ? (Number(statusData.totalStaked) / 1e18).toFixed(4) : null;
   const isVerified = statusData?.verified;
