@@ -95,6 +95,7 @@ from .llm_backend import (
     backend_info,
     generate_chat,
 )
+from .fhe_client import FheVoteResult, fhe_available, submit_encrypted_verdict
 
 __all__ = [
     # abi
@@ -146,4 +147,6 @@ __all__ = [
     "stripe_configured",
     # llm_backend
     "ChatResult", "backend_info", "generate_chat",
+    # fhe_client
+    "FheVoteResult", "fhe_available", "submit_encrypted_verdict",
 ]

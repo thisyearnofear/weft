@@ -518,19 +518,41 @@ def _process_one(
         evidence_root=evidence_root,
     )
 
-    # Submit onchain vote via KeeperHub (preferred) or cast send (fallback)
-    _submit_verdict(
-        milestone_hash=milestone_hash,
-        verified_arg=verified_arg,
-        evidence_root=evidence_root,
-        weft=weft,
-        rpc_url=rpc_url,
-        private_key=private_key,
-        use_keeperhub=use_keeperhub,
-        keeperhub_timeout=keeperhub_timeout,
-        chain_id=cached_chain_id,
-        out_dir=out_dir,
-    )
+    # Submit onchain vote — confidential (FHE) or public (KeeperHub/cast)
+    confidential_contract = os.environ.get("WEFT_MILESTONE_CONFIDENTIAL", "")
+    if confidential_contract and os.environ.get("FHE_SEPOLIA_RPC", ""):
+        # Confidential milestone: encrypt vote via Zama SDK + submit to FHE contract
+        from agent.lib.fhe_client import submit_encrypted_verdict, fhe_available
+        if fhe_available():
+            log.info("submitting encrypted verdict (FHE)", milestone=milestone_hash)
+            fhe_result = submit_encrypted_verdict(
+                milestone_hash=milestone_hash,
+                did_complete=verified_bool,
+                evidence_root=evidence_root,
+                rpc_url=os.environ["FHE_SEPOLIA_RPC"],
+                private_key=private_key,
+                contract_address=confidential_contract,
+            )
+            if fhe_result.status == "confirmed":
+                log.info("encrypted vote submitted", milestone=milestone_hash, tx=fhe_result.tx_hash)
+            else:
+                log.error("FHE vote submission failed", milestone=milestone_hash, error=fhe_result.error)
+        else:
+            log.warning("FHE helper not available, skipping confidential vote", milestone=milestone_hash)
+    else:
+        # Public milestone: KeeperHub (preferred) or cast send (fallback)
+        _submit_verdict(
+            milestone_hash=milestone_hash,
+            verified_arg=verified_arg,
+            evidence_root=evidence_root,
+            weft=weft,
+            rpc_url=rpc_url,
+            private_key=private_key,
+            use_keeperhub=use_keeperhub,
+            keeperhub_timeout=keeperhub_timeout,
+            chain_id=cached_chain_id,
+            out_dir=out_dir,
+        )
 
     # Release escrowed capital via KeeperHub after a verified verdict
     if verified_bool and keeperhub_configured():
