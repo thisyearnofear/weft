@@ -19,13 +19,6 @@ const NAV_GROUPS = [
     links: [
       { href: "/verifiers", label: "Verifiers" },
       { href: "/operations", label: "Operations" },
-      { href: "/recovery", label: "Recovery" },
-    ],
-  },
-  {
-    label: "Dev",
-    links: [
-      { href: "/api/docs", label: "API" },
     ],
   },
 ];

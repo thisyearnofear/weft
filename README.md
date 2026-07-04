@@ -23,7 +23,7 @@ portable reputation.
 | **Verifier Network** | [weft.thisyearnofear.com/verifiers](https://weft.thisyearnofear.com/verifiers) |
 | **API Docs** | [weft.thisyearnofear.com/api/docs](https://weft.thisyearnofear.com/api/docs) |
 | **Builder Profile** | [weft.thisyearnofear.com/builder/weft.thisyearnofear.eth](https://weft.thisyearnofear.com/builder/weft.thisyearnofear.eth) |
-| **Resilience demo** | [weft.thisyearnofear.com/recovery](https://weft.thisyearnofear.com/recovery) |
+| **Resilience demo (in Operations)** | [weft.thisyearnofear.com/operations](https://weft.thisyearnofear.com/operations) |
 | **Explorer** | [WeftMilestone on 0G Galileo](https://explorer-testnet.0g.ai/address/0x9f66158c560ce5c8b40820fdcd2874ff8d852192) |
 | **Confidential demo (Zama FHE)** | [Sealed-ballot milestone on Sepolia](https://weft.thisyearnofear.com/project/0xc351d2446c4e245d3baa0fc206a05d61010589dd8635c844c17955d50fc58574?confidential=1) — click "Decrypt sealed result" |
 | **Confidential contract** | [WeftMilestoneConfidential on Sepolia](https://sepolia.etherscan.io/address/0xcd1a64733a7b58efc8914dde45fe6af22381368f) |

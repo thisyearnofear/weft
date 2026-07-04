@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import styles from "./page.module.css";
+import styles from "./ResiliencePanel.module.css";
 
 interface RecoveryEvent {
   timestamp: number;
@@ -114,19 +114,17 @@ function formatTime(ts: number): string {
 
 type DemoPhase = "idle" | "injecting" | "verifying" | "complete";
 
-export default function RecoveryPage() {
+export function ResiliencePanel() {
   const [data, setData] = useState<RecoveryResponse | null>(null);
-  const [polling, setPolling] = useState(true);
+  const [polling] = useState(true);
   const [phase, setPhase] = useState<DemoPhase>("idle");
   const [apiError, setApiError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [copied, setCopied] = useState(false);
   const [hoveredEvent, setHoveredEvent] = useState<number | null>(null);
   const [celebrate, setCelebrate] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
 
-  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
   const shareDemo = async () => {
     const text = "Built @weft — an autonomous verifier agent that treats infrastructure failure as a routing problem, not a crash. Kill RPC. Kill peers. Kill AI. Kill execution. Verdict still lands. Demo: weft.thisyearnofear.com/recovery #AgentsUnderPressure #BuildYourOwnOS";
@@ -152,7 +150,7 @@ export default function RecoveryPage() {
       } else if (!apiError) {
         setApiError(`Recovery API returned ${res.status}`);
       }
-    } catch (err) {
+    } catch {
       if (!apiError) {
         setApiError("Recovery API unavailable. The status service may be down.");
       }
@@ -161,9 +159,12 @@ export default function RecoveryPage() {
 
   useEffect(() => {
     if (!polling) return;
-    fetchRecovery();
+    const kickoff = setTimeout(fetchRecovery, 0);
     const id = setInterval(fetchRecovery, 1000);
-    return () => clearInterval(id);
+    return () => {
+      clearTimeout(kickoff);
+      clearInterval(id);
+    };
   }, [polling, fetchRecovery]);
 
   useEffect(() => {
@@ -172,13 +173,17 @@ export default function RecoveryPage() {
     }
   }, [data?.events.length]);
 
+  // Render-adjustment on phase change (compiler-safe); the effect only times out
+  const [prevPhase, setPrevPhase] = useState<DemoPhase>("idle");
+  if (phase !== prevPhase) {
+    setPrevPhase(phase);
+    if (phase === "complete") setCelebrate(true);
+  }
   useEffect(() => {
-    if (phase === "complete") {
-      setCelebrate(true);
-      const t = setTimeout(() => setCelebrate(false), 4000);
-      return () => clearTimeout(t);
-    }
-  }, [phase]);
+    if (!celebrate) return;
+    const t = setTimeout(() => setCelebrate(false), 4000);
+    return () => clearTimeout(t);
+  }, [celebrate]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -262,7 +267,7 @@ export default function RecoveryPage() {
     : NARRATOR_MESSAGES[phase];
 
   return (
-    <div className={styles.container} data-theme={theme}>
+    <div className={styles.container} data-theme="dark">
       {/* ── Weaving Background ── */}
       <div className={styles.weaveBg} aria-hidden="true">
         <div className={styles.weaveLine} />
@@ -270,13 +275,6 @@ export default function RecoveryPage() {
         <div className={styles.weaveLine} />
         <div className={styles.weaveLine} />
         <div className={styles.weaveLine} />
-      </div>
-
-      {/* ── Top Bar ── */}
-      <div className={styles.topBar}>
-        <button className={styles.themeToggle} onClick={toggleTheme} title="Toggle theme">
-          {theme === "dark" ? "☀" : "☾"}
-        </button>
       </div>
 
       {apiError && (

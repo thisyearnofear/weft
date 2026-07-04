@@ -122,7 +122,7 @@
     "category": "functional",
     "priority": "Medium",
     "steps": [
-      { "type": "action", "description": "Navigate to http://localhost:3001/recovery" },
+      { "type": "action", "description": "Navigate to http://localhost:3001/operations" },
       { "type": "assertion", "description": "Verify the page loads without error" },
       { "type": "assertion", "description": "Verify recovery-related content is visible" }
     ]
@@ -134,7 +134,7 @@
     "category": "functional",
     "priority": "Medium",
     "steps": [
-      { "type": "action", "description": "Navigate to http://localhost:3001/builder" },
+      { "type": "action", "description": "Navigate to http://localhost:3001/builder/weft.thisyearnofear.eth" },
       { "type": "assertion", "description": "Verify the page loads without error" },
       { "type": "assertion", "description": "Verify a search input or lookup form is visible" }
     ]

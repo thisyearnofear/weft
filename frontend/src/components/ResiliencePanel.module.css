@@ -1,5 +1,5 @@
 .container {
-  min-height: 100dvh;
+  border-radius: var(--radius-lg); border: 1px solid var(--c-border);
   background: #0a0a0f;
   color: #e8e8f2;
   padding: 2rem 2rem 4rem;

@@ -15,7 +15,7 @@ import { useMilestones, useMilestone } from "@/hooks/useMilestones";
 import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
 import { useExplorerMilestones } from "@/hooks/useExplorer";
 import { useBuilderPassport } from "@/hooks/useBuilderPassport";
-import type { Milestone as MilestoneType, MilestoneState } from "@/lib/mock-data";
+import type { Milestone as MilestoneType, MilestoneState } from "@/lib/milestone-types";
 import styles from "./page.module.css";
 
 /* ── Live Counters ── */

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import type { Milestone, MilestoneState } from "../lib/mock-data";
-import { formatDeadline } from "../lib/mock-data";
+import type { Milestone, MilestoneState } from "../lib/milestone-types";
+import { formatDeadline } from "../lib/milestone-types";
 import styles from "./MilestoneCard.module.css";
 import { useProximity } from "@/hooks/useProximity";
 

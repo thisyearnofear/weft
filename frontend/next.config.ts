@@ -18,6 +18,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      // Recovery drill folded into Operations; old links keep working
+      { source: '/recovery', destination: '/operations', permanent: true },
+      { source: '/builder', destination: '/', permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

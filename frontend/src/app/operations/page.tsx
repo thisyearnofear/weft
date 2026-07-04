@@ -9,6 +9,7 @@ import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
 import { CountUp } from "@/components/CountUp";
 import { ErrorState } from "@/components/ErrorState";
 import { OfflineBadge } from "@/components/OfflineBadge";
+import { ResiliencePanel } from "@/components/ResiliencePanel";
 import styles from "./page.module.css";
 
 interface TreasuryData {
@@ -338,6 +339,11 @@ export default function OperationsPage() {
             </div>
           </>
         )}
+
+        {/* Resilience drill — formerly the /recovery page, folded in here */}
+        <div className={styles.section} style={{ padding: 0, overflow: "hidden" }}>
+          <ResiliencePanel />
+        </div>
       </div>
     </div>
   );
