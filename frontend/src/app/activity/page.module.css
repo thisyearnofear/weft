@@ -28,13 +28,16 @@
   width: 2px; background: var(--c-border);
 }
 
+/* Rows, not cards — the timeline rule + dot carry the structure, a divider
+   separates entries, and elevation is reserved for surfaces that need focus */
 .event {
-  position: relative; padding: 1rem 1.25rem; margin-bottom: 0.75rem;
-  background: var(--c-surface); border: 1px solid var(--c-border);
-  border-radius: 10px; box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+  position: relative; padding: 0.85rem 0.5rem 0.9rem;
+  border-bottom: 1px solid var(--c-border);
 }
+.event:last-child { border-bottom: none; }
+.event:hover { background: var(--c-surface); border-radius: 8px; }
 .event::before {
-  content: ''; position: absolute; left: -2rem; top: 1.25rem;
+  content: ''; position: absolute; left: -2rem; top: 1.1rem;
   width: 12px; height: 12px; border-radius: 50%;
   border: 2px solid var(--c-bg); box-shadow: 0 0 0 1px var(--c-border-2);
 }
@@ -120,4 +123,17 @@
   .verifierStats {
     gap: 0.75rem;
   }
+}
+
+.countBadge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text-muted);
+  background: var(--c-surface-2);
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  vertical-align: middle;
 }

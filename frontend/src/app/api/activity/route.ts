@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchJsonWithTimeout } from "@/lib/fetchWithTimeout";
+import type { ActivityEvent } from "@/lib/activity";
 
 const STATUS_API = process.env.WEFT_STATUS_API_URL || "http://127.0.0.1:9010";
 
@@ -7,12 +8,57 @@ async function fetchJson(url: string): Promise<Record<string, unknown>> {
   return fetchJsonWithTimeout(url);
 }
 
-interface ActivityEvent {
-  timestamp: number;
-  type: "verification" | "charge" | "revenue" | "consensus" | "deadline" | "chaos";
-  title: string;
-  description: string;
-  metadata: Record<string, unknown>;
+// "rpc_fallback" → "RPC fallback", "keeperhub_retry" → "KeeperHub retry"
+const ACRONYMS: Record<string, string> = {
+  rpc: "RPC",
+  llm: "LLM",
+  kimi: "LLM",
+  keeperhub: "KeeperHub",
+  axl: "AXL",
+};
+
+function humanize(slug: string): string {
+  const words = slug.split("_").map((w) => ACRONYMS[w] ?? w);
+  const first = words[0];
+  if (first === first.toLowerCase()) {
+    words[0] = first.charAt(0).toUpperCase() + first.slice(1);
+  }
+  return words.join(" ");
+}
+
+/// Recovery events arrive raw from the daemon ({event, action, outcome,
+/// latency_ms, context}). Turn each into a readable line, then collapse
+/// identical events from the same burst (15-minute bucket) into one entry
+/// with a count — a poll cycle can emit the same fallback many times.
+function shapeRecoveryEvents(raw: Array<Record<string, unknown>>): ActivityEvent[] {
+  const grouped = new Map<string, ActivityEvent>();
+  for (const evt of raw) {
+    const timestamp = Number(evt.timestamp ?? evt.created ?? 0);
+    const kind = String(evt.event ?? "recovery_event");
+    const action = evt.action ? humanize(String(evt.action)).toLowerCase() : "";
+    const outcome = String(evt.outcome ?? "");
+    const latency = Number(evt.latency_ms ?? 0);
+    const description = [action, outcome, latency ? `${latency}ms` : ""]
+      .filter(Boolean)
+      .join(" · ");
+
+    const key = `${kind}|${outcome}|${Math.floor(timestamp / 900)}`;
+    const existing = grouped.get(key);
+    if (existing) {
+      existing.count = (existing.count ?? 1) + 1;
+      existing.timestamp = Math.max(existing.timestamp, timestamp);
+    } else {
+      grouped.set(key, {
+        timestamp,
+        type: "chaos",
+        title: humanize(kind),
+        description,
+        count: 1,
+        metadata: evt,
+      });
+    }
+  }
+  return [...grouped.values()];
 }
 
 export async function GET() {
@@ -46,19 +92,11 @@ export async function GET() {
       }
     }
 
-    // Recovery events → activity events
+    // Recovery events → humanized, burst-collapsed resilience events
     if (recoveryRes.status === "fulfilled") {
       const recovery = recoveryRes.value;
       const recoveryEvents = (recovery.events as Array<Record<string, unknown>>) ?? [];
-      for (const evt of recoveryEvents) {
-        events.push({
-          timestamp: Number(evt.timestamp ?? evt.created ?? 0),
-          type: "chaos",
-          title: String(evt.type ?? "Recovery event"),
-          description: String(evt.description ?? evt.message ?? ""),
-          metadata: evt,
-        });
-      }
+      events.push(...shapeRecoveryEvents(recoveryEvents));
     }
 
     // Milestone events → verification + deadline events

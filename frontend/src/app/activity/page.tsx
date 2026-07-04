@@ -6,15 +6,8 @@ import { ArrowLeft, Activity as ActivityIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { ListSkeleton } from "@/components/KPISkeleton";
+import type { ActivityEvent } from "@/lib/activity";
 import styles from "./page.module.css";
-
-interface ActivityEvent {
-  timestamp: number;
-  type: "verification" | "charge" | "revenue" | "consensus" | "deadline" | "chaos";
-  title: string;
-  description: string;
-  metadata: Record<string, unknown>;
-}
 
 interface ActivityData {
   ok: boolean;
@@ -52,21 +45,24 @@ const TYPE_DESCRIPTIONS: Record<string, string> = {
   verification: "Milestone verified and capital released to builder",
   charge: "Agent paid for a service it uses",
   revenue: "Agent earned revenue from a verification",
-  chaos: "Agent recovered from a simulated failure",
+  chaos: "The agent self-healed around an infrastructure fault",
   deadline: "A milestone reached its deadline",
   consensus: "Verifier nodes reached agreement on a milestone",
 };
 
+// "Notable" is the default: the story of the agent (milestones, verdicts,
+// money). Resilience self-healing events live under Infrastructure.
 const FILTER_GROUPS = [
+  { key: "notable", label: "Notable", types: ["verification", "consensus", "charge", "revenue", "deadline"] },
   { key: "all", label: "All", types: null },
   { key: "verification", label: "Verifications", types: ["verification", "consensus"] },
   { key: "financial", label: "Financial", types: ["charge", "revenue"] },
-  { key: "infrastructure", label: "Infrastructure", types: ["chaos", "deadline"] },
+  { key: "infrastructure", label: "Infrastructure", types: ["chaos"] },
 ];
 
 export default function ActivityPage() {
   const { data, isLoading, error, refetch, isFetching } = useActivity();
-  const [activeFilter, setActiveFilter] = useState("all");
+  const [activeFilter, setActiveFilter] = useState("notable");
 
   const allEvents = data?.events ?? [];
 
@@ -148,6 +144,9 @@ export default function ActivityPage() {
                       {TYPE_LABELS[event.type] ?? event.type}
                     </span>
                     {event.title}
+                    {(event.count ?? 1) > 1 && (
+                      <span className={styles.countBadge}>×{event.count}</span>
+                    )}
                   </span>
                   <span className={styles.eventTime}>{formatTime(event.timestamp)}</span>
                 </div>
