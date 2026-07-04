@@ -206,7 +206,7 @@ export default function SponsorDashboardPage() {
                         m.capitalStatus === "locked" ? styles.capitalLocked : styles.capitalRefundable
                       }`}>
                         {m.capitalStatus === "released" ? "✓ Released" :
-                         m.capitalStatus === "locked" ? "⏳ Locked" : "✗ Refundable"}
+                         m.capitalStatus === "locked" ? "○ Locked" : "✗ Refundable"}
                       </span>
                     </div>
                     <div className={styles.milestoneMeta}>

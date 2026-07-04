@@ -34,9 +34,9 @@ function ProjectSkeleton() {
   return (
     <div className={styles.container}>
       <div className={styles.skeletonPanel}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
+        <div className={styles.skeletonMsgRow}>
           <Loader2 size={18} className={styles.spinner} />
-          <span style={{ color: "var(--c-text-secondary)", fontSize: "0.9rem" }}>{messages[step]}</span>
+          <span className={styles.skeletonMsg}>{messages[step]}</span>
         </div>
         <div className={styles.skeletonLine} style={{ width: 180, height: 14 }} />
         <div className={styles.skeletonLine} style={{ width: "70%", height: 48, marginTop: 18 }} />
@@ -61,19 +61,13 @@ function StatusBadge({ milestone }: { milestone: { finalized: boolean; verified:
 
 function EvidenceRow({ label, passed, detail }: { label: string; passed: boolean; detail: string }) {
   return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: "0.75rem",
-      padding: "0.75rem 0.85rem",
-      borderRadius: "14px",
-      background: "rgba(255,255,255,0.03)",
-      border: "1px solid rgba(255,255,255,0.06)",
-    }}>
-      <span style={{ flexShrink: 0, color: passed ? "var(--c-success, #22c55e)" : "var(--c-text-muted)" }}>
+    <div className={styles.evidenceRow}>
+      <span className={`${styles.evidenceIcon} ${passed ? styles.evidenceIconPassed : ""}`}>
         {passed ? "✓" : "○"}
       </span>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 600, fontSize: "0.88rem" }}>{label}</div>
-        <div style={{ color: "var(--c-text-secondary)", fontSize: "0.8rem", marginTop: "0.15rem" }}>{detail}</div>
+      <div className={styles.evidenceBody}>
+        <div className={styles.evidenceLabel}>{label}</div>
+        <div className={styles.evidenceDetail}>{detail}</div>
       </div>
     </div>
   );
@@ -114,34 +108,22 @@ function ReleaseButton({ milestoneHash, contractAddress, milestone, demoMode }: 
   const actionFn: "release" | "refund" = canRelease ? "release" : "refund";
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+    <div className={styles.actionStack}>
       <button
         onClick={() => handleAction(actionFn)}
         disabled={isPending || isConfirming}
-        style={{
-          display: "inline-flex", alignItems: "center", gap: "0.5rem",
-          padding: "0.85rem 1.15rem",
-          borderRadius: "999px",
-          fontWeight: 600, fontSize: "0.9rem",
-          border: "none", cursor: "pointer",
-          background: canRelease
-            ? "linear-gradient(135deg, var(--c-accent), #22c55e)"
-            : "linear-gradient(135deg, var(--c-accent), var(--c-error, #ef4444))",
-          color: "white",
-          transition: "opacity 0.15s",
-          opacity: isPending ? 0.7 : 1,
-        }}
+        className={`${styles.actionBtn} ${canRelease ? "" : styles.actionBtnRefund}`}
       >
         {isPending ? "Signing..." : isConfirming ? "Confirming..." : (
           <>{canRelease ? <Wallet size={16} /> : <XCircle size={16} />} {actionLabel}</>
         )}
       </button>
-      {error && <div style={{ color: "var(--c-error)", fontSize: "0.82rem" }}>{error}</div>}
+      {error && <div className={styles.actionError}>{error}</div>}
       {txHash && (
         <a
           href={`https://chainscan-new.0g.ai/tx/${txHash}`}
           target="_blank" rel="noopener noreferrer"
-          style={{ color: "var(--c-link)", fontSize: "0.82rem", textAlign: "center" }}
+          className={styles.txLink}
         >
           View transaction →
         </a>
@@ -358,7 +340,7 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
                 </div>
                 <CheckCircle2 size={18} />
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "0.5rem" }}>
+              <div className={styles.evidenceList}>
                 <EvidenceRow
                   label="Contract deployment"
                   passed={milestone.builder !== "0x0000000000000000000000000000000000000000"}
@@ -386,7 +368,7 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
                 />
               </div>
               {evidenceRoot && (
-                <div className={styles.codeBlock} style={{ marginTop: "0.75rem" }}>
+                <div className={styles.codeBlock}>
                   <span className={styles.codeLabel}>Evidence root</span>
                   <code>{evidenceRoot}</code>
                 </div>
@@ -448,7 +430,7 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
                   <Coins size={18} />
                 </div>
                 <p className={styles.panelText}>
-                  Add capital to the milestone while it is still active. Funds remain governed by Weft's trust loop until the final outcome is known.
+                  Add capital to the milestone while it is still active. Funds remain governed by Weft&apos;s trust loop until the final outcome is known.
                 </p>
                 <StakeForm milestoneHash={milestoneHash} contractAddress={addresses.weftMilestone} />
               </article>
@@ -471,7 +453,7 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
                 {milestone.released && (
                   <div className={styles.codeBlock}>
                     <span className={styles.codeLabel}>Already released</span>
-                    <p style={{ color: "var(--c-success)", fontSize: "0.9rem" }}>Capital has been distributed.</p>
+                    <p className={styles.releasedNote}>Capital has been distributed.</p>
                   </div>
                 )}
                 {!milestone.released && (

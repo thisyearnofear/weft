@@ -190,7 +190,7 @@ export default function ExplorerPage() {
                               : styles.statusFailed
                         }`}
                       >
-                        {m.state === "verified" ? "✓" : m.state === "pending" ? "⏳" : "✗"}{" "}
+                        {m.state === "verified" ? "✓" : m.state === "pending" ? "○" : "✗"}{" "}
                         {m.statusLabel}
                       </span>
                     </td>

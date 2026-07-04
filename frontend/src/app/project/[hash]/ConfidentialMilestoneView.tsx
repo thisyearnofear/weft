@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowUpRight, Coins, Database, Lock, LockOpen, ShieldCheck, Vote } from "lucide-react";
 import { sepolia } from "wagmi/chains";
 import { ConfidentialMilestone, useDecryptSealedResult } from "../../../hooks/useConfidentialMilestone";
+import { SealedReveal } from "../../../components/SealedReveal";
 import { StakeForm } from "../../../components/StakeForm";
 import { getConfidentialAddress } from "../../../lib/contracts";
 import styles from "./page.module.css";
@@ -41,30 +42,27 @@ function DecryptPanel({ m }: { m: ConfidentialMilestone }) {
           ? "All ballots are in. The contract made the final result publicly decryptable — ask the Zama relayer to decrypt it. Individual votes stay sealed forever."
           : `The result is encrypted onchain and cannot be decrypted by anyone — not even the contract owner — until all ${MAX_VERIFIERS} ballots are cast. The Zama relayer will refuse this request right now. That's the point.`}
       </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+      {/* The knot unwinds into finished fabric the moment the relayer answers —
+          both clips share their junction frame, so the cut is invisible */}
+      <SealedReveal revealed={decrypted === true} />
+      <div className={styles.actionStack}>
         <button
           onClick={() => decrypt()}
           disabled={isPending}
-          style={{
-            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
-            padding: "0.85rem 1.15rem", borderRadius: "999px",
-            fontWeight: 600, fontSize: "0.9rem", border: "none", cursor: "pointer",
-            background: "linear-gradient(135deg, var(--c-accent), #eab308)",
-            color: "white", opacity: isPending ? 0.7 : 1,
-          }}
+          className={styles.actionBtn}
         >
           {isPending ? "Asking relayer..." : <><Lock size={16} /> Decrypt sealed result</>}
         </button>
         {decrypted !== undefined && (
           <div className={styles.codeBlock}>
             <span className={styles.codeLabel}>Publicly decrypted via Zama relayer</span>
-            <p style={{ color: decrypted ? "var(--c-success, #22c55e)" : "var(--c-error, #ef4444)", fontWeight: 700 }}>
+            <p className={`${styles.decryptVerdict} ${decrypted ? styles.decryptVerdictOk : styles.decryptVerdictFail}`}>
               {decrypted ? `VERIFIED — encrypted quorum (≥${QUORUM} of ${MAX_VERIFIERS}) was reached` : "NOT VERIFIED — encrypted quorum was not reached"}
             </p>
           </div>
         )}
         {error != null && (
-          <div style={{ color: "var(--c-text-secondary)", fontSize: "0.82rem" }}>
+          <div className={styles.actionNote}>
             {m.finalized
               ? `Decryption failed: ${error instanceof Error ? error.message : "relayer error"}`
               : "Refused, as expected — the ciphertext is not publicly decryptable until every ballot is in."}
@@ -169,7 +167,7 @@ export function ConfidentialMilestoneView({ hash, milestone: m }: { hash: string
           <article className={styles.metricCard}>
             <span className={styles.metricLabel}>Result</span>
             <strong className={styles.metricValue}>
-              {m.resultConfirmed ? (m.resultVerified ? "Verified" : "Rejected") : "🔒 Sealed"}
+              {m.resultConfirmed ? (m.resultVerified ? "Verified" : "Rejected") : "Sealed"}
             </strong>
             <p>{m.resultConfirmed ? "Confirmed onchain after public decryption." : "Encrypted until all ballots are in."}</p>
           </article>

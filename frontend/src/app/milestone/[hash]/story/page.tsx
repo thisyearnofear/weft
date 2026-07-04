@@ -101,7 +101,7 @@ export default function StoryPage({ params }: { params: Promise<{ hash: string }
           {stakedEth && (
             <div className={styles.meta}>
               <span className={isVerified ? styles.tagVerified : styles.tagPending}>
-                {isVerified ? "✓ Verified" : "⏳ Pending"}
+                {isVerified ? "✓ Verified" : "○ Pending"}
               </span>
               <span className={styles.tagStaked}>{stakedEth} ETH staked</span>
             </div>

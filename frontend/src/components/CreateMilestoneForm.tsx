@@ -98,7 +98,7 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
     return (
       <div className={styles.container}>
         <div className={styles.success}>
-          {confidential ? "Confidential milestone created on Sepolia!" : "Milestone created successfully!"}
+          {confidential ? "Confidential milestone created on Sepolia." : "Milestone created."}
         </div>
         <p className={styles.doneHash}>
           Hash: <code>{milestoneHash}</code>
@@ -122,7 +122,7 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
     return (
       <div className={styles.container}>
         <div className={styles.success}>
-          {isConfirming ? "Confirming transaction..." : "Transaction submitted!"}
+          {isConfirming ? "Confirming transaction..." : "Transaction submitted."}
         </div>
         {txHash && (
           <a
@@ -151,7 +151,7 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
       <div className={styles.container}>
         <div className={styles.previewGroup}>
           <div>
-            <span className={styles.previewLabel}>Project Name</span>
+            <span className={styles.previewLabel}>Project name</span>
             <p className={styles.previewValue}>{name}</p>
           </div>
           {description && (
@@ -178,7 +178,7 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
             </div>
           )}
           <div>
-            <span className={styles.previewLabel}>Milestone Hash</span>
+            <span className={styles.previewLabel}>Milestone hash</span>
             <p className={styles.previewValueMono}>{computedHash}</p>
           </div>
           <div>

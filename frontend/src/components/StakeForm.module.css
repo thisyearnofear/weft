@@ -11,6 +11,11 @@
   border: 1px solid var(--c-border-2);
   border-radius: var(--radius-md);
   overflow: hidden;
+  transition: border-color var(--transition-base);
+}
+
+.inputGroup:focus-within {
+  border-color: var(--c-accent);
 }
 
 .input {
@@ -37,18 +42,18 @@
 .button {
   width: 100%;
   padding: 0.875rem;
-  background: var(--c-link);
+  background: var(--c-accent);
   border: none;
   border-radius: var(--radius-md);
-  color: var(--c-text);
+  color: #fff;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background var(--transition-base);
+  transition: background var(--transition-base), transform 160ms var(--ease-out);
 }
 
 .button:hover:not(:disabled) {
-  background: var(--c-link-hover);
+  background: var(--c-accent-hover);
 }
 
 .button:disabled {
@@ -127,6 +132,8 @@
   color: var(--c-text-muted);
   font-size: 0.78rem;
   text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
 }
 
 .previewValue {
@@ -151,8 +158,12 @@
 }
 
 .buttonSecondary {
-  background: var(--c-border-2);
+  background: var(--c-surface-3);
   flex: 1;
+}
+
+.buttonSecondary:hover:not(:disabled) {
+  background: var(--c-border-2);
 }
 
 .buttonFlex {
@@ -169,6 +180,8 @@
 
 .doneHash code {
   word-break: break-all;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
 }
 
 .linkBold {

@@ -1,7 +1,7 @@
 .container {
-  min-height: 100vh;
+  min-height: 100dvh;
   background:
-    radial-gradient(circle at 12% 8%, rgba(59, 130, 246, 0.06), transparent 28%),
+    radial-gradient(circle at 12% 8%, rgba(99, 102, 241, 0.07), transparent 28%),
     radial-gradient(circle at 82% 14%, rgba(20, 184, 166, 0.04), transparent 26%);
   color: var(--c-text);
   padding: 3rem 3rem 4rem;
@@ -64,6 +64,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--c-text);
+  font-variant-numeric: tabular-nums;
 }
 
 .statLabel {
@@ -179,13 +180,13 @@
 }
 
 .tableRow:hover {
-  background: var(--c-accent-20);
+  background: rgba(99, 102, 241, 0.08);
 }
 
 .hashCell {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.82rem;
-  color: var(--c-accent);
+  color: var(--c-link);
   text-decoration: none;
 }
 
@@ -220,7 +221,7 @@
 }
 
 .builderCell {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.82rem;
   color: var(--c-text-2);
 }
@@ -228,18 +229,21 @@
 .stakeCell {
   font-weight: 600;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .voteCell {
   font-size: 0.82rem;
   color: var(--c-text-2);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .dateCell {
   font-size: 0.82rem;
   color: var(--c-text-muted);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Empty / loading states ── */
@@ -279,11 +283,16 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: var(--c-accent);
+  color: var(--c-link);
   font-size: 0.85rem;
   font-weight: 500;
   text-decoration: none;
   margin-bottom: 1rem;
+  transition: color 200ms var(--ease-out);
+}
+
+.backLink:hover {
+  color: var(--c-link-hover);
 }
 
 .backLink:hover {

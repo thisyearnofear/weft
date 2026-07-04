@@ -1,0 +1,14 @@
+{
+  "keyframes": {
+    "k_sealed": "https://v3b.fal.media/files/b/0aa0e4dd/Du0r8RniTK7Uzj3yZJ1qC.jpg",
+    "k_verified": "https://v3b.fal.media/files/b/0aa0e4dd/ymvjxWQpY_pQuZ9V8rQax.jpg",
+    "k_hero_a": "https://v3b.fal.media/files/b/0aa0e4de/wNzG9AgA9vxDyzfDz_fz6.jpg",
+    "k_hero_b": "https://v3b.fal.media/files/b/0aa0e4df/8GNCZfDfOw7aIrvgT4IOX.jpg"
+  },
+  "videos": {
+    "sealed_loop": "https://v3b.fal.media/files/b/0aa0e4ef/2mD3lZ3rWghmVmIkKB-RG_video.mp4",
+    "reveal": "https://v3b.fal.media/files/b/0aa0e4e9/bAgACpJO3UJmGy3AhSSsh_video.mp4",
+    "hero_a": "https://v3b.fal.media/files/b/0aa0e4ee/W5d2PFyy-8tfpR-4Pmu-d_video.mp4",
+    "hero_b": "https://v3b.fal.media/files/b/0aa0e4f2/fBumQH7JzAjPjgWJLE3jQ_video.mp4"
+  }
+}

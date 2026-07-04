@@ -1,5 +1,5 @@
 .container {
-  min-height: 100vh;
+  min-height: 100dvh;
   background:
     radial-gradient(circle at top, rgba(99, 102, 241, 0.14), transparent 28%),
     radial-gradient(circle at 85% 12%, rgba(34, 197, 94, 0.08), transparent 24%),
@@ -42,6 +42,11 @@
 .backLink {
   color: var(--c-text-secondary);
   font-size: 0.9rem;
+  transition: color 200ms var(--ease-out);
+}
+
+.backLink:hover {
+  color: var(--c-text);
 }
 
 .statusBadge {
@@ -69,8 +74,8 @@
 }
 
 .statusActive {
-  background: rgba(59, 130, 246, 0.14);
-  border: 1px solid rgba(96, 165, 250, 0.35);
+  background: rgba(99, 102, 241, 0.14);
+  border: 1px solid rgba(129, 140, 248, 0.35);
   color: var(--c-active);
 }
 
@@ -130,8 +135,9 @@
 }
 
 .primaryAction {
-  background: linear-gradient(135deg, var(--c-accent), #8b5cf6);
+  background: linear-gradient(135deg, var(--c-accent), var(--c-verified));
   color: white;
+  box-shadow: 0 10px 26px rgba(99, 102, 241, 0.22);
 }
 
 .secondaryAction {
@@ -144,6 +150,11 @@
 .secondaryAction:hover,
 .shareBtn:hover {
   transform: translateY(-1px);
+}
+
+.secondaryAction:hover,
+.shareBtn:hover {
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .executionCard {
@@ -229,10 +240,12 @@
 
 .metricValue {
   font-size: 1.45rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .metricValueSmall {
-  font-size: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
   word-break: break-word;
 }
 
@@ -277,7 +290,8 @@
 .progressFill {
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--c-accent), #8b5cf6, #22c55e);
+  background: linear-gradient(90deg, var(--c-accent), var(--c-verified));
+  transition: width 400ms var(--ease-out);
 }
 
 .summaryList {
@@ -365,6 +379,7 @@
 
 .identityStats strong {
   font-size: 1rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .integrationList {
@@ -390,6 +405,143 @@
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+/* ── Evidence checklist ── */
+.evidenceList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.evidenceRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.evidenceIcon {
+  flex-shrink: 0;
+  color: var(--c-text-muted);
+}
+
+.evidenceIconPassed {
+  color: var(--c-success);
+}
+
+.evidenceBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.evidenceLabel {
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.evidenceDetail {
+  color: var(--c-text-secondary);
+  font-size: 0.8rem;
+  margin-top: 0.15rem;
+}
+
+/* ── Settlement / decrypt actions ── */
+.actionStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.15rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(135deg, var(--c-accent), var(--c-verified));
+  box-shadow: 0 10px 26px rgba(99, 102, 241, 0.22);
+  transition: transform 160ms var(--ease-out), opacity 150ms var(--ease-out), box-shadow 200ms var(--ease-out);
+}
+
+.actionBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px rgba(99, 102, 241, 0.28);
+}
+
+.actionBtn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.actionBtnRefund {
+  background: linear-gradient(135deg, hsl(350, 55%, 48%), hsl(350, 74%, 40%));
+  box-shadow: 0 10px 26px rgba(190, 45, 70, 0.2);
+}
+
+.actionBtnRefund:hover:not(:disabled) {
+  box-shadow: 0 14px 32px rgba(190, 45, 70, 0.26);
+}
+
+.actionError {
+  color: var(--c-error);
+  font-size: 0.82rem;
+}
+
+.actionNote {
+  color: var(--c-text-secondary);
+  font-size: 0.82rem;
+}
+
+.txLink {
+  color: var(--c-link);
+  font-size: 0.82rem;
+  text-align: center;
+  transition: color 150ms var(--ease-out);
+}
+
+.txLink:hover {
+  color: var(--c-link-hover);
+}
+
+.decryptVerdict {
+  font-weight: 700;
+}
+
+.decryptVerdictOk {
+  color: var(--c-success);
+}
+
+.decryptVerdictFail {
+  color: var(--c-error);
+}
+
+.releasedNote {
+  color: var(--c-success);
+  font-size: 0.9rem;
+}
+
+/* ── Skeleton ── */
+.skeletonMsgRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.skeletonMsg {
+  color: var(--c-text-secondary);
+  font-size: 0.9rem;
 }
 
 .skeletonGrid {

@@ -1,7 +1,7 @@
 .container {
-  min-height: 100vh;
+  min-height: 100dvh;
   background:
-    radial-gradient(circle at 12% 8%, rgba(59, 130, 246, 0.08), transparent 28%),
+    radial-gradient(circle at 12% 8%, rgba(99, 102, 241, 0.09), transparent 28%),
     radial-gradient(circle at 82% 14%, rgba(20, 184, 166, 0.06), transparent 26%);
 }
 
@@ -9,6 +9,7 @@
    HERO
    ════════════════════════════════════════════ */
 .hero {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
   gap: 2rem;
@@ -16,6 +17,32 @@
   max-width: var(--max-w);
   margin: 0 auto;
   padding: 3.5rem 3rem 1.5rem;
+}
+
+/* Ambient backdrop layer. A background <video> can be dropped
+   directly inside this div — it will cover, dim, and sit under
+   the woven micro-pattern automatically. */
+.heroBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 11px, rgba(232, 232, 242, 0.012) 11px, rgba(232, 232, 242, 0.012) 12px),
+    repeating-linear-gradient(90deg, transparent, transparent 11px, rgba(232, 232, 242, 0.012) 11px, rgba(232, 232, 242, 0.012) 12px),
+    radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.07), transparent 55%);
+  -webkit-mask-image: linear-gradient(180deg, black 70%, transparent);
+  mask-image: linear-gradient(180deg, black 70%, transparent);
+}
+
+/* Video layers inside the backdrop manage their own opacity/crossfade
+   (HeroLoom.module.css) — no descendant overrides here. */
+
+.heroCopy,
+.heroPanel {
+  position: relative;
+  z-index: 1;
 }
 
 .heroCopy {
@@ -83,13 +110,14 @@
 .primaryAction {
   color: white;
   background: linear-gradient(135deg, var(--c-accent), var(--c-verified));
-  box-shadow: 0 14px 32px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 14px 32px rgba(99, 102, 241, 0.25);
 }
 
 .secondaryAction {
   border: 1px solid var(--c-border);
   background: var(--c-surface);
   color: var(--c-text);
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
 .primaryAction:hover,
@@ -98,7 +126,12 @@
 }
 
 .primaryAction:hover {
-  box-shadow: 0 18px 42px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 18px 42px rgba(99, 102, 241, 0.3);
+}
+
+.secondaryAction:hover {
+  border-color: var(--c-border-2);
+  background: var(--c-surface-2);
 }
 
 /* ── Live stats ── */
@@ -125,6 +158,7 @@
   font-size: 1.15rem;
   font-weight: 700;
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   color: var(--c-text);
   line-height: 1.1;
 }
@@ -297,6 +331,11 @@
   line-height: 1.75;
 }
 
+.sectionLede {
+  max-width: 640px;
+  margin-bottom: 0.5rem;
+}
+
 .section,
 .sectionFull {
   max-width: var(--max-w);
@@ -379,7 +418,7 @@
 
 .emptyCta:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.28);
 }
 
 .profileMilestoneCard {
@@ -446,6 +485,17 @@
   line-height: 1.7;
   font-size: 0.95rem;
   max-width: 60ch;
+}
+
+.bottomActions {
+  margin-top: 1.5rem;
+}
+
+.pricingNote {
+  text-align: center;
+  padding: 0.5rem 1rem 2rem;
+  font-size: 0.8rem;
+  color: var(--c-text-3);
 }
 
 /* ════════════════════════════════════════════
@@ -541,6 +591,11 @@
   border: 1px solid var(--c-border-2);
   border-radius: 10px;
   padding: 4px;
+  transition: border-color 200ms var(--ease-out);
+}
+
+.lookupForm:focus-within {
+  border-color: var(--c-accent);
 }
 
 .lookupInputWrap {
@@ -570,6 +625,11 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  transition: background 200ms var(--ease-out), transform 160ms var(--ease-out);
+}
+
+.lookupSubmit:hover {
+  background: var(--c-accent-hover);
 }
 
 .lookupTryRow {
@@ -582,18 +642,24 @@
 }
 
 .lookupTryBtn {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   padding: 4px 10px;
   background: var(--c-surface-2);
   border: 1px solid var(--c-border);
   border-radius: 6px;
-  color: var(--c-accent);
+  color: var(--c-link);
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 220px;
+  transition: border-color 200ms var(--ease-out), color 200ms var(--ease-out);
+}
+
+.lookupTryBtn:hover {
+  border-color: var(--c-accent);
+  color: var(--c-link-hover);
 }
 
 .lookupStatus {
@@ -628,6 +694,16 @@
 
 .lookupResultIcon {
   font-size: 20px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.lookupResultIconOk {
+  color: var(--c-verified);
+}
+
+.lookupResultIconPending {
+  color: var(--c-pending);
 }
 
 .lookupResultStatus {
@@ -639,7 +715,7 @@
 .lookupResultHash {
   font-size: 13px;
   color: var(--c-text-muted);
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .lookupResultRight {
@@ -651,6 +727,7 @@
   font-weight: 700;
   font-size: 15px;
   color: var(--c-text);
+  font-variant-numeric: tabular-nums;
 }
 
 .lookupResultState {

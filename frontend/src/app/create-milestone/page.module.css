@@ -1,5 +1,5 @@
 .main {
-  min-height: 100vh;
+  min-height: 100dvh;
   background:
     radial-gradient(circle at top, rgba(99, 102, 241, 0.14), transparent 28%),
     radial-gradient(circle at 85% 12%, rgba(34, 197, 94, 0.08), transparent 24%),
@@ -39,7 +39,7 @@
   background: rgba(17, 17, 24, 0.9);
   border: 1px solid var(--c-border);
   border-radius: 28px;
-  padding: 1.25rem 1.5rem;
+  padding: 1.25rem 1.5rem 1.5rem;
 }
 
 .guideTitle {

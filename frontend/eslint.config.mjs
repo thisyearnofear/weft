@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Static assets — includes the self-hosted Zama SDK bundle (minified vendor code)
+    "public/**",
   ]),
 ]);
 

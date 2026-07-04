@@ -262,7 +262,7 @@ export default function OperationsPage() {
                   return (
                     <div key={v.milestoneHash} className={styles.verificationItem}>
                       <span className={styles.verificationIcon}>
-                        {v.verified ? "✅" : "⏳"}
+                        {v.verified ? "✓" : "○"}
                       </span>
                       <div className={styles.verificationBody}>
                         <Link

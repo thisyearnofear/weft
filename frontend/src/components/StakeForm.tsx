@@ -54,7 +54,7 @@ export function StakeForm({
     return (
       <div className={styles.container}>
         <div className={styles.success}>
-          {isConfirming ? "Confirming stake..." : "Stake successful!"}
+          {isConfirming ? "Confirming stake..." : "Stake confirmed."}
         </div>
         {hash && (
           <a

@@ -7,7 +7,7 @@ export default function CreateMilestonePage() {
       <div className={styles.shell}>
         <div>
           <h1 className={styles.heading}>
-            Create a Milestone
+            Create a milestone
           </h1>
           <p className={styles.subtitle}>
             Define what you will ship, set a deadline, and let verifiers handle the rest.

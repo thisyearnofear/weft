@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useMemo, FormEvent } from "react";
 import { ArrowRight, Bot, Sparkles, Search } from "lucide-react";
 
+import { HeroLoom } from "@/components/HeroLoom";
 import { MilestoneCard } from "@/components/MilestoneCard";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { AskWeft } from "@/components/AskWeft";
@@ -95,8 +96,12 @@ function MilestoneLookup() {
       {hasResult && (
         <div className={styles.lookupResult}>
           <div className={styles.lookupResultRow}>
-            <span className={styles.lookupResultIcon}>
-              {isVerified ? "✅" : "⏳"}
+            <span
+              className={`${styles.lookupResultIcon} ${
+                isVerified ? styles.lookupResultIconOk : styles.lookupResultIconPending
+              }`}
+            >
+              {isVerified ? "✓" : "○"}
             </span>
             <div>
               <div className={styles.lookupResultStatus}>
@@ -223,6 +228,9 @@ export default function Home() {
           HERO — What is Weft?
           ════════════════════════════════════════════════════════════════ */}
       <section className={styles.hero}>
+        <div className={styles.heroBackdrop} aria-hidden="true">
+          <HeroLoom />
+        </div>
         <div className={styles.heroCopy}>
           <div className={`${styles.eyebrow} stagger stagger-1`}>
             <Bot size={15} />
@@ -288,7 +296,7 @@ export default function Home() {
             <h2 className={styles.sectionTitle}>See it in action</h2>
           </div>
         </div>
-        <p className={styles.sectionText} style={{ maxWidth: "640px", marginBottom: "0.5rem" }}>
+        <p className={`${styles.sectionText} ${styles.sectionLede}`}>
           A real milestone has been verified on 0G Testnet. 0.01 ETH was released to the
           builder after 2 of 3 verifier nodes reached consensus. Check the onchain proof
           yourself, or talk to the agent that verified it.
@@ -373,7 +381,7 @@ export default function Home() {
             proof when it&apos;s done. <strong>Builders</strong> ship work and get paid
             automatically when verifiers confirm the outcome.
           </p>
-          <div className={styles.heroActions} style={{ marginTop: "1.5rem" }}>
+          <div className={`${styles.heroActions} ${styles.bottomActions}`}>
             <Link href="/create-milestone" className={styles.primaryAction}>
               Create a milestone <ArrowRight size={16} />
             </Link>
@@ -385,12 +393,7 @@ export default function Home() {
       </Reveal>
 
       {/* ── Pricing ── */}
-      <div style={{
-        textAlign: "center",
-        padding: "0.5rem 1rem 2rem",
-        fontSize: "0.8rem",
-        color: "var(--c-text-3)",
-      }}>
+      <div className={styles.pricingNote}>
         Protocol fee: 3% of released capital → funds the agent&apos;s autonomous operations
       </div>
     </div>
