@@ -44,7 +44,7 @@ export default async function Image({ params }: { params: Promise<{ hash: string
         </div>
 
         {meta.promise ? (
-          <div style={{ fontSize: "22px", color: "#a0aec0", marginBottom: "28px", maxWidth: "900px" }}>
+          <div style={{ display: "flex", fontSize: "22px", color: "#a0aec0", marginBottom: "28px", maxWidth: "900px" }}>
             &ldquo;{meta.promise}&rdquo;
           </div>
         ) : (
