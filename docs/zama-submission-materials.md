@@ -87,7 +87,10 @@ has it. You can't fix it with incentives. You can only fix it with cryptography.
    sealed result' — the relayer refuses. The result doesn't exist in decryptable
    form yet. After the third ballot: same click — VERIFIED. Quorum was computed
    on encrypted votes. The individual ballots stay sealed forever."
-6. *(release)* "Result confirmed onchain, capital releases to the builder."
+6. *(release)* "And settlement is trustless: nobody attests the result — the
+   decryption comes with a proof signed by Zama's KMS, and the contract checks
+   those signatures itself. Our confirm transaction was sent by one of the
+   verifier wallets, not the deployer. Then capital releases to the builder."
 
 ### 2:20–2:50 — Why FHE / close (face to camera)
 "The interesting thing isn't that the votes are hidden — it's that the contract
