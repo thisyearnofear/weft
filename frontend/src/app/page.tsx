@@ -241,11 +241,26 @@ export default function Home() {
             <span className={styles.accent}>Get paid.</span>
           </h1>
           <p className={`${styles.subtitle} stagger stagger-3`}>
-            Builders ship. Sponsors ghost. Weft fixes that. A sponsor locks ETH
-            behind a deliverable. The builder ships. AI agents verify the work
-            onchain — if 2 of 3 agree, capital releases instantly. No manual
-            reviews. No chasing. No payment politics.
+            <strong>The problem:</strong> builders ship work, then chase invoices
+            while sponsors decide whether to pay.{" "}
+            <strong>Weft&apos;s fix:</strong> the money is locked up front, AI
+            agents check the work onchain, and payment releases itself the moment
+            2 of 3 agree. No invoices, no chasing, no trust required.
           </p>
+
+          {/* First-visit guidance — a numbered path through the demo */}
+          <div className={`${styles.guideStrip} stagger stagger-4`}>
+            <span className={styles.guideLabel}>New here? Three stops:</span>
+            <Link href="/project/0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f" className={styles.guideStep}>
+              1. See a verified milestone
+            </Link>
+            <Link href="/verifiers" className={styles.guideStep}>
+              2. Meet the AI verifiers
+            </Link>
+            <Link href="/project/0xc351d2446c4e245d3baa0fc206a05d61010589dd8635c844c17955d50fc58574?confidential=1" className={styles.guideStep}>
+              3. Decrypt a sealed vote
+            </Link>
+          </div>
 
           <div className={`${styles.heroActions} stagger stagger-4`}>
             <Link href="/create-milestone" className={styles.primaryAction}>

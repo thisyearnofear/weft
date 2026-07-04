@@ -16,10 +16,10 @@
   --c-border-2:      rgba(255, 255, 255, 0.15);
 
   --c-text:          #e8e8f2;
-  --c-text-2:        rgba(232, 232, 242, 0.55);
-  --c-text-3:        rgba(232, 232, 242, 0.28);
-  --c-text-secondary: #a0aec0;
-  --c-text-muted:    #8892a4;
+  --c-text-2:        rgba(232, 232, 242, 0.72);
+  --c-text-3:        rgba(232, 232, 242, 0.45);
+  --c-text-secondary: #b6c2d4;
+  --c-text-muted:    #99a3b8;
 
   /* One accent: Weft indigo (matches ConsensusVisual, chronicle, wallet theme) */
   --c-accent:        hsl(239, 78%, 66%);
