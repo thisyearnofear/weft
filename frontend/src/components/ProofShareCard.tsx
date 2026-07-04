@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, Copy, PartyPopper, Share2 } from "lucide-react";
+import { track } from "../lib/track";
 import styles from "./ProofShareCard.module.css";
 
 interface ProofShareCardProps {
@@ -41,6 +42,7 @@ export function ProofShareCard({
   const badgeMarkdown = `[![Verified on Weft](${origin()}/api/badge/${hash})](${url})`;
 
   const copy = (kind: "link" | "badge", value: string) => {
+    track("share_click", { kind });
     navigator.clipboard.writeText(value).then(() => {
       setCopied(kind);
       setTimeout(() => setCopied((c) => (c === kind ? null : c)), 1800);
@@ -85,7 +87,13 @@ export function ProofShareCard({
       </div>
 
       <div className={styles.actions}>
-        <a href={tweetUrl} target="_blank" rel="noopener noreferrer" className={styles.primaryShare}>
+        <a
+          href={tweetUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.primaryShare}
+          onClick={() => track("share_click", { kind: "x" })}
+        >
           <Share2 size={16} /> Share on X
         </a>
         <button className={styles.action} onClick={nativeShare}>

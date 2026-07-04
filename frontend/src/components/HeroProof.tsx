@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Lock, FileCheck2, ShieldCheck, Coins, ArrowRight } from "lucide-react";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
+import { track } from "../lib/track";
 import styles from "./HeroProof.module.css";
 
 /**
@@ -40,6 +41,7 @@ export function HeroProof() {
   const reduced = usePrefersReducedMotion();
   // When motion is reduced, hold the resolved final beat.
   const [step, setStep] = useState(reduced ? 3 : 0);
+  const sawPayoff = useRef(false);
 
   useEffect(() => {
     if (reduced) return;
@@ -49,6 +51,10 @@ export function HeroProof() {
     const advance = (i: number) => {
       if (!alive) return;
       setStep(i);
+      if (i === 3 && !sawPayoff.current) {
+        sawPayoff.current = true;
+        track("heroproof_loop");
+      }
       t = setTimeout(() => advance((i + 1) % BEATS.length), timings[i]);
     };
     // Kick off asynchronously so the first state update isn't synchronous-in-effect.
@@ -135,7 +141,11 @@ export function HeroProof() {
         <p className={styles.caption} aria-live="polite">
           {reduced ? "Capital releases itself when the evidence clears." : BEATS[step].caption}
         </p>
-        <Link href={`/project/${DEMO.hash}`} className={styles.proofLink}>
+        <Link
+          href={`/project/${DEMO.hash}`}
+          className={styles.proofLink}
+          onClick={() => track("heroproof_proof_click")}
+        >
           See this exact proof onchain <ArrowRight size={14} />
         </Link>
       </div>

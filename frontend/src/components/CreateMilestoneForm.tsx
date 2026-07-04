@@ -6,6 +6,7 @@ import { sepolia } from "wagmi/chains";
 import { keccak256, encodePacked, stringToHex } from "viem";
 import { WeftMilestoneAbi, WeftMilestoneConfidentialAbi, getAddresses, getConfidentialAddress, DEFAULT_CHAIN } from "../lib/contracts";
 import { rememberMilestoneName } from "../lib/milestone-meta";
+import { track } from "../lib/track";
 import styles from "./StakeForm.module.css";
 
 const TEMPLATE_ID = "0x" + "00".repeat(32);
@@ -50,6 +51,7 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
     const seconds = deadlineDays === DEMO_DEADLINE ? 10 * 60 : deadlineDays * 86400;
     setDeadlineUnix(BigInt(Math.floor(Date.now() / 1000) + seconds));
     setStep("preview");
+    track("create_started");
   };
 
   const handleCreate = async () => {

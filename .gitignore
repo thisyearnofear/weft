@@ -8,6 +8,9 @@ dist/
 build/
 *.log
 
+# First-party analytics events (written by frontend /api/track)
+/data/
+
 # Environment
 .env
 .env.local

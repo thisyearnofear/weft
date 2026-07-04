@@ -9,13 +9,13 @@ import { MilestoneCard } from "@/components/MilestoneCard";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { AskWeft } from "@/components/AskWeft";
 import { HeroProof } from "@/components/HeroProof";
-import { HowItWorks } from "@/components/HowItWorks";
 import { Reveal } from "@/components/Reveal";
 import { useMilestones, useMilestone } from "@/hooks/useMilestones";
 import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
 import { useExplorerMilestones } from "@/hooks/useExplorer";
 import { useBuilderPassport } from "@/hooks/useBuilderPassport";
 import type { Milestone as MilestoneType, MilestoneState } from "@/lib/milestone-types";
+import { track } from "@/lib/track";
 import styles from "./page.module.css";
 
 /* ── Milestone Lookup ── */
@@ -183,6 +183,7 @@ function MilestoneFromContract({ hash, index }: { hash: `0x${string}`; index: nu
 }
 
 export default function Home() {
+  const [showChat, setShowChat] = useState(false);
   const { data: hashes, isLoading } = useMilestones();
   const { data: overview } = useStatusOverview();
   const { data: explorerMilestones } = useExplorerMilestones();
@@ -245,7 +246,11 @@ export default function Home() {
           </div>
 
           {/* One honest, concrete proof line — a real release, not empty counters */}
-          <Link href="/project/0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f" className={`${styles.proofLine} stagger stagger-5`}>
+          <Link
+            href="/project/0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f"
+            className={`${styles.proofLine} stagger stagger-5`}
+            onClick={() => track("proofline_click")}
+          >
             <span className={styles.proofDot} />
             <span>
               Latest release: <strong>{stats.ethReleased} ETH</strong> paid to{" "}
@@ -261,44 +266,32 @@ export default function Home() {
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          HOW IT WORKS — 4-step visual
-          ════════════════════════════════════════════════════════════════ */}
-      <Reveal as="section" className={styles.howItWorksSection} delay={100}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <span className={styles.sectionKicker}>How it works</span>
-            <h2 className={styles.sectionTitle}>From lock to release in four steps</h2>
-          </div>
-        </div>
-        <HowItWorks />
-      </Reveal>
-
-      {/* ════════════════════════════════════════════════════════════════
-          LIVE DEMO — hash lookup + agent chat
+          LIVE DEMO — hash lookup, agent chat behind a toggle.
+          The hero animation already explains the mechanic; this section's
+          only job is to prove it's real.
           ════════════════════════════════════════════════════════════════ */}
       <Reveal as="section" className={styles.demoSection} delay={100}>
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>Live demo</span>
-            <h2 className={styles.sectionTitle}>See it in action</h2>
+            <h2 className={styles.sectionTitle}>Don&apos;t take our word for it</h2>
           </div>
         </div>
         <p className={`${styles.sectionText} ${styles.sectionLede}`}>
-          A real milestone has been verified on 0G Testnet. 0.01 ETH was released to the
-          builder after 2 of 3 verifier nodes reached consensus. Check the onchain proof
-          yourself, or talk to the agent that verified it.
+          A real milestone was verified on 0G Testnet — 0.01 ETH released after 2 of 3
+          verifier nodes reached consensus. Check the onchain proof yourself.
         </p>
-        <div className={styles.demoGrid}>
-          {/* Left: hash lookup */}
-          <div className={styles.demoCol}>
-            <span className={styles.demoColTitle}>Check a milestone</span>
-            <MilestoneLookup />
-          </div>
-          {/* Right: Ask Weft */}
-          <div className={styles.demoCol}>
-            <span className={styles.demoColTitle}>Talk to the agent</span>
-            <AskWeft />
-          </div>
+        <div className={styles.demoSingle}>
+          <MilestoneLookup />
+          <button
+            type="button"
+            className={styles.demoChatToggle}
+            onClick={() => setShowChat((v) => !v)}
+            aria-expanded={showChat}
+          >
+            {showChat ? "Hide the agent chat" : "Prefer to ask? Talk to the agent that verified it →"}
+          </button>
+          {showChat && <AskWeft />}
         </div>
       </Reveal>
 
@@ -356,19 +349,12 @@ export default function Home() {
               )}
         </div>
 
-        {/* CTA */}
+        {/* CTA — one line, two doors. The hero already explained the personas. */}
         <div className={styles.bottomCard}>
-          <div className={styles.bottomHeader}>
-            <Sparkles size={18} />
-            <span>Ready to ship without friction?</span>
-          </div>
-          <h3>Two ways to use Weft</h3>
+          <h3>Ready to ship without friction?</h3>
           <p>
-            <strong>Sponsors</strong> lock capital behind a deliverable and get cryptographic
-            proof when it&apos;s done. <strong>Builders</strong> ship work and get paid
-            automatically when verifiers confirm the outcome. No sponsor yet? Verification
-            is free — every verified milestone mints portable reputation to your ENS name,
-            stake or no stake.
+            Builders get paid the moment verifiers confirm the work — no sponsor
+            required to start. Sponsors get cryptographic proof for every ETH released.
           </p>
           <div className={`${styles.heroActions} ${styles.bottomActions}`}>
             <Link href="/create-milestone" className={styles.primaryAction}>
