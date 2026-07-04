@@ -167,7 +167,7 @@ export async function GET() {
       ok: true,
       events,
       count: events.length,
-    }, { headers: { "cache-control": "no-store" } });
+    }, { headers: { "cache-control": "public, s-maxage=30, stale-while-revalidate=60" } });
   } catch (error) {
     return NextResponse.json(
       { ok: false, error: "activity_fetch_failed", detail: error instanceof Error ? error.message : String(error) },

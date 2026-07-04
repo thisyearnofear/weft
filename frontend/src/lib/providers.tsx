@@ -1,7 +1,7 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WagmiProvider, http } from 'wagmi';
+import { WagmiProvider, http, fallback } from 'wagmi';
 import { mainnet, base, sepolia } from 'wagmi/chains';
 import { RainbowKitProvider, darkTheme, getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { useState } from 'react';
@@ -14,11 +14,13 @@ export const wagmiConfig = getDefaultConfig({
   appDescription: 'Milestone-based funding and portable reputation',
   projectId,
   chains: [zeroGTestnet, base, mainnet, sepolia] as const,
+  // Fallback transports: the daemon's own telemetry shows the primary 0G RPC
+  // times out daily — never let one endpoint take the app down
   transports: {
-    [zeroGTestnet.id]: http('https://evmrpc-testnet.0g.ai'),
+    [zeroGTestnet.id]: fallback([http('https://evmrpc-testnet.0g.ai'), http('https://0g-galileo-evmrpc2.corenodehq.xyz')]),
     [base.id]: http('https://base-rpc.publicnode.com'),
     [mainnet.id]: http('https://ethereum-rpc.publicnode.com'),
-    [sepolia.id]: http('https://ethereum-sepolia-rpc.publicnode.com'),
+    [sepolia.id]: fallback([http('https://ethereum-sepolia-rpc.publicnode.com'), http('https://sepolia.drpc.org')]),
   },
   ssr: true,
 });

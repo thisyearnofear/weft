@@ -5,6 +5,7 @@ import { useWriteContract, useWaitForTransactionReceipt, useAccount, useChainId,
 import { sepolia } from "wagmi/chains";
 import { keccak256, encodePacked, stringToHex } from "viem";
 import { WeftMilestoneAbi, WeftMilestoneConfidentialAbi, getAddresses, getConfidentialAddress, DEFAULT_CHAIN } from "../lib/contracts";
+import { rememberMilestoneName } from "../lib/milestone-meta";
 import styles from "./StakeForm.module.css";
 
 const TEMPLATE_ID = "0x" + "00".repeat(32);
@@ -115,6 +116,7 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
 
   if (isConfirming || isSuccess) {
     if (isSuccess && txHash && !milestoneHash) {
+      rememberMilestoneName(computedHash, name, description || undefined);
       setMilestoneHash(computedHash);
       setStep("done");
       onCreated?.(computedHash);

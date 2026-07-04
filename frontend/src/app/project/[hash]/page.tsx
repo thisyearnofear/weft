@@ -12,6 +12,7 @@ import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
 import { useStatusMilestone } from "../../../hooks/useStatusApi";
 import { StakeForm } from "../../../components/StakeForm";
 import { DEFAULT_CHAIN, getAddresses, WeftMilestoneAbi } from "../../../lib/contracts";
+import { resolveMilestoneMeta, shortHash } from "../../../lib/milestone-meta";
 import styles from "./page.module.css";
 
 const EXPLORER_ADDR = "https://chainscan-new.0g.ai/address";
@@ -217,7 +218,8 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
           <div className={styles.heroGrid}>
             <div className={styles.heroCopy}>
               <span className={styles.kicker}>Trust decision view</span>
-              <h1 className={styles.title}>Milestone {hash.slice(0, 10)}...{hash.slice(-8)}</h1>
+              <h1 className={styles.title}>{resolveMilestoneMeta(milestoneHash).name}</h1>
+              <p className={styles.identityValue}>{shortHash(milestoneHash, 10, 8)}</p>
               <p className={styles.subtitle}>
                 {demo?.pitch || "This page answers the real question: did this builder deliver the outcome they were funded for?"}
               </p>
@@ -386,7 +388,7 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
               <p className={styles.panelText}>
                 If this milestone verifies, it does more than unlock capital. It strengthens the reusable trust graph around the builder and collaborators. If it fails, that is useful too: Weft makes failure legible instead of hiding it behind social ambiguity.
               </p>
-              <ShareButtons url={shareUrl} title={`Milestone ${hash.slice(0, 10)}`} />
+              <ShareButtons url={shareUrl} title={`${resolveMilestoneMeta(milestoneHash).name} — ${isVerified ? "verified, capital released" : "in verification"}`} />
             </article>
           </div>
 

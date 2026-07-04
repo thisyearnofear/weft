@@ -41,6 +41,9 @@ export function useConfidentialMilestone(milestoneHash: string, enabled = true) 
     ...queryDefaults,
     queryKey: CONFIDENTIAL_QUERY_KEYS.detail(milestoneHash),
     enabled: enabled && !!client,
+    // Ballots landing one by one is the spectacle — poll while voting is open
+    refetchInterval: (query) =>
+      query.state.data && !query.state.data.finalized ? 8000 : false,
     queryFn: async () => {
       if (!client) throw new Error("No Sepolia client");
       const address = getConfidentialAddress();

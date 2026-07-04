@@ -8,6 +8,8 @@ import { ConfidentialMilestone, useDecryptSealedResult } from "../../../hooks/us
 import { SealedReveal } from "../../../components/SealedReveal";
 import { StakeForm } from "../../../components/StakeForm";
 import { getConfidentialAddress } from "../../../lib/contracts";
+import { resolveMilestoneMeta, shortHash } from "../../../lib/milestone-meta";
+import { keccak256, stringToHex } from "viem";
 import styles from "./page.module.css";
 
 const SEPOLIA_EXPLORER = "https://sepolia.etherscan.io";
@@ -75,6 +77,10 @@ function DecryptPanel({ m }: { m: ConfidentialMilestone }) {
 
 export function ConfidentialMilestoneView({ hash, milestone: m }: { hash: string; milestone: ConfidentialMilestone }) {
   const contractAddress = getConfidentialAddress();
+  const meta = resolveMilestoneMeta(hash);
+  const promiseVerified =
+    meta.promise !== undefined &&
+    keccak256(stringToHex(meta.promise.slice(0, 256))) === m.metadataHash;
   const stakedEth = (Number(m.totalStaked) / 1e18).toFixed(4);
   const evidenceRoot = m.finalEvidenceRoot !== ZERO_ROOT ? m.finalEvidenceRoot : null;
   const isActive = !m.finalized;
@@ -94,7 +100,8 @@ export function ConfidentialMilestoneView({ hash, milestone: m }: { hash: string
           <div className={styles.heroGrid}>
             <div className={styles.heroCopy}>
               <span className={styles.kicker}>Confidential milestone · Zama FHE · Sepolia</span>
-              <h1 className={styles.title}>Milestone {hash.slice(0, 10)}...{hash.slice(-8)}</h1>
+              <h1 className={styles.title}>{meta.name}</h1>
+              <p className={styles.identityValue}>{shortHash(hash, 10, 8)}</p>
               <p className={styles.subtitle}>
                 Verifiers vote on this milestone by sealed ballot: every vote is encrypted in the
                 browser of the agent that casts it, the contract tallies votes homomorphically, and
@@ -205,6 +212,27 @@ export function ConfidentialMilestoneView({ hash, milestone: m }: { hash: string
                 </code>
               </div>
             </article>
+
+            {meta.promise && (
+              <article className={styles.panel}>
+                <div className={styles.panelHeader}>
+                  <div>
+                    <span className={styles.kicker}>What was promised</span>
+                    <h3>The acceptance criteria, anchored onchain</h3>
+                  </div>
+                  <ShieldCheck size={18} />
+                </div>
+                <p className={styles.panelText}>&ldquo;{meta.promise}&rdquo;</p>
+                <div className={styles.codeBlock}>
+                  <span className={styles.codeLabel}>
+                    {promiseVerified
+                      ? "✓ keccak256 of this text matches the onchain metadataHash"
+                      : "metadataHash (text not verified)"}
+                  </span>
+                  <code>{m.metadataHash}</code>
+                </div>
+              </article>
+            )}
 
             <DecryptPanel m={m} />
           </div>
