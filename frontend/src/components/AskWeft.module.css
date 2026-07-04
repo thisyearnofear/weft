@@ -114,7 +114,7 @@
   padding: 8px;
   border-radius: 8px;
   background: var(--c-surface);
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
 }
 

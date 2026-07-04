@@ -1,5 +1,5 @@
 .page {
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: 3rem 1.25rem 5rem;
   background:
     radial-gradient(circle at top, rgba(99, 102, 241, 0.14), transparent 26%),

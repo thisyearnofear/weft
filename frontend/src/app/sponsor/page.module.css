@@ -1,7 +1,7 @@
 .container {
-  min-height: 100vh;
+  min-height: 100dvh;
   background:
-    radial-gradient(circle at 12% 8%, rgba(59, 130, 246, 0.06), transparent 28%),
+    radial-gradient(circle at 12% 8%, rgba(99, 102, 241, 0.07), transparent 28%),
     radial-gradient(circle at 82% 14%, rgba(20, 184, 166, 0.04), transparent 26%);
   color: var(--c-text);
   padding: 3rem 3rem 4rem;
@@ -45,7 +45,7 @@
   font-size: 0.75rem; color: var(--c-text-muted); text-transform: uppercase;
   letter-spacing: 0.04em; margin-bottom: 0.5rem;
 }
-.kpiValue { font-size: 1.75rem; font-weight: 700; color: var(--c-text); line-height: 1; }
+.kpiValue { font-size: 1.75rem; font-weight: 700; color: var(--c-text); line-height: 1; font-variant-numeric: tabular-nums; }
 .kpiSub { font-size: 0.8rem; color: var(--c-text-muted); margin-top: 0.35rem; }
 .kpiPositive { color: var(--c-verified); }
 .kpiNegative { color: var(--c-failed); }
@@ -64,18 +64,21 @@
   border-radius: 4px; background: var(--c-accent-20); color: var(--c-accent);
 }
 
+/* Divider rows inside the section panel — elevation stays on the panel */
 .milestoneCard {
-  border: 1px solid var(--c-border); border-radius: 10px;
-  padding: 1.25rem; margin-bottom: 0.75rem; transition: border-color 0.15s;
+  padding: 1rem 0.35rem;
+  border-bottom: 1px solid var(--c-border);
+  transition: background 0.15s;
 }
-.milestoneCard:hover { border-color: var(--c-accent); }
+.milestoneCard:last-child { border-bottom: none; }
+.milestoneCard:hover { background: var(--c-surface); border-radius: 8px; }
 
 .milestoneHeader {
   display: flex; justify-content: space-between; align-items: flex-start;
   gap: 1rem; margin-bottom: 0.75rem;
 }
 .milestoneHash {
-  font-family: monospace; font-size: 0.82rem; color: var(--c-accent);
+  font-family: var(--font-mono); font-size: 0.82rem; color: var(--c-link);
   text-decoration: none;
 }
 .milestoneHash:hover { text-decoration: underline; }
@@ -134,11 +137,11 @@
   background: linear-gradient(135deg, var(--c-accent), var(--c-verified));
   color: #fff; font-size: 0.9rem; font-weight: 600;
   text-decoration: none; transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
 }
 .primaryCta:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);
 }
 
 @media (max-width: 768px) {

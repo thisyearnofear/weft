@@ -18,7 +18,7 @@
   transform: translateY(0) scale(1) perspective(800px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
   animation: cardEntrance 0.6s var(--ease-out) backwards;
   transition: transform 0.2s var(--ease-out), box-shadow 0.3s var(--ease-out);
-  box-shadow: 0 0 calc(var(--prox) * 30px) rgba(59, 130, 246, calc(var(--prox) * 0.18));
+  box-shadow: 0 0 calc(var(--prox) * 30px) rgba(99, 102, 241, calc(var(--prox) * 0.18));
   text-decoration: none;
   color: inherit;
   display: block;
@@ -37,7 +37,7 @@
 
 .card:hover {
   transform: translateY(-3px) scale(1) perspective(800px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
-  box-shadow: var(--shadow-lg), 0 0 calc(var(--prox) * 40px) rgba(59, 130, 246, calc(var(--prox) * 0.22));
+  box-shadow: var(--shadow-lg), 0 0 calc(var(--prox) * 40px) rgba(99, 102, 241, calc(var(--prox) * 0.22));
 }
 
 /* Cursor-following spotlight (proximity feedback) — sits above the card
@@ -64,7 +64,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.5), transparent);
   opacity: 0;
   transition: opacity 0.3s ease;
 }

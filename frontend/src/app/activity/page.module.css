@@ -1,7 +1,7 @@
 .container {
-  min-height: 100vh;
+  min-height: 100dvh;
   background:
-    radial-gradient(circle at 12% 8%, rgba(59, 130, 246, 0.06), transparent 28%),
+    radial-gradient(circle at 12% 8%, rgba(99, 102, 241, 0.07), transparent 28%),
     radial-gradient(circle at 82% 14%, rgba(20, 184, 166, 0.04), transparent 26%);
   color: var(--c-text); padding: 3rem 3rem 4rem;
 }
