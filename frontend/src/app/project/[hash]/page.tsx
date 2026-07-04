@@ -11,6 +11,7 @@ import { ConfidentialMilestoneView } from "./ConfidentialMilestoneView";
 import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
 import { useStatusMilestone } from "../../../hooks/useStatusApi";
 import { StakeForm } from "../../../components/StakeForm";
+import { ProofShareCard } from "../../../components/ProofShareCard";
 import { DEFAULT_CHAIN, getAddresses, WeftMilestoneAbi } from "../../../lib/contracts";
 import { resolveMilestoneMeta, shortHash } from "../../../lib/milestone-meta";
 import styles from "./page.module.css";
@@ -176,12 +177,21 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
     builderPassport?.ens ||
     (builderAddr ? `${builderAddr.slice(0, 6)}...${builderAddr.slice(-4)}` : "");
   const stakedEth = milestone ? (Number(milestone.totalStaked) / 1e18).toFixed(4) : "0";
+  const isUnfunded = Boolean(milestone && Number(milestone.totalStaked) === 0);
   const isVerified = Boolean(milestone?.verified);
   const isActive = Boolean(milestone && !milestone.finalized);
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const evidenceRoot = milestone?.finalEvidenceRoot && milestone.finalEvidenceRoot !== ZERO_ROOT ? milestone.finalEvidenceRoot : null;
   const verificationProgress = milestone?.verifierCount ? Math.min(100, Math.round((milestone.verifiedVotes / milestone.verifierCount) * 100)) : 0;
-  const payoutStatus = isVerified ? "This outcome has earned capital release." : milestone?.finalized ? "This outcome failed the trust threshold and can follow the refund path." : "Capital is still locked because the system is not yet confident enough.";
+  const payoutStatus = isVerified
+    ? isUnfunded
+      ? "This outcome verified with no capital staked — the proof itself is the payout, minted to the builder's reputation."
+      : "This outcome has earned capital release."
+    : milestone?.finalized
+      ? "This outcome failed the trust threshold and can follow the refund path."
+      : isUnfunded
+        ? "No capital is staked yet — verification runs regardless, and sponsors can stake until the deadline."
+        : "Capital is still locked because the system is not yet confident enough.";
   const evidenceStatus = evidenceRoot ? "Evidence root recorded onchain." : "Awaiting final evidence root publication.";
   const demo = statusMilestone?.demo;
   const peerGroup = demo?.tracks.gensyn.bestPeerGroup;
@@ -264,11 +274,26 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
           </div>
         </section>
 
+        {isVerified && (
+          <ProofShareCard
+            hash={milestoneHash}
+            url={shareUrl}
+            builderName={builderName}
+            stakedEth={stakedEth}
+            verifiedVotes={milestone.verifiedVotes}
+            verifierCount={milestone.verifierCount}
+          />
+        )}
+
         <section className={styles.metricGrid}>
           <article className={styles.metricCard}>
             <span className={styles.metricLabel}>Capital at stake</span>
             <strong className={styles.metricValue}>{stakedEth} ETH</strong>
-            <p>Escrowed until the system is confident enough to release or refund.</p>
+            <p>
+              {isUnfunded
+                ? "Reputation-only run. Verification proceeds without stake — sponsors can back it until the deadline."
+                : "Escrowed until the system is confident enough to release or refund."}
+            </p>
           </article>
           <article className={styles.metricCard}>
             <span className={styles.metricLabel}>Verifier confidence</span>
@@ -364,9 +389,19 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
                   detail={evidenceRoot ? "Anchored onchain" : "Not yet published"}
                 />
                 <EvidenceRow
-                  label="Capital release"
-                  passed={milestone.released}
-                  detail={milestone.released ? "Capital released to builder" : milestone.verified ? "Ready — call release()" : "Locked until verification"}
+                  label={isUnfunded ? "Reputation payout" : "Capital release"}
+                  passed={isUnfunded ? milestone.verified : milestone.released}
+                  detail={
+                    isUnfunded
+                      ? milestone.verified
+                        ? "No stake to move — verified proof minted to the builder's reputation"
+                        : "Unfunded run — a verified outcome mints reputation instead of capital"
+                      : milestone.released
+                        ? "Capital released to builder"
+                        : milestone.verified
+                          ? "Ready — call release()"
+                          : "Locked until verification"
+                  }
                 />
               </div>
               {evidenceRoot && (
@@ -432,7 +467,9 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
                   <Coins size={18} />
                 </div>
                 <p className={styles.panelText}>
-                  Add capital to the milestone while it is still active. Funds remain governed by Weft&apos;s trust loop until the final outcome is known.
+                  {isUnfunded
+                    ? "Be the first to back this outcome. The builder is shipping either way — staking routes capital to them the moment verifiers confirm the work."
+                    : "Add capital to the milestone while it is still active. Funds remain governed by Weft's trust loop until the final outcome is known."}
                 </p>
                 <StakeForm milestoneHash={milestoneHash} contractAddress={addresses.weftMilestone} />
               </article>
@@ -443,14 +480,22 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
                 <div className={styles.panelHeader}>
                   <div>
                     <span className={styles.kicker}>Settlement</span>
-                    <h3>{milestone.verified ? "Release capital" : "Refund path"}</h3>
+                    <h3>
+                      {milestone.verified
+                        ? isUnfunded ? "Proof minted" : "Release capital"
+                        : isUnfunded ? "Nothing to refund" : "Refund path"}
+                    </h3>
                   </div>
                   {milestone.verified ? <Wallet size={18} /> : <AlertTriangle size={18} />}
                 </div>
                 <p className={styles.panelText}>
                   {milestone.verified
-                    ? "This milestone verified successfully. The escrowed capital can now be released to the builder."
-                    : "This milestone did not verify. Sponsors can reclaim their staked capital through the refund path."}
+                    ? isUnfunded
+                      ? "This milestone verified with zero stake. There is no capital to move — the verified proof is already minted to the builder's reputation."
+                      : "This milestone verified successfully. The escrowed capital can now be released to the builder."
+                    : isUnfunded
+                      ? "This milestone did not verify. No capital was staked, so nothing needs to be refunded."
+                      : "This milestone did not verify. Sponsors can reclaim their staked capital through the refund path."}
                 </p>
                 {milestone.released && (
                   <div className={styles.codeBlock}>
@@ -458,7 +503,7 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
                     <p className={styles.releasedNote}>Capital has been distributed.</p>
                   </div>
                 )}
-                {!milestone.released && (
+                {!milestone.released && !isUnfunded && (
                   <ReleaseButton
                     milestoneHash={milestoneHash}
                     contractAddress={addresses.weftMilestone}

@@ -6,6 +6,7 @@ import styles from './layout.module.css';
 import { Providers } from '@/lib/providers';
 import { ConnectButton } from '@/components/ConnectButton';
 import { Nav } from '@/components/Nav';
+import { Footer } from '@/components/Footer';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ClientToasts } from '@/components/ClientToasts';
 import { SmoothScroll } from '@/components/SmoothScroll';
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
             </ErrorBoundary>
           </main>
+          <Footer />
           <ClientToasts />
         </Providers>
       </body>

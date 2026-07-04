@@ -120,6 +120,60 @@
   transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
+/* Quieter secondary path for the non-primary persona (sponsors) */
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--c-text-2);
+  padding: 0.9rem 0.5rem;
+  transition: color var(--transition-fast);
+}
+.secondaryLink:hover { color: var(--c-text); }
+
+/* ── Honest single-line proof (replaces empty-looking counters) ── */
+.proofLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: fit-content;
+  margin-top: 0.9rem;
+  padding: 0.6rem 0.95rem;
+  border-radius: 999px;
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  font-size: 0.86rem;
+  color: var(--c-text-2);
+  transition: border-color var(--transition-fast), transform var(--transition-fast), background var(--transition-fast);
+}
+.proofLine:hover {
+  border-color: var(--c-border-2);
+  background: var(--c-surface-3);
+  transform: translateY(-1px);
+}
+.proofLine strong {
+  color: var(--c-text);
+  font-weight: 700;
+}
+.proofDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--c-verified);
+  box-shadow: 0 0 0 0 var(--c-verified-20);
+  flex-shrink: 0;
+  animation: proofPulse 2.4s var(--ease-out) infinite;
+}
+@keyframes proofPulse {
+  0%   { box-shadow: 0 0 0 0 hsla(168, 78%, 52%, 0.4); }
+  70%  { box-shadow: 0 0 0 7px hsla(168, 78%, 52%, 0); }
+  100% { box-shadow: 0 0 0 0 hsla(168, 78%, 52%, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .proofDot { animation: none; }
+}
+
 .primaryAction:hover,
 .secondaryAction:hover {
   transform: translateY(-2px);

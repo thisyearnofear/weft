@@ -104,6 +104,11 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
         <p className={styles.doneHash}>
           Hash: <code>{milestoneHash}</code>
         </p>
+        <p className={styles.doneHash}>
+          Share the milestone link with sponsors to get it funded — or just ship:
+          verification runs either way, and a verified outcome mints reputation to
+          your ENS name even with zero stake.
+        </p>
         <a
           href={`/project/${milestoneHash}${confidential ? "?confidential=1" : ""}`}
           className={`${styles.link} ${styles.linkBold}`}

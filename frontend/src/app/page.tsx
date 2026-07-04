@@ -8,7 +8,7 @@ import { HeroLoom } from "@/components/HeroLoom";
 import { MilestoneCard } from "@/components/MilestoneCard";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { AskWeft } from "@/components/AskWeft";
-import { ConsensusVisual } from "@/components/ConsensusVisual";
+import { HeroProof } from "@/components/HeroProof";
 import { HowItWorks } from "@/components/HowItWorks";
 import { Reveal } from "@/components/Reveal";
 import { useMilestones, useMilestone } from "@/hooks/useMilestones";
@@ -17,17 +17,6 @@ import { useExplorerMilestones } from "@/hooks/useExplorer";
 import { useBuilderPassport } from "@/hooks/useBuilderPassport";
 import type { Milestone as MilestoneType, MilestoneState } from "@/lib/milestone-types";
 import styles from "./page.module.css";
-
-/* ── Live Counters ── */
-function StatCard({ value, label, suffix = "" }: { value: number | string; label: string; suffix?: string }) {
-  const display = typeof value === "string" ? value : (value >= 1000 ? `${(value / 1000).toFixed(1)}k` : String(value));
-  return (
-    <div className={styles.statCard}>
-      <span className={styles.statValue}>{display}{suffix}</span>
-      <span className={styles.statLabel}>{label}</span>
-    </div>
-  );
-}
 
 /* ── Milestone Lookup ── */
 function MilestoneLookup() {
@@ -234,57 +223,40 @@ export default function Home() {
         <div className={styles.heroCopy}>
           <div className={`${styles.eyebrow} stagger stagger-1`}>
             <Bot size={15} />
-            {overview?.pitch || "Autonomous milestone funding on 0G Chain"}
+            {overview?.pitch || "Proof-of-work funding on 0G Chain"}
           </div>
           <h1 className={`${styles.title} stagger stagger-2`}>
-            Ship work.{" "}
-            <span className={styles.accent}>Get paid.</span>
+            Prove your work.{" "}
+            <span className={styles.accent}>Get paid instantly.</span>
           </h1>
           <p className={`${styles.subtitle} stagger stagger-3`}>
-            <strong>The problem:</strong> builders ship work, then chase invoices
-            while sponsors decide whether to pay.{" "}
-            <strong>Weft&apos;s fix:</strong> the money is locked up front, AI
-            agents check the work onchain, and payment releases itself the moment
-            2 of 3 agree. No invoices, no chasing, no trust required.
+            Stop chasing invoices and waiting on approvals. Lock a deliverable,
+            ship it, and AI verifiers release your capital onchain the moment the
+            evidence checks out — then attach the win to your reputation, forever.
           </p>
-
-          {/* First-visit guidance — a numbered path through the demo */}
-          <div className={`${styles.guideStrip} stagger stagger-4`}>
-            <span className={styles.guideLabel}>New here? Three stops:</span>
-            <Link href="/project/0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f" className={styles.guideStep}>
-              1. See a verified milestone
-            </Link>
-            <Link href="/verifiers" className={styles.guideStep}>
-              2. Meet the AI verifiers
-            </Link>
-            <Link href="/project/0xc351d2446c4e245d3baa0fc206a05d61010589dd8635c844c17955d50fc58574?confidential=1" className={styles.guideStep}>
-              3. Decrypt a sealed vote
-            </Link>
-          </div>
 
           <div className={`${styles.heroActions} stagger stagger-4`}>
             <Link href="/create-milestone" className={styles.primaryAction}>
-              Create a milestone <ArrowRight size={16} />
+              Get your work verified <ArrowRight size={16} />
             </Link>
-            <Link href="/sponsor" className={styles.secondaryAction}>
-              Fund a milestone
+            <Link href="/sponsor" className={styles.secondaryLink}>
+              I&apos;m here to fund work →
             </Link>
           </div>
 
-          {/* Live stats strip */}
-          <div className={`${styles.statsStrip} stagger stagger-5`}>
-            <StatCard value={stats.verifiedCount} label="Verified milestone" />
-            <div className={styles.statDivider} />
-            <StatCard value={stats.ethReleased} label="ETH released" />
-            <div className={styles.statDivider} />
-            <StatCard value={stats.verifierVotes} label="Verifier votes" />
-            <div className={styles.statDivider} />
-            <StatCard value={stats.quorum} label="Quorum" />
-          </div>
+          {/* One honest, concrete proof line — a real release, not empty counters */}
+          <Link href="/project/0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f" className={`${styles.proofLine} stagger stagger-5`}>
+            <span className={styles.proofDot} />
+            <span>
+              Latest release: <strong>{stats.ethReleased} ETH</strong> paid to{" "}
+              <strong>{builderEns}</strong> · verified {stats.quorum}
+            </span>
+            <ArrowRight size={14} />
+          </Link>
         </div>
 
         <div className={styles.heroPanel}>
-          <ConsensusVisual />
+          <HeroProof />
         </div>
       </section>
 
@@ -394,7 +366,9 @@ export default function Home() {
           <p>
             <strong>Sponsors</strong> lock capital behind a deliverable and get cryptographic
             proof when it&apos;s done. <strong>Builders</strong> ship work and get paid
-            automatically when verifiers confirm the outcome.
+            automatically when verifiers confirm the outcome. No sponsor yet? Verification
+            is free — every verified milestone mints portable reputation to your ENS name,
+            stake or no stake.
           </p>
           <div className={`${styles.heroActions} ${styles.bottomActions}`}>
             <Link href="/create-milestone" className={styles.primaryAction}>

@@ -6,6 +6,9 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import styles from "./Nav.module.css";
 
+// Primary nav stays focused on the builder path. Machinery pages
+// (Verifiers, Operations, API docs) live in the footer's Developers group
+// and, for reachability, in the mobile menu below.
 const NAV_GROUPS = [
   {
     label: "Explore",
@@ -14,11 +17,15 @@ const NAV_GROUPS = [
       { href: "/activity", label: "Activity" },
     ],
   },
+];
+
+const MOBILE_ONLY_GROUPS = [
   {
-    label: "Network",
+    label: "Developers",
     links: [
       { href: "/verifiers", label: "Verifiers" },
       { href: "/operations", label: "Operations" },
+      { href: "/api/docs", label: "API docs" },
     ],
   },
 ];
@@ -84,7 +91,7 @@ export function Nav() {
           >
             <Plus size={16} /> Create a milestone
           </Link>
-          {NAV_GROUPS.map((group) => (
+          {[...NAV_GROUPS, ...MOBILE_ONLY_GROUPS].map((group) => (
             <div key={group.label} className={styles.mobileNavGroup}>
               <span className={styles.mobileNavLabel}>{group.label}</span>
               {group.links.map((link) => (
