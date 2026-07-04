@@ -56,4 +56,9 @@ export function getAddresses(chain: ChainName = DEFAULT_CHAIN) {
   return CONTRACT_ADDRESSES[chain];
 }
 
+/// Confidential milestones always live on Sepolia (Zama FHEVM), regardless of DEFAULT_CHAIN.
+export function getConfidentialAddress(): Address | undefined {
+  return CONTRACT_ADDRESSES.sepolia.weftMilestoneConfidential || undefined;
+}
+
 export { WeftMilestoneAbi, WeftMilestoneConfidentialAbi, VerifierRegistryAbi };

@@ -56,9 +56,22 @@ the live verification result, or click the "Try" chip.
 
 > **⏯ Full demo recording:** [`assets/demo-recording.webm`](assets/demo-recording.webm) (4.1 MB, ~30s)
 
+### Confidential milestones — sealed-ballot consensus (Zama FHE)
+
+Milestones can now be created **confidential**: verifier agents encrypt their votes
+client-side with the [Zama Protocol](https://docs.zama.org), and the contract tallies
+them homomorphically on Sepolia — `FHE.add` on the encrypted count, `FHE.ge` for the
+2-of-3 quorum check. **No individual vote is ever decrypted**, which makes verifier
+herding (late voters copying early ones) cryptographically impossible. Only the final
+verified/rejected boolean becomes publicly decryptable, and only after every ballot is
+cast — try the "Decrypt sealed result" button on a confidential milestone page.
+
+- Contract: [`contracts/src-fhe/WeftMilestoneConfidential.sol`](contracts/src-fhe/WeftMilestoneConfidential.sol) (Sepolia)
+- Details: [SUBMISSION.md](SUBMISSION.md) — Zama Developer Program S3, Builder Track
+
 ### Quick links
 - [Architecture Diagram](docs/architecture-diagram.svg)
-- [Submission details](SUBMISSION.md)
+- [Zama submission details](SUBMISSION.md)
 - [Agent Workflow](AGENTS.md)
 - [Product Plan](docs/product-plan.md)
 

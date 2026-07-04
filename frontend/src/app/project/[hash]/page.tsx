@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { ArrowUpRight, Blocks, BookOpen, CheckCircle2, Clock3, Coins, Database, Network, ShieldCheck, XCircle, Wallet, AlertTriangle, Loader2 } from "lucide-react";
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
 import { useMilestone } from "../../../hooks/useMilestones";
+import { useConfidentialMilestone } from "../../../hooks/useConfidentialMilestone";
+import { ConfidentialMilestoneView } from "./ConfidentialMilestoneView";
 import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
 import { useStatusMilestone } from "../../../hooks/useStatusApi";
 import { StakeForm } from "../../../components/StakeForm";
@@ -168,8 +170,16 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
   const { hash } = React.use(params);
   const searchParams = useSearchParams();
   const demoMode = searchParams.get("demo") === "1";
+  const confidentialMode = searchParams.get("confidential") === "1";
   const milestoneHash = (hash.startsWith("0x") ? hash : `0x${hash}`) as `0x${string}`;
   const { data: milestone, isLoading, error } = useMilestone(milestoneHash);
+  // Confidential milestones live on Sepolia (Zama FHEVM). Checked when asked
+  // for explicitly (?confidential=1) or when the hash isn't a public milestone.
+  const publicMissing = !isLoading && (!!error || !milestone || milestone.builder === "0x0000000000000000000000000000000000000000");
+  const { data: confidentialMilestone, isLoading: confidentialLoading } = useConfidentialMilestone(
+    milestoneHash,
+    confidentialMode || publicMissing
+  );
   const { data: statusMilestone } = useStatusMilestone(milestoneHash, true);
   const addresses = getAddresses(DEFAULT_CHAIN);
 
@@ -197,9 +207,13 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
   const fal = demo?.tracks.fal;
   const falImageUrl = fal?.available ? (fal.falImageUrl || fal.falCoverUrl || null) : null;
 
-  if (isLoading) return <ProjectSkeleton />;
+  if (confidentialMilestone) {
+    return <ConfidentialMilestoneView hash={milestoneHash} milestone={confidentialMilestone} />;
+  }
 
-  if (error || !milestone) {
+  if (isLoading || ((confidentialMode || publicMissing) && confidentialLoading)) return <ProjectSkeleton />;
+
+  if (error || !milestone || milestone.builder === "0x0000000000000000000000000000000000000000") {
     return (
       <div className={styles.container}>
         <div className={styles.error}>Milestone not found: {hash}</div>

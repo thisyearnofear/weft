@@ -1,16 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
+import { useWriteContract, useWaitForTransactionReceipt, useAccount, useChainId, useSwitchChain } from "wagmi";
+import { sepolia } from "wagmi/chains";
 import { keccak256, encodePacked, stringToHex } from "viem";
-import { WeftMilestoneAbi, getAddresses, DEFAULT_CHAIN } from "../lib/contracts";
+import { WeftMilestoneAbi, WeftMilestoneConfidentialAbi, getAddresses, getConfidentialAddress, DEFAULT_CHAIN } from "../lib/contracts";
 import styles from "./StakeForm.module.css";
 
 const TEMPLATE_ID = "0x" + "00".repeat(32);
 const EXPLORER_TX = "https://chainscan-new.0g.ai/tx";
+const SEPOLIA_EXPLORER_TX = "https://sepolia.etherscan.io/tx";
+const DEMO_DEADLINE = 0; // sentinel: 10-minute deadline so sealed ballots open quickly
 
 export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) => void }) {
   const { isConnected, address } = useAccount();
+  const chainId = useChainId();
+  const { switchChainAsync } = useSwitchChain();
   const [step, setStep] = useState<"form" | "preview" | "done">("form");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -18,11 +23,14 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
   const [confidential, setConfidential] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [milestoneHash, setMilestoneHash] = useState<string | null>(null);
+  // Frozen when entering preview so the displayed hash matches the one submitted
+  const [deadlineUnix, setDeadlineUnix] = useState<bigint>(BigInt(0));
 
+  const confidentialAddress = getConfidentialAddress();
   const addresses = getAddresses(DEFAULT_CHAIN);
+  const targetAddress = confidential ? confidentialAddress : addresses.weftMilestone;
 
   const projectId = name ? keccak256(stringToHex(name)) : ("0x" + "00".repeat(32));
-  const deadlineUnix = BigInt(Math.floor(Date.now() / 1000) + deadlineDays * 86400);
   const metadataHash = description
     ? keccak256(stringToHex(description.slice(0, 256)))
     : ("0x" + "00".repeat(32));
@@ -37,23 +45,50 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
   const { writeContract, data: txHash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
 
+  const enterPreview = () => {
+    const seconds = deadlineDays === DEMO_DEADLINE ? 10 * 60 : deadlineDays * 86400;
+    setDeadlineUnix(BigInt(Math.floor(Date.now() / 1000) + seconds));
+    setStep("preview");
+  };
+
   const handleCreate = async () => {
-    if (!addresses.weftMilestone) return;
+    if (!targetAddress) return;
     setError(null);
     try {
-      writeContract({
-        address: addresses.weftMilestone,
-        abi: WeftMilestoneAbi,
-        functionName: "createMilestone",
-        args: [
-          computedHash,
-          projectId as `0x${string}`,
-          TEMPLATE_ID as `0x${string}`,
-          deadlineUnix,
-          metadataHash as `0x${string}`,
-          [],
-        ],
-      });
+      if (confidential && chainId !== sepolia.id) {
+        await switchChainAsync({ chainId: sepolia.id });
+      }
+      writeContract(
+        confidential
+          ? {
+              chainId: sepolia.id,
+              address: targetAddress,
+              abi: WeftMilestoneConfidentialAbi,
+              functionName: "createMilestone",
+              args: [
+                computedHash,
+                projectId as `0x${string}`,
+                TEMPLATE_ID as `0x${string}`,
+                deadlineUnix,
+                metadataHash as `0x${string}`,
+                // Confidential contract requires at least one payout split
+                [{ wallet: address, shareBps: 10_000 }],
+              ],
+            }
+          : {
+              address: targetAddress,
+              abi: WeftMilestoneAbi,
+              functionName: "createMilestone",
+              args: [
+                computedHash,
+                projectId as `0x${string}`,
+                TEMPLATE_ID as `0x${string}`,
+                deadlineUnix,
+                metadataHash as `0x${string}`,
+                [],
+              ],
+            }
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Creation failed");
     }
@@ -63,13 +98,13 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
     return (
       <div className={styles.container}>
         <div className={styles.success}>
-          Milestone created successfully!
+          {confidential ? "Confidential milestone created on Sepolia!" : "Milestone created successfully!"}
         </div>
         <p className={styles.doneHash}>
           Hash: <code>{milestoneHash}</code>
         </p>
         <a
-          href={`/project/${milestoneHash}`}
+          href={`/project/${milestoneHash}${confidential ? "?confidential=1" : ""}`}
           className={`${styles.link} ${styles.linkBold}`}
         >
           View milestone →
@@ -91,12 +126,12 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
         </div>
         {txHash && (
           <a
-            href={`${EXPLORER_TX}/${txHash}`}
+            href={`${confidential ? SEPOLIA_EXPLORER_TX : EXPLORER_TX}/${txHash}`}
             target="_blank"
             rel="noopener noreferrer"
             className={styles.link}
           >
-            View on 0G Explorer
+            {confidential ? "View on Sepolia Etherscan" : "View on 0G Explorer"}
           </a>
         )}
       </div>
@@ -128,11 +163,20 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
           <div>
             <span className={styles.previewLabel}>Deadline</span>
             <p className={styles.previewValue}>
-              {new Date(Number(deadlineUnix) * 1000).toLocaleDateString("en-US", {
+              {new Date(Number(deadlineUnix) * 1000).toLocaleString("en-US", {
                 weekday: "long", year: "numeric", month: "long", day: "numeric",
+                hour: "numeric", minute: "2-digit",
               })}
             </p>
           </div>
+          {confidential && (
+            <div>
+              <span className={styles.previewLabel}>Privacy</span>
+              <p className={styles.previewValue}>
+                Confidential — sealed-ballot verification on Sepolia (Zama FHE)
+              </p>
+            </div>
+          )}
           <div>
             <span className={styles.previewLabel}>Milestone Hash</span>
             <p className={styles.previewValueMono}>{computedHash}</p>
@@ -152,12 +196,15 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
           </button>
           <button
             onClick={handleCreate}
-            disabled={isPending || !addresses.weftMilestone}
+            disabled={isPending || !targetAddress}
             className={`${styles.button} ${styles.buttonFlex}`}
           >
-            {isPending ? "Signing..." : "Create Milestone"}
+            {isPending ? "Signing..." : confidential ? "Create on Sepolia" : "Create Milestone"}
           </button>
         </div>
+        {confidential && !confidentialAddress && (
+          <div className={styles.error}>Confidential contract not configured for Sepolia yet.</div>
+        )}
         {error && <div className={styles.error}>{error}</div>}
       </div>
     );
@@ -165,7 +212,7 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
 
   return (
     <form
-      onSubmit={(e) => { e.preventDefault(); setStep("preview"); }}
+      onSubmit={(e) => { e.preventDefault(); enterPreview(); }}
       className={styles.container}
     >
       <div className={styles.inputGroup}>
@@ -194,6 +241,7 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
           onChange={(e) => setDeadlineDays(Number(e.target.value))}
           className={`${styles.input} ${styles.select}`}
         >
+          {confidential && <option value={DEMO_DEADLINE}>Deadline: 10 minutes (demo)</option>}
           <option value={7}>Deadline: 7 days</option>
           <option value={14}>Deadline: 14 days</option>
           <option value={30}>Deadline: 30 days</option>
@@ -211,7 +259,7 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
           />
           Make this milestone confidential
           <span className={styles.checkboxHint}>
-            Sealed-ballot verifier consensus + encrypted stake amounts (Zama FHE)
+            Sealed-ballot verifier consensus on Sepolia — individual votes encrypted with Zama FHE, never revealed
           </span>
         </label>
       </div>

@@ -1,0 +1,10 @@
+{
+  "name": "weft-agent-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Node.js helpers for the Weft verifier daemon (Zama FHE sealed-ballot votes)",
+  "dependencies": {
+    "@zama-fhe/relayer-sdk": "0.4.4",
+    "viem": "^2.48.4"
+  }
+}

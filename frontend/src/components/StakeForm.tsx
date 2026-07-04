@@ -9,10 +9,19 @@ import styles from "./StakeForm.module.css";
 interface StakeFormProps {
   milestoneHash: `0x${string}`;
   contractAddress: `0x${string}`;
+  chainId?: number;
+  explorerTxBase?: string;
+  explorerName?: string;
   onSuccess?: (txHash: string) => void;
 }
 
-export function StakeForm({ milestoneHash, contractAddress }: StakeFormProps) {
+export function StakeForm({
+  milestoneHash,
+  contractAddress,
+  chainId,
+  explorerTxBase = "https://chainscan-new.0g.ai/tx",
+  explorerName = "0G Explorer",
+}: StakeFormProps) {
   const { isConnected } = useAccount();
   const [amount, setAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +38,7 @@ export function StakeForm({ milestoneHash, contractAddress }: StakeFormProps) {
     setError(null);
     try {
       writeContract({
+        ...(chainId ? { chainId } : {}),
         address: contractAddress,
         abi: WeftMilestoneAbi,
         functionName: "stake",
@@ -48,12 +58,12 @@ export function StakeForm({ milestoneHash, contractAddress }: StakeFormProps) {
         </div>
         {hash && (
           <a
-            href={`https://chainscan-new.0g.ai/tx/${hash}`}
+            href={`${explorerTxBase}/${hash}`}
             target="_blank"
             rel="noopener noreferrer"
             className={styles.link}
           >
-            View on 0G Explorer
+            View on {explorerName}
           </a>
         )}
       </div>
