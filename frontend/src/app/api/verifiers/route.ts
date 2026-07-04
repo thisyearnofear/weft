@@ -1,15 +1,64 @@
 import { NextResponse } from "next/server";
+import { createPublicClient, http, parseAbiItem } from "viem";
+import { sepolia } from "viem/chains";
 import { fetchJsonWithTimeout } from "@/lib/fetchWithTimeout";
 
 const STATUS_API = process.env.WEFT_STATUS_API_URL || "http://127.0.0.1:9010";
+const SEPOLIA_RPC = "https://ethereum-sepolia-rpc.publicnode.com";
+const CONFIDENTIAL_CONTRACT = process.env.NEXT_PUBLIC_WEFT_MILESTONE_CONFIDENTIAL_SEPOLIA as
+  | `0x${string}`
+  | undefined;
+const CONFIDENTIAL_DEPLOY_BLOCK = BigInt(11200841);
 
 async function fetchJson(url: string): Promise<Record<string, unknown>> {
   return fetchJsonWithTimeout(url);
 }
 
+export interface SealedBallotStats {
+  contract: string;
+  ballots: number;
+  verifiers: Array<{ address: string; ballots: number; milestones: string[] }>;
+}
+
+/// Sealed-ballot verifiers on Sepolia (Zama FHE). VerdictSubmitted proves a
+/// ballot was cast — how each verifier voted stays encrypted onchain forever.
+async function fetchSealedBallots(): Promise<SealedBallotStats | null> {
+  if (!CONFIDENTIAL_CONTRACT) return null;
+  try {
+    const client = createPublicClient({ chain: sepolia, transport: http(SEPOLIA_RPC) });
+    const logs = await client.getLogs({
+      address: CONFIDENTIAL_CONTRACT,
+      event: parseAbiItem(
+        "event VerdictSubmitted(bytes32 indexed milestoneHash, address indexed verifier, bytes32 evidenceRoot)"
+      ),
+      fromBlock: CONFIDENTIAL_DEPLOY_BLOCK,
+      toBlock: "latest",
+    });
+    const byVerifier = new Map<string, { address: string; ballots: number; milestones: string[] }>();
+    for (const log of logs) {
+      const verifier = String(log.args.verifier);
+      const milestone = String(log.args.milestoneHash);
+      const entry = byVerifier.get(verifier) ?? { address: verifier, ballots: 0, milestones: [] };
+      entry.ballots++;
+      if (!entry.milestones.includes(milestone)) entry.milestones.push(milestone);
+      byVerifier.set(verifier, entry);
+    }
+    return {
+      contract: CONFIDENTIAL_CONTRACT,
+      ballots: logs.length,
+      verifiers: [...byVerifier.values()],
+    };
+  } catch {
+    return null; // RPC hiccups must not take down the page
+  }
+}
+
 export async function GET() {
   try {
-    const overview = await fetchJson(`${STATUS_API}/demo`);
+    const [overview, sealedBallots] = await Promise.all([
+      fetchJson(`${STATUS_API}/demo`),
+      fetchSealedBallots(),
+    ]);
     const demoHints = overview.demoHints as Record<string, unknown> | undefined;
     const hashes = (demoHints?.milestones as string[]) ?? [];
 
@@ -95,6 +144,7 @@ export async function GET() {
       },
       agentEns,
       builderEns,
+      sealedBallots,
     }, { headers: { "cache-control": "public, s-maxage=60, stale-while-revalidate=120" } });
   } catch (error) {
     return NextResponse.json(

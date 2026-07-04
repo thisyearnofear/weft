@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft, Lock, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
@@ -18,6 +18,12 @@ interface Verifier {
   milestonesParticipated: string[];
 }
 
+interface SealedBallotStats {
+  contract: string;
+  ballots: number;
+  verifiers: Array<{ address: string; ballots: number; milestones: string[] }>;
+}
+
 interface VerifiersData {
   ok: boolean;
   verifiers: Verifier[];
@@ -31,6 +37,7 @@ interface VerifiersData {
   };
   agentEns: string | null;
   builderEns: string | null;
+  sealedBallots: SealedBallotStats | null;
 }
 
 async function fetchVerifiers(): Promise<VerifiersData> {
@@ -52,6 +59,7 @@ export default function VerifiersPage() {
   const { data, isLoading, error, refetch, isFetching } = useVerifiers();
   const verifiers = data?.verifiers ?? [];
   const consensus = data?.consensus;
+  const sealed = data?.sealedBallots;
 
   return (
     <div className={styles.container}>
@@ -106,6 +114,13 @@ export default function VerifiersPage() {
                 <div className={styles.kpiValue}><CountUp value={Number(consensus?.agreementRate ?? 0)} suffix="%" /></div>
                 <div className={styles.kpiSub}>{consensus?.dissentFlags ?? 0} dissent flags</div>
               </div>
+              {sealed && sealed.ballots > 0 && (
+                <div className={`${styles.kpiCard} stagger stagger-4 lift`}>
+                  <div className={styles.kpiLabel}>Sealed Ballots</div>
+                  <div className={styles.kpiValue}><CountUp value={sealed.ballots} /></div>
+                  <div className={styles.kpiSub}>encrypted votes · Zama FHE · Sepolia</div>
+                </div>
+              )}
             </div>
 
             {/* Network Status — merged verifier list + consensus details */}
@@ -168,6 +183,51 @@ export default function VerifiersPage() {
                 ))
               )}
             </div>
+
+            {/* Sealed-ballot verifiers — Zama FHE on Sepolia */}
+            {sealed && sealed.verifiers.length > 0 && (
+              <div className={styles.section}>
+                <h2 className={styles.sectionTitle}>
+                  <Lock size={18} /> Sealed-Ballot Verifiers
+                  <span className={styles.sectionBadge}>Zama FHE · Sepolia</span>
+                </h2>
+                <p className={styles.sealedNote}>
+                  These agents vote on confidential milestones by sealed ballot: each verdict is
+                  encrypted before it leaves the agent and tallied homomorphically onchain. The
+                  transactions below prove a ballot was cast — how each agent voted is not
+                  decryptable, by anyone, ever.
+                </p>
+                {sealed.verifiers.map((v, i) => (
+                  <div key={v.address} className={`${styles.verifierCard} stagger stagger-${Math.min(i + 1, 6)}`}>
+                    <div className={styles.verifierAvatar}>
+                      <Lock size={16} />
+                    </div>
+                    <div className={styles.verifierBody}>
+                      <div className={styles.verifierEns}>{shortAddr(v.address)}</div>
+                      <a
+                        href={`https://sepolia.etherscan.io/address/${v.address}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.verifierAddr}
+                      >
+                        {v.address}
+                      </a>
+                    </div>
+                    <div className={styles.verifierStats}>
+                      <div className={styles.verifierStat}>
+                        <span className={styles.verifierStatValue}>{v.ballots}</span>
+                        <span className={styles.verifierStatLabel}>Sealed ballots</span>
+                      </div>
+                      <div className={styles.verifierStat}>
+                        <span className={styles.verifierStatValue}>{v.milestones.length}</span>
+                        <span className={styles.verifierStatLabel}>Milestones</span>
+                      </div>
+                    </div>
+                    <span className={`${styles.sealedBadge} scale-in`}>Vote encrypted</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
       </div>

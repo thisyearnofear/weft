@@ -120,3 +120,14 @@
     gap: 0.75rem;
   }
 }
+
+/* ── Sealed-ballot section (Zama FHE) ── */
+.sealedNote {
+  font-size: 0.88rem; color: var(--c-text-2); line-height: 1.5;
+  max-width: 65ch; margin: 0 0 1rem;
+}
+.sealedBadge {
+  font-size: 0.72rem; font-weight: 600; padding: 0.15rem 0.5rem;
+  border-radius: 4px; background: var(--c-accent-20); color: var(--c-accent);
+  white-space: nowrap;
+}
