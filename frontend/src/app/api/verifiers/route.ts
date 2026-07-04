@@ -9,7 +9,7 @@ const SEPOLIA_RPC = "https://sepolia.drpc.org";
 const CONFIDENTIAL_CONTRACT = process.env.NEXT_PUBLIC_WEFT_MILESTONE_CONFIDENTIAL_SEPOLIA as
   | `0x${string}`
   | undefined;
-const CONFIDENTIAL_DEPLOY_BLOCK = BigInt(11200841);
+const CONFIDENTIAL_DEPLOY_BLOCK = BigInt(11201564);
 
 async function fetchJson(url: string): Promise<Record<string, unknown>> {
   return fetchJsonWithTimeout(url);

@@ -17,4 +17,5 @@ library WeftErrors {
     error TransferFailed();
     error NoSplits();
     error DeadlinePassed();
+    error InvalidCleartexts();
 }

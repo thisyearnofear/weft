@@ -62,9 +62,14 @@
         "internalType": "bytes32"
       },
       {
-        "name": "isVerified",
-        "type": "bool",
-        "internalType": "bool"
+        "name": "abiEncodedCleartexts",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      {
+        "name": "decryptionProof",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -636,6 +641,25 @@
   },
   {
     "type": "event",
+    "name": "PublicDecryptionVerified",
+    "inputs": [
+      {
+        "name": "handlesList",
+        "type": "bytes32[]",
+        "indexed": false,
+        "internalType": "bytes32[]"
+      },
+      {
+        "name": "abiEncodedCleartexts",
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "QuorumUpdated",
     "inputs": [
       {
@@ -687,6 +711,25 @@
         "type": "bytes32",
         "indexed": true,
         "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ResultConfirmed",
+    "inputs": [
+      {
+        "name": "milestoneHash",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "verified",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
       }
     ],
     "anonymous": false
@@ -748,6 +791,16 @@
   {
     "type": "error",
     "name": "DeadlinePassed",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidCleartexts",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidKMSSignatures",
     "inputs": []
   },
   {

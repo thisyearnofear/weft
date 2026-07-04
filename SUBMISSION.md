@@ -14,12 +14,12 @@ ballot is in.
 | Field | Value |
 |---|---|
 | **Live site** | https://weft.thisyearnofear.com |
-| **Confidential demo milestone** | [`0x40dd25aa...a7bc4490`](https://weft.thisyearnofear.com/project/0x40dd25aab4400b120c0d44870e851ff661a93af5454a4d175e44fb89a7bc4490?confidential=1) — verified, finalized, released |
+| **Confidential demo milestone** | [`0xc351d244...0fc58574`](https://weft.thisyearnofear.com/project/0xc351d2446c4e245d3baa0fc206a05d61010589dd8635c844c17955d50fc58574?confidential=1) — verified, finalized, released |
 | **Source** | https://github.com/thisyearnofear/weft |
 | **Chain** | Sepolia (Zama FHEVM) — chain ID 11155111 |
-| **WeftMilestoneConfidential** | [`0xaf29c8954c01bb39e370021b52da0685089fadc3`](https://sepolia.etherscan.io/address/0xaf29c8954c01bb39e370021b52da0685089fadc3) |
-| **VerifierRegistry (Sepolia)** | [`0x4621743b127978b0c4c9950c1d2696954c27610b`](https://sepolia.etherscan.io/address/0x4621743b127978b0c4c9950c1d2696954c27610b) |
-| **Sealed ballot txs** | [1](https://sepolia.etherscan.io/tx/0xb94346eedfd7ed29ac7708714939d8de1aeafb07c2ebc9ebbacd46d3e9d1de2b) · [2](https://sepolia.etherscan.io/tx/0xbad9aee10fbccc77c24834b5104158af609f5838ca83dea64c78ce9111540872) · [3](https://sepolia.etherscan.io/tx/0x00f36ce41e75587e7688cb3c6729dbcb77e16189a7bcbf170abc0e7214386dff) — no readable vote in any calldata |
+| **WeftMilestoneConfidential** | [`0xcd1a64733a7b58efc8914dde45fe6af22381368f`](https://sepolia.etherscan.io/address/0xcd1a64733a7b58efc8914dde45fe6af22381368f) |
+| **VerifierRegistry (Sepolia)** | [`0x910df85e44cc30171614a3fc89188b8ce21becb2`](https://sepolia.etherscan.io/address/0x910df85e44cc30171614a3fc89188b8ce21becb2) |
+| **Sealed ballot txs** | [1](https://sepolia.etherscan.io/tx/0x1a1b80407c5c1400aeb83e35902d786a30feaba94c5fa45acc2253de3b9f4210) · [2](https://sepolia.etherscan.io/tx/0xbf48fe5b3ccf4594f21a16b291e44677e38cdad398d2439943525f963b130ef0) · [3](https://sepolia.etherscan.io/tx/0x6965ef21f04cc7ffcaa59790cfdc11f0b09b05cba720ff5b5db4bd78d61a1c99) — no readable vote in any calldata |
 | **Contracts** | `contracts/src-fhe/` (Foundry, `@fhevm/solidity` 0.11) |
 | **Frontend** | Next.js + wagmi + `@zama-fhe/relayer-sdk` (lazy-loaded) |
 | **Agent** | Python daemon + Node.js Zama encryption helper |
@@ -48,11 +48,19 @@ verified     = FHE.select(FHE.ge(verifiedVotes, 2), true, verified)
         │
         ▼   only after ALL 3 ballots are cast:
 FHE.makePubliclyDecryptable(verified)                    // result — not the votes
+        │
+        ▼   trustless settlement — anyone may call:
+confirmResult(hash, cleartext, kmsProof)
+FHE.checkSignatures(...)   // contract verifies the KMS signers' proof itself
 ```
 
 Individual ballots stay encrypted onchain permanently. The relayer refuses to
 decrypt the result until the contract finalizes — you can try it yourself on the
-demo page ("Decrypt sealed result" before finalization fails, by design).
+demo page ("Decrypt sealed result" before finalization fails, by design). And
+settlement is trustless: no owner attests the result. Whoever fetches the public
+decryption from the relayer submits its KMS proof, and `FHE.checkSignatures`
+reverts unless real KMS signers produced it — our demo confirm tx was sent by a
+verifier key, not the deployer, to prove the point.
 
 ## What's confidential, precisely
 
@@ -103,7 +111,8 @@ judgment stays private, only the collective outcome is revealed.
    decryptable.
 5. On the milestone page, click **"Decrypt sealed result"** — your browser asks
    the Zama relayer to decrypt the `ebool`. Individual ballots remain ciphertext.
-6. The owner confirms the decrypted result onchain (`confirmResult`) and capital
+6. Anyone submits the relayer's KMS decryption proof onchain (`confirmResult` —
+   the contract verifies the signatures via `FHE.checkSignatures`) and capital
    **releases** to the builder's split.
 
 ## Zama Builder Track requirements

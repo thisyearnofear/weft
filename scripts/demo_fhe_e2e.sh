@@ -59,11 +59,14 @@ RESULT=$(node agent/scripts/fhe_decrypt_result.mjs \
   --rpc-url "$RPC" --contract "$CONTRACT" --milestone-hash "$HASH")
 echo "$RESULT"
 VERIFIED=$(echo "$RESULT" | python3 -c "import json,sys; print(str(json.load(sys.stdin)['verified']).lower())")
+CLEARTEXTS=$(echo "$RESULT" | python3 -c "import json,sys; print(json.load(sys.stdin)['abiEncodedClearValues'])")
+PROOF=$(echo "$RESULT" | python3 -c "import json,sys; print(json.load(sys.stdin)['decryptionProof'])")
 
-# ── 6. Confirm result onchain + release ──────────────────────────────────────
-$CAST send "$CONTRACT" "confirmResult(bytes32,bool)" "$HASH" "$VERIFIED" \
-  --private-key "$DEPLOYER_KEY" --rpc-url "$RPC" > /dev/null
-echo "result confirmed onchain: verified=$VERIFIED ✓"
+# ── 6. Trustless confirm (contract verifies the KMS proof) + release ─────────
+# Submitted from a VERIFIER key, not the owner — anyone with the proof can call.
+$CAST send "$CONTRACT" "confirmResult(bytes32,bytes,bytes)" "$HASH" "$CLEARTEXTS" "$PROOF" \
+  --private-key "$VERIFIER_1_KEY" --rpc-url "$RPC" > /dev/null
+echo "result confirmed onchain via KMS proof: verified=$VERIFIED ✓"
 
 if [ "$VERIFIED" = "true" ]; then
   $CAST send "$CONTRACT" "release(bytes32)" "$HASH" \

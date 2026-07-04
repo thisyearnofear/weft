@@ -73,6 +73,7 @@ contract WeftMilestoneConfidential is ZamaEthereumConfig, Ownable, ReentrancyGua
     event Staked(bytes32 indexed milestoneHash, address indexed backer);
     event VerdictSubmitted(bytes32 indexed milestoneHash, address indexed verifier, bytes32 evidenceRoot);
     event MilestoneFinalized(bytes32 indexed milestoneHash, bytes32 finalEvidenceRoot);
+    event ResultConfirmed(bytes32 indexed milestoneHash, bool verified);
     event Released(bytes32 indexed milestoneHash);
     event Refunded(bytes32 indexed milestoneHash, address indexed backer, uint256 amount);
     event QuorumUpdated(uint8 oldQuorum, uint8 newQuorum);
@@ -205,14 +206,42 @@ contract WeftMilestoneConfidential is ZamaEthereumConfig, Ownable, ReentrancyGua
         }
     }
 
-    /// @notice Called by the owner/agent after off-chain public decryption
-    ///         of the encrypted `verified` result. Stores the plaintext
-    ///         result so release() and refund() can gate on it.
-    function confirmResult(bytes32 milestoneHash, bool isVerified) external onlyOwner {
+    /// @notice Confirm the sealed result with a KMS public-decryption proof.
+    ///         Trustless: anyone may call. After finalization, the Zama
+    ///         relayer's publicDecrypt returns the cleartext plus a proof
+    ///         signed by the KMS signers; FHE.checkSignatures reverts unless
+    ///         that proof matches this milestone's `verified` ciphertext, so
+    ///         a caller cannot assert a fake result.
+    function confirmResult(
+        bytes32 milestoneHash,
+        bytes memory abiEncodedCleartexts,
+        bytes memory decryptionProof
+    ) external {
         ConfidentialMilestoneCore storage m = milestones[milestoneHash];
+        if (m.builder == address(0)) revert WeftErrors.MilestoneNotFound();
         if (!m.finalized) revert WeftErrors.NotVerified();
+        if (m.resultConfirmed) revert WeftErrors.AlreadyExists();
+
+        bytes32[] memory handles = new bytes32[](1);
+        handles[0] = FHE.toBytes32(m.verified);
+        FHE.checkSignatures(handles, abiEncodedCleartexts, decryptionProof);
+
+        // The KMS ABI-encodes the cleartexts as consecutive 32-byte words;
+        // the single ebool cleartext is the final word. (The mock KMS in
+        // tests wraps values in a dynamic array — reading the last word
+        // handles both encodings.)
+        uint256 len = abiEncodedCleartexts.length;
+        if (len < 32 || len % 32 != 0) revert WeftErrors.InvalidCleartexts();
+        uint256 clearWord;
+        // solhint-disable-next-line no-inline-assembly
+        assembly ("memory-safe") {
+            clearWord := mload(add(add(abiEncodedCleartexts, 32), sub(len, 32)))
+        }
+        bool isVerified = clearWord == 1;
+
         m.resultConfirmed = true;
         m.resultVerified = isVerified;
+        emit ResultConfirmed(milestoneHash, isVerified);
     }
 
     // ----------------------------

@@ -1,9 +1,9 @@
 # Zama FHE Integration Plan — Confidential Milestones
 
 > **Status (2026-07-04): shipped.** All four phases are live. Contracts deployed to
-> Sepolia (`WeftMilestoneConfidential` [`0xaf29c895...fadc3`](https://sepolia.etherscan.io/address/0xaf29c8954c01bb39e370021b52da0685089fadc3),
-> registry `0x4621743b...610b`), demo milestone
-> `0x40dd25aa...4490` verified/finalized/released via three encrypted ballots, and
+> Sepolia (`WeftMilestoneConfidential` [`0xcd1a6473...368f`](https://sepolia.etherscan.io/address/0xcd1a64733a7b58efc8914dde45fe6af22381368f),
+> registry `0x910df85e...cb2`), demo milestone
+> `0xc351d244...8574` verified/finalized/released via three encrypted ballots, and
 > the frontend decrypt flow works on production. See [SUBMISSION.md](../SUBMISSION.md).
 >
 > **Deviations from this plan, as built:**
@@ -210,10 +210,10 @@ Both contracts share the same `VerifierRegistry` (deployed once per chain).
 |---|---|
 | Functioning dApp demo using Zama Protocol | ✅ Sealed-ballot escrow live on Sepolia + production frontend |
 | Smart contract + Frontend code base | ✅ This repo (Foundry + Next.js) |
-| Working demo deployed on a website | ✅ weft.thisyearnofear.com — confidential milestone `0x40dd25aa...4490` |
+| Working demo deployed on a website | ✅ weft.thisyearnofear.com — confidential milestone `0xc351d244...8574` |
 | 3-minute video demo (real person) | ⏳ Script ready in `docs/zama-submission-materials.md` — needs recording |
 | Thread/article on X | ⏳ Draft ready in `docs/zama-submission-materials.md` — needs posting |
-| Deploy on Sepolia or Ethereum mainnet | ✅ Sepolia — `0xaf29c8954c01bb39e370021b52da0685089fadc3` |
+| Deploy on Sepolia or Ethereum mainnet | ✅ Sepolia — `0xcd1a64733a7b58efc8914dde45fe6af22381368f` |
 
 ## Implementation Phases
 

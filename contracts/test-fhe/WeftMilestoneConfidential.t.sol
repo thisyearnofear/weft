@@ -3,6 +3,7 @@ pragma solidity ^0.8.27;
 
 import {FhevmTest} from "forge-fhevm/FhevmTest.sol";
 import {Test} from "forge-std/Test.sol";
+import {FHE} from "@fhevm/solidity/lib/FHE.sol";
 import {euint8, ebool, externalEuint32} from "encrypted-types/EncryptedTypes.sol";
 
 import {WeftMilestoneConfidential} from "../src-fhe/WeftMilestoneConfidential.sol";
@@ -90,10 +91,44 @@ contract WeftMilestoneConfidentialTest is FhevmTest {
         bool isVerified = decrypt(mVerified);
         assertTrue(isVerified);
 
-        vm.prank(owner);
-        weft.confirmResult(milestoneHash, isVerified);
+        // Trustless confirmation: any caller submits the KMS-signed public
+        // decryption; the contract verifies the proof itself.
+        bytes32[] memory handles = new bytes32[](1);
+        handles[0] = FHE.toBytes32(mVerified);
+        (uint256[] memory cleartexts, bytes memory proof) = publicDecrypt(handles);
+        vm.prank(backer1);
+        weft.confirmResult(milestoneHash, abi.encode(cleartexts), proof);
+
+        (, , , , , , , , , , , , , bool mConfirmed, bool mResultVerified) =
+            weft.milestones(milestoneHash);
+        assertTrue(mConfirmed);
+        assertTrue(mResultVerified);
+
         uint256 balBefore = builder.balance;
         weft.release(milestoneHash);
         assertEq(builder.balance, balBefore + 1 ether);
+    }
+
+    function test_confirmResult_rejectsForgedCleartext() public {
+        vm.warp(deadline + 1);
+        _submitEncryptedVote(v1, false, keccak256("e1"));
+        _submitEncryptedVote(v2, false, keccak256("e2"));
+        _submitEncryptedVote(v3, false, keccak256("e3"));
+
+        (, , , , , , , bool mFinalized, ebool mVerified, , , , , , ) =
+            weft.milestones(milestoneHash);
+        assertTrue(mFinalized);
+
+        bytes32[] memory handles = new bytes32[](1);
+        handles[0] = FHE.toBytes32(mVerified);
+        (, bytes memory proof) = publicDecrypt(handles);
+
+        // Quorum failed (0 of 3) — an attacker replays the valid proof but
+        // claims the result was `true`. Signature check must revert.
+        uint256[] memory forged = new uint256[](1);
+        forged[0] = 1;
+        vm.prank(backer1);
+        vm.expectRevert();
+        weft.confirmResult(milestoneHash, abi.encode(forged), proof);
     }
 }

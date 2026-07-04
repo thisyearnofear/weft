@@ -46,10 +46,10 @@ consensus between AI agents: private judgment, public outcome.
 
 **Tweet 7 (receipts)**
 Live on Sepolia:
-▸ Contract: https://sepolia.etherscan.io/address/0xaf29c8954c01bb39e370021b52da0685089fadc3
-▸ Demo milestone: https://weft.thisyearnofear.com/project/0x40dd25aab4400b120c0d44870e851ff661a93af5454a4d175e44fb89a7bc4490?confidential=1
+▸ Contract: https://sepolia.etherscan.io/address/0xcd1a64733a7b58efc8914dde45fe6af22381368f
+▸ Demo milestone: https://weft.thisyearnofear.com/project/0xc351d2446c4e245d3baa0fc206a05d61010589dd8635c844c17955d50fc58574?confidential=1
 ▸ Code: github.com/thisyearnofear/weft
-▸ A sealed ballot tx with zero readable vote in the calldata: https://sepolia.etherscan.io/tx/0xb94346eedfd7ed29ac7708714939d8de1aeafb07c2ebc9ebbacd46d3e9d1de2b
+▸ A sealed ballot tx with zero readable vote in the calldata: https://sepolia.etherscan.io/tx/0x1a1b80407c5c1400aeb83e35902d786a30feaba94c5fa45acc2253de3b9f4210
 
 Built for the @zama_fhe Developer Program S3.
 
@@ -111,7 +111,7 @@ code's on GitHub. Thanks."
 ## Submission checklist
 
 - [x] Sepolia deployment (contract addresses in SUBMISSION.md) — 2026-07-04
-- [x] E2E demo milestone finalized + released on Sepolia — `0x40dd25aa...4490`
+- [x] E2E demo milestone finalized + released on Sepolia — `0xc351d244...8574`
 - [x] Frontend env var `NEXT_PUBLIC_WEFT_MILESTONE_CONFIDENTIAL_SEPOLIA` set in production deploy
 - [x] Production decrypt flow verified in-browser (relayer publicDecrypt → VERIFIED)
 - [ ] Video recorded, uploaded (YouTube unlisted or similar), linked in SUBMISSION.md

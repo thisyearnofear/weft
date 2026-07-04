@@ -57,7 +57,15 @@ async function main() {
     const v = values[key];
     const verified = v === true || v === 1n || v === 1;
 
-    console.log(JSON.stringify({ verified, handle }));
+    // abiEncodedClearValues + decryptionProof feed the trustless
+    // confirmResult(bytes32,bytes,bytes) — the contract verifies the KMS
+    // signatures itself, so no owner attestation is involved.
+    console.log(JSON.stringify({
+      verified,
+      handle,
+      abiEncodedClearValues: res.abiEncodedClearValues ?? null,
+      decryptionProof: res.decryptionProof ?? null,
+    }));
   } catch (err) {
     console.log(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }));
     process.exit(1);
