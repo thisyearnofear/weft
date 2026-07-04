@@ -110,9 +110,10 @@ code's on GitHub. Thanks."
 
 ## Submission checklist
 
-- [ ] Sepolia deployment (contract addresses in SUBMISSION.md)
-- [ ] E2E demo milestone finalized + released on Sepolia
-- [ ] Frontend env var `NEXT_PUBLIC_WEFT_MILESTONE_CONFIDENTIAL_SEPOLIA` set in production deploy
+- [x] Sepolia deployment (contract addresses in SUBMISSION.md) — 2026-07-04
+- [x] E2E demo milestone finalized + released on Sepolia — `0x40dd25aa...4490`
+- [x] Frontend env var `NEXT_PUBLIC_WEFT_MILESTONE_CONFIDENTIAL_SEPOLIA` set in production deploy
+- [x] Production decrypt flow verified in-browser (relayer publicDecrypt → VERIFIED)
 - [ ] Video recorded, uploaded (YouTube unlisted or similar), linked in SUBMISSION.md
 - [ ] X thread posted, linked in SUBMISSION.md
 - [ ] Submit via Zama Developer Program portal (Guild.xyz) before the monthly deadline

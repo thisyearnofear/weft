@@ -1,5 +1,23 @@
 # Zama FHE Integration Plan — Confidential Milestones
 
+> **Status (2026-07-04): shipped.** All four phases are live. Contracts deployed to
+> Sepolia (`WeftMilestoneConfidential` [`0xaf29c895...fadc3`](https://sepolia.etherscan.io/address/0xaf29c8954c01bb39e370021b52da0685089fadc3),
+> registry `0x4621743b...610b`), demo milestone
+> `0x40dd25aa...4490` verified/finalized/released via three encrypted ballots, and
+> the frontend decrypt flow works on production. See [SUBMISSION.md](../SUBMISSION.md).
+>
+> **Deviations from this plan, as built:**
+> - SDK: `@zama-fhe/relayer-sdk@0.4.4` (low-level) instead of `@zama-fhe/sdk`/`react-sdk` —
+>   the contract's `externalEuint32 + bytes inputProof` interface maps directly onto it.
+> - Frontend FHE entry is `frontend/src/lib/fhe.ts` (not `fhe-config.ts`, no `ZamaProvider`):
+>   the browser only needs `publicDecrypt`, done via the self-hosted UMD build under
+>   `frontend/public/zama/` (synced from node_modules by the `sync-zama-sdk` npm script)
+>   because bundlers mangle the SDK's WASM and the app's `nosniff` header blocks the CDN shim.
+> - New `ConfidentialMilestoneView.tsx` renders confidential milestones;
+>   `/project/[hash]` falls back to the Sepolia contract when a hash isn't a public milestone.
+> - Stake amounts stayed plaintext (native ETH is inherently public) — the shipped
+>   confidentiality claim is the sealed ballot, not stake privacy.
+
 ## Overview
 
 Additive integration of Zama's FHEVM protocol to Weft, enabling **confidential
@@ -190,12 +208,12 @@ Both contracts share the same `VerifierRegistry` (deployed once per chain).
 
 | Requirement | Status |
 |---|---|
-| Functioning dApp demo using Zama Protocol | This plan — `WeftMilestoneConfidential.sol` + frontend |
-| Smart contract + Frontend code base | Both in this repo (Foundry + Next.js) |
-| Working demo deployed on a website | Deploy to Sepolia + update frontend |
-| 3-minute video demo (real person) | Manual — pitch: "confidential escrow with sealed-ballot verifier consensus" |
-| Thread/article on X | Manual — narrative: "public and confidential milestones, creator chooses" |
-| Deploy on Sepolia or Ethereum mainnet | `WeftMilestoneConfidential.sol` on Sepolia |
+| Functioning dApp demo using Zama Protocol | ✅ Sealed-ballot escrow live on Sepolia + production frontend |
+| Smart contract + Frontend code base | ✅ This repo (Foundry + Next.js) |
+| Working demo deployed on a website | ✅ weft.thisyearnofear.com — confidential milestone `0x40dd25aa...4490` |
+| 3-minute video demo (real person) | ⏳ Script ready in `docs/zama-submission-materials.md` — needs recording |
+| Thread/article on X | ⏳ Draft ready in `docs/zama-submission-materials.md` — needs posting |
+| Deploy on Sepolia or Ethereum mainnet | ✅ Sepolia — `0xaf29c8954c01bb39e370021b52da0685089fadc3` |
 
 ## Implementation Phases
 

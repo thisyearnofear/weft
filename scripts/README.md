@@ -28,6 +28,30 @@ export VERIFIER_ADDRESS=0x...  # address to register
 
 Reads `VERIFIER_REGISTRY` from `deployed-addresses.json` if not set.
 
+### `deploy_fhe_sepolia.sh`
+Deploys `WeftMilestoneConfidential` + `VerifierRegistry` (Zama FHEVM) to Sepolia
+and funds the three verifier wallets with gas for encrypted votes.
+
+```bash
+# Reads .env.fhe.local at the repo root (DEPLOYER_KEY, VERIFIER_1..3, SEPOLIA_RPC_URL)
+./deploy_fhe_sepolia.sh
+```
+
+### `demo_fhe_e2e.sh`
+Runs the full sealed-ballot lifecycle on Sepolia: create confidential milestone
+(short deadline) → stake → wait → three encrypted verifier ballots → public
+decryption of the sealed result via the Zama relayer → `confirmResult` → `release`.
+
+```bash
+# Requires WEFT_MILESTONE_CONFIDENTIAL in .env.fhe.local (set by deploy_fhe_sepolia.sh)
+DEADLINE_SECS=180 STAKE_ETH=0.02ether ./demo_fhe_e2e.sh
+```
+
+### `deploy-frontend.sh`
+Deploys the frontend to the VPS: builds locally to verify, rsyncs source to the
+server, installs + builds there, restarts the `weft-frontend` PM2 process, and
+health-checks `https://weft.thisyearnofear.com`.
+
 ## Environment Variables
 
 All required and optional env vars are documented in `scripts/.env` (gitignored).

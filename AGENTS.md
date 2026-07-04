@@ -42,6 +42,7 @@ The single source of truth for all shared agent logic. All scripts import from h
 | `fal_client.py` | fal.ai text-to-image client for AI-woven milestone swatch + chronicle cover images (env: `FAL_KEY`) |
 | `stripe_skills_client.py` | Stripe Skills autonomous spend layer — agent pays for its own services + sweeps earned revenue (env: `STRIPE_SKILLS_KEY`) |
 | `llm_backend.py` | Pluggable LLM backend selector: Nemotron 3 Ultra (NVIDIA/NemoClaw), Kimi, NousResearch (env: `LLM_BACKEND`) |
+| `fhe_client.py` | Zama FHE sealed-ballot votes — encrypts the verdict via `scripts/fhe_encrypt_vote.mjs` and submits to `WeftMilestoneConfidential` on Sepolia (env: `WEFT_MILESTONE_CONFIDENTIAL`, `FHE_SEPOLIA_RPC`) |
 | `__init__.py` | Re-exports all public symbols |
 
 ## Verification Flow
@@ -66,7 +67,9 @@ mvp_verifier.build_attestation()  → attestation JSON
         │
         ▼
 keeperhub_client.execute_verdict()  → KeeperHub (preferred)
-        │   └─ fallback: cast send submitVerdict()  (onchain vote)
+        │   ├─ fallback: cast send submitVerdict()  (onchain vote)
+        │   └─ confidential milestones: fhe_client.submit_encrypted_verdict()
+        │        (Zama FHE sealed ballot on Sepolia — vote encrypted, never decrypted)
         │
         ▼
 indexer_client.get_milestone() reads final state

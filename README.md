@@ -25,6 +25,8 @@ portable reputation.
 | **Builder Profile** | [weft.thisyearnofear.com/builder/weft.thisyearnofear.eth](https://weft.thisyearnofear.com/builder/weft.thisyearnofear.eth) |
 | **Resilience demo** | [weft.thisyearnofear.com/recovery](https://weft.thisyearnofear.com/recovery) |
 | **Explorer** | [WeftMilestone on 0G Galileo](https://explorer-testnet.0g.ai/address/0x9f66158c560ce5c8b40820fdcd2874ff8d852192) |
+| **Confidential demo (Zama FHE)** | [Sealed-ballot milestone on Sepolia](https://weft.thisyearnofear.com/project/0x40dd25aab4400b120c0d44870e851ff661a93af5454a4d175e44fb89a7bc4490?confidential=1) — click "Decrypt sealed result" |
+| **Confidential contract** | [WeftMilestoneConfidential on Sepolia](https://sepolia.etherscan.io/address/0xaf29c8954c01bb39e370021b52da0685089fadc3) |
 | **ENS identity** | `weft.thisyearnofear.eth` |
 | **Status API** | `GET /api/status/demo` |
 | **TestSprite tests** | 40 tests across CLI + MCP (see [LOOP.md](LOOP.md)) |
@@ -64,9 +66,10 @@ them homomorphically on Sepolia — `FHE.add` on the encrypted count, `FHE.ge` f
 2-of-3 quorum check. **No individual vote is ever decrypted**, which makes verifier
 herding (late voters copying early ones) cryptographically impossible. Only the final
 verified/rejected boolean becomes publicly decryptable, and only after every ballot is
-cast — try the "Decrypt sealed result" button on a confidential milestone page.
+cast — try the "Decrypt sealed result" button on the
+[live confidential demo milestone](https://weft.thisyearnofear.com/project/0x40dd25aab4400b120c0d44870e851ff661a93af5454a4d175e44fb89a7bc4490?confidential=1).
 
-- Contract: [`contracts/src-fhe/WeftMilestoneConfidential.sol`](contracts/src-fhe/WeftMilestoneConfidential.sol) (Sepolia)
+- Contract: [`contracts/src-fhe/WeftMilestoneConfidential.sol`](contracts/src-fhe/WeftMilestoneConfidential.sol) — live on Sepolia at [`0xaf29c895...fadc3`](https://sepolia.etherscan.io/address/0xaf29c8954c01bb39e370021b52da0685089fadc3)
 - Details: [SUBMISSION.md](SUBMISSION.md) — Zama Developer Program S3, Builder Track
 
 ### Quick links
