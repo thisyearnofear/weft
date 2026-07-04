@@ -4,7 +4,8 @@ import { sepolia } from "viem/chains";
 import { fetchJsonWithTimeout } from "@/lib/fetchWithTimeout";
 
 const STATUS_API = process.env.WEFT_STATUS_API_URL || "http://127.0.0.1:9010";
-const SEPOLIA_RPC = "https://ethereum-sepolia-rpc.publicnode.com";
+// drpc serves historical eth_getLogs on the free tier; publicnode does not
+const SEPOLIA_RPC = "https://sepolia.drpc.org";
 const CONFIDENTIAL_CONTRACT = process.env.NEXT_PUBLIC_WEFT_MILESTONE_CONFIDENTIAL_SEPOLIA as
   | `0x${string}`
   | undefined;
