@@ -24,7 +24,6 @@ export default async function Image({ params }: { params: Promise<{ hash: string
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "28px" }}>
-          <span style={{ fontSize: "32px", color: "#818cf8" }}>&#x2B21;</span>
           <span style={{ fontSize: "24px", fontWeight: 700, color: "#818cf8" }}>Weft</span>
           <span style={{ fontSize: "16px", color: "#8892a4", marginLeft: "8px" }}>
             escrow that releases itself
