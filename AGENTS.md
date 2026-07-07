@@ -342,8 +342,9 @@ GitHub evidence is collected as additional signal but does not gate the verdict.
 The verdict is deliberately deterministic — payment decisions are made by
 auditable evidence rules, not LLM judgment. The LLM produces a narrative
 summary with a confidence score (`kimi_client.py`), which attaches to the
-attestation as context; feeding that confidence into the vote (encrypted,
-confidence-weighted ballots) is roadmap, not current behavior.
+attestation as context. Confidence-weighted encrypted ballots are now live
+on the v2 contract (`WeftMilestoneConfidentialWeighted` on Sepolia) using
+`FHE.mul` — see `agent/scripts/fhe_encrypt_weighted_vote.mjs`.
 
 ## Environment Variables
 
