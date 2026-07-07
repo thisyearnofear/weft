@@ -1,15 +1,25 @@
 # Weft Confidential — Zama Developer Program Mainnet Season 3 (Builder Track)
 
-**Sealed-ballot milestone verification by autonomous agents, powered by Zama FHE.**
+**Sealed-ballot consensus between autonomous AI agents — a primitive that only exists because of Zama FHE.**
 
-Weft is escrow that releases itself: a sponsor locks ETH behind a deliverable, and
-autonomous verifier agents check the work onchain — 2-of-3 consensus releases the
-capital. This submission adds a **confidential mode** built on the Zama Protocol:
-verifier votes become **sealed ballots**. Each agent encrypts its vote client-side,
-the contract tallies votes homomorphically (`FHE.add`), checks quorum on ciphertext
-(`FHE.ge`), and **no individual vote is ever decrypted — by anyone, ever**. Only the
-final verified/rejected boolean becomes publicly decryptable, and only after every
-ballot is in.
+`WeftMilestoneConfidential` is an FHEVM escrow live on Sepolia where autonomous
+verifier agents vote by **sealed ballot**: each agent encrypts its verdict in its
+own process, the contract tallies votes **homomorphically** (`FHE.add`), checks
+quorum **on ciphertext** (`FHE.ge`), and branches **on ciphertext** (`FHE.select`) —
+all without ever decrypting a single vote. Only the final verified/rejected boolean
+is ever made decryptable, and only after every ballot is cast. Settlement is
+trustless: anyone can submit the Zama KMS decryption proof and the contract verifies
+the signers itself (`FHE.checkSignatures`).
+
+This is **consensus you cannot build without FHE** — the contract does arithmetic,
+comparison, and control flow on data it is structurally incapable of reading.
+
+> **Why this problem is real, not invented for the hackathon.** We already run the
+> *public*, plaintext version of this escrow on another testnet. Running it in
+> production is exactly how we discovered the flaw FHE fixes: **verifier herding** —
+> when votes are public, the last agent watches the first two and free-rides instead
+> of independently checking the work. The public deployment isn't a competing
+> product; it's the field evidence that motivated the confidential contract below.
 
 | Field | Value |
 |---|---|
@@ -28,11 +38,11 @@ ballot is in.
 
 ## The problem FHE actually solves here
 
-Weft's public contract (live on 0G testnet since May 2026) has a real, observable
-flaw: **verifier herding**. Votes are public the moment they land, so the third
-verifier can watch the first two vote and free-ride on their judgment instead of
-independently checking the evidence. In any consensus system where votes are
-plaintext, late voters are structurally lazy voters.
+**Verifier herding.** When votes are public the moment they land, the third verifier
+can watch the first two and free-ride on their judgment instead of independently
+checking the evidence. In any consensus system where votes are plaintext, late voters
+are structurally lazy voters. You can't fix this with incentives — you can only fix it
+with cryptography.
 
 The confidential contract makes herding **cryptographically impossible**:
 
@@ -74,10 +84,49 @@ verifier key, not the deployer, to prove the point.
 We deliberately do not claim stake-amount privacy — `msg.value` is inherently
 public. The FHE win here is the sealed ballot, and we kept the claim honest.
 
+## FHE design notes — depth over breadth (deliberate)
+
+A reasonable reviewer will notice the encrypted state is compact: one `euint8`
+tally and one `ebool` result. That is a **design decision, not a limitation**, and
+we want to be explicit about the reasoning:
+
+- **The value of FHE here is computation, not surface area.** The contract performs
+  *arithmetic* (`FHE.add` on the tally), *comparison* (`FHE.ge` against quorum), and
+  *conditional control flow* (`FHE.select` on an `ebool`) — on data it can never
+  read. A single ciphertext that is genuinely computed over is a stronger FHE claim
+  than a dozen values that are merely stored encrypted. We optimized for the former.
+- **We considered — and rejected — encrypting more just to look impressive.**
+  Encrypting `msg.value` would be theater: the ETH transfer amount is observable on
+  the base layer regardless, so an "encrypted stake" field would leak via the trace.
+  Claiming that privacy would be dishonest, so we don't.
+- **The one expansion that is *not* theater is confidence-weighted voting.** Our
+  agents already produce a confidence score (see `AGENTS.md`: "if confidence < 0.6,
+  return verified=false"). Casting an encrypted `euint32` confidence instead of a
+  binary ballot — and thresholding the encrypted weighted sum — is a natural next
+  step that deepens the homomorphic computation without adding theater. It is on the
+  roadmap below, not claimed as done.
+- **Real confidentiality of value transfer belongs in a confidential token, not
+  bolted onto native ETH.** Staking in a confidential ERC-20 (OpenZeppelin
+  `ConfidentialFungibleToken` + the Testnet Confidential Token Registry, e.g. cUSDT)
+  is the correct way to make amounts private. That's roadmap, and we'd rather ship a
+  narrow honest claim than a broad hand-wavy one.
+
+The through-line: **every encrypted value in this contract is computed over, and we
+refuse to claim privacy we don't actually deliver.**
+
+## Roadmap (post-submission)
+
+| Next | FHE surface it adds |
+|---|---|
+| Confidence-weighted ballots (`euint32` per agent, encrypted weighted-sum threshold) | Richer homomorphic aggregation than binary counting |
+| Confidential-token staking (cUSDT via OZ `ConfidentialFungibleToken`) | Encrypted balances + transfers — genuinely private stake amounts |
+| Encrypted per-agent reputation accrual | Homomorphic running state across milestones |
+
 ## Architecture
 
-**Additive, not a migration.** `WeftMilestone.sol` (public, 0G) is untouched. The
-confidential contract runs alongside it and the frontend handles both:
+**Additive by design.** The public escrow (`WeftMilestone.sol`) is the plaintext
+control that revealed the herding flaw; the confidential contract is the fix and the
+star of this submission. Both run side by side and the frontend handles both:
 
 - `contracts/src-fhe/WeftMilestoneConfidential.sol` — FHEVM escrow, sealed-ballot
   consensus, `ZamaEthereumConfig` (auto-configures mainnet/Sepolia coprocessor)

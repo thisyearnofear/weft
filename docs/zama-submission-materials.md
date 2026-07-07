@@ -44,7 +44,14 @@ The voters here aren't humans with wallets — they're autonomous verifier agent
 (the same daemons that collect evidence and reason about it with an LLM). FHE
 consensus between AI agents: private judgment, public outcome.
 
-**Tweet 7 (receipts)**
+**Tweet 7 (honest scope — pre-empts "that's a small use of FHE")**
+We kept the encrypted state deliberately small: one sealed tally, one sealed result
+— but every bit of it is *computed over*, not just stored. Encrypting the ETH stake
+would be theater (the transfer is public anyway). We'd rather ship one honest FHE
+claim than ten hand-wavy ones. Next: encrypted confidence-weighted votes + cUSDT
+staking.
+
+**Tweet 8 (receipts)**
 Live on Sepolia:
 ▸ Contract: https://sepolia.etherscan.io/address/0xcd1a64733a7b58efc8914dde45fe6af22381368f
 ▸ Demo milestone: https://weft.thisyearnofear.com/project/0xc351d2446c4e245d3baa0fc206a05d61010589dd8635c844c17955d50fc58574?confidential=1
@@ -61,9 +68,16 @@ Target: 2:45–3:00. One take of you talking + screen recording cutaways.
 Structure: problem (40s) → live demo (90s) → why FHE / close (30s).
 
 ### 0:00–0:20 — Cold open (face to camera)
-"Hi, I'm [name]. I built Weft — escrow that releases itself. A sponsor locks ETH
-behind a deliverable, autonomous agents verify the work, and if two out of three
-agree, the money moves. No invoices, no chasing, no payment politics."
+"Hi, I'm [name]. I built something that shouldn't be possible: a smart contract that
+runs a vote, tallies the ballots, and decides the outcome — **without ever being able
+to read a single vote.** It's live on Sepolia, it's built on Zama's FHE protocol, and
+the voters are autonomous AI agents. Let me show you why that matters."
+
+> **Framing note (Risk-2 hedge — lead with Zama, not 0G):** open on the confidential
+> contract as the star. Do NOT say "0G" or "we also have a public version" until the
+> 0:20–0:50 problem beat, where the public deployment is introduced only as the
+> *evidence* that motivated FHE. The one-liner Weft pitch ("escrow that releases
+> itself") can move to the start of the problem beat if you need it for context.
 
 ### 0:20–0:50 — The problem (face, cut to explorer showing public votes)
 "Weft has been live on a public testnet for months, and it has a flaw I could see
@@ -95,10 +109,20 @@ has it. You can't fix it with incentives. You can only fix it with cryptography.
 ### 2:20–2:50 — Why FHE / close (face to camera)
 "The interesting thing isn't that the votes are hidden — it's that the contract
 did arithmetic on them while they were hidden. FHE.add on the tally, FHE.ge for
-quorum. That's a consensus primitive you simply cannot build any other way, and
-it matters more as more of these voters become AI agents whose judgment you want
-independent, not correlated. Weft is live at weft dot thisyearnofear dot com,
-code's on GitHub. Thanks."
+quorum, FHE.select to decide the outcome — all on data the contract can never read.
+I deliberately kept the encrypted state small and honest: one sealed tally, one
+sealed result, every bit of it actually computed over — instead of encrypting things
+just to pad the demo. That's a consensus primitive you simply cannot build any other
+way, and it matters more as more of these voters become AI agents whose judgment you
+want independent, not correlated. Next up: encrypted confidence-weighted votes and
+staking in a confidential token like cUSDT. Weft is live at weft dot thisyearnofear
+dot com, code's on GitHub. Thanks."
+
+> **Depth-over-breadth note (Risk-1 hedge):** the two sentences starting "I
+> deliberately kept the encrypted state small and honest..." pre-empt the "narrow
+> FHE surface" critique — say them with conviction, they turn the smallest apparent
+> weakness into visible engineering judgment. The "next up" line signals the surface
+> can grow without over-claiming today.
 
 ### Shot checklist
 - [ ] Face-to-camera intro/outro (well lit, clean audio — the "real person" requirement)

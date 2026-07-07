@@ -222,6 +222,18 @@ export default function Home() {
           <HeroLoom />
         </div>
         <div className={styles.heroCopy}>
+          <Link
+            href="/project/0xc351d2446c4e245d3baa0fc206a05d61010589dd8635c844c17955d50fc58574?confidential=1"
+            className={`${styles.confidentialBanner} stagger stagger-1`}
+            onClick={() => track("confidential_banner_click")}
+          >
+            <Sparkles size={14} />
+            <span>
+              <strong>New — Confidential mode:</strong> verifier votes are now sealed
+              ballots, encrypted &amp; tallied with <strong>Zama FHE</strong> on Sepolia
+            </span>
+            <ArrowRight size={14} />
+          </Link>
           <div className={`${styles.eyebrow} stagger stagger-1`}>
             <Bot size={15} />
             {overview?.pitch || "Proof-of-work funding on 0G Chain"}
