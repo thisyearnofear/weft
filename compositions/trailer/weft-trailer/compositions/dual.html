@@ -1,0 +1,142 @@
+<template id="dual-template">
+  <div data-composition-id="dual" data-width="1920" data-height="1080" data-start="0" data-duration="8">
+    <style>
+      [data-composition-id="dual"] {
+        width:1920px; height:1080px; position:relative; overflow:hidden;
+        font-family:'Inter',system-ui,sans-serif;
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+      }
+      .d-flow { display:flex; align-items:center; gap:10px; }
+      .d-node {
+        display:flex; flex-direction:column; align-items:center; gap:6px;
+        min-width:160px; padding:20px 28px 14px; border-radius:12px;
+      }
+      .d-node .icon { font-size:32px; }
+      .d-node .main { font-size:22px; font-weight:600; white-space:nowrap; color:#f0f0f5; letter-spacing:-0.01em; }
+      .d-node .tech {
+        font-size:13px; font-weight:600; white-space:nowrap;
+        font-family:'JetBrains Mono',monospace;
+        padding:2px 8px; border-radius:4px;
+      }
+      .d-node.purple { background:rgba(124,92,252,0.08); border:1px solid rgba(124,92,252,0.2); }
+      .d-node.purple .tech { background:rgba(124,92,252,0.1); color:#b088ff; }
+      .d-node.dim { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); }
+      .d-node.dim .tech { background:rgba(255,255,255,0.04); color:#8888bb; }
+      .d-node.glow { background:rgba(34,214,94,0.08); border:1px solid rgba(34,214,94,0.3); }
+      .d-node.glow .main { color:#22d65e; }
+      .d-node.glow .tech { background:rgba(34,214,94,0.1); color:#22d65e; }
+      .d-arr { font-size:28px; color:rgba(255,255,255,0.12); }
+      .d-tagline { margin-top:28px; font-size:26px; font-weight:500; color:#8888bb; }
+      .d-tagline strong { color:#22d65e; font-weight:700; }
+
+      .d-pipeline {
+        position:absolute; display:flex; flex-direction:column; align-items:center; gap:4px;
+        opacity:0.35;
+      }
+      .d-p-row { display:flex; align-items:center; gap:18px; }
+      .d-p-node {
+        padding:6px 14px; border-radius:5px;
+        font-size:12px; font-weight:500; white-space:nowrap;
+        font-family:'JetBrains Mono',monospace;
+      }
+      .d-p-node.green { background:rgba(34,214,94,0.08); border:1px solid rgba(34,214,94,0.15); color:#22d65e; }
+      .d-p-node.purple { background:rgba(124,92,252,0.08); border:1px solid rgba(124,92,252,0.15); color:#b088ff; }
+      .d-p-label { font-size:10px; color:rgba(255,255,255,0.1); letter-spacing:3px; text-transform:uppercase; font-family:'JetBrains Mono',monospace; }
+      .d-p-arrow { color:rgba(255,255,255,0.06); font-size:14px; }
+      .d-p-vline { width:1px; height:12px; background:rgba(255,255,255,0.06); }
+    </style>
+
+    <!-- Background: Technical pipeline -->
+    <div class="d-pipeline" style="bottom:70px;">
+      <div class="d-p-label">HOW IT WORKS (TECH)</div>
+      <div class="d-p-row">
+        <div class="d-p-node green">Work Proof</div>
+        <span class="d-p-arrow">→</span>
+        <div class="d-p-node green">0G Storage</div>
+        <span class="d-p-arrow">→</span>
+        <div class="d-p-node green">File Proof ✓</div>
+      </div>
+      <div class="d-p-vline"></div>
+      <div class="d-p-row">
+        <div class="d-p-node purple">V1</div>
+        <div class="d-p-node purple">V2</div>
+        <div class="d-p-node purple">V3</div>
+        <span class="d-p-arrow">→</span>
+        <div class="d-p-node purple">FHE Ballot</div>
+        <span class="d-p-arrow">→</span>
+        <div class="d-p-node purple">Tally</div>
+        <span class="d-p-arrow">→</span>
+        <div class="d-p-node purple">Release ✓</div>
+      </div>
+      <div class="d-p-row" style="margin-top:6px;">
+        <div class="d-p-node" style="border-color:rgba(180,140,255,0.08); color:rgba(180,140,255,0.3);">Hermes (Nous Research)</div>
+      </div>
+    </div>
+
+    <!-- Foreground: Simple solution flow -->
+    <div class="d-flow">
+      <div id="dn-escrow" class="d-node purple" style="opacity:0">
+        <span class="icon">🔒</span>
+        <span class="main">Money Locked</span>
+        <span class="tech">0G Escrow</span>
+      </div>
+      <span class="d-arr" style="opacity:0">→</span>
+      <div id="dn-agents" class="d-node dim" style="opacity:0">
+        <span class="icon" style="font-size:22px;">V1  V2  V3</span>
+        <span class="main">Agents Verify</span>
+        <span class="tech">Hermes (Nous) · FHE</span>
+      </div>
+      <span class="d-arr" style="opacity:0">→</span>
+      <div id="dn-quorum" class="d-node purple" style="opacity:0">
+        <span class="icon">2/3</span>
+        <span class="main">Quorum Check</span>
+        <span class="tech">FHE Tally</span>
+      </div>
+      <span class="d-arr" style="opacity:0">→</span>
+      <div id="dn-release" class="d-node glow" style="opacity:0">
+        <span class="icon">✓</span>
+        <span class="main">Released</span>
+        <span class="tech">Automatic</span>
+      </div>
+    </div>
+
+    <div id="d-tag" class="d-tagline" style="opacity:0">
+      <strong>2 of 3</strong> agents agree → money releases. <strong>Weft handles the trust.</strong>
+    </div>
+
+    <svg style="position:absolute; top:0; left:0; width:1920px; height:1080px; pointer-events:none; z-index:10;">
+      <defs>
+        <marker id="da-arr3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="rgba(255,255,255,0.1)" />
+        </marker>
+      </defs>
+      <line id="dl-1" x1="420" y1="460" x2="540" y2="460" stroke="rgba(255,255,255,0.08)" stroke-width="2" stroke-dasharray="120" stroke-dashoffset="120" marker-end="url(#da-arr3)" />
+      <line id="dl-2" x1="870" y1="460" x2="990" y2="460" stroke="rgba(255,255,255,0.08)" stroke-width="2" stroke-dasharray="120" stroke-dashoffset="120" marker-end="url(#da-arr3)" />
+      <line id="dl-3" x1="1320" y1="460" x2="1440" y2="460" stroke="rgba(255,255,255,0.08)" stroke-width="2" stroke-dasharray="120" stroke-dashoffset="120" marker-end="url(#da-arr3)" />
+    </svg>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+    (function(){
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const root = document.querySelector('[data-composition-id="dual"]');
+      if (!root) { window.__timelines["dual"] = tl; return; }
+      const bO = 'back.out(1.7)', pO = 'power3.out', pI = 'power2.in';
+      tl.fromTo('#dn-escrow', { scale:0, opacity:0, rotation:-180 }, { scale:1, opacity:1, rotation:0, duration:0.5, ease:bO }, 0.2);
+      tl.to('#dl-1', { strokeDashoffset:0, duration:0.3, ease:pO }, 0.6);
+      tl.fromTo('#dn-agents', { scale:0.5, opacity:0 }, { scale:1, opacity:1, duration:0.4, ease:bO }, 0.8);
+      tl.to('#dl-2', { strokeDashoffset:0, duration:0.3, ease:pO }, 1.2);
+      tl.fromTo('#dn-quorum', { scale:0.5, opacity:0 }, { scale:1, opacity:1, duration:0.4, ease:bO }, 1.4);
+      tl.to('#dl-3', { strokeDashoffset:0, duration:0.3, ease:pO }, 1.8);
+      tl.fromTo('#dn-release', { scale:0, opacity:0, rotation:180 }, { scale:1, opacity:1, rotation:0, duration:0.5, ease:bO }, 2.0);
+      tl.fromTo('.d-pipeline', { opacity:0 }, { opacity:0.35, duration:0.6 }, 2.5);
+      tl.fromTo('#d-tag', { y:15, opacity:0 }, { y:0, opacity:1, duration:0.35, ease:pO }, 2.8);
+      tl.to('#dn-escrow, #dn-agents, #dn-quorum, #dn-release', { y:-10, opacity:0, duration:0.15, ease:pI, stagger:0.03 }, 7.3);
+      tl.to('#d-tag, .d-pipeline', { opacity:0, duration:0.15 }, 7.4);
+      tl.to('svg line', { opacity:0, duration:0.1 }, 7.5);
+      window.__timelines["dual"] = tl;
+    })();
+    </script>
+  </div>
+</template>

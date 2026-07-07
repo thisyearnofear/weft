@@ -1,0 +1,100 @@
+<template id="fhe-template">
+  <div data-composition-id="fhe" data-width="1920" data-height="1080" data-start="0" data-duration="8">
+    <style>
+      [data-composition-id="fhe"] {
+        width:1920px; height:1080px; position:relative; overflow:hidden;
+        font-family:'Inter',system-ui,sans-serif;
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+      }
+      .f-columns { display:flex; gap:80px; align-items:flex-start; }
+      .f-col { display:flex; flex-direction:column; align-items:center; gap:12px; }
+      .f-icon-wrap {
+        width:72px; height:72px; border-radius:50%;
+        display:flex; align-items:center; justify-content:center;
+        font-size:32px;
+      }
+      .f-icon-wrap.green { background:rgba(34,214,94,0.08); border:2px solid rgba(34,214,94,0.2); }
+      .f-icon-wrap.purple { background:rgba(124,92,252,0.08); border:2px solid rgba(124,92,252,0.2); }
+      .f-col-title { font-size:44px; font-weight:700; letter-spacing:-0.02em; color:#f0f0f5; }
+      .f-col-desc { font-size:24px; color:#8888bb; text-align:center; max-width:380px; line-height:1.35; }
+      .f-col-badge {
+        padding:6px 16px; border-radius:20px;
+        font-size:15px; font-weight:600; font-family:'JetBrains Mono',monospace;
+      }
+      .f-col-badge.green { background:rgba(34,214,94,0.1); border:1px solid rgba(34,214,94,0.2); color:#22d65e; }
+      .f-col-badge.purple { background:rgba(124,92,252,0.1); border:1px solid rgba(124,92,252,0.2); color:#b088ff; }
+      .f-connector-icon { font-size:30px; color:rgba(255,255,255,0.12); margin-top:36px; }
+      .f-result {
+        display:flex; align-items:center; gap:10px; margin-top:14px;
+        padding:10px 28px; border-radius:24px;
+        background:rgba(34,214,94,0.08); border:1px solid rgba(34,214,94,0.2);
+        color:#22d65e; font-size:22px; font-weight:600;
+      }
+      .f-result strong { color:#f0f0f5; font-weight:700; margin-left:6px; }
+      .f-flow { display:flex; align-items:center; gap:6px; margin-top:18px; }
+      .f-flow-step {
+        padding:6px 14px; border-radius:5px; font-size:13px; font-weight:600;
+        background:rgba(124,92,252,0.08); border:1px solid rgba(124,92,252,0.15);
+        color:rgba(124,92,252,0.5); font-family:'JetBrains Mono',monospace;
+      }
+      .f-flow-arr { color:rgba(124,92,252,0.15); font-size:14px; }
+
+      .f-code-bg {
+        position:absolute; font-family:'JetBrains Mono',monospace; font-size:10px;
+        color:rgba(124,92,252,0.12); line-height:1.8; text-align:left;
+        pointer-events:none; white-space:pre; letter-spacing:0.5px;
+      }
+    </style>
+
+    <div class="f-code-bg" style="top:60px; right:40px; text-align:right; opacity:0">FHE.add(verifiedVotes, ballot)<br>FHE.ge(verifiedVotes, 2) → quorum<br>FHE.select(quorum, true, false)</div>
+    <div class="f-code-bg" style="bottom:50px; left:40px; opacity:0">// Sealed ballot consensus<br>// Zama FHEVM on Sepolia<br>// Encrypted tally — no vote ever decrypted</div>
+
+    <div class="f-columns">
+      <div class="f-col" style="opacity:0" id="f-col1">
+        <div class="f-icon-wrap green">📁</div>
+        <div class="f-col-title">Evidence Locked</div>
+        <div class="f-col-desc">Work proof stored permanently onchain. Tamper-proof and verifiable by anyone.</div>
+        <div class="f-col-badge green">0G Storage</div>
+      </div>
+      <div class="f-connector-icon" style="opacity:0" id="f-plus">+</div>
+      <div class="f-col" style="opacity:0" id="f-col2">
+        <div class="f-icon-wrap purple">🔐</div>
+        <div class="f-col-title">Votes Secret</div>
+        <div class="f-col-desc">Each agent encrypts its ballot. The contract tallies without ever decrypting.</div>
+        <div class="f-col-badge purple">Zama FHE</div>
+      </div>
+    </div>
+
+    <div id="f-result" class="f-result" style="opacity:0">=&gt; Trustless consensus — <strong>sealed ballots, fair outcome</strong></div>
+
+    <div class="f-flow" style="opacity:0" id="f-flow">
+      <span class="f-flow-step">Encrypt</span>
+      <span class="f-flow-arr">→</span>
+      <span class="f-flow-step">Submit</span>
+      <span class="f-flow-arr">→</span>
+      <span class="f-flow-step">Tally</span>
+      <span class="f-flow-arr">→</span>
+      <span class="f-flow-step" style="border-color:rgba(34,214,94,0.25); color:rgba(34,214,94,0.5);">Reveal ✓</span>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+    (function(){
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const root = document.querySelector('[data-composition-id="fhe"]');
+      if (!root) { window.__timelines["fhe"] = tl; return; }
+      const bO = 'back.out(1.7)', pO = 'power3.out';
+      tl.fromTo('.f-code-bg', { opacity:0 }, { opacity:1, duration:0.8, stagger:0.2 }, 0.2);
+      tl.fromTo('#f-col1', { x:-50, opacity:0, filter:'blur(6px)' }, { x:0, opacity:1, filter:'blur(0px)', duration:0.5, ease:pO }, 0.4);
+      tl.fromTo('#f-plus', { scale:0, opacity:0, rotation:-90 }, { scale:1, opacity:1, rotation:0, duration:0.4, ease:bO }, 1.2);
+      tl.fromTo('#f-col2', { x:50, opacity:0, filter:'blur(6px)' }, { x:0, opacity:1, filter:'blur(0px)', duration:0.5, ease:pO }, 1.6);
+      tl.fromTo('#f-result', { y:20, opacity:0 }, { y:0, opacity:1, duration:0.4, ease:pO }, 2.6);
+      tl.fromTo('#f-flow', { y:12, opacity:0 }, { y:0, opacity:1, duration:0.35, ease:pO }, 3.6);
+      tl.to('.f-code-bg', { opacity:0, duration:0.3 }, 7.4);
+      tl.to('#f-col1, #f-plus, #f-col2, #f-result, #f-flow', { opacity:0, y:-10, duration:0.15, stagger:0.03, ease:'power2.in' }, 7.3);
+      window.__timelines["fhe"] = tl;
+    })();
+    </script>
+  </div>
+</template>

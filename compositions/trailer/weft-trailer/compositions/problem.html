@@ -1,0 +1,62 @@
+<template id="problem-template">
+  <div data-composition-id="problem" data-width="1920" data-height="1080" data-start="0" data-duration="5">
+    <style>
+      [data-composition-id="problem"] {
+        width:1920px; height:1080px; position:relative; overflow:hidden;
+        font-family:'Inter',system-ui,sans-serif; text-align:center;
+      }
+      .p-bg-text {
+        position:absolute; left:0; right:0; text-align:center; pointer-events:none;
+        font-size:20px; font-weight:600; color:rgba(124,92,252,0.12);
+        letter-spacing:4px; text-transform:uppercase; font-family:'JetBrains Mono',monospace;
+      }
+      .p-hero { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:0; }
+      .p-line { font-size:60px; font-weight:500; line-height:1.3; color:#f0f0f5; letter-spacing:-0.02em; }
+      .p-line em { font-style:normal; color:#ff4d6d; font-weight:700; }
+      .p-q { font-size:72px; font-weight:800; color:#b088ff; letter-spacing:-0.03em; }
+      .p-bar { width:80px; height:2px; background:linear-gradient(90deg, transparent, rgba(124,92,252,0.2), transparent); margin:18px 0; }
+      .p-float-tag {
+        position:absolute; font-family:'JetBrains Mono',monospace; font-size:16px;
+        color:rgba(124,92,252,0.2); letter-spacing:3px; text-transform:uppercase;
+      }
+    </style>
+
+    <div class="p-float-tag" style="top:100px; left:100px; opacity:0">SLOW</div>
+    <div class="p-float-tag" style="top:130px; right:140px; opacity:0">TRUST-BASED</div>
+    <div class="p-float-tag" style="bottom:130px; left:160px; opacity:0">OPAQUE</div>
+    <div class="p-float-tag" style="bottom:100px; right:100px; opacity:0">NO TRANSPARENCY</div>
+
+    <div class="p-hero">
+      <div class="p-line">You hired someone to build your app.</div>
+      <div class="p-line" style="margin-top:8px;">They say <em>it's done.</em></div>
+      <div class="p-bar"></div>
+      <div class="p-q" style="opacity:0">Who releases the money?</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+    (function(){
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const root = document.querySelector('[data-composition-id="problem"]');
+      if (!root) { window.__timelines["problem"] = tl; return; }
+      const lines = root.querySelectorAll('.p-line');
+      const q = root.querySelector('.p-q');
+      const bar = root.querySelector('.p-bar');
+      const floats = root.querySelectorAll('.p-float-tag');
+      tl.fromTo(floats, { opacity:0, y:20 }, { opacity:1, y:0, duration:0.6, stagger:0.15, ease:'power2.out' }, 0);
+      tl.to(floats, { opacity:0, duration:0.3 }, 4.5);
+      tl.fromTo(lines[0], { y:50, opacity:0, filter:'blur(8px)' }, { y:0, opacity:1, filter:'blur(0px)', duration:0.5, ease:'power3.out' }, 0.3);
+      tl.fromTo(lines[1], { y:50, opacity:0, filter:'blur(8px)' }, { y:0, opacity:1, filter:'blur(0px)', duration:0.5, ease:'power3.out' }, 0.9);
+      tl.fromTo(bar, { scaleX:0, opacity:0 }, { scaleX:1, opacity:1, duration:0.35, ease:'power3.out' }, 1.7);
+      tl.fromTo(q, { scale:0.3, opacity:0, rotation:-5 }, { scale:1, opacity:1, rotation:0, duration:0.6, ease:'elastic.out(1.2,0.4)' }, 2.2);
+      tl.to(q, { scale:1.05, duration:0.8, ease:'sine.inOut', yoyo:true, repeat:1 }, 3.2);
+      tl.to(lines[0], { y:-40, opacity:0, filter:'blur(6px)', duration:0.2, ease:'power2.in' }, 4.3);
+      tl.to(lines[1], { y:-40, opacity:0, filter:'blur(6px)', duration:0.2, ease:'power2.in' }, 4.4);
+      tl.to(bar, { scaleX:0, opacity:0, duration:0.15 }, 4.4);
+      tl.to(q, { scale:0.5, opacity:0, filter:'blur(10px)', duration:0.2, ease:'power2.in' }, 4.5);
+      window.__timelines["problem"] = tl;
+    })();
+    </script>
+  </div>
+</template>

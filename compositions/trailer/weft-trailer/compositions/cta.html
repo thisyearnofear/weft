@@ -1,0 +1,82 @@
+<template id="cta-template">
+  <div data-composition-id="cta" data-width="1920" data-height="1080" data-start="0" data-duration="7">
+    <style>
+      [data-composition-id="cta"] {
+        width:1920px; height:1080px; position:relative; overflow:hidden;
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        font-family:'Inter',system-ui,sans-serif;
+      }
+      .c-bracket {
+        position:absolute; width:36px; height:36px; border-color:rgba(124,92,252,0.15);
+      }
+      .c-bracket.tl { top:60px; left:60px; border-left:1px solid; border-top:1px solid; }
+      .c-bracket.tr { top:60px; right:60px; border-right:1px solid; border-top:1px solid; }
+      .c-bracket.bl { bottom:60px; left:60px; border-left:1px solid; border-bottom:1px solid; }
+      .c-bracket.br { bottom:60px; right:60px; border-right:1px solid; border-bottom:1px solid; }
+      .c-logo {
+        font-size:130px; font-weight:900; letter-spacing:-0.05em; line-height:1;
+        background:linear-gradient(135deg, #f0f0f5 0%, #7c5cfc 50%, #22d65e 100%);
+        -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      }
+      .c-tagline { font-size:36px; font-weight:500; color:#8888bb; letter-spacing:0.03em; }
+      .c-url {
+        font-family:'JetBrains Mono',monospace; font-size:28px;
+        padding:14px 44px; border-radius:100px;
+        background:rgba(124,92,252,0.08); border:1px solid rgba(124,92,252,0.2);
+        color:#b088ff;
+      }
+      .c-badge {
+        display:inline-flex; align-items:center; gap:8px;
+        padding:10px 28px; border-radius:100px;
+        font-size:22px; font-weight:600;
+        background:rgba(124,92,252,0.1); border:1px solid rgba(124,92,252,0.2);
+        color:#b088ff; font-family:'JetBrains Mono',monospace;
+      }
+      .c-outro {
+        font-size:20px; color:#6b6b80;
+        font-family:'JetBrains Mono',monospace;
+      }
+      .c-particles {
+        position:absolute; width:100%; height:100%; pointer-events:none;
+      }
+    </style>
+
+    <div class="c-bracket tl"></div>
+    <div class="c-bracket tr"></div>
+    <div class="c-bracket bl"></div>
+    <div class="c-bracket br"></div>
+
+    <div id="c-logo" class="c-logo" style="opacity:0">Weft</div>
+    <div style="height:12px"></div>
+    <div id="c-tagline" class="c-tagline" style="opacity:0">Escrow that releases itself.</div>
+    <div style="height:28px"></div>
+    <div id="c-url" class="c-url" style="opacity:0">weft.thisyearnofear.com</div>
+    <div style="height:20px"></div>
+    <div id="c-badge" class="c-badge" style="opacity:0">Hermes · Zama FHE · 0G</div>
+    <div style="height:32px"></div>
+    <div id="c-outro" class="c-outro" style="opacity:0">Zama Developer Program — Builder Track S3</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+    (function(){
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const root = document.querySelector('[data-composition-id="cta"]');
+      if (!root) { window.__timelines["cta"] = tl; return; }
+      const pO = 'power3.out', pI = 'power2.in';
+      tl.fromTo('.c-bracket.tl', { x:-20, y:-20, opacity:0 }, { x:0, y:0, opacity:1, duration:0.3 }, 0.2);
+      tl.fromTo('.c-bracket.tr', { x:20, y:-20, opacity:0 }, { x:0, y:0, opacity:1, duration:0.3 }, 0.2);
+      tl.fromTo('.c-bracket.bl', { x:-20, y:20, opacity:0 }, { x:0, y:0, opacity:1, duration:0.3 }, 0.2);
+      tl.fromTo('.c-bracket.br', { x:20, y:20, opacity:0 }, { x:0, y:0, opacity:1, duration:0.3 }, 0.2);
+      tl.fromTo('#c-logo', { y:40, opacity:0, scale:0.7, filter:'blur(10px)' }, { y:0, opacity:1, scale:1, filter:'blur(0px)', duration:0.7, ease:pO }, 0.3);
+      tl.fromTo('#c-tagline', { y:20, opacity:0 }, { y:0, opacity:1, duration:0.35, ease:pO }, 1.2);
+      tl.fromTo('#c-url', { y:20, opacity:0 }, { y:0, opacity:1, duration:0.35, ease:pO }, 1.8);
+      tl.fromTo('#c-badge', { y:20, opacity:0 }, { y:0, opacity:1, duration:0.35, ease:pO }, 2.4);
+      tl.fromTo('#c-outro', { opacity:0 }, { opacity:1, duration:0.4, ease:pO }, 3.2);
+      tl.to('#c-logo', { scale:1.04, duration:1.2, ease:'sine.inOut', yoyo:true, repeat:2 }, 3.0);
+      tl.to('#c-logo, #c-tagline, #c-url, #c-badge, #c-outro, .c-bracket', { opacity:0, duration:0.2 }, 6.4);
+      window.__timelines["cta"] = tl;
+    })();
+    </script>
+  </div>
+</template>

@@ -1,0 +1,96 @@
+<template id="benefits-template">
+  <div data-composition-id="benefits" data-width="1920" data-height="1080" data-start="0" data-duration="6">
+    <style>
+      [data-composition-id="benefits"] {
+        width:1920px; height:1080px; position:relative; overflow:hidden;
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        font-family:'Inter',system-ui,sans-serif;
+      }
+      .b-card {
+        padding:16px 32px; border-radius:10px; font-size:32px; font-weight:600; white-space:nowrap;
+        background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+        color:#f0f0f5;
+      }
+      .b-row { display:flex; gap:18px; }
+      .b-stat { text-align:center; display:inline-block; }
+      .b-stat-num { font-size:60px; font-weight:800; letter-spacing:-0.03em; }
+      .b-stat-label { font-size:16px; color:#8888bb; margin-top:4px; letter-spacing:0.5px; }
+      .b-stat-tech {
+        font-size:12px; font-weight:600; margin-top:3px;
+        font-family:'JetBrains Mono',monospace;
+        padding:2px 8px; border-radius:4px; display:inline-block;
+      }
+      .b-badges { display:flex; gap:12px; }
+      .b-badge {
+        padding:6px 16px; border-radius:20px; font-size:15px; font-weight:600;
+        font-family:'JetBrains Mono',monospace;
+      }
+      .b-badge.green { background:rgba(34,214,94,0.1); border:1px solid rgba(34,214,94,0.2); color:#22d65e; }
+      .b-badge.purple { background:rgba(124,92,252,0.1); border:1px solid rgba(124,92,252,0.2); color:#b088ff; }
+      .b-badge.red { background:rgba(255,77,109,0.1); border:1px solid rgba(255,77,109,0.2); color:#ff4d6d; }
+      .b-tagline { font-size:28px; font-weight:500; color:#8888bb; }
+      .b-tagline strong { color:#7c5cfc; font-weight:700; }
+      .b-atmos {
+        position:absolute; font-family:'JetBrains Mono',monospace; font-size:12px;
+        color:rgba(124,92,252,0.08); pointer-events:none;
+      }
+    </style>
+
+    <div class="b-atmos" style="top:100px; left:120px; opacity:0">Verifier herding = cryptographically impossible</div>
+    <div class="b-atmos" style="bottom:100px; right:120px; opacity:0">Hermes autonomous agents · FHE sealed ballots · 0G evidence</div>
+
+    <div class="b-badges" style="opacity:0; margin-bottom:18px;" id="b-badges">
+      <span class="b-badge green">0G Evidence</span>
+      <span class="b-badge purple">FHE Sealed Ballot</span>
+      <span class="b-badge red">No Herding</span>
+    </div>
+
+    <div class="b-row" style="opacity:0; margin-bottom:10px;" id="b-row1">
+      <div class="b-card">No invoices</div>
+      <div class="b-card">No chasing</div>
+      <div class="b-card">No politics</div>
+    </div>
+
+    <div class="b-row" style="opacity:0; margin-bottom:16px;" id="b-row2">
+      <div class="b-stat">
+        <div class="b-stat-num" style="color:#22d65e">2/3</div>
+        <div class="b-stat-label">Quorum</div>
+        <div class="b-stat-tech" style="background:rgba(34,214,94,0.08); color:#22d65e;">FHE.ge tally</div>
+      </div>
+      <div class="b-stat">
+        <div class="b-stat-num" style="color:#7c5cfc">0G</div>
+        <div class="b-stat-label">Evidence Stored</div>
+        <div class="b-stat-tech" style="background:rgba(124,92,252,0.08); color:#b088ff;">Permanent root</div>
+      </div>
+      <div class="b-stat">
+        <div class="b-stat-num" style="color:#ff4d6d">0</div>
+        <div class="b-stat-label">Invoices</div>
+        <div class="b-stat-tech" style="background:rgba(255,77,109,0.08); color:#ff4d6d;">Auto release</div>
+      </div>
+    </div>
+
+    <div id="b-tag" class="b-tagline" style="opacity:0; margin-top:6px;">
+      Capital moves on <strong>evidence</strong>, not vibes.
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+    (function(){
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const root = document.querySelector('[data-composition-id="benefits"]');
+      if (!root) { window.__timelines["benefits"] = tl; return; }
+      const bO = 'back.out(1.7)', pO = 'power3.out', pI = 'power2.in', pIO = 'power2.inOut';
+      tl.fromTo('.b-atmos', { opacity:0 }, { opacity:1, duration:0.5, stagger:0.2 }, 0.1);
+      tl.fromTo('#b-badges', { y:-12, opacity:0 }, { y:0, opacity:1, duration:0.3, ease:pO }, 0.2);
+      tl.fromTo('#b-row1', { y:25, opacity:0, scale:0.95 }, { y:0, opacity:1, scale:1, duration:0.3, ease:bO }, 0.7);
+      tl.fromTo('#b-row2', { y:25, opacity:0, scale:0.95 }, { y:0, opacity:1, scale:1, duration:0.35, ease:bO }, 1.3);
+      tl.fromTo('#b-tag', { y:15, opacity:0 }, { y:0, opacity:1, duration:0.3, ease:pO }, 2.2);
+      tl.to('.b-stat-num', { scale:1.06, duration:0.25, ease:pIO, yoyo:true, repeat:1 }, 2.0);
+      tl.to('.b-atmos', { opacity:0, duration:0.2 }, 5.5);
+      tl.to('#b-badges, #b-row1, #b-row2, #b-tag', { opacity:0, y:-10, duration:0.12, ease:pI, stagger:0.02 }, 5.4);
+      window.__timelines["benefits"] = tl;
+    })();
+    </script>
+  </div>
+</template>
