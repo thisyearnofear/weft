@@ -6,14 +6,23 @@
 
 /* ── Tokens ──────────────────────────────────── */
 :root {
-  --c-bg:            #07070f;
-  --c-bg-elevated:   #10101a;
-  --c-bg-subtle:     #1a1a2e;
-  --c-surface:       rgba(255, 255, 255, 0.04);
-  --c-surface-2:     rgba(255, 255, 255, 0.07);
-  --c-surface-3:     rgba(255, 255, 255, 0.11);
-  --c-border:        rgba(255, 255, 255, 0.07);
-  --c-border-2:      rgba(255, 255, 255, 0.15);
+  /* Base lifted off near-black into deep indigo-navy so panels read as
+     fabric on a surface, not glass floating in a void. */
+  --c-bg:            #0d0e1a;
+  --c-bg-elevated:   #131428;
+  --c-bg-subtle:     #1c1d36;
+  --c-surface:       rgba(255, 255, 255, 0.05);
+  --c-surface-2:     rgba(255, 255, 255, 0.08);
+  --c-surface-3:     rgba(255, 255, 255, 0.12);
+  --c-border:        rgba(255, 255, 255, 0.09);
+  --c-border-2:      rgba(255, 255, 255, 0.18);
+
+  /* Woven warp/weft threads — the Weft brand metaphor, made visible.
+     Used by the global body backdrop and any section that wants to
+     show the fabric. Indigo warp + teal weft at low opacity. */
+  --woven-warp:      rgba(99, 102, 241, 0.045);
+  --woven-weft:      rgba(20, 184, 166, 0.035);
+  --woven-grid:      14px;
 
   --c-text:          #e8e8f2;
   --c-text-2:        rgba(232, 232, 242, 0.72);
@@ -110,7 +119,15 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background: var(--c-bg);
+  /* Woven fabric backdrop: indigo warp (vertical) + teal weft (horizontal)
+     on the lifted indigo-navy base. This is the Weft metaphor made visible
+     without any per-section duplication. */
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent calc(var(--woven-grid) - 1px), var(--woven-warp) calc(var(--woven-grid) - 1px), var(--woven-warp) var(--woven-grid)),
+    repeating-linear-gradient(90deg, transparent, transparent calc(var(--woven-grid) - 1px), var(--woven-weft) calc(var(--woven-grid) - 1px), var(--woven-weft) var(--woven-grid)),
+    radial-gradient(ellipse at 18% 0%, rgba(99, 102, 241, 0.10), transparent 55%),
+    radial-gradient(ellipse at 85% 12%, rgba(20, 184, 166, 0.07), transparent 50%),
+    var(--c-bg);
   color: var(--c-text);
   overflow-x: hidden;
   min-height: 100dvh;
@@ -262,7 +279,7 @@ a[class*="Action"]:active,
   }
   .lift:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-md);
   }
 }
 

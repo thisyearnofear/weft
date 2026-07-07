@@ -1,39 +1,34 @@
 .container {
   min-height: 100dvh;
-  background:
-    radial-gradient(circle at 12% 8%, rgba(99, 102, 241, 0.09), transparent 28%),
-    radial-gradient(circle at 82% 14%, rgba(20, 184, 166, 0.06), transparent 26%);
 }
 
 /* ════════════════════════════════════════════
-   HERO
+   HERO — one interlocking weave panel containing
+   copy + live proof. No floating islands.
    ════════════════════════════════════════════ */
 .hero {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
-  gap: 2rem;
-  align-items: center;
+  gap: 1.5rem;
+  align-items: stretch;
   max-width: var(--max-w);
   margin: 0 auto;
-  padding: 3.5rem 3rem 1.5rem;
+  padding: 3rem 3rem 1.5rem;
 }
 
-/* Ambient backdrop layer. A background <video> can be dropped
-   directly inside this div — it will cover, dim, and sit under
-   the woven micro-pattern automatically. */
+/* Ambient backdrop layer — just the accent glow now; the woven
+   warp/weft grid lives globally on <body> (DRY). A background
+   <video> can be dropped inside this div and will sit under the glow. */
 .heroBackdrop {
   position: absolute;
   inset: 0;
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background:
-    repeating-linear-gradient(0deg, transparent, transparent 11px, rgba(232, 232, 242, 0.012) 11px, rgba(232, 232, 242, 0.012) 12px),
-    repeating-linear-gradient(90deg, transparent, transparent 11px, rgba(232, 232, 242, 0.012) 11px, rgba(232, 232, 242, 0.012) 12px),
-    radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.07), transparent 55%);
-  -webkit-mask-image: linear-gradient(180deg, black 70%, transparent);
-  mask-image: linear-gradient(180deg, black 70%, transparent);
+  background: radial-gradient(ellipse at 22% 0%, rgba(99, 102, 241, 0.12), transparent 60%);
+  -webkit-mask-image: linear-gradient(180deg, black 65%, transparent);
+  mask-image: linear-gradient(180deg, black 65%, transparent);
 }
 
 /* Video layers inside the backdrop manage their own opacity/crossfade
@@ -218,139 +213,14 @@
   background: var(--c-surface-2);
 }
 
-/* ── Live stats ── */
-.statsStrip {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  padding: 0.75rem 1rem;
-  margin-top: 0.75rem;
-  border-radius: 8px;
-  background: var(--c-surface-2);
-  border: 1px solid var(--c-border);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-  width: fit-content;
-}
-
-.statCard {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.statValue {
-  font-size: 1.15rem;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  color: var(--c-text);
-  line-height: 1.1;
-}
-
-.statLabel {
-  font-size: 0.6rem;
-  color: var(--c-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-}
-
-.statDivider {
-  width: 1px;
-  height: 28px;
-  background: var(--c-surface-3);
-}
-
 /* ── Hero right panel ── */
 .heroPanel {
   display: flex;
   justify-content: flex-end;
-}
-
-/* ════════════════════════════════════════════
-   PAIN / SOLUTION CONTRAST
-   ════════════════════════════════════════════ */
-.contrastSection {
-  max-width: var(--max-w);
-  margin: 0 auto;
-  padding: 1rem 3rem 2rem;
-}
-
-.contrastInner {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.contrastHeader {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.contrastGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.contrastCard {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 1rem;
-  align-items: center;
-  padding: 1rem 1.25rem;
-  border-radius: 8px;
-  background: var(--c-surface-2);
-  border: 1px solid var(--c-border);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
-  transition: border-color 0.2s, background  0.2s;
-}
-
-.contrastCard:hover {
-  border-color: var(--c-accent);
-  background: var(--c-surface-3);
-}
-
-.contrastCol {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.contrastBadge {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #f87171;
-  opacity: 0.7;
-}
-
-.contrastBadgeGreen {
-  color: #22c55e;
-}
-
-.contrastPain,
-.contrastSolution {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--c-text-secondary);
-}
-
-.contrastPain {
-  color: #b23b44;
-}
-
-.contrastSolution {
-  color: #13795b;
-}
-
-.contrastArrow {
-  color: var(--c-text-3);
-  flex-shrink: 0;
+  /* Shared vertical thread between copy and proof — reads as one
+     woven panel split into two cells, not two floating islands. */
+  border-left: 1px solid var(--c-border);
+  padding-left: 1.5rem;
 }
 
 /* ════════════════════════════════════════════
@@ -359,7 +229,7 @@
 .demoSection {
   max-width: var(--max-w);
   margin: 0 auto;
-  padding: 1rem 3rem 2.5rem;
+  padding: 0.5rem 3rem 2rem;
 }
 
 .demoSingle {
@@ -417,7 +287,7 @@
 .sectionFull {
   max-width: var(--max-w);
   margin: 0 auto;
-  padding: 1rem 3rem 2.5rem;
+  padding: 0.5rem 3rem 2rem;
 }
 
 .sectionHeader {
@@ -508,7 +378,9 @@
   border-radius: 8px;
   background: var(--c-surface-2);
   border: 1px solid rgba(17, 148, 105, 0.22);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  /* Embedded, not floating — a 1px top highlight reads as a stitched
+     edge in the weave rather than a panel hovering above a void. */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .profileMilestoneKicker {
@@ -539,7 +411,8 @@
   border-radius: 8px;
   background: var(--c-surface-2);
   border: 1px solid var(--c-border);
-  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.3);
+  /* Embedded stitch, not floating moat. */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .bottomCard h3 {
@@ -579,12 +452,15 @@
     order: -1; /* visual above copy on tablet */
     max-width: 300px;
     margin: 0 auto;
+    /* Drop the shared vertical thread when stacked — it would read
+       as a stray line above the proof, not as a panel split. */
+    border-left: none;
+    padding-left: 0;
   }
 }
 
 @media (max-width: 768px) {
   .hero,
-  .contrastSection,
   .section {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
@@ -597,32 +473,6 @@
 
   .title {
     font-size: 2.5rem;
-  }
-
-  .statsStrip {
-    flex-wrap: wrap;
-    gap: 1rem;
-    width: 100%;
-    justify-content: center;
-  }
-
-  .statDivider {
-    display: none;
-  }
-
-  .contrastCard {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-    text-align: center;
-  }
-
-  .contrastArrow {
-    transform: rotate(90deg);
-    align-self: center;
-  }
-
-  .contrastCol {
-    align-items: center;
   }
 
   .sectionHeader {
@@ -816,22 +666,4 @@
   gap: 8px;
   font-size: 13px;
   color: var(--c-verified);
-}
-
-/* ── First-visit guide strip ── */
-.guideStrip {
-  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
-  margin-top: 1.1rem; font-size: 0.85rem;
-}
-.guideLabel { color: var(--c-text-muted); font-weight: 500; }
-.guideStep {
-  display: inline-flex; align-items: center;
-  padding: 0.35rem 0.8rem; border-radius: 999px;
-  background: var(--c-surface); border: 1px solid var(--c-border);
-  color: var(--c-text-2); font-weight: 600; text-decoration: none;
-  transition: border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
-}
-.guideStep:hover {
-  border-color: var(--c-accent); color: var(--c-text);
-  transform: translateY(-1px);
 }
