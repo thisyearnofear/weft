@@ -12,8 +12,18 @@ import styles from "./SealedReveal.module.css";
  * the result), playback crosses seamlessly into the reveal clip — the knot
  * unwinds and weaves itself into verified fabric — and holds its final frame.
  * The two clips share their junction frame, so the transition is invisible.
+ *
+ * When `decrypting` is true (the relayer request is in flight), the sealed
+ * loop dims slightly and the caption shifts to "decrypting…" — giving the
+ * moment weight before the result arrives.
  */
-export function SealedReveal({ revealed }: { revealed: boolean }) {
+export function SealedReveal({
+  revealed,
+  decrypting = false,
+}: {
+  revealed: boolean;
+  decrypting?: boolean;
+}) {
   const reducedMotion = usePrefersReducedMotion();
   const [phase, setPhase] = useState<"sealed" | "revealing" | "done">("sealed");
   const sealedRef = useRef<HTMLVideoElement>(null);
@@ -46,19 +56,33 @@ export function SealedReveal({ revealed }: { revealed: boolean }) {
     }
   }, [phase, reducedMotion]);
 
+  // The caption reflects three states: sealed, decrypting (relayer in flight),
+  // and the final result. The "decrypting…" state bridges the gap between
+  // clicking the button and the result arriving — so the moment has weight.
+  const caption = phase === "done"
+    ? "verified"
+    : phase === "revealing"
+      ? "decrypting…"
+      : decrypting
+        ? "asking relayer…"
+        : "ballots sealed";
+
   if (reducedMotion) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={revealed ? "/delight/reveal_end_poster.jpg" : "/delight/sealed_loop_poster.jpg"}
         alt={revealed ? "Completed verified weave" : "Sealed encrypted knot of thread"}
-        className={styles.frame}
+        className={`${styles.frame} ${decrypting && !revealed ? styles.decrypting : ""}`}
       />
     );
   }
 
   return (
-    <div className={styles.frame} aria-hidden>
+    <div
+      className={`${styles.frame} ${decrypting && !revealed ? styles.decrypting : ""}`}
+      aria-hidden
+    >
       <video
         ref={sealedRef}
         src="/delight/sealed_loop.mp4"
@@ -79,8 +103,8 @@ export function SealedReveal({ revealed }: { revealed: boolean }) {
         className={`${styles.layer} ${phase !== "sealed" ? styles.visible : ""}`}
         onEnded={() => setPhase("done")}
       />
-      <span className={`${styles.caption} ${phase === "done" ? styles.captionVerified : ""}`}>
-        {phase === "sealed" ? "ballots sealed" : phase === "revealing" ? "decrypting…" : "verified"}
+      <span className={`${styles.caption} ${phase === "done" ? styles.captionVerified : ""} ${decrypting && !revealed ? styles.captionDecrypting : ""}`}>
+        {caption}
       </span>
     </div>
   );

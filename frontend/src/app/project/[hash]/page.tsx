@@ -224,7 +224,30 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
   if (error || !milestone || milestone.builder === "0x0000000000000000000000000000000000000000") {
     return (
       <div className={styles.container}>
-        <div className={styles.error}>Milestone not found: {hash}</div>
+        <div className={styles.shell}>
+          <div className={styles.notFoundWrap}>
+            <Link href="/" className={styles.backLink}>← Back to system view</Link>
+            <div className={styles.notFoundCard}>
+              <div className={styles.notFoundIcon}><AlertTriangle size={28} /></div>
+              <span className={styles.notFoundKicker}>Thread not found</span>
+              <h2 className={styles.notFoundTitle}>This thread isn&apos;t in the weave yet</h2>
+              <p className={styles.notFoundBody}>
+                We couldn&apos;t find a milestone at{" "}
+                <code className={styles.notFoundHash}>{hash.slice(0, 10)}…{hash.slice(-6)}</code>
+                {" "}on any of the three contracts (0G, Sepolia confidential, Sepolia weighted).
+                It may not have been created, or the hash may be incomplete.
+              </p>
+              <div className={styles.notFoundActions}>
+                <Link href="/" className={styles.primaryAction}>
+                  Back to landing <ArrowUpRight size={16} />
+                </Link>
+                <Link href="/explorer" className={styles.secondaryAction}>
+                  Browse the explorer <ArrowUpRight size={16} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

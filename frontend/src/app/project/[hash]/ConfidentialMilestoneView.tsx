@@ -30,6 +30,18 @@ function ConfidentialStatusBadge({ m }: { m: ConfidentialMilestone }) {
 
 function DecryptPanel({ m }: { m: ConfidentialMilestone }) {
   const { data: decrypted, mutate: decrypt, isPending, error } = useDecryptSealedResult(m.verifiedHandle);
+  const [verdictVisible, setVerdictVisible] = React.useState(false);
+
+  // Stagger the verdict text — it appears after the reveal animation has
+  // had a moment to breathe, not simultaneously with the result.
+  React.useEffect(() => {
+    if (decrypted === undefined) {
+      setVerdictVisible(false);
+      return;
+    }
+    const t = setTimeout(() => setVerdictVisible(true), 600);
+    return () => clearTimeout(t);
+  }, [decrypted]);
 
   return (
     <article className={styles.panel}>
@@ -47,7 +59,7 @@ function DecryptPanel({ m }: { m: ConfidentialMilestone }) {
       </p>
       {/* The knot unwinds into finished fabric the moment the relayer answers —
           both clips share their junction frame, so the cut is invisible */}
-      <SealedReveal revealed={decrypted === true} />
+      <SealedReveal revealed={decrypted === true} decrypting={isPending} />
       <div className={styles.actionStack}>
         <button
           onClick={() => decrypt()}
@@ -56,8 +68,8 @@ function DecryptPanel({ m }: { m: ConfidentialMilestone }) {
         >
           {isPending ? "Asking relayer..." : <><Lock size={16} /> Decrypt sealed result</>}
         </button>
-        {decrypted !== undefined && (
-          <div className={styles.codeBlock}>
+        {verdictVisible && decrypted !== undefined && (
+          <div className={`${styles.codeBlock} ${styles.verdictReveal}`}>
             <span className={styles.codeLabel}>Publicly decrypted via Zama relayer</span>
             <p className={`${styles.decryptVerdict} ${decrypted ? styles.decryptVerdictOk : styles.decryptVerdictFail}`}>
               {decrypted ? `VERIFIED — encrypted quorum (≥${QUORUM} of ${MAX_VERIFIERS}) was reached` : "NOT VERIFIED — encrypted quorum was not reached"}

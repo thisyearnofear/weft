@@ -28,6 +28,18 @@ function WeightedStatusBadge({ m }: { m: WeightedConfidentialMilestone }) {
 
 function WeightedDecryptPanel({ m }: { m: WeightedConfidentialMilestone }) {
   const { data: decrypted, mutate: decrypt, isPending, error } = useDecryptWeightedResult(m.verifiedHandle);
+  const [verdictVisible, setVerdictVisible] = React.useState(false);
+
+  // Stagger the verdict text — it appears after the reveal animation has
+  // had a moment to breathe, not simultaneously with the result.
+  React.useEffect(() => {
+    if (decrypted === undefined) {
+      setVerdictVisible(false);
+      return;
+    }
+    const t = setTimeout(() => setVerdictVisible(true), 600);
+    return () => clearTimeout(t);
+  }, [decrypted]);
 
   return (
     <article className={styles.panel}>
@@ -43,7 +55,7 @@ function WeightedDecryptPanel({ m }: { m: WeightedConfidentialMilestone }) {
           ? "All weighted ballots are in. The contract computed weightedVote = FHE.mul(ballot, confidence) on ciphertext, tallied it, and checked both binary quorum AND weighted quorum — all without decrypting a single vote or confidence score. Decrypt the final result now."
           : `The result is encrypted onchain. The contract will compute FHE.mul(ballot, confidence) for each verifier, accumulate the weighted tally, and check both quorum gates — all on ciphertext. No vote or confidence score is ever decrypted.`}
       </p>
-      <SealedReveal revealed={decrypted === true} />
+      <SealedReveal revealed={decrypted === true} decrypting={isPending} />
       <div className={styles.actionStack}>
         <button
           onClick={() => decrypt()}
@@ -52,8 +64,8 @@ function WeightedDecryptPanel({ m }: { m: WeightedConfidentialMilestone }) {
         >
           {isPending ? "Asking relayer..." : <><Lock size={16} /> Decrypt sealed result</>}
         </button>
-        {decrypted !== undefined && (
-          <div className={styles.codeBlock}>
+        {verdictVisible && decrypted !== undefined && (
+          <div className={`${styles.codeBlock} ${styles.verdictReveal}`}>
             <span className={styles.codeLabel}>Publicly decrypted via Zama relayer</span>
             <p className={`${styles.decryptVerdict} ${decrypted ? styles.decryptVerdictOk : styles.decryptVerdictFail}`}>
               {decrypted

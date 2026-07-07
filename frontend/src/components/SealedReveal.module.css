@@ -43,3 +43,25 @@
 .captionVerified {
   color: #34d399;
 }
+
+/* When the relayer request is in flight, the sealed loop dims and the
+   caption shifts to a warmer hue — a visual breath before the reveal. */
+.decrypting {
+  filter: brightness(0.65) saturate(0.8);
+  transition: filter 400ms ease;
+}
+
+.captionDecrypting {
+  color: #fbbf24;
+  animation: captionPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes captionPulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .captionDecrypting { animation: none; }
+  .decrypting { transition: none; }
+}

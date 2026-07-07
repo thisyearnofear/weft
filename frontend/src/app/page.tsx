@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useMemo } from "react";
-import { ArrowRight, Bot, Sparkles } from "lucide-react";
+import { ArrowRight, Bot, Sparkles, Lock, Zap } from "lucide-react";
 
 import { HeroLoom } from "@/components/HeroLoom";
 import { MilestoneCard } from "@/components/MilestoneCard";
@@ -195,6 +195,60 @@ export default function Home() {
         <SVGPathMarquee className={styles.marqueeStrip} />
         <div className={styles.howItWorksWrap}>
           <HowItWorks />
+        </div>
+      </Reveal>
+
+      {/* ════════════════════════════════════════════════════════════════
+          FHE DEMOS — two live sealed-ballot milestones on Sepolia.
+          The core Zama story: v1 (addition) → v2 (multiplication).
+          ════════════════════════════════════════════════════════════════ */}
+      <Reveal as="section" className={styles.section} delay={100}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>Zama FHE · Sealed-ballot consensus</span>
+            <h2 className={styles.sectionTitle}>Try the encrypted demos</h2>
+          </div>
+        </div>
+        <p className={`${styles.sectionText} ${styles.sectionLede}`}>
+          Verifier agents encrypt their votes client-side. The contract tallies
+          homomorphically on Sepolia — no vote is ever decrypted. Click through
+          to decrypt the final result yourself.
+        </p>
+        <div className={styles.fheDemoGrid}>
+          <Link
+            href="/project/0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1"
+            className={styles.fheDemoCard}
+            onClick={() => track("fhe_demo_v1_click")}
+          >
+            <div className={styles.fheDemoIcon}><Lock size={20} /></div>
+            <span className={styles.fheDemoKicker}>v1 · Addition-class FHE</span>
+            <h3 className={styles.fheDemoTitle}>Sealed-ballot quorum</h3>
+            <p className={styles.fheDemoBody}>
+              Each verifier encrypts a boolean ballot. The contract uses{" "}
+              <code>FHE.add</code>, <code>FHE.ge</code>, <code>FHE.select</code> —
+              quorum checked on ciphertext, no vote ever decrypted.
+            </p>
+            <span className={styles.fheDemoLink}>
+              Open &amp; decrypt <ArrowRight size={14} />
+            </span>
+          </Link>
+          <Link
+            href="/project/0xbd5c85db97cd5a8f30779da9311651e549f702b6ce72ebd03dcb816d3b071722?weighted=1"
+            className={styles.fheDemoCard}
+            onClick={() => track("fhe_demo_v2_click")}
+          >
+            <div className={styles.fheDemoIcon}><Zap size={20} /></div>
+            <span className={styles.fheDemoKicker}>v2 · Multiplication-class FHE</span>
+            <h3 className={styles.fheDemoTitle}>Confidence-weighted votes</h3>
+            <p className={styles.fheDemoBody}>
+              Each verifier encrypts a ballot <em>and</em> a confidence score.
+              The contract uses <code>FHE.mul</code> to multiply them on
+              ciphertext — weighted consensus without decrypting anything.
+            </p>
+            <span className={styles.fheDemoLink}>
+              Open &amp; decrypt <ArrowRight size={14} />
+            </span>
+          </Link>
         </div>
       </Reveal>
 
