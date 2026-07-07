@@ -406,37 +406,24 @@
   line-height: 1.65;
 }
 
-.bottomCard {
-  padding: 2rem;
-  border-radius: 8px;
-  background: var(--c-surface-2);
-  border: 1px solid var(--c-border);
-  /* Embedded stitch, not floating moat. */
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.bottomCard h3 {
-  font-size: 1.4rem;
-  margin-bottom: 0.75rem;
-  line-height: 1.2;
-}
-
-.bottomCard p {
-  color: var(--c-text-secondary);
-  line-height: 1.7;
-  font-size: 0.95rem;
-  max-width: 60ch;
-}
-
-.bottomActions {
-  margin-top: 1.5rem;
-}
-
 .pricingNote {
   text-align: center;
   padding: 0.5rem 1rem 2rem;
   font-size: 0.8rem;
   color: var(--c-text-3);
+}
+
+/* ── How it works wrapper — gives the de-carded steps some
+   breathing room without adding another bordered box. ── */
+.howItWorksWrap {
+  margin-top: 1.5rem;
+}
+
+/* ── Ambient evidence thread marquee — sits between the lede
+   and the steps, a visual "thread" connecting them. ── */
+.marqueeStrip {
+  margin: 1.25rem 0 0.5rem;
+  opacity: 0.8;
 }
 
 /* ════════════════════════════════════════════

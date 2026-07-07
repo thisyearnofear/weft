@@ -10,6 +10,10 @@ import { SkeletonCard } from "@/components/SkeletonCard";
 import { AskWeft } from "@/components/AskWeft";
 import { HeroProof } from "@/components/HeroProof";
 import { Reveal } from "@/components/Reveal";
+import { HowItWorks } from "@/components/HowItWorks";
+import { TileFlip } from "@/components/TileFlip";
+import { BlockReveal } from "@/components/BlockReveal";
+import { SVGPathMarquee } from "@/components/SVGPathMarquee";
 import { useMilestones, useMilestone } from "@/hooks/useMilestones";
 import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
 import { useExplorerMilestones } from "@/hooks/useExplorer";
@@ -218,6 +222,7 @@ export default function Home() {
           HERO — What is Weft?
           ════════════════════════════════════════════════════════════════ */}
       <section className={styles.hero}>
+        <TileFlip />
         <div className={styles.heroBackdrop} aria-hidden="true">
           <HeroLoom />
         </div>
@@ -278,11 +283,35 @@ export default function Home() {
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
+          HOW IT WORKS — the weave story (Lock → Ship → Verify → Release)
+          This is the narrative arc the page was missing. De-carded:
+          steps are acts in a story, connected by the weft thread.
+          ════════════════════════════════════════════════════════════════ */}
+      <Reveal as="section" className={styles.section} delay={100}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>How it works</span>
+            <h2 className={styles.sectionTitle}>The weave, in four threads</h2>
+          </div>
+        </div>
+        <p className={`${styles.sectionText} ${styles.sectionLede}`}>
+          Capital is escrowed, work is shipped, verifiers check the evidence,
+          and the contract releases on its own. No one approves anything.
+        </p>
+        {/* Ambient evidence thread — swatch chips traveling a woven path.
+            The Weft metaphor in motion, not just in the background grid. */}
+        <SVGPathMarquee className={styles.marqueeStrip} />
+        <div className={styles.howItWorksWrap}>
+          <HowItWorks />
+        </div>
+      </Reveal>
+
+      {/* ════════════════════════════════════════════════════════════════
           LIVE DEMO — hash lookup, agent chat behind a toggle.
           The hero animation already explains the mechanic; this section's
           only job is to prove it's real.
           ════════════════════════════════════════════════════════════════ */}
-      <Reveal as="section" className={styles.demoSection} delay={100}>
+      <BlockReveal as="section" className={styles.demoSection} delay={100}>
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>Live demo</span>
@@ -305,7 +334,7 @@ export default function Home() {
           </button>
           {showChat && <AskWeft />}
         </div>
-      </Reveal>
+      </BlockReveal>
 
       {/* ════════════════════════════════════════════════════════════════
           LIVE MILESTONES + CTA
@@ -359,23 +388,6 @@ export default function Home() {
                   </div>
                 </div>
               )}
-        </div>
-
-        {/* CTA — one line, two doors. The hero already explained the personas. */}
-        <div className={styles.bottomCard}>
-          <h3>Ready to ship without friction?</h3>
-          <p>
-            Builders get paid the moment verifiers confirm the work — no sponsor
-            required to start. Sponsors get cryptographic proof for every ETH released.
-          </p>
-          <div className={`${styles.heroActions} ${styles.bottomActions}`}>
-            <Link href="/create-milestone" className={styles.primaryAction}>
-              Create a milestone <ArrowRight size={16} />
-            </Link>
-            <Link href="/sponsor" className={styles.secondaryAction}>
-              Fund a milestone
-            </Link>
-          </div>
         </div>
       </Reveal>
 

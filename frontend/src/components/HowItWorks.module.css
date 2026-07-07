@@ -16,22 +16,19 @@
   min-width: 220px;
 }
 
+/* De-carded: no border, no shadow, no background. Steps read as
+   acts in a narrative, not as floating cards. The connecting line
+   between steps IS the weave thread. */
 .stepCard {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 1.5rem 1.25rem;
-  border-radius: 12px;
-  background: var(--c-surface-2);
-  border: 1px solid var(--c-border);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  padding: 1.25rem 1.25rem;
+  transition: transform 0.2s var(--ease-out);
 }
 
 .stepCard:hover {
-  border-color: var(--c-accent);
-  box-shadow: 0 12px 36px var(--c-accent-20);
   transform: translateY(-2px);
 }
 
@@ -39,10 +36,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--c-accent-20), rgba(17, 148, 105, 0.08));
+  background: linear-gradient(135deg, var(--c-accent-20), rgba(20, 184, 166, 0.10));
   border: 1px solid var(--c-accent-20);
   margin-bottom: 0.25rem;
 }
@@ -86,6 +83,8 @@
   margin-top: auto;
 }
 
+/* The connector is the weft thread between steps — a dashed line
+   with an arrow, not a card border. */
 .connector {
   display: flex;
   align-items: center;

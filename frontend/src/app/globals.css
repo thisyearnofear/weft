@@ -6,22 +6,22 @@
 
 /* ── Tokens ──────────────────────────────────── */
 :root {
-  /* Base lifted off near-black into deep indigo-navy so panels read as
-     fabric on a surface, not glass floating in a void. */
-  --c-bg:            #0d0e1a;
-  --c-bg-elevated:   #131428;
-  --c-bg-subtle:     #1c1d36;
-  --c-surface:       rgba(255, 255, 255, 0.05);
-  --c-surface-2:     rgba(255, 255, 255, 0.08);
-  --c-surface-3:     rgba(255, 255, 255, 0.12);
-  --c-border:        rgba(255, 255, 255, 0.09);
-  --c-border-2:      rgba(255, 255, 255, 0.18);
+  /* Base lifted into a readable indigo-navy — dark mode, but not
+     sombre. Panels read as fabric on a lit surface, not glass in a void. */
+  --c-bg:            #181a30;
+  --c-bg-elevated:   #1f2138;
+  --c-bg-subtle:     #282a4a;
+  --c-surface:       rgba(255, 255, 255, 0.06);
+  --c-surface-2:     rgba(255, 255, 255, 0.09);
+  --c-surface-3:     rgba(255, 255, 255, 0.14);
+  --c-border:        rgba(255, 255, 255, 0.10);
+  --c-border-2:      rgba(255, 255, 255, 0.20);
 
   /* Woven warp/weft threads — the Weft brand metaphor, made visible.
      Used by the global body backdrop and any section that wants to
      show the fabric. Indigo warp + teal weft at low opacity. */
-  --woven-warp:      rgba(99, 102, 241, 0.045);
-  --woven-weft:      rgba(20, 184, 166, 0.035);
+  --woven-warp:      rgba(99, 102, 241, 0.06);
+  --woven-weft:      rgba(20, 184, 166, 0.045);
   --woven-grid:      14px;
 
   --c-text:          #e8e8f2;
