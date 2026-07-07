@@ -11,9 +11,11 @@ import {WeftErrors} from "./WeftErrors.sol";
 /// @title WeftMilestoneConfidential
 /// @notice Confidential milestone escrow with sealed-ballot verifier consensus.
 /// @dev Additive to WeftMilestone.sol — uses FHEVM encrypted types so that
-///      stake amounts, individual verifier votes, and release amounts are
-///      confidential. The contract enforces 2-of-3 quorum on encrypted votes
-///      without decrypting any individual vote (sealed ballot).
+///      individual verifier votes are confidential. The contract enforces
+///      2-of-3 quorum on encrypted votes without decrypting any individual
+///      vote (sealed ballot). Stake and release amounts are plaintext ETH —
+///      msg.value is inherently public, so encrypting them would add no
+///      privacy (see SUBMISSION.md for the scope rationale).
 contract WeftMilestoneConfidential is ZamaEthereumConfig, Ownable, ReentrancyGuard {
     // ----------------------------
     // Types
@@ -175,13 +177,18 @@ contract WeftMilestoneConfidential is ZamaEthereumConfig, Ownable, ReentrancyGua
         verifierVoted[milestoneHash][msg.sender] = true;
         evidenceByVerifier[milestoneHash][msg.sender] = evidenceRoot;
 
-        // Decrypt the external input into an euint32, then cast to euint8
+        // Bring the external input into the contract's FHE domain, then
+        // clamp the ballot to {0,1}: only a ciphertext of exactly 1 counts
+        // as a yes vote. Without this, a rogue verifier could encrypt 2 and
+        // single-handedly satisfy the >= quorum comparison.
         euint32 didComplete32 = FHE.fromExternal(encryptedDidComplete, inputProof);
-        euint8 didComplete8 = FHE.asEuint8(didComplete32);
+        euint8 ballot = FHE.select(
+            FHE.eq(didComplete32, 1), FHE.asEuint8(1), FHE.asEuint8(0)
+        );
 
         // Accumulate vote count (plaintext counter + encrypted vote sum)
         m.verifierCount += 1;
-        m.verifiedVotes = FHE.add(m.verifiedVotes, didComplete8);
+        m.verifiedVotes = FHE.add(m.verifiedVotes, ballot);
         FHE.allowThis(m.verifiedVotes);
 
         emit VerdictSubmitted(milestoneHash, msg.sender, evidenceRoot);

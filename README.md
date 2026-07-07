@@ -25,8 +25,8 @@ portable reputation.
 | **Builder Profile** | [weft.thisyearnofear.com/builder/weft.thisyearnofear.eth](https://weft.thisyearnofear.com/builder/weft.thisyearnofear.eth) |
 | **Resilience demo (in Operations)** | [weft.thisyearnofear.com/operations](https://weft.thisyearnofear.com/operations) |
 | **Explorer** | [WeftMilestone on 0G Galileo](https://explorer-testnet.0g.ai/address/0x9f66158c560ce5c8b40820fdcd2874ff8d852192) |
-| **Confidential demo (Zama FHE)** | [Sealed-ballot milestone on Sepolia](https://weft.thisyearnofear.com/project/0xc351d2446c4e245d3baa0fc206a05d61010589dd8635c844c17955d50fc58574?confidential=1) — click "Decrypt sealed result" |
-| **Confidential contract** | [WeftMilestoneConfidential on Sepolia](https://sepolia.etherscan.io/address/0xcd1a64733a7b58efc8914dde45fe6af22381368f) |
+| **Confidential demo (Zama FHE)** | [Sealed-ballot milestone on Sepolia](https://weft.thisyearnofear.com/project/0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1) — click "Decrypt sealed result" |
+| **Confidential contract** | [WeftMilestoneConfidential on Sepolia](https://sepolia.etherscan.io/address/0x152d758d496db7444a00a6b2c7fe254b9aced212) |
 | **ENS identity** | `weft.thisyearnofear.eth` |
 | **Status API** | `GET /api/status/demo` |
 | **TestSprite tests** | 40 tests across CLI + MCP (see [LOOP.md](LOOP.md)) |
@@ -67,9 +67,9 @@ them homomorphically on Sepolia — `FHE.add` on the encrypted count, `FHE.ge` f
 herding (late voters copying early ones) cryptographically impossible. Only the final
 verified/rejected boolean becomes publicly decryptable, and only after every ballot is
 cast — try the "Decrypt sealed result" button on the
-[live confidential demo milestone](https://weft.thisyearnofear.com/project/0xc351d2446c4e245d3baa0fc206a05d61010589dd8635c844c17955d50fc58574?confidential=1).
+[live confidential demo milestone](https://weft.thisyearnofear.com/project/0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1).
 
-- Contract: [`contracts/src-fhe/WeftMilestoneConfidential.sol`](contracts/src-fhe/WeftMilestoneConfidential.sol) — live on Sepolia at [`0xcd1a6473...368f`](https://sepolia.etherscan.io/address/0xcd1a64733a7b58efc8914dde45fe6af22381368f)
+- Contract: [`contracts/src-fhe/WeftMilestoneConfidential.sol`](contracts/src-fhe/WeftMilestoneConfidential.sol) — live on Sepolia at [`0x152d758d...d212`](https://sepolia.etherscan.io/address/0x152d758d496db7444a00a6b2c7fe254b9aced212)
 - Details: [SUBMISSION.md](SUBMISSION.md) — Zama Developer Program S3, Builder Track
 
 ### Quick links

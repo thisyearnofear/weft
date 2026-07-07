@@ -119,7 +119,7 @@ Repo: https://github.com/thisyearnofear/weft
 
 - Record at 1440x900 or 1920x1080
 - Use the live site (https://weft.thisyearnofear.com), not localhost
-- For the demo milestone, use the existing verified one: 0xc351d2446c4e245d3baa0fc206a05d61010589dd8635c844c17955d50fc58574?confidential=1
+- For the demo milestone, use the existing verified one: 0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1
 - Show the Etherscan txs for the sealed ballots (links in SUBMISSION.md)
 - Keep cuts tight — no long pauses, no "umms"
 - Add captions for accessibility

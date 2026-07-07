@@ -15,7 +15,7 @@ const KNOWN: Record<string, MilestoneMeta> = {
   "0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f": {
     name: "Weft demo milestone",
   },
-  "0xc351d2446c4e245d3baa0fc206a05d61010589dd8635c844c17955d50fc58574": {
+  "0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d": {
     name: "Zama sealed-ballot demo",
     promise: "Sealed-ballot verification demo for the Zama Developer Program",
   },

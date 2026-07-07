@@ -116,7 +116,7 @@ export default function Home() {
         </div>
         <div className={styles.heroCopy}>
           <Link
-            href="/project/0xc351d2446c4e245d3baa0fc206a05d61010589dd8635c844c17955d50fc58574?confidential=1"
+            href="/project/0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1"
             className={`${styles.confidentialBanner} stagger stagger-1`}
             onClick={() => track("confidential_banner_click")}
           >

@@ -5,60 +5,98 @@ real-person video. Fill the `[..]` placeholders after the Sepolia demo run.
 
 ---
 
-## X thread draft
+## X thread (final — every claim verified against the code)
 
 **Tweet 1 (hook)**
-Every onchain voting system has the same quiet bug: votes are public the moment
-they land, so the last voter just copies the first two.
+Ever pay upfront for work and just have to trust it'll get done? Or ship the work
+and wait on someone's word to get paid?
 
-We made that impossible. Verifier votes on @weft are now sealed ballots — encrypted
-with @zama_fhe, tallied without ever being decrypted. 🧵
+That's the core problem in freelancing, grants, bounties, any deal where money and
+delivery don't happen at the same moment.
+
+@weft solves it with escrow that releases itself: lock funds, verifier agents check
+the actual work, and if they agree, payment releases — no middleman, no waiting on
+someone's opinion.
+
+We just found a way agents could fake that check. Here's the fix. 🧵
 
 **Tweet 2 (what Weft is)**
-Weft is escrow that releases itself. A sponsor locks ETH behind a deliverable.
-Autonomous AI agents verify the work onchain — evidence, commits, usage — and if
-2 of 3 agree, capital releases instantly. Live at weft.thisyearnofear.com
+How it works: a sponsor locks ETH behind a deliverable. 3 autonomous agents
+independently verify the work — deployment state, real usage, commits. If 2 of 3
+agree it's done, funds release.
 
-**Tweet 3 (the herding problem)**
-The flaw in v1: our verifier votes were plaintext. Agent 3 could watch agents 1–2
-vote and free-ride instead of doing its own verification. In any consensus system
-with public votes, late voters are structurally lazy voters.
+Live: weft.thisyearnofear.com
 
-**Tweet 4 (the FHE fix, concrete)**
-Now each agent encrypts its ballot in its own process. Onchain:
+**Tweet 3 (the herding bug)**
+The bug: agent votes were plaintext, written onchain as they came in.
+
+So the last agent to vote could just watch the first two and copy them — no way to
+tell if it actually checked the work or just matched the majority. Same vote, same
+outcome, zero verification.
+
+For a system whose entire job is honest verification, that's not a small bug.
+
+**Tweet 4 (generalize)**
+This isn't unique to AI agents — it's what plaintext voting makes possible whenever
+votes are visible before quorum. Same reason commit-reveal schemes exist in onchain
+governance.
+
+We just hadn't built one for agent consensus. Now we have.
+
+**Tweet 5 (the FHE fix, concrete)**
+The fix: each agent encrypts its ballot in its own process with @zama_fhe. No one —
+not the other agents, not us — can read a vote. Ever.
 
 verifiedVotes = FHE.add(verifiedVotes, ballot)
 verified = FHE.select(FHE.ge(verifiedVotes, 2), true, verified)
 
-The contract computes "did quorum pass?" on ciphertext. No vote is ever decrypted.
+Quorum gets computed on ciphertext. No vote is ever decrypted to check it.
 
-**Tweet 5 (the reveal moment)**
-Only after ALL 3 ballots are in does the contract make the final boolean publicly
-decryptable. Try clicking "Decrypt sealed result" before that — the Zama relayer
-refuses. That refusal is the feature.
+**Tweet 6 (the reveal moment)**
+The part I actually like:
 
-[screenshot of the decrypt panel]
+The final yes/no only becomes decryptable once all 3 ballots are in. Try clicking
+"Decrypt" early — the Zama relayer refuses.
 
-**Tweet 6 (agents, not humans)**
-The voters here aren't humans with wallets — they're autonomous verifier agents
-(the same daemons that collect evidence and reason about it with an LLM). FHE
-consensus between AI agents: private judgment, public outcome.
+[screenshot]
 
-**Tweet 7 (honest scope — pre-empts "that's a small use of FHE")**
-We kept the encrypted state deliberately small: one sealed tally, one sealed result
-— but every bit of it is *computed over*, not just stored. Encrypting the ETH stake
-would be theater (the transfer is public anyway). We'd rather ship one honest FHE
-claim than ten hand-wavy ones. Next: encrypted confidence-weighted votes + cUSDT
-staking.
+Not a UI restriction — there's no early result to leak even if someone tried.
 
-**Tweet 8 (receipts)**
-Live on Sepolia:
-▸ Contract: https://sepolia.etherscan.io/address/0xcd1a64733a7b58efc8914dde45fe6af22381368f
-▸ Demo milestone: https://weft.thisyearnofear.com/project/0xc351d2446c4e245d3baa0fc206a05d61010589dd8635c844c17955d50fc58574?confidential=1
+**Tweet 7 (agents, not humans — precise about what they do)**
+To be precise: the voters here aren't humans with wallets. They're autonomous
+verifier daemons that pull evidence — is the contract deployed, did real users call
+it, did commits land — and vote on deterministic rules. An LLM writes the narrative;
+the money decision stays auditable.
+
+FHE consensus between AI agents: private ballots in, public outcome out. Nothing
+more, nothing less.
+
+**Tweet 8 (honest scope)**
+Being straight about scope, because FHE demos tend to oversell:
+
+We encrypted one tally and one result — small surface, but every bit of it is
+computed over, not just stored blind.
+
+Each ballot is also clamped to {0,1} *in ciphertext* — a rogue agent can't encrypt
+a 2 and fake quorum alone.
+
+We didn't encrypt the ETH stake. Would've been theater — the transfer's public
+either way.
+
+One honest FHE claim beats ten hand-wavy ones.
+
+Next: confidence-weighted encrypted votes + cUSDT staking.
+
+**Tweet 9 (receipts)**
+Receipts, so you don't have to trust the thread:
+▸ Contract (Sepolia): https://sepolia.etherscan.io/address/0x152d758d496db7444a00a6b2c7fe254b9aced212
+▸ Live demo: https://weft.thisyearnofear.com/project/0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1
 ▸ Code: github.com/thisyearnofear/weft
-▸ A sealed ballot tx with zero readable vote in the calldata: https://sepolia.etherscan.io/tx/0x1a1b80407c5c1400aeb83e35902d786a30feaba94c5fa45acc2253de3b9f4210
+▸ A sealed ballot tx — zero readable vote in the calldata: https://sepolia.etherscan.io/tx/0x6f5ac704017896404791143b8539009f40f16ccd7809871ea9ec71f66144a2cc
 
-Built for the @zama_fhe Developer Program S3.
+Built for @zama_fhe Developer Program S3.
+
+Go try to decrypt it early. I'll wait.
 
 ---
 
@@ -138,7 +176,7 @@ dot com, code's on GitHub. Thanks."
 ## Submission checklist
 
 - [x] Sepolia deployment (contract addresses in SUBMISSION.md) — 2026-07-04
-- [x] E2E demo milestone finalized + released on Sepolia — `0xc351d244...8574`
+- [x] E2E demo milestone finalized + released on Sepolia — `0xa22c4a43...f40d`
 - [x] Frontend env var `NEXT_PUBLIC_WEFT_MILESTONE_CONFIDENTIAL_SEPOLIA` set in production deploy
 - [x] Production decrypt flow verified in-browser (relayer publicDecrypt → VERIFIED)
 - [ ] Video recorded, uploaded (YouTube unlisted or similar), linked in SUBMISSION.md

@@ -339,7 +339,11 @@ A milestone is `verified=true` when ALL:
 
 GitHub evidence is collected as additional signal but does not gate the verdict.
 
-Override: if Kimi confidence < 0.6, return `verified=false`.
+The verdict is deliberately deterministic — payment decisions are made by
+auditable evidence rules, not LLM judgment. The LLM produces a narrative
+summary with a confidence score (`kimi_client.py`), which attaches to the
+attestation as context; feeding that confidence into the vote (encrypted,
+confidence-weighted ballots) is roadmap, not current behavior.
 
 ## Environment Variables
 

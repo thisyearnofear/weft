@@ -24,12 +24,12 @@ comparison, and control flow on data it is structurally incapable of reading.
 | Field | Value |
 |---|---|
 | **Live site** | https://weft.thisyearnofear.com |
-| **Confidential demo milestone** | [`0xc351d244...0fc58574`](https://weft.thisyearnofear.com/project/0xc351d2446c4e245d3baa0fc206a05d61010589dd8635c844c17955d50fc58574?confidential=1) — verified, finalized, released |
+| **Confidential demo milestone** | [`0xa22c4a43...a99af40d`](https://weft.thisyearnofear.com/project/0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1) — verified, finalized, released |
 | **Source** | https://github.com/thisyearnofear/weft |
 | **Chain** | Sepolia (Zama FHEVM) — chain ID 11155111 |
-| **WeftMilestoneConfidential** | [`0xcd1a64733a7b58efc8914dde45fe6af22381368f`](https://sepolia.etherscan.io/address/0xcd1a64733a7b58efc8914dde45fe6af22381368f) |
-| **VerifierRegistry (Sepolia)** | [`0x910df85e44cc30171614a3fc89188b8ce21becb2`](https://sepolia.etherscan.io/address/0x910df85e44cc30171614a3fc89188b8ce21becb2) |
-| **Sealed ballot txs** | [1](https://sepolia.etherscan.io/tx/0x1a1b80407c5c1400aeb83e35902d786a30feaba94c5fa45acc2253de3b9f4210) · [2](https://sepolia.etherscan.io/tx/0xbf48fe5b3ccf4594f21a16b291e44677e38cdad398d2439943525f963b130ef0) · [3](https://sepolia.etherscan.io/tx/0x6965ef21f04cc7ffcaa59790cfdc11f0b09b05cba720ff5b5db4bd78d61a1c99) — no readable vote in any calldata |
+| **WeftMilestoneConfidential** | [`0x152d758d496db7444a00a6b2c7fe254b9aced212`](https://sepolia.etherscan.io/address/0x152d758d496db7444a00a6b2c7fe254b9aced212) |
+| **VerifierRegistry (Sepolia)** | [`0xb65c2fb7572096bc367c78eee2cceace67dd9636`](https://sepolia.etherscan.io/address/0xb65c2fb7572096bc367c78eee2cceace67dd9636) |
+| **Sealed ballot txs** | [1](https://sepolia.etherscan.io/tx/0x6f5ac704017896404791143b8539009f40f16ccd7809871ea9ec71f66144a2cc) · [2](https://sepolia.etherscan.io/tx/0xec08880a0f141a9b8bfbd6b1fd33f55357b963b5d689fe8b50e99c9642762710) · [3](https://sepolia.etherscan.io/tx/0x8a3ca353655eb3757107cb713d8fdb204d157bfb678a34ebb9447ffdf97dabb8) — no readable vote in any calldata |
 | **Contracts** | `contracts/src-fhe/` (Foundry, `@fhevm/solidity` 0.11) |
 | **Frontend** | Next.js + wagmi + `@zama-fhe/relayer-sdk` (lazy-loaded) |
 | **Agent** | Python daemon + Node.js Zama encryption helper |
@@ -100,9 +100,10 @@ we want to be explicit about the reasoning:
   the base layer regardless, so an "encrypted stake" field would leak via the trace.
   Claiming that privacy would be dishonest, so we don't.
 - **The one expansion that is *not* theater is confidence-weighted voting.** Our
-  agents already produce a confidence score (see `AGENTS.md`: "if confidence < 0.6,
-  return verified=false"). Casting an encrypted `euint32` confidence instead of a
-  binary ballot — and thresholding the encrypted weighted sum — is a natural next
+  agents already produce a confidence score alongside the narrative summary
+  (`kimi_client.py`), though today it is attestation context only — the vote itself
+  is gated by deterministic evidence rules. Casting an encrypted `euint32` confidence
+  instead of a binary ballot — and thresholding the encrypted weighted sum — is a natural next
   step that deepens the homomorphic computation without adding theater. It is on the
   roadmap below, not claimed as done.
 - **Real confidentiality of value transfer belongs in a confidential token, not

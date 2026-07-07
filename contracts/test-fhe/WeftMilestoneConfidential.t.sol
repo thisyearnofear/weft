@@ -109,6 +109,25 @@ contract WeftMilestoneConfidentialTest is FhevmTest {
         assertEq(builder.balance, balBefore + 1 ether);
     }
 
+    function test_inflatedBallotCannotFakeQuorum() public {
+        vm.warp(deadline + 1);
+
+        // A rogue verifier encrypts 2 instead of 1, trying to satisfy the
+        // >= 2 quorum comparison alone. The clamp must count it as at most
+        // one yes vote, so with the other two voting no, quorum fails.
+        (externalEuint32 encVote, bytes memory proof) = encryptUint32(2, v1, weftAddress);
+        vm.prank(v1);
+        weft.submitVerdict(milestoneHash, encVote, proof, keccak256("e1"));
+
+        _submitEncryptedVote(v2, false, keccak256("e2"));
+        _submitEncryptedVote(v3, false, keccak256("e3"));
+
+        (, , , , , , , bool mFinalized, ebool mVerified, , , , , , ) =
+            weft.milestones(milestoneHash);
+        assertTrue(mFinalized);
+        assertFalse(decrypt(mVerified));
+    }
+
     function test_confirmResult_rejectsForgedCleartext() public {
         vm.warp(deadline + 1);
         _submitEncryptedVote(v1, false, keccak256("e1"));
