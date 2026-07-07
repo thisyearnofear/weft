@@ -240,6 +240,17 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
                         : "Standing by."}
                 </span>
               </div>
+              {isVerified && !isUnfunded && (
+                <div className={styles.agentEconomics}>
+                  <span className={styles.agentEconomicsText}>
+                    I earned my 3% fee from this release and paid for the verification costs
+                    (Kimi, fal.ai, KeeperHub) from my own balance.
+                  </span>
+                  <Link href="/operations" className={styles.agentEconomicsLink}>
+                    See my books →
+                  </Link>
+                </div>
+              )}
               <span className={styles.kicker}>Milestone</span>
               <h1 className={styles.title}>{resolveMilestoneMeta(milestoneHash).name}</h1>
               <p className={styles.identityValue}>{shortHash(milestoneHash, 10, 8)}</p>
