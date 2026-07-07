@@ -32,6 +32,16 @@ The contract does arithmetic, comparison, and control flow on data it is structu
 
 ---
 
+4b/ We went further: confidence-weighted encrypted votes.
+
+Each verifier encrypts BOTH a ballot (0/1) AND a confidence score (1-100). The contract multiplies them on ciphertext — FHE.mul(ballot, confidence) — accumulates a weighted tally, and requires BOTH binary quorum (≥2 of 3) AND weighted quorum (≥100), combined with FHE.and.
+
+No vote, no confidence score, and no weighted tally is ever decrypted. This is FHE multiplication, not just addition.
+
+Live weighted demo: https://weft.thisyearnofear.com/project/0xbd5c85db97cd5a8f30779da9311651e549f702b6ce72ebd03dcb816d3b071722?weighted=1
+
+---
+
 5/ The agent layer:
 - Python daemon reads onchain + offchain signals
 - Collects evidence: contract deployment, unique callers, GitHub commits
@@ -77,27 +87,31 @@ Repo: https://github.com/thisyearnofear/weft
 
 "But we found a bug: when votes are public, the last verifier just watches the first two and copies them. No independent check. For a system whose entire job is honest verification, that's fatal."
 
-### Act 2: The FHE fix (0:20-0:55)
+### Act 2: The FHE fix (0:20-0:50)
 
 **[Screen recording: contract code or FHE flow diagram]**
 
 "The fix is Zama FHE sealed-ballot consensus. Each verifier encrypts its vote in its own process. The contract tallies homomorphically — FHE.add, FHE.ge, FHE.select — quorum computed on ciphertext, no vote ever decrypted."
 
-"Only the final verified boolean becomes decryptable, and only after all three ballots are in. Try to decrypt early — the Zama relayer refuses. There's no early result to leak."
+"But we went further. Each verifier also encrypts a confidence score, 1 to 100. The contract multiplies ballot times confidence on ciphertext — FHE.mul — and requires both binary quorum AND weighted quorum. This is FHE multiplication, not just addition."
 
-### Act 3: The demo (0:55-1:40)
+"Only the final verified boolean becomes decryptable, and only after all three ballots are in. No vote, no confidence score, no weighted tally is ever decrypted."
 
-**[Screen recording: live site — open the verified confidential milestone]**
+### Act 3: The demo (0:50-1:40)
 
-"Here it is live on Sepolia. Three verifier agents each encrypted a ballot."
+**[Screen recording: live site — open the weighted confidential milestone]**
 
-**[Record: Etherscan — sealed ballot tx, scroll calldata]**
+"Here it is live on Sepolia. Three verifier agents each encrypted a ballot AND a confidence score."
 
-"Look at the calldata — zero readable vote. Just ciphertext."
+**[Record: Etherscan — weighted sealed ballot tx, scroll calldata]**
+
+"Look at the calldata — two encrypted handles per vote, zero readable values. The contract multiplied ballot times confidence on ciphertext — FHE.mul — and checked both quorum gates without decrypting anything."
+
+"Confidence 85, 90, and 60 — but you can't see that, because it's encrypted. The weighted tally of 175 passed the threshold of 100 — but you can't see that either. Only the final boolean comes out."
 
 **[Record: project page — click Decrypt, result reveals]**
 
-"I decrypt the result myself in the browser. Individual ballots stay ciphertext forever — only the outcome comes out."
+"I decrypt the result myself in the browser. VERIFIED — both binary quorum and weighted quorum were reached on ciphertext."
 
 **[Record: scroll to Verification Receipt, click Copy JSON]**
 
@@ -121,14 +135,17 @@ Repo: https://github.com/thisyearnofear/weft
 - Record at 1440x900 or 1920x1080
 - Use the live site (https://weft.thisyearnofear.com), not localhost
 - **Don't record a live milestone creation** — the 10-minute deadline window
-  makes the timing unpredictable. Use the existing verified demo milestone:
-  `0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1`
-- Demo flow (3 cuts, ~45s total):
-  1. Etherscan sealed ballot tx — scroll the calldata, show it's unreadable
-  2. Project page — click Decrypt, show the result reveal
+  makes the timing unpredictable. Use the existing verified demo milestones:
+  - v1 (FHE.add): `0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1`
+  - v2 (FHE.mul weighted): `0xbd5c85db97cd5a8f30779da9311651e549f702b6ce72ebd03dcb816d3b071722?weighted=1`
+- Demo flow (3 cuts, ~50s total):
+  1. Etherscan weighted sealed ballot tx — scroll the calldata, show two encrypted handles
+  2. Project page (?weighted=1) — click Decrypt, show the result reveal
   3. Scroll down to the Verification Receipt — click Copy JSON
-- Sealed ballot tx for the Etherscan cut:
-  `https://sepolia.etherscan.io/tx/0x6f5ac704017896404791143b8539009f40f16ccd7809871ea9ec71f66144a2cc`
+- Weighted sealed ballot tx for the Etherscan cut:
+  `https://sepolia.etherscan.io/tx/0xe5a94fd2632c06b5837e39b14c83c0a5e1406eae9be78b295a5de038ef04b462`
+- Weighted contract on Etherscan:
+  `https://sepolia.etherscan.io/address/0xcc2395ac3f70ace0c1828cb0a18b00da823760f8`
 - Keep cuts tight — no long pauses, no "umms". If a page takes >2s to load,
   cut the loading frame in editing.
 - Add captions for accessibility (Zama requires real-person voice, no AI TTS)
