@@ -7,6 +7,7 @@ import { sepolia } from "wagmi/chains";
 import { ConfidentialMilestone, useDecryptSealedResult } from "../../../hooks/useConfidentialMilestone";
 import { SealedReveal } from "../../../components/SealedReveal";
 import { StakeForm } from "../../../components/StakeForm";
+import { VerificationReceipt } from "../../../components/VerificationReceipt";
 import { getConfidentialAddress } from "../../../lib/contracts";
 import { resolveMilestoneMeta, shortHash } from "../../../lib/milestone-meta";
 import { keccak256, stringToHex } from "viem";
@@ -283,6 +284,30 @@ export function ConfidentialMilestoneView({ hash, milestone: m }: { hash: string
                 </span>
               </div>
             </article>
+
+            {m.resultConfirmed && contractAddress && (
+              <VerificationReceipt
+                receipt={{
+                  milestoneHash: hash,
+                  projectId: m.projectId,
+                  status: m.resultVerified ? "verified" : "rejected",
+                  released: m.released,
+                  builder: {
+                    name: `${m.builder.slice(0, 6)}...${m.builder.slice(-4)}`,
+                    address: m.builder,
+                  },
+                  stakedEth,
+                  quorum: { votes: QUORUM, verifiers: MAX_VERIFIERS },
+                  sealed: true,
+                  evidenceRoot,
+                  contractAddress,
+                  chain: "Sepolia (Zama FHEVM)",
+                  createdAt: Number(m.createdAt),
+                  deadline: Number(m.deadline),
+                  explorerUrl: `${SEPOLIA_EXPLORER}/address/${contractAddress}`,
+                }}
+              />
+            )}
 
             {isActive && contractAddress && (
               <article className={styles.panel}>

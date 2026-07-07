@@ -145,8 +145,12 @@ export default function Home() {
             <Link href="/create-milestone" className={styles.primaryAction}>
               Get your work verified <ArrowRight size={16} />
             </Link>
-            <Link href="/sponsor" className={styles.secondaryLink}>
-              I&apos;m here to fund work →
+            <Link
+              href="/sponsor"
+              className={styles.secondaryAction}
+              onClick={() => track("hero_fund_door_click")}
+            >
+              Fund work, get receipts <ArrowRight size={16} />
             </Link>
           </div>
 
@@ -278,6 +282,71 @@ export default function Home() {
             </div>
           </div>
         )}
+      </Reveal>
+
+      {/* ════════════════════════════════════════════════════════════════
+          FOR ORGANIZATIONS — grant programs, bounty boards, DAO treasuries.
+          The durable buyer is the org with repeat volume; this section
+          speaks compliance + economics, not crypto mechanics.
+          ════════════════════════════════════════════════════════════════ */}
+      <Reveal as="section" className={styles.section} delay={100}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>For organizations</span>
+            <h2 className={styles.sectionTitle}>
+              Built for programs that fund work on repeat
+            </h2>
+          </div>
+        </div>
+        <p className={`${styles.sectionText} ${styles.sectionLede}`}>
+          Grant rounds, bounty boards, DAO treasuries — anywhere payouts need
+          review, Weft replaces the manual queue with verification you can
+          hand to your community and your auditors.
+        </p>
+        <div className={styles.orgGrid}>
+          <div className={styles.orgCard}>
+            <h3 className={styles.orgCardTitle}>A receipt for every payout</h3>
+            <p className={styles.orgCardBody}>
+              Each release carries its evidence root, verifier quorum, and
+              settlement transactions — anchored onchain, exportable as a
+              verification receipt. When someone asks &ldquo;why did this get
+              paid?&rdquo;, the answer is a link, not a meeting.
+            </p>
+          </div>
+          <div className={styles.orgCard}>
+            <h3 className={styles.orgCardTitle}>Reviews that can&apos;t herd</h3>
+            <p className={styles.orgCardBody}>
+              In confidential mode, verifiers vote by sealed ballot — encrypted
+              with Zama FHE, tallied on ciphertext. No reviewer can see another&apos;s
+              vote before quorum, so independence isn&apos;t a policy, it&apos;s
+              cryptography.
+            </p>
+          </div>
+          <div className={styles.orgCard}>
+            <h3 className={styles.orgCardTitle}>3% flat, no dispute overhead</h3>
+            <p className={styles.orgCardBody}>
+              The protocol fee is 3% of released capital — it funds the agent&apos;s
+              own operations. Compare that to what a recurring program spends on
+              manual milestone review, escrow middlemen, and settling disputes.
+            </p>
+          </div>
+        </div>
+        <div className={styles.orgActions}>
+          <Link
+            href="/sponsor"
+            className={styles.emptyCta}
+            onClick={() => track("org_section_sponsor_click")}
+          >
+            Run a funding round <ArrowRight size={16} />
+          </Link>
+          <Link
+            href="/project/0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1"
+            className={styles.orgSecondaryLink}
+            onClick={() => track("org_section_confidential_click")}
+          >
+            See a sealed-ballot verification →
+          </Link>
+        </div>
       </Reveal>
 
       {/* ── Pricing ── */}

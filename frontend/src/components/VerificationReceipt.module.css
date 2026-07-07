@@ -1,0 +1,129 @@
+/* Matches the project page's embedded panel treatment — a receipt should
+   read as an official stitched-in artifact, not a floating card. */
+.receipt {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  padding: 1.2rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.7rem;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.headerIcon {
+  color: var(--c-verified);
+}
+
+.kicker {
+  color: var(--c-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.statusChip {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+}
+
+.statusVerified {
+  color: var(--c-verified);
+  background: var(--c-verified-10, rgba(17, 148, 105, 0.12));
+  border: 1px solid rgba(17, 148, 105, 0.3);
+}
+
+.statusRejected {
+  color: var(--c-failed, #c0455a);
+  background: rgba(192, 69, 90, 0.1);
+  border: 1px solid rgba(192, 69, 90, 0.3);
+}
+
+.lede {
+  font-size: 0.85rem;
+  color: var(--c-text-secondary);
+  line-height: 1.6;
+  margin-bottom: 0.9rem;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px dashed var(--c-border-2);
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px dashed var(--c-border-2);
+}
+
+.row dt {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  color: var(--c-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.row dd {
+  font-size: 0.86rem;
+  text-align: right;
+  word-break: break-word;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.link {
+  color: var(--c-link);
+  transition: color var(--transition-fast);
+}
+.link:hover {
+  color: var(--c-link-hover);
+}
+
+.actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.95rem;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface-2);
+  color: var(--c-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.actionBtn:hover {
+  border-color: var(--c-border-2);
+  background: var(--c-surface-3);
+}

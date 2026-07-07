@@ -12,6 +12,7 @@ import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
 import { useStatusMilestone } from "../../../hooks/useStatusApi";
 import { StakeForm } from "../../../components/StakeForm";
 import { ProofShareCard } from "../../../components/ProofShareCard";
+import { VerificationReceipt } from "../../../components/VerificationReceipt";
 import { DEFAULT_CHAIN, getAddresses, WeftMilestoneAbi } from "../../../lib/contracts";
 import { resolveMilestoneMeta, shortHash } from "../../../lib/milestone-meta";
 import styles from "./page.module.css";
@@ -559,6 +560,26 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
                   />
                 )}
               </article>
+            )}
+
+            {milestone.finalized && (
+              <VerificationReceipt
+                receipt={{
+                  milestoneHash,
+                  projectId: milestone.projectId,
+                  status: milestone.verified ? "verified" : "rejected",
+                  released: milestone.released,
+                  builder: { name: builderName, address: milestone.builder },
+                  stakedEth,
+                  quorum: { votes: milestone.verifiedVotes, verifiers: milestone.verifierCount },
+                  evidenceRoot,
+                  contractAddress: addresses.weftMilestone ?? "",
+                  chain: "0G Testnet",
+                  createdAt: Number(milestone.createdAt),
+                  deadline: Number(milestone.deadline),
+                  explorerUrl: addresses.weftMilestone ? `${EXPLORER_ADDR}/${addresses.weftMilestone}` : undefined,
+                }}
+              />
             )}
 
             <article className={styles.panel}>

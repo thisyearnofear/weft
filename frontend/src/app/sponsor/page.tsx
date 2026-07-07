@@ -88,13 +88,15 @@ export default function SponsorDashboardPage() {
 
         <div className={styles.header}>
           <div className={styles.eyebrow}>
-            <Coins size={15} /> Sponsor Dashboard
+            <Coins size={15} /> Program Dashboard
           </div>
-          <h1 className={styles.title}>Your capital, verified.</h1>
+          <h1 className={styles.title}>Run your funding program on autopilot.</h1>
           <p className={styles.subtitle}>
-            Lock ETH behind a deliverable. AI agents verify the work onchain.
-            Capital releases automatically when 2 of 3 agents agree.
-            No manual reviews, no chasing, no disputes.
+            Grant rounds, bounty boards, milestone-based contracts — lock ETH
+            behind each deliverable and AI agents verify the work onchain.
+            Capital releases automatically when 2 of 3 agents agree, and every
+            payout carries a verification receipt your community and auditors
+            can check themselves. No review queue, no chasing, no disputes.
           </p>
           <div style={{ marginTop: "1.25rem", display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
             <Link href="/create-milestone" className={styles.primaryCta}>
@@ -108,7 +110,7 @@ export default function SponsorDashboardPage() {
             <span className={styles.agentAvatar}><Bot size={16} /></span>
             <span className={styles.agentStatusText}>
               {summary
-                ? `${summary.totalMilestones} milestones tracked. ${summary.verifiedCount} verified, ${summary.releasedCount} released. I verify every deadline autonomously.`
+                ? `${summary.totalMilestones} milestones in your program. ${summary.verifiedCount} verified, ${summary.releasedCount} released. I verify every deadline autonomously — fund as many as you like.`
                 : "Connecting to the verification network..."}
             </span>
           </div>
@@ -199,7 +201,7 @@ export default function SponsorDashboardPage() {
             {/* Funded milestones */}
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>
-                Funded Milestones
+                Program Milestones
                 <span className={styles.sectionBadge}>{milestones.length}</span>
               </h2>
               {milestones.length === 0 ? (
