@@ -4,6 +4,7 @@ import { Address } from "viem";
 
 import WeftMilestoneAbi from "./abis/WeftMilestone.json";
 import WeftMilestoneConfidentialAbi from "./abis/WeftMilestoneConfidential.json";
+import WeftMilestoneConfidentialWeightedAbi from "./abis/WeftMilestoneConfidentialWeighted.json";
 import VerifierRegistryAbi from "./abis/VerifierRegistry.json";
 
 export const zeroGTestnet = defineChain({
@@ -28,6 +29,7 @@ export const CONTRACT_ADDRESSES = {
   sepolia: {
     weftMilestone: process.env.NEXT_PUBLIC_WEFT_MILESTONE_SEPOLIA as Address,
     weftMilestoneConfidential: process.env.NEXT_PUBLIC_WEFT_MILESTONE_CONFIDENTIAL_SEPOLIA as Address,
+    weftMilestoneConfidentialWeighted: (process.env.NEXT_PUBLIC_WEFT_MILESTONE_CONFIDENTIAL_WEIGHTED_SEPOLIA || "0xcc2395ac3f70ace0c1828cb0a18b00da823760f8") as Address,
     verifierRegistry: process.env.NEXT_PUBLIC_VERIFIER_REGISTRY_SEPOLIA as Address,
   },
   baseSepolia: {
@@ -61,4 +63,9 @@ export function getConfidentialAddress(): Address | undefined {
   return CONTRACT_ADDRESSES.sepolia.weftMilestoneConfidential || undefined;
 }
 
-export { WeftMilestoneAbi, WeftMilestoneConfidentialAbi, VerifierRegistryAbi };
+/// Weighted confidential milestones (FHE.mul) — also on Sepolia.
+export function getWeightedConfidentialAddress(): Address | undefined {
+  return CONTRACT_ADDRESSES.sepolia.weftMilestoneConfidentialWeighted || undefined;
+}
+
+export { WeftMilestoneAbi, WeftMilestoneConfidentialAbi, WeftMilestoneConfidentialWeightedAbi, VerifierRegistryAbi };

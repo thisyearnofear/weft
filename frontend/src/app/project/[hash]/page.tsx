@@ -7,7 +7,9 @@ import { ArrowUpRight, Blocks, BookOpen, CheckCircle2, Clock3, Coins, Database, 
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
 import { useMilestone } from "../../../hooks/useMilestones";
 import { useConfidentialMilestone } from "../../../hooks/useConfidentialMilestone";
+import { useWeightedConfidentialMilestone } from "../../../hooks/useWeightedConfidentialMilestone";
 import { ConfidentialMilestoneView } from "./ConfidentialMilestoneView";
+import { WeightedMilestoneView } from "./WeightedMilestoneView";
 import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
 import { useStatusMilestone } from "../../../hooks/useStatusApi";
 import { StakeForm } from "../../../components/StakeForm";
@@ -156,6 +158,7 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
   const searchParams = useSearchParams();
   const demoMode = searchParams.get("demo") === "1";
   const confidentialMode = searchParams.get("confidential") === "1";
+  const weightedMode = searchParams.get("weighted") === "1";
   const milestoneHash = (hash.startsWith("0x") ? hash : `0x${hash}`) as `0x${string}`;
   const { data: milestone, isLoading, error } = useMilestone(milestoneHash);
   // Confidential milestones live on Sepolia (Zama FHEVM). Checked when asked
@@ -164,6 +167,13 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
   const { data: confidentialMilestone, isLoading: confidentialLoading } = useConfidentialMilestone(
     milestoneHash,
     confidentialMode || publicMissing
+  );
+  // Weighted confidential milestones (FHE.mul) — checked when asked for
+  // explicitly (?weighted=1) or when the hash isn't found on either public
+  // or v1 confidential contracts.
+  const { data: weightedMilestone, isLoading: weightedLoading } = useWeightedConfidentialMilestone(
+    milestoneHash,
+    weightedMode || (publicMissing && !confidentialMilestone)
   );
   const { data: statusMilestone } = useStatusMilestone(milestoneHash, true);
   const addresses = getAddresses(DEFAULT_CHAIN);
@@ -205,7 +215,11 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
     return <ConfidentialMilestoneView hash={milestoneHash} milestone={confidentialMilestone} />;
   }
 
-  if (isLoading || ((confidentialMode || publicMissing) && confidentialLoading)) return <ProjectSkeleton />;
+  if (weightedMilestone) {
+    return <WeightedMilestoneView hash={milestoneHash} milestone={weightedMilestone} />;
+  }
+
+  if (isLoading || ((confidentialMode || publicMissing) && (confidentialLoading || weightedLoading))) return <ProjectSkeleton />;
 
   if (error || !milestone || milestone.builder === "0x0000000000000000000000000000000000000000") {
     return (
