@@ -149,9 +149,10 @@ judgment stays private, only the collective outcome is revealed.
 
 ## Demo flow (reproducible)
 
-1. **Create** a confidential milestone at `/create-milestone` (check "Make this
-   milestone confidential" — 10-minute demo deadline available). The tx lands on
-   Sepolia.
+1. **Create** a confidential milestone at `/create-milestone` — walk through the
+   agent-brief wizard: name your project, pick a deadline (10-minute demo
+   deadline available), choose "Confidential" when asked about privacy. The tx
+   lands on Sepolia.
 2. **Stake** Sepolia ETH behind it.
 3. After the deadline, the **three verifier agents** each encrypt a ballot and
    submit `submitVerdict` — watch three `VerdictSubmitted` events on Etherscan

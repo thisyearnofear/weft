@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Coins, Plus } from "lucide-react";
+import { ArrowLeft, ArrowRight, Coins, Plus, Bot } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
@@ -101,6 +101,16 @@ export default function SponsorDashboardPage() {
               <Plus size={16} /> Fund a milestone
             </Link>
             <RefreshButton onClick={() => refetch()} isFetching={isFetching} />
+          </div>
+
+          {/* Agent status — the agent is present */}
+          <div className={styles.agentStatus}>
+            <span className={styles.agentAvatar}><Bot size={16} /></span>
+            <span className={styles.agentStatusText}>
+              {summary
+                ? `${summary.totalMilestones} milestones tracked. ${summary.verifiedCount} verified, ${summary.releasedCount} released. I verify every deadline autonomously.`
+                : "Connecting to the verification network..."}
+            </span>
           </div>
         </div>
 

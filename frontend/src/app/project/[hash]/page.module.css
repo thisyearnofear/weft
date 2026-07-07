@@ -1,8 +1,8 @@
 .container {
   min-height: 100dvh;
   background:
-    radial-gradient(circle at top, rgba(99, 102, 241, 0.14), transparent 28%),
-    radial-gradient(circle at 85% 12%, rgba(34, 197, 94, 0.08), transparent 24%),
+    radial-gradient(circle at top, rgba(99, 102, 241, 0.10), transparent 28%),
+    radial-gradient(circle at 85% 12%, rgba(20, 184, 166, 0.06), transparent 24%),
     var(--c-bg);
   padding: 3rem 1.25rem 5rem;
 }
@@ -15,15 +15,17 @@
   gap: 1.25rem;
 }
 
+/* De-carded: surfaces are embedded/stitched, not floating.
+   Matches the landing page treatment. */
 .heroCard,
 .metricCard,
 .panel,
 .skeletonPanel,
 .skeletonCard {
-  background: rgba(17, 17, 24, 0.9);
+  background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 28px;
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .heroCard,
@@ -104,6 +106,37 @@
   font-weight: 700;
 }
 
+/* Agent status header — the agent is present */
+.agentStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--c-accent-20), var(--c-verified-20));
+  border: 1px solid var(--c-accent-20);
+  margin-bottom: 1rem;
+  max-width: fit-content;
+}
+
+.agentAvatar {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: var(--c-accent);
+  color: white;
+  flex-shrink: 0;
+}
+
+.agentStatusText {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--c-text);
+  line-height: 1.4;
+}
+
 .title {
   font-size: clamp(2.1rem, 5vw, 4rem);
   line-height: 0.98;
@@ -141,7 +174,7 @@
 }
 
 .secondaryAction {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--c-surface-2);
   border: 1px solid var(--c-border-2);
   color: var(--c-text);
 }
@@ -154,13 +187,13 @@
 
 .secondaryAction:hover,
 .shareBtn:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--c-surface-3);
 }
 
 .executionCard {
   padding: 1.35rem;
-  background: linear-gradient(180deg, rgba(13, 17, 32, 0.98), rgba(10, 13, 24, 0.98));
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border);
 }
 
 .executionHeader,
@@ -203,9 +236,9 @@
   align-items: flex-start;
   gap: 0.7rem;
   padding: 0.85rem 0.95rem;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
 }
 
 .metricGrid {
@@ -282,7 +315,7 @@
 .progressBar {
   width: 100%;
   height: 10px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--c-surface-2);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -320,9 +353,9 @@
 .codeBlock {
   margin-top: 1rem;
   padding: 1rem;
-  border-radius: 18px;
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border);
 }
 
 .codeBlock code,
@@ -345,8 +378,8 @@
   align-items: center;
   justify-content: center;
   padding: 0.85rem 1rem;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-md);
+  background: var(--c-surface-2);
   border: 1px solid var(--c-border-2);
   color: var(--c-text);
   font-weight: 600;
@@ -365,9 +398,9 @@
 
 .identityStats > div {
   padding: 0.85rem;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
 }
 
 .identityStats span {
@@ -390,9 +423,9 @@
 
 .integrationList > div {
   padding: 0.95rem;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
 }
 
 .integrationTag {
@@ -421,7 +454,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 0.35rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--c-border);
 }
 
 .evidenceRow:last-child {
@@ -613,17 +646,17 @@
 
 /* fal.ai AI-woven swatch section */
 .falSwatchSection {
-  border-radius: 28px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid var(--c-border);
-  box-shadow: var(--shadow-lg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .falSwatchInner {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(200px, 380px);
   min-height: 240px;
-  background: linear-gradient(135deg, #0d0d1a 0%, #111828 50%, #0f172a 100%);
+  background: var(--c-bg-elevated);
   position: relative;
 }
 

@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowUpRight, Blocks, BookOpen, CheckCircle2, Clock3, Coins, Database, Network, ShieldCheck, XCircle, Wallet, AlertTriangle, Loader2 } from "lucide-react";
+import { ArrowUpRight, Blocks, BookOpen, CheckCircle2, Clock3, Coins, Database, Network, ShieldCheck, XCircle, Wallet, AlertTriangle, Loader2, Bot } from "lucide-react";
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
 import { useMilestone } from "../../../hooks/useMilestones";
 import { useConfidentialMilestone } from "../../../hooks/useConfidentialMilestone";
@@ -227,7 +227,20 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
 
           <div className={styles.heroGrid}>
             <div className={styles.heroCopy}>
-              <span className={styles.kicker}>Trust decision view</span>
+              {/* Agent status — the agent is present, not absent */}
+              <div className={styles.agentStatus}>
+                <span className={styles.agentAvatar}><Bot size={16} /></span>
+                <span className={styles.agentStatusText}>
+                  {isVerified
+                    ? `Verified — proof minted to ${builderName}. I'm done here.`
+                    : milestone?.finalized
+                      ? "Verification complete — threshold not met."
+                      : isActive
+                        ? `Watching for evidence. I'll verify when the deadline passes.`
+                        : "Standing by."}
+                </span>
+              </div>
+              <span className={styles.kicker}>Milestone</span>
               <h1 className={styles.title}>{resolveMilestoneMeta(milestoneHash).name}</h1>
               <p className={styles.identityValue}>{shortHash(milestoneHash, 10, 8)}</p>
               <p className={styles.subtitle}>
@@ -340,13 +353,19 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
             <article className={styles.panel}>
               <div className={styles.panelHeader}>
                 <div>
-                  <span className={styles.kicker}>Why this matters</span>
-                  <h3>This is a funding decision, not a dashboard row</h3>
+                  <span className={styles.kicker}>My read</span>
+                  <h3>{isVerified ? "This is a verified outcome" : milestone?.finalized ? "This outcome didn't verify" : "Still establishing trust"}</h3>
                 </div>
                 <Coins size={18} />
               </div>
               <p className={styles.panelText}>
-                Weft treats this milestone as a release-or-refund decision for an internet-native team. Funds remain gated until evidence exists, peer verifiers corroborate the outcome, and the system is confident enough to move real capital.
+                {isVerified
+                  ? isUnfunded
+                    ? "No capital was staked, but the proof itself is the payout — it mints to the builder's reputation permanently. That makes their next milestone worth funding."
+                    : "Funds were gated until evidence existed, peer verifiers corroborated the outcome, and I was confident enough to move real capital. The capital has released to the builder."
+                  : milestone?.finalized
+                    ? "The evidence didn't meet the threshold. Sponsors can reclaim their staked capital through the refund path. Failure is legible here — not hidden behind social ambiguity."
+                    : "I'm treating this milestone as a release-or-refund decision. Funds stay gated until evidence exists, peer verifiers corroborate the outcome, and I'm confident enough to move real capital."}
               </p>
               <div className={styles.progressWrap}>
                 <div className={styles.progressHeader}>
@@ -362,11 +381,18 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
             <article className={styles.panel}>
               <div className={styles.panelHeader}>
                 <div>
-                  <span className={styles.kicker}>Evidence breakdown</span>
-                  <h3>What verifiers checked to reach this outcome</h3>
+                  <span className={styles.kicker}>What I checked</span>
+                  <h3>Verification timeline</h3>
                 </div>
                 <CheckCircle2 size={18} />
               </div>
+              <p className={styles.panelText} style={{ marginBottom: "0.5rem" }}>
+                {isVerified
+                  ? "Here's what I found when I verified this milestone. Each check ran autonomously."
+                  : milestone?.finalized
+                    ? "Here's what I found. The threshold wasn't met."
+                    : "Here's what I'll check when the deadline passes. Some signals are already live."}
+              </p>
               <div className={styles.evidenceList}>
                 <EvidenceRow
                   label="Contract deployment"
@@ -415,13 +441,15 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
             <article className={styles.panel}>
               <div className={styles.panelHeader}>
                 <div>
-                  <span className={styles.kicker}>Trust graph impact</span>
-                  <h3>What this outcome changes for the team</h3>
+                  <span className={styles.kicker}>What this changes</span>
+                  <h3>Impact on {builderName}&apos;s reputation</h3>
                 </div>
                 <ArrowUpRight size={18} />
               </div>
               <p className={styles.panelText}>
-                If this milestone verifies, it does more than unlock capital. It strengthens the reusable trust graph around the builder and collaborators. If it fails, that is useful too: Weft makes failure legible instead of hiding it behind social ambiguity.
+                {isVerified
+                  ? "This verification strengthens the reusable trust graph around this builder. Their next milestone is easier to fund because this proof exists — permanently, portably, tied to their ENS name."
+                  : "If this milestone verifies, it strengthens the trust graph around this builder. If it fails, that's useful too — I make failure legible instead of hiding it behind social ambiguity."}
               </p>
               <ShareButtons url={shareUrl} title={`${resolveMilestoneMeta(milestoneHash).name} — ${isVerified ? "verified, capital released" : "in verification"}`} />
             </article>
