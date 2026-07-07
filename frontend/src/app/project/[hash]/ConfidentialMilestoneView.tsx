@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowUpRight, Coins, Database, Lock, LockOpen, ShieldCheck, Vote } from "lucide-react";
+import { ArrowUpRight, Bot, Coins, Database, Lock, LockOpen, ShieldCheck, Vote } from "lucide-react";
 import { sepolia } from "wagmi/chains";
 import { ConfidentialMilestone, useDecryptSealedResult } from "../../../hooks/useConfidentialMilestone";
 import { SealedReveal } from "../../../components/SealedReveal";
@@ -99,6 +99,32 @@ export function ConfidentialMilestoneView({ hash, milestone: m }: { hash: string
 
           <div className={styles.heroGrid}>
             <div className={styles.heroCopy}>
+              {/* Agent status — the agent is present, not absent */}
+              <div className={styles.agentStatus}>
+                <span className={styles.agentAvatar}><Bot size={16} /></span>
+                <span className={styles.agentStatusText}>
+                  {m.resultConfirmed && m.resultVerified
+                    ? "Verified by sealed ballot — proof minted. I'm done here."
+                    : m.resultConfirmed && !m.resultVerified
+                      ? "Sealed-ballot consensus complete — threshold not met."
+                      : m.finalized
+                        ? "All ballots cast. The result is decryptable now."
+                        : deadlinePassed
+                          ? "Deadline passed. Collecting sealed ballots from verifier nodes."
+                          : "Watching for evidence. I'll collect sealed ballots when the deadline passes."}
+                </span>
+              </div>
+              {m.resultConfirmed && m.resultVerified && Number(m.totalStaked) > 0 && (
+                <div className={styles.agentEconomics}>
+                  <span className={styles.agentEconomicsText}>
+                    I earned my 3% fee from this release and paid for the verification costs
+                    (Kimi, fal.ai, KeeperHub) from my own balance.
+                  </span>
+                  <Link href="/operations" className={styles.agentEconomicsLink}>
+                    See my books →
+                  </Link>
+                </div>
+              )}
               <span className={styles.kicker}>Confidential milestone · Zama FHE · Sepolia</span>
               <h1 className={styles.title}>{meta.name}</h1>
               <p className={styles.identityValue}>{shortHash(hash, 10, 8)}</p>
@@ -192,17 +218,18 @@ export function ConfidentialMilestoneView({ hash, milestone: m }: { hash: string
             <article className={styles.panel}>
               <div className={styles.panelHeader}>
                 <div>
-                  <span className={styles.kicker}>Why sealed ballots</span>
+                  <span className={styles.kicker}>Why I use sealed ballots</span>
                   <h3>Verification without herding</h3>
                 </div>
                 <Coins size={18} />
               </div>
               <p className={styles.panelText}>
-                On the public contract, verifiers can watch each other vote before submitting their
-                own verdict — late voters can free-ride on early ones. Here, every ballot is a Zama
-                FHE ciphertext. The contract computes <code>votes ≥ quorum</code> homomorphically and
-                only the final boolean ever becomes decryptable, and only after all {MAX_VERIFIERS} ballots
-                are cast. This is consensus that is impossible to build without FHE.
+                On the public contract, I can watch other verifiers vote before submitting my
+                own verdict — late voters can free-ride on early ones. Here, every ballot I cast
+                is a Zama FHE ciphertext. The contract computes <code>votes ≥ quorum</code>
+                homomorphically and only the final boolean ever becomes decryptable, and only
+                after all {MAX_VERIFIERS} ballots are cast. This is consensus that is impossible
+                to build without FHE.
               </p>
               <div className={styles.codeBlock}>
                 <span className={styles.codeLabel}>Onchain tally (never decrypted)</span>
