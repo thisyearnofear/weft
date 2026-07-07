@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import styles from "./TileFlip.module.css";
 
 type TileFlipProps = {
-  /** Grid columns (default 8) */
+  /** Grid columns (default 8, auto-reduces on mobile) */
   cols?: number;
-  /** Grid rows (default 5) */
+  /** Grid rows (default 5, auto-reduces on mobile) */
   rows?: number;
   /** Per-tile stagger in ms (default 25) */
   stagger?: number;
@@ -21,6 +21,9 @@ type TileFlipProps = {
  *
  * Pure CSS animation — no runtime deps. Respects prefers-reduced-motion
  * via the global override in globals.css (animation-duration: 0.01ms).
+ *
+ * Mobile: uses fewer, larger tiles (4×4) to avoid visual noise on
+ * small screens. Desktop: 8×5 for a finer weave texture.
  */
 export function TileFlip({
   cols = 8,
@@ -28,17 +31,31 @@ export function TileFlip({
   stagger = 25,
   duration = 1400,
 }: TileFlipProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  const actualCols = isMobile ? 4 : cols;
+  const actualRows = isMobile ? 4 : rows;
+  const actualStagger = isMobile ? 40 : stagger;
+
   const tiles = useMemo(
-    () => Array.from({ length: cols * rows }, (_, i) => i),
-    [cols, rows],
+    () => Array.from({ length: actualCols * actualRows }, (_, i) => i),
+    [actualCols, actualRows],
   );
 
   // Diagonal sweep delay — tiles assemble from top-left to bottom-right,
   // like a weave being pulled into shape.
   const delayFor = (i: number) => {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    return (col + row) * stagger;
+    const col = i % actualCols;
+    const row = Math.floor(i / actualCols);
+    return (col + row) * actualStagger;
   };
 
   return (
@@ -50,8 +67,8 @@ export function TileFlip({
       <div
         className={styles.grid}
         style={{
-          gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          gridTemplateRows: `repeat(${rows}, 1fr)`,
+          gridTemplateColumns: `repeat(${actualCols}, 1fr)`,
+          gridTemplateRows: `repeat(${actualRows}, 1fr)`,
         }}
       >
         {tiles.map((i) => (

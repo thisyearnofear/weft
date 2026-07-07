@@ -18,18 +18,30 @@
 
 /* De-carded: no border, no shadow, no background. Steps read as
    acts in a narrative, not as floating cards. The connecting line
-   between steps IS the weave thread. */
+   between steps IS the weave thread.
+   Scroll-driven: steps activate as they enter the viewport center. */
 .stepCard {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   padding: 1.25rem 1.25rem;
-  transition: transform 0.2s var(--ease-out);
+  transition: transform 0.3s var(--ease-out), opacity 0.3s var(--ease-out);
+  opacity: 0.4;
+}
+
+.stepCard[data-active="true"],
+.stepCard[data-done="true"] {
+  opacity: 1;
+}
+
+.stepCard[data-active="true"] {
+  transform: translateY(-2px);
 }
 
 .stepCard:hover {
   transform: translateY(-2px);
+  opacity: 1;
 }
 
 .stepIconWrap {
@@ -42,6 +54,24 @@
   background: linear-gradient(135deg, var(--c-accent-20), rgba(20, 184, 166, 0.10));
   border: 1px solid var(--c-accent-20);
   margin-bottom: 0.25rem;
+  transition: all 0.35s var(--ease-out);
+}
+
+/* Active/done steps get a brighter icon wrap */
+.stepCard[data-active="true"] .stepIconWrap,
+.stepCard[data-done="true"] .stepIconWrap {
+  border-color: var(--c-accent);
+  box-shadow: 0 0 0 3px var(--c-accent-20);
+}
+
+.stepCard[data-done="true"] .stepIconWrap {
+  border-color: var(--c-verified);
+  background: linear-gradient(135deg, var(--c-verified-20), rgba(20, 184, 166, 0.10));
+  box-shadow: 0 0 0 3px var(--c-verified-20);
+}
+
+.stepCard[data-done="true"] .stepIcon {
+  color: var(--c-verified);
 }
 
 .stepIcon {

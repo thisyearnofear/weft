@@ -15,6 +15,8 @@ import { TileFlip } from "@/components/TileFlip";
 import { BlockReveal } from "@/components/BlockReveal";
 import { SVGPathMarquee } from "@/components/SVGPathMarquee";
 import { InteractiveDemo } from "@/components/InteractiveDemo";
+import { ScrollWeave } from "@/components/ScrollWeave";
+import { ExpandableGrid } from "@/components/ExpandableGrid";
 import { useMilestones, useMilestone } from "@/hooks/useMilestones";
 import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
 import { useExplorerMilestones } from "@/hooks/useExplorer";
@@ -103,6 +105,7 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
+      <ScrollWeave />
       {/* ════════════════════════════════════════════════════════════════
           HERO — What is Weft?
           ════════════════════════════════════════════════════════════════ */}
@@ -235,46 +238,46 @@ export default function Home() {
             {isLoading ? "Loading..." : `${verifiedOutcomeCount > 0 ? verifiedOutcomeCount : '—'} verified`}
           </span>
         </div>
-        <div className={styles.grid}>
-          {isLoading
-            ? Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} index={i} />)
-            : milestoneHashes.length > 0
-              ? milestoneHashes.map((hash, i) => (
-                  <MilestoneFromContract key={hash} hash={hash} index={i} />
-                ))
-              : verifiedOutcomeCount > 0
-                ? (
-                  <div className={styles.profileMilestoneCard}>
-                    <div>
-                      <span className={styles.profileMilestoneKicker}>Verified trust profile</span>
-                      <h3>{builderEns}</h3>
-                      <p>
-                        This identity already has {verifiedOutcomeCount} verified outcome{verifiedOutcomeCount === 1 ? "" : "s"}.
-                        Open the profile to see the portable reputation record.
-                      </p>
-                    </div>
-                    <Link href={`/builder/${builderEns}`} className={styles.emptyCta}>
-                      View verified profile <ArrowRight size={16} />
-                    </Link>
-                  </div>
-                )
-              : (
-                <div className={styles.emptyState}>
-                  <div className={styles.emptyStateInner}>
-                    <Sparkles size={28} className={styles.emptyIcon} />
-                    <h3 className={styles.emptyTitle}>No milestones yet</h3>
-                    <p className={styles.emptyBody}>
-                      Be the first to create a milestone and experience autonomous verification.
-                      Weft handles evidence collection, peer consensus, and capital release —
-                      you just ship the work.
-                    </p>
-                    <Link href="/create-milestone" className={styles.emptyCta}>
-                      Create your first milestone <ArrowRight size={16} />
-                    </Link>
-                  </div>
-                </div>
-              )}
-        </div>
+        {isLoading ? (
+          <div className={styles.grid}>
+            {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} index={i} />)}
+          </div>
+        ) : milestoneHashes.length > 0 ? (
+          <ExpandableGrid>
+            {milestoneHashes.map((hash, i) => (
+              <MilestoneFromContract key={hash} hash={hash} index={i} />
+            ))}
+          </ExpandableGrid>
+        ) : verifiedOutcomeCount > 0 ? (
+          <div className={styles.profileMilestoneCard}>
+            <div>
+              <span className={styles.profileMilestoneKicker}>Verified trust profile</span>
+              <h3>{builderEns}</h3>
+              <p>
+                This identity already has {verifiedOutcomeCount} verified outcome{verifiedOutcomeCount === 1 ? "" : "s"}.
+                Open the profile to see the portable reputation record.
+              </p>
+            </div>
+            <Link href={`/builder/${builderEns}`} className={styles.emptyCta}>
+              View verified profile <ArrowRight size={16} />
+            </Link>
+          </div>
+        ) : (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyStateInner}>
+              <Sparkles size={28} className={styles.emptyIcon} />
+              <h3 className={styles.emptyTitle}>No milestones yet</h3>
+              <p className={styles.emptyBody}>
+                Be the first to create a milestone and experience autonomous verification.
+                Weft handles evidence collection, peer consensus, and capital release —
+                you just ship the work.
+              </p>
+              <Link href="/create-milestone" className={styles.emptyCta}>
+                Create your first milestone <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
+        )}
       </Reveal>
 
       {/* ── Pricing ── */}

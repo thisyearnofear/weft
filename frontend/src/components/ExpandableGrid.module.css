@@ -1,0 +1,53 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.interactive {
+  /* Slightly tighter gap so expansion feels like it's pulling
+     the fabric together, not adding space. */
+  gap: 0.75rem;
+}
+
+.cell {
+  position: relative;
+  transition: transform 0.35s var(--ease-out), opacity 0.35s var(--ease-out);
+  cursor: pointer;
+}
+
+/* Expanded cell spans 2 columns on desktop, pushes neighbors */
+.cell[data-expanded="true"] {
+  grid-column: span 2;
+  z-index: 2;
+  transform: scale(1.02);
+}
+
+/* Dimmed neighbors — the fabric recedes around the focused cell */
+.cell[data-dimmed="true"] {
+  opacity: 0.45;
+  transform: scale(0.97);
+}
+
+/* Hover lift on desktop only */
+@media (hover: hover) and (pointer: fine) {
+  .cell:hover:not([data-expanded="true"]):not([data-dimmed="true"]) {
+    transform: translateY(-2px);
+  }
+}
+
+/* Mobile: expanded cell spans full width */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cell[data-expanded="true"] {
+    grid-column: span 1;
+    transform: scale(1);
+  }
+
+  .cell[data-dimmed="true"] {
+    opacity: 0.3;
+  }
+}
