@@ -1,5 +1,0 @@
-{
-  "rootCauseHypothesis": "stakedEth (10000000000000000) equals raw totalStaked (10000000000000000) — wei-to-ETH conversion is broken",
-  "recommendedFixTarget": null,
-  "evidence": []
-}
