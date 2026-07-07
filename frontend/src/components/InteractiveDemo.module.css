@@ -1,0 +1,426 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 640px;
+}
+
+/* ── Stepper rail ── */
+.rail {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  position: relative;
+}
+
+/* Connecting line behind the dots */
+.rail::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: var(--c-border);
+  z-index: 0;
+}
+
+.railStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.2s var(--ease-out);
+}
+
+.railStep:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.railStep:disabled {
+  cursor: default;
+}
+
+.railDot {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 2px solid var(--c-border-2);
+  background: var(--c-bg);
+  color: var(--c-text-3);
+  transition: all 0.35s var(--ease-out);
+}
+
+.railLabel {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-text-3);
+  transition: color 0.35s var(--ease-out);
+}
+
+.railStep[data-state="active"] .railDot {
+  border-color: var(--c-accent);
+  background: var(--c-accent-20);
+  color: var(--c-accent);
+  transform: scale(1.12);
+  box-shadow: 0 0 0 4px var(--c-accent-20);
+}
+.railStep[data-state="active"] .railLabel { color: var(--c-text); }
+
+.railStep[data-state="done"] .railDot {
+  border-color: var(--c-verified);
+  background: var(--c-verified-20);
+  color: var(--c-verified);
+}
+.railStep[data-state="done"] .railLabel { color: var(--c-text-2); }
+
+/* ── Detail panel ── */
+.detail {
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  min-height: 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Beat-specific ambient glow */
+.detail[data-beat="released"] {
+  background: linear-gradient(160deg, var(--c-surface), var(--c-verified-20));
+  border-color: hsla(168, 78%, 52%, 0.3);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--c-text-3);
+  font-size: 0.88rem;
+  padding: 2rem 0;
+  justify-content: center;
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.beatContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  animation: beatIn 0.4s var(--ease-out) backwards;
+}
+
+@keyframes beatIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.beatHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.beatHeader h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--c-text);
+  margin: 0;
+}
+
+.beatBody {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--c-text-2);
+  margin: 0;
+}
+
+/* ── Badges ── */
+.badgePending,
+.badgeConsensus,
+.badgeReleased {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.badgePending {
+  background: var(--c-pending-20);
+  color: var(--c-pending);
+}
+
+.badgeConsensus {
+  background: var(--c-accent-20);
+  color: var(--c-accent);
+}
+
+.badgeReleased {
+  background: var(--c-verified-20);
+  color: var(--c-verified);
+}
+
+/* ── Data rows ── */
+.dataRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--c-border);
+}
+
+.dataLabel {
+  font-size: 0.78rem;
+  color: var(--c-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.dataValue {
+  font-size: 0.88rem;
+  color: var(--c-text);
+  font-weight: 500;
+}
+
+.dataValueMono {
+  font-size: 0.82rem;
+  color: var(--c-text-2);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Evidence chips ── */
+.evidenceList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.evidenceChip {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  animation: chipIn 0.3s var(--ease-out) backwards;
+}
+
+.evidenceChip:nth-child(1) { animation-delay: 0ms; }
+.evidenceChip:nth-child(2) { animation-delay: 80ms; }
+.evidenceChip:nth-child(3) { animation-delay: 160ms; }
+
+@keyframes chipIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.evidenceCheck {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--c-verified-20);
+  color: var(--c-verified);
+  font-size: 0.65rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.evidenceLabel {
+  font-size: 0.85rem;
+  color: var(--c-text);
+  font-weight: 600;
+}
+
+.evidenceDetail {
+  font-size: 0.75rem;
+  color: var(--c-text-muted);
+}
+
+/* ── Consensus nodes ── */
+.nodes {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.node {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 2px solid var(--c-border-2);
+  background: var(--c-surface-2);
+  color: var(--c-text-3);
+  transition: all 0.45s var(--ease-spring);
+}
+
+.node[data-agreed="true"] {
+  border-color: var(--c-verified);
+  background: var(--c-verified-20);
+  color: var(--c-verified);
+  transform: translateY(-2px);
+}
+
+.quorum {
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--c-verified);
+  margin-left: auto;
+}
+
+/* ── Payoff ── */
+.payoff {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--c-verified-20);
+  border: 1px solid hsla(168, 78%, 52%, 0.35);
+  color: var(--c-verified);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.payoff strong {
+  color: var(--c-text);
+  font-weight: 700;
+}
+
+/* ── Proof link ── */
+.proofLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--c-link);
+  width: fit-content;
+  margin-top: 0.25rem;
+  transition: color var(--transition-fast), gap var(--transition-fast);
+}
+
+.proofLink:hover {
+  color: var(--c-link-hover);
+  gap: 0.6rem;
+}
+
+/* ── Controls ── */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.runBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--c-accent), var(--c-verified));
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25);
+}
+
+.runBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.3);
+}
+
+.runBtn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--c-text-3);
+}
+
+/* ── Mobile: stepper goes vertical ── */
+@media (max-width: 640px) {
+  .rail {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0.25rem;
+  }
+
+  .railLabel {
+    font-size: 0.6rem;
+  }
+
+  .railDot {
+    width: 32px;
+    height: 32px;
+  }
+
+  .detail {
+    padding: 1.25rem 1rem;
+  }
+
+  .beatHeader h3 {
+    font-size: 1rem;
+  }
+
+  .beatBody {
+    font-size: 0.85rem;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .runBtn {
+    justify-content: center;
+  }
+
+  .hint {
+    text-align: center;
+  }
+}

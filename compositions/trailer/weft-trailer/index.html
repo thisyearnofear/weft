@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Weft — Trailer</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { margin:0; background:#050508; color:#f0f0f5; font-family:'Inter',system-ui,sans-serif; overflow:hidden; }
+
+    #root {
+      position:relative; width:1920px; height:1080px; overflow:hidden;
+      background:radial-gradient(ellipse at 50% 30%, #0f0f1a 0%, #050508 70%);
+    }
+
+    canvas#bg-canvas {
+      position:absolute; inset:0; width:100%; height:100%; pointer-events:none;
+    }
+
+    .scene {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+    }
+
+    .tag {
+      position:absolute; top:32px; left:40px;
+      font-family:'JetBrains Mono',monospace; font-size:13px;
+      color:rgba(124,92,252,0.4); letter-spacing:3px; text-transform:uppercase;
+    }
+
+    .scanline {
+      position:absolute; left:0; right:0; height:1px;
+      background:linear-gradient(90deg, transparent, rgba(124,92,252,0.15), transparent);
+    }
+
+    .corner-bracket {
+      position:absolute; width:40px; height:40px; border-color:rgba(124,92,252,0.2);
+    }
+    .corner-bracket.tl { top:60px; left:60px; border-left:1px solid; border-top:1px solid; }
+    .corner-bracket.tr { top:60px; right:60px; border-right:1px solid; border-top:1px solid; }
+    .corner-bracket.bl { bottom:60px; left:60px; border-left:1px solid; border-bottom:1px solid; }
+    .corner-bracket.br { bottom:60px; right:60px; border-right:1px solid; border-bottom:1px solid; }
+
+    .word-hero {
+      display:inline-block; font-size:96px; font-weight:900; letter-spacing:-0.04em; line-height:1.05;
+    }
+    .word-hero-sm {
+      display:inline-block; font-size:72px; font-weight:800; letter-spacing:-0.03em; line-height:1.1;
+    }
+    .word-lg {
+      display:inline-block; font-size:56px; font-weight:700; letter-spacing:-0.02em;
+    }
+    .word-md {
+      display:inline-block; font-size:36px; font-weight:500;
+    }
+    .word-mono {
+      font-family:'JetBrains Mono',monospace; font-size:28px; font-weight:500;
+    }
+
+    .accent-purple { color:#7c5cfc; }
+    .accent-green { color:#22d65e; }
+    .accent-red { color:#ff4d6d; }
+    .accent-muted { color:#6b6b80; }
+    .accent-white { color:#f0f0f5; }
+
+    .gradient-text {
+      background:linear-gradient(135deg, #f0f0f5 0%, #7c5cfc 40%, #22d65e 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+
+    .badge {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 28px; border-radius:100px;
+      font-size:20px; font-weight:600;
+      background:rgba(124,92,252,0.12); border:1px solid rgba(124,92,252,0.25);
+      color:#b088ff; font-family:'JetBrains Mono',monospace;
+    }
+
+    .flow-nodes {
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    }
+
+    .f-node {
+      position:absolute; width:110px; height:110px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:14px; font-weight:600; line-height:1.2; text-align:center;
+    }
+    .f-node.purple { background:rgba(124,92,252,0.15); border:2px solid rgba(124,92,252,0.4); color:#b088ff; }
+    .f-node.green { background:rgba(34,214,94,0.12); border:2px solid rgba(34,214,94,0.4); color:#22d65e; }
+    .f-node.glow-green { background:rgba(34,214,94,0.2); border:2px solid #22d65e; color:#22d65e; box-shadow:0 0 30px rgba(34,214,94,0.2); }
+    .f-node.dim { background:transparent; border:2px solid rgba(124,92,252,0.15); color:#6b6b80; }
+    .f-node.outline { background:transparent; border:2px solid rgba(124,92,252,0.25); color:#8888bb; }
+    .f-node.small { width:80px; height:80px; font-size:12px; }
+
+    .f-connector {
+      position:absolute;
+      background:rgba(124,92,252,0.12);
+      transform-origin:left center;
+    }
+
+    .code-line {
+      font-family:'JetBrains Mono',monospace; font-size:22px; color:#22d65e; padding:6px 0;
+      white-space:nowrap; display:block;
+    }
+    .code-comment { color:#6b6b80; }
+    .code-keyword { color:#7c5cfc; }
+    .code-func { color:#b088ff; }
+
+    .feature-card {
+      padding:16px 32px; border-radius:12px; background:rgba(255,255,255,0.02);
+      border:1px solid rgba(255,255,255,0.06); font-size:28px; font-weight:600;
+      white-space:nowrap; display:inline-block;
+    }
+    .feature-card.green { border-color:rgba(34,214,94,0.2); color:#22d65e; }
+    .feature-card.purple { border-color:rgba(124,92,252,0.2); color:#b088ff; }
+    .feature-card.muted { border-color:rgba(255,255,255,0.06); color:#8888bb; }
+
+    .stat-block { text-align:center; display:inline-block; }
+    .stat-num { font-size:64px; font-weight:800; letter-spacing:-0.03em; }
+    .stat-label { font-size:16px; color:#6b6b80; margin-top:2px; }
+
+    .logo-final {
+      font-size:140px; font-weight:900; letter-spacing:-0.05em; line-height:1;
+      background:linear-gradient(135deg, #f0f0f5 0%, #7c5cfc 50%, #22d65e 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="weft-trailer" data-width="1920" data-height="1080" data-duration="35" data-start="0">
+
+    <!-- BG canvas (continuous throughout) -->
+    <canvas id="bg-canvas" class="clip" data-start="0" data-duration="35" data-track-index="0"></canvas>
+
+    <!-- ========== SCENE 1: THE PROBLEM (0–5s) ========== -->
+    <section id="s1" class="clip scene" data-start="0" data-duration="5" data-track-index="1">
+      <div class="tag">THE PROBLEM</div>
+      <div class="corner-bracket tl"></div>
+      <div class="corner-bracket tr"></div>
+      <div class="corner-bracket bl"></div>
+      <div class="corner-bracket br"></div>
+
+      <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+        <div id="s1-l1" style="display:flex; gap:16px; align-items:center;">
+          <span class="word-hero" style="opacity:0">Escrow</span>
+          <span class="word-hero accent-red" style="opacity:0">is broken.</span>
+        </div>
+        <div id="s1-l2" style="display:flex; gap:24px; margin-top:16px;">
+          <span class="word-lg accent-muted" style="opacity:0">Slow.</span>
+          <span class="word-lg accent-muted" style="opacity:0">Opaque.</span>
+          <span class="word-lg accent-muted" style="opacity:0">Trust-based.</span>
+        </div>
+        <div id="s1-line" class="scanline" style="margin-top:24px; opacity:0"></div>
+        <div id="s1-l3" class="word-hero-sm gradient-text" style="opacity:0">Weft changes everything.</div>
+      </div>
+    </section>
+
+    <!-- ========== SCENE 2: HOW IT WORKS (5–14s) ========== -->
+    <section id="s2" class="clip scene" data-start="5" data-duration="9" data-track-index="1">
+      <div class="tag">HOW IT WORKS</div>
+
+      <!-- Flow diagram: Sponsor → Escrow → Agents → Release -->
+      <div id="s2-nodes" style="position:relative; width:1000px; height:400px;">
+        <div id="fn-sponsor" class="f-node purple" style="top:140px; left:20px; opacity:0">Sponsor</div>
+        <div id="fn-eth" class="f-node dim small" style="top:260px; left:30px; opacity:0">ETH</div>
+        <div id="fn-escrow" class="f-node purple" style="top:140px; left:220px; opacity:0">Escrow</div>
+        <div id="fn-work" class="f-node outline small" style="top:260px; left:230px; opacity:0">Work</div>
+        <div id="fn-a1" class="f-node green small" style="top:60px; left:500px; opacity:0">A1 ✓</div>
+        <div id="fn-a2" class="f-node green small" style="top:170px; left:500px; opacity:0">A2 ✓</div>
+        <div id="fn-a3" class="f-node dim small" style="top:280px; left:500px; opacity:0">A3</div>
+        <div id="fn-release" class="f-node green" style="top:140px; right:20px; opacity:0">Released</div>
+
+        <!-- Connector lines -->
+        <div id="fn-c1" class="f-connector" style="top:195px; left:130px; width:90px; height:2px; opacity:0"></div>
+        <div id="fn-c2" class="f-connector" style="top:195px; left:330px; width:140px; height:2px; opacity:0"></div>
+        <div id="fn-c3" class="f-connector" style="top:115px; left:580px; width:0; height:2px; opacity:0"></div>
+        <div id="fn-c4" class="f-connector" style="top:225px; left:580px; width:0; height:2px; opacity:0"></div>
+        <div id="fn-c5" class="f-connector" style="top:195px; left:730px; width:100px; height:2px; opacity:0"></div>
+      </div>
+
+      <div id="s2-t1" style="position:absolute; bottom:140px; font-size:36px; font-weight:700; letter-spacing:-0.02em; opacity:0">
+        A sponsor locks ETH. AI agents verify.
+      </div>
+      <div id="s2-t2" style="position:absolute; bottom:80px; font-size:28px; font-weight:500; color:#8888bb; opacity:0">
+        2 of 3 agree → <span style="color:#22d65e; font-weight:700">capital releases.</span>
+      </div>
+    </section>
+
+    <!-- ========== SCENE 3: ZAMA FHE (14–22s) ========== -->
+    <section id="s3" class="clip scene" data-start="14" data-duration="8" data-track-index="1">
+      <div class="tag">ZAMA FHE</div>
+
+      <div id="s3-shield" style="width:64px; height:64px; border:2px solid rgba(124,92,252,0.4); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; opacity:0; position:absolute; top:260px; left:200px">&#128274;</div>
+      <div id="s3-l1" class="word-hero-sm" style="opacity:0; position:absolute; top:280px; left:300px">
+        <span class="accent-purple">Sealed</span> ballots.
+      </div>
+      <div id="s3-l2" class="word-md" style="opacity:0; position:absolute; top:370px; left:300px; color:#8888bb">
+        Every vote stays encrypted. Forever.
+      </div>
+
+      <div id="s3-code" style="position:absolute; top:470px; left:300px; text-align:left;">
+        <span id="s3-c0" class="code-line code-comment" style="opacity:0">// Zama FHEVM — encrypted tally</span>
+        <span id="s3-c1" class="code-line" style="opacity:0"><span class="code-func">verifiedVotes</span> = <span class="code-keyword">FHE</span>.add(verifiedVotes, ballot);</span>
+        <span id="s3-c2" class="code-line" style="opacity:0"><span class="code-keyword">FHE</span>.ge(verifiedVotes, quorum) → your sealed ballot stays ciphertext</span>
+      </div>
+
+      <div id="s3-badge" class="badge" style="position:absolute; bottom:260px; opacity:0">Verifier herding? Impossible.</div>
+
+      <!-- Scanner line effect -->
+      <div id="s3-scanner" class="scanline" style="top:50%; opacity:0"></div>
+    </section>
+
+    <!-- ========== SCENE 4: BENEFITS (22–28s) ========== -->
+    <section id="s4" class="clip scene" data-start="22" data-duration="6" data-track-index="1">
+      <div class="tag">WHY WEFT</div>
+
+      <div id="s4-row1" style="display:flex; gap:20px; opacity:0; margin-bottom:16px;">
+        <div class="feature-card green">No invoices</div>
+        <div class="feature-card green">No chasing</div>
+        <div class="feature-card green">No politics</div>
+      </div>
+      <div id="s4-row2" style="display:flex; gap:20px; opacity:0; margin-bottom:24px;">
+        <div class="feature-card purple">Portable reputation</div>
+        <div class="feature-card purple">Instant settlement</div>
+      </div>
+      <div id="s4-row3" style="display:flex; gap:60px; opacity:0">
+        <div class="stat-block">
+          <div class="stat-num accent-green">2/3</div>
+          <div class="stat-label">Verifier Quorum</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num accent-purple">100%</div>
+          <div class="stat-label">On-chain</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num" style="color:#ff4d6d">0</div>
+          <div class="stat-label">Invoices</div>
+        </div>
+      </div>
+      <div id="s4-tag" class="word-md" style="position:absolute; bottom:200px; color:#8888bb; opacity:0">
+        Capital moves on <span class="accent-purple" style="font-weight:700">evidence</span>, not vibes.
+      </div>
+    </section>
+
+    <!-- ========== SCENE 5: CTA (28–35s) ========== -->
+    <section id="s5" class="clip scene" data-start="28" data-duration="7" data-track-index="1">
+      <div class="corner-bracket tl"></div>
+      <div class="corner-bracket tr"></div>
+      <div class="corner-bracket bl"></div>
+      <div class="corner-bracket br"></div>
+
+      <div id="s5-logo" class="logo-final" style="opacity:0">Weft</div>
+      <div style="height:16px"></div>
+      <div id="s5-l1" class="word-lg" style="opacity:0; color:#8888bb; letter-spacing:0.04em">Escrow that releases itself.</div>
+      <div style="height:32px"></div>
+      <div id="s5-url" class="word-mono" style="opacity:0; padding:14px 40px; border-radius:100px; background:rgba(124,92,252,0.1); border:1px solid rgba(124,92,252,0.25); color:#b088ff">
+        weft.thisyearnofear.com
+      </div>
+      <div style="height:24px"></div>
+      <div id="s5-badge" class="badge" style="opacity:0">Built with Zama FHE</div>
+      <div style="height:40px"></div>
+      <div id="s5-outro" style="font-size:16px; color:#6b6b80; opacity:0; font-family:'JetBrains Mono',monospace">
+        Zama Developer Program — Builder Track S3
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    // ===== BACKGROUND CANVAS =====
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 1920; canvas.height = 1080;
+
+    const grid = 50;
+    const pCount = 60;
+    const parts = [];
+    for (let i = 0; i < pCount; i++) {
+      parts.push({
+        x: Math.sin(i*2.1)*0.5 + 0.5, y: Math.cos(i*3.7)*0.5 + 0.5,
+        r: 1 + (i%4), s: 0.015 + (i%7)*0.004, ph: i * 1.1,
+      });
+    }
+
+    function drawBg(t) {
+      const p = t / 35;
+      ctx.clearRect(0, 0, 1920, 1080);
+
+      // Grid
+      ctx.strokeStyle = 'rgba(124,92,252,0.04)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < 1920; x += grid) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1080); ctx.stroke();
+      }
+      for (let y = 0; y < 1080; y += grid) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1920, y); ctx.stroke();
+      }
+
+      // Particles with drift
+      for (const pt of parts) {
+        const px = pt.x * 1920 + Math.sin(p * 2 + pt.ph) * 30;
+        const py = pt.y * 1080 + Math.cos(p * 1.5 + pt.ph) * 30;
+        const a = 0.1 + Math.sin(p * 3 + pt.ph) * 0.08;
+        ctx.beginPath();
+        ctx.arc(px, py, pt.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(124,92,252,${a})`;
+        ctx.fill();
+      }
+
+      // Pulsing ring
+      const ringR = 200 + Math.sin(p * 1.5) * 40;
+      ctx.beginPath();
+      ctx.arc(960, 540, ringR, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(124,92,252,${0.03 + Math.sin(p * 1.5) * 0.02})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // ===== GSAP TIMELINE =====
+    const tl = gsap.timeline({ paused: true });
+
+    // Shared ease aliases
+    const bO = 'back.out(2)';
+    const pO = 'power3.out';
+    const pI = 'power2.in';
+    const pIO = 'power2.inOut';
+    const eO = 'elastic.out(1,0.3)';
+
+    // ===== SCENE 1: The Problem (0–5s) =====
+    // "Escrow" flies in from left, "is broken" from right
+    tl.fromTo('#s1-l1 .word-hero', { x: -120, opacity: 0, rotation: -3 }, { x: 0, opacity: 1, rotation: 0, duration: 0.4, ease: pO }, 0.2);
+    tl.fromTo('#s1-l1 .accent-red', { x: 120, opacity: 0, rotation: 3 }, { x: 0, opacity: 1, rotation: 0, duration: 0.4, ease: pO }, 0.2);
+
+    // Tags stagger in from bottom
+    tl.fromTo('#s1-l2 .word-lg', { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: bO, stagger: 0.08 }, 0.8);
+    tl.fromTo('#s1-line', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.4, ease: pO }, 1.6);
+    // "Weft changes everything" — scale pop
+    tl.fromTo('#s1-l3', { scale: 0.3, opacity: 0, y: 40 }, { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: bO }, 2.2);
+
+    // Rapid exit — all fly out
+    tl.to('#s1-l1 .word-hero', { x: -80, opacity: 0, duration: 0.2, ease: pI }, 4.4);
+    tl.to('#s1-l1 .accent-red', { x: 80, opacity: 0, duration: 0.2, ease: pI }, 4.4);
+    tl.to('#s1-l2 .word-lg', { y: -30, opacity: 0, duration: 0.15, ease: pI, stagger: 0.04 }, 4.4);
+    tl.to('#s1-l3', { scale: 0.8, opacity: 0, duration: 0.2, ease: pI }, 4.5);
+    tl.to('#s1-line', { scaleX: 0, opacity: 0, duration: 0.15 }, 4.5);
+    tl.set('.corner-bracket', { opacity: 1 }, 4.6);
+    tl.to('.corner-bracket', { opacity: 0, duration: 0.15 }, 4.7);
+
+    // ===== SCENE 2: How It Works (5–14s) =====
+    // Nodes burst in with fast stagger
+    tl.fromTo('#fn-sponsor', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: bO }, 5.1);
+    tl.fromTo('#fn-eth', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.25, ease: bO }, 5.3);
+    tl.fromTo('#fn-c1', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.2, ease: pO }, 5.5);
+    tl.fromTo('#fn-escrow', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: bO }, 5.6);
+    tl.fromTo('#fn-work', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.25, ease: bO }, 5.8);
+    tl.fromTo('#fn-c2', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.2, ease: pO }, 6.0);
+
+    // Agents burst in
+    tl.fromTo('#fn-a1', { scale: 0, opacity: 0, rotation: -180 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.35, ease: bO }, 6.3);
+    tl.fromTo('#fn-a2', { scale: 0, opacity: 0, rotation: -180 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.35, ease: bO }, 6.5);
+    tl.fromTo('#fn-a3', { scale: 0, opacity: 0, rotation: -180 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.35, ease: bO }, 6.7);
+    tl.fromTo('#fn-c3', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.15, ease: pO }, 6.6);
+    tl.fromTo('#fn-c4', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.15, ease: pO }, 6.8);
+
+    // Agent 3 glows green when quorum reached
+    tl.to('#fn-a3', { borderColor: '#22d65e', background: 'rgba(34,214,94,0.2)', color: '#22d65e', boxShadow: '0 0 30px rgba(34,214,94,0.2)', duration: 0.2 }, 7.0);
+    tl.fromTo('#fn-c5', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.2, ease: pO }, 7.2);
+    tl.fromTo('#fn-release', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: bO }, 7.4);
+
+    // Text overlays
+    tl.fromTo('#s2-t1', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: pO }, 5.3);
+    tl.fromTo('#s2-t2', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: pO }, 6.0);
+    tl.to('#s2-t1', { y: -20, opacity: 0, duration: 0.2, ease: pI }, 8.5);
+    tl.to('#s2-t2', { y: -20, opacity: 0, duration: 0.2, ease: pI }, 8.5);
+
+    // Keep nodes visible until scene end, then zip out
+    tl.to('#s2-nodes > div', { scale: 0, opacity: 0, duration: 0.2, ease: pI, stagger: 0.03 }, 13.2);
+
+    // ===== SCENE 3: Zama FHE (14–22s) =====
+    // Shield spins in
+    tl.fromTo('#s3-shield', { scale: 0, opacity: 0, rotation: -360 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.5, ease: bO }, 14.2);
+    // "Sealed ballots" — words from opposite sides
+    tl.fromTo('#s3-l1 .accent-purple', { x: -100, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: pO }, 14.6);
+    tl.fromTo('#s3-l1', { x: 100, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: pO }, 14.6);
+    tl.fromTo('#s3-l2', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: pO }, 15.2);
+
+    // Code lines type in
+    tl.fromTo('#s3-c0', { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.2, ease: pO }, 15.8);
+    tl.fromTo('#s3-c1', { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.2, ease: pO }, 16.1);
+    tl.fromTo('#s3-c2', { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.2, ease: pO }, 16.4);
+
+    // Scanner line sweeps down
+    tl.fromTo('#s3-scanner', { top: '30%', opacity: 0 }, { top: '70%', opacity: 0.4, duration: 0.8, ease: pIO }, 17.0);
+
+    // Badge pops
+    tl.fromTo('#s3-badge', { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: bO }, 18.5);
+
+    // Exit
+    tl.to('#s3-shield', { scale: 0, opacity: 0, rotation: 180, duration: 0.2, ease: pI }, 21.2);
+    tl.to('#s3-l1, #s3-l2, #s3-code > span, #s3-badge, #s3-scanner', { opacity: 0, y: -10, duration: 0.15, ease: pI, stagger: 0.03 }, 21.3);
+
+    // ===== SCENE 4: Benefits (22–28s) =====
+    // Feature cards flip in
+    tl.fromTo('#s4-row1', { y: 30, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.35, ease: bO }, 22.2);
+    tl.fromTo('#s4-row2', { y: 30, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.35, ease: bO }, 22.7);
+    tl.fromTo('#s4-row3', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: pO }, 23.5);
+    tl.fromTo('#s4-tag', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: pO }, 24.5);
+
+    // Stats pulse
+    tl.to('.stat-num', { scale: 1.1, duration: 0.3, ease: pIO, yoyo: true, repeat: 1 }, 24.0);
+
+    // Exit
+    tl.to('#s4-row1, #s4-row2, #s4-row3, #s4-tag', { opacity: 0, y: -15, duration: 0.15, ease: pI, stagger: 0.03 }, 27.3);
+
+    // ===== SCENE 5: CTA (28–35s) =====
+    // Corner brackets slide in
+    tl.fromTo('#s5 .corner-bracket.tl', { x: -20, y: -20, opacity: 0 }, { x: 0, y: 0, opacity: 1, duration: 0.3 }, 28.2);
+    tl.fromTo('#s5 .corner-bracket.tr', { x: 20, y: -20, opacity: 0 }, { x: 0, y: 0, opacity: 1, duration: 0.3 }, 28.2);
+    tl.fromTo('#s5 .corner-bracket.bl', { x: -20, y: 20, opacity: 0 }, { x: 0, y: 0, opacity: 1, duration: 0.3 }, 28.2);
+    tl.fromTo('#s5 .corner-bracket.br', { x: 20, y: 20, opacity: 0 }, { x: 0, y: 0, opacity: 1, duration: 0.3 }, 28.2);
+
+    // Logo assembles
+    tl.fromTo('#s5-logo', { y: 40, opacity: 0, scale: 0.7, filter: 'blur(10px)' }, { y: 0, opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.8, ease: pO }, 28.4);
+    tl.fromTo('#s5-l1', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: pO }, 29.4);
+    tl.fromTo('#s5-url', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: pO }, 30.2);
+    tl.fromTo('#s5-badge', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: pO }, 30.8);
+    tl.fromTo('#s5-outro', { opacity: 0 }, { opacity: 1, duration: 0.5, ease: pO }, 31.6);
+
+    // Logo subtle pulse throughout
+    tl.to('#s5-logo', { scale: 1.04, duration: 1.2, ease: 'sine.inOut', yoyo: true, repeat: 2 }, 31.0);
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines["weft-trailer"] = tl;
+
+    // Canvas frame render
+    window.__hyperframes = window.__hyperframes || {};
+    window.__hyperframes.updateFrame = function(time, compositionId) {
+      if (compositionId !== 'weft-trailer') return;
+      drawBg(time);
+    };
+  </script>
+</body>
+</html>

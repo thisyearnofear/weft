@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>Weft — Trailer</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #050508;
+      color: #f0f0f5;
+      font-family: 'Inter', system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: radial-gradient(ellipse at 50% 30%, #0f0f1a 0%, #050508 70%);
+    }
+
+    .clip {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas#bg-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .scene-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      padding: 80px;
+    }
+
+    .text-hero {
+      font-size: 88px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      text-align: center;
+    }
+
+    .text-hero-sm {
+      font-size: 72px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      text-align: center;
+    }
+
+    .text-sub {
+      font-size: 40px;
+      font-weight: 500;
+      line-height: 1.3;
+      text-align: center;
+      color: #8888bb;
+    }
+
+    .text-mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 36px;
+      font-weight: 700;
+    }
+
+    .text-badge {
+      font-size: 28px;
+      font-weight: 600;
+      padding: 12px 32px;
+      border-radius: 100px;
+      background: rgba(124, 92, 252, 0.15);
+      border: 1px solid rgba(124, 92, 252, 0.3);
+      color: #b088ff;
+      display: inline-block;
+    }
+
+    .accent-purple { color: #7c5cfc; }
+    .accent-green { color: #22d65e; }
+    .accent-red { color: #ff4d6d; }
+    .accent-muted { color: #6b6b80; }
+    .accent-white { color: #f0f0f5; }
+    .accent-gradient {
+      background: linear-gradient(135deg, #7c5cfc, #22d65e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tag {
+      position: absolute;
+      top: 32px;
+      right: 40px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: rgba(124, 92, 252, 0.5);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .grid-line {
+      position: absolute;
+      background: rgba(124, 92, 252, 0.06);
+    }
+
+    .flow-node {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.2;
+      position: absolute;
+    }
+
+    .flow-node.purple {
+      background: rgba(124, 92, 252, 0.15);
+      border: 2px solid rgba(124, 92, 252, 0.4);
+      color: #b088ff;
+    }
+
+    .flow-node.green {
+      background: rgba(34, 214, 94, 0.12);
+      border: 2px solid rgba(34, 214, 94, 0.4);
+      color: #22d65e;
+    }
+
+    .flow-node.outline {
+      background: transparent;
+      border: 2px solid rgba(124, 92, 252, 0.25);
+      color: #8888bb;
+    }
+
+    .flow-arrow {
+      position: absolute;
+      width: 2px;
+      height: 60px;
+      background: linear-gradient(to bottom, rgba(124, 92, 252, 0.4), transparent);
+    }
+
+    .flow-arrow.h {
+      width: 80px;
+      height: 2px;
+      background: linear-gradient(to right, rgba(124, 92, 252, 0.4), transparent);
+    }
+
+    .feature-row {
+      display: flex;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .feature-card {
+      padding: 24px 40px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 32px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .feature-card.green { border-color: rgba(34, 214, 94, 0.2); color: #22d65e; }
+    .feature-card.purple { border-color: rgba(124, 92, 252, 0.2); color: #b088ff; }
+    .feature-card.muted { border-color: rgba(136, 136, 187, 0.15); color: #8888bb; }
+
+    .progress-track {
+      width: 600px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 40px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #7c5cfc, #22d65e);
+      border-radius: 4px;
+    }
+
+    .shield-icon {
+      width: 80px;
+      height: 80px;
+      border: 3px solid rgba(124, 92, 252, 0.5);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+
+    .code-line {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      color: #22d65e;
+      opacity: 0;
+      padding: 8px 0;
+    }
+
+    .divider {
+      width: 80px;
+      height: 2px;
+      background: linear-gradient(90deg, #7c5cfc, transparent);
+      margin: 16px 0;
+    }
+
+    .logo-final {
+      font-size: 120px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, #f0f0f5 0%, #7c5cfc 50%, #22d65e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  </style>
+</head>
+<body>
+  <div
+    id="root"
+    data-composition-id="weft-trailer"
+    data-width="1920"
+    data-height="1080"
+    data-duration="60"
+  >
+    <canvas id="bg-canvas" data-start="0" data-duration="60" data-track-index="0"></canvas>
+
+    <!-- Scene 1: The Problem (0-10s) -->
+    <section id="s1" class="clip" data-start="0" data-duration="10" data-track-index="1">
+      <div class="scene-content">
+        <div class="tag">THE PROBLEM</div>
+        <div id="s1-line1" class="text-hero" style="opacity:0">
+          Escrow <span class="accent-red">is broken.</span>
+        </div>
+        <div style="height:24px"></div>
+        <div id="s1-line2" class="text-sub" style="opacity:0">
+          <span>Slow.</span> <span class="accent-muted">&#183;</span>
+          <span>Opaque.</span> <span class="accent-muted">&#183;</span>
+          <span>Trust-based.</span>
+        </div>
+        <div style="height:48px"></div>
+        <div id="s1-line3" class="text-hero-sm accent-gradient" style="opacity:0; scale:0.8">
+          Weft changes everything.
+        </div>
+      </div>
+    </section>
+
+    <!-- Scene 2: How Weft Works (10-24s) -->
+    <section id="s2" class="clip" data-start="10" data-duration="14" data-track-index="1">
+      <div class="scene-content">
+        <div class="tag">HOW IT WORKS</div>
+
+        <!-- Flow nodes initially hidden -->
+        <div id="flow-sponsor" class="flow-node purple" style="position:absolute; top:280px; left:180px; opacity:0">
+          Sponsor
+        </div>
+        <div id="flow-eth" class="flow-node outline" style="position:absolute; top:420px; left:180px; opacity:0">
+          Locks ETH
+        </div>
+        <div id="flow-escrow" class="flow-node purple" style="position:absolute; top:280px; left:440px; opacity:0">
+          Escrow
+        </div>
+        <div id="flow-builder" class="flow-node outline" style="position:absolute; top:420px; left:440px; opacity:0">
+          Builder<br/>ships
+        </div>
+        <div id="flow-agent1" class="flow-node green" style="position:absolute; top:180px; right:340px; opacity:0; width:120px; height:120px; font-size:14px">
+          Agent 1<br/>✓
+        </div>
+        <div id="flow-agent2" class="flow-node green" style="position:absolute; top:340px; right:200px; opacity:0; width:120px; height:120px; font-size:14px">
+          Agent 2<br/>✓
+        </div>
+        <div id="flow-agent3" class="flow-node outline" style="position:absolute; top:500px; right:340px; opacity:0; width:120px; height:120px; font-size:14px">
+          Agent 3<br/>✓
+        </div>
+        <div id="flow-release" class="flow-node green" style="position:absolute; top:420px; right:80px; opacity:0">
+          Released
+        </div>
+
+        <div id="s2-line1" style="position:absolute; bottom:160px; font-size:44px; font-weight:700; opacity:0; letter-spacing:-0.02em">
+          <span class="accent-muted">A</span> sponsor <span class="accent-muted">locks</span> ETH.
+        </div>
+        <div id="s2-line2" style="position:absolute; bottom:100px; font-size:36px; font-weight:500; opacity:0; color:#8888bb">
+          AI agents verify the work.
+        </div>
+        <div id="s2-progress" class="progress-track" style="position:absolute; bottom:40px; opacity:0">
+          <div id="s2-progress-fill" class="progress-fill"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scene 3: Zama FHE (24-36s) -->
+    <section id="s3" class="clip" data-start="24" data-duration="12" data-track-index="1">
+      <div class="scene-content">
+        <div class="tag">ZAMA FHE</div>
+
+        <div id="s3-shield" class="shield-icon" style="opacity:0">&#128274;</div>
+
+        <div id="s3-line1" class="text-hero-sm" style="opacity:0">
+          <span class="accent-gradient">Sealed</span> ballots.
+        </div>
+        <div style="height:16px"></div>
+        <div id="s3-line2" style="font-size:36px; font-weight:500; color:#8888bb; opacity:0; text-align:center">
+          Every vote stays encrypted. Forever.
+        </div>
+        <div style="height:32px"></div>
+
+        <div id="s3-code1" class="code-line" style="text-align:center; font-size:22px; color:#7c5cfc">
+          <span style="color:#8888bb">// Zama FHEVM</span>
+        </div>
+        <div id="s3-code2" class="code-line" style="text-align:center; font-size:24px">
+          verifiedVotes = FHE.add(verifiedVotes, ballot);
+        </div>
+        <div id="s3-code3" class="code-line" style="text-align:center; font-size:24px; color:#22d65e">
+          verified &nbsp;= FHE.ge(verifiedVotes, 2);
+        </div>
+        <div style="height:24px"></div>
+        <div id="s3-line3" style="font-size:28px; font-weight:700; opacity:0; padding:12px 32px; border-radius:100px; background:rgba(255,77,109,0.1); border:1px solid rgba(255,77,109,0.2); color:#ff4d6d">
+          Verifier herding? Impossible.
+        </div>
+      </div>
+    </section>
+
+    <!-- Scene 4: Benefits (36-48s) -->
+    <section id="s4" class="clip" data-start="36" data-duration="12" data-track-index="1">
+      <div class="scene-content">
+        <div class="tag">WHY WEFT</div>
+
+        <div id="s4-row1" class="feature-row" style="margin-bottom:24px; opacity:0">
+          <div class="feature-card green">No invoices</div>
+          <div class="feature-card green">No chasing</div>
+          <div class="feature-card green">No politics</div>
+        </div>
+
+        <div id="s4-row2" class="feature-row" style="opacity:0">
+          <div class="feature-card purple">Portable reputation</div>
+          <div class="feature-card purple">Instant settlement</div>
+        </div>
+
+        <div style="height:48px"></div>
+
+        <div id="s4-line1" style="font-size:36px; font-weight:500; color:#8888bb; text-align:center; opacity:0">
+          Trustless verification by autonomous agents.
+        </div>
+        <div style="height:16px"></div>
+        <div id="s4-line2" style="font-size:28px; font-weight:600; opacity:0; color:#b088ff">
+          Capital moves on evidence, not vibes.
+        </div>
+
+        <div id="s4-stats" style="position:absolute; bottom:80px; display:flex; gap:80px; opacity:0">
+          <div style="text-align:center">
+            <div style="font-size:56px; font-weight:800; color:#22d65e">2/3</div>
+            <div style="font-size:18px; color:#6b6b80; margin-top:4px">Verifier Quorum</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:56px; font-weight:800; color:#7c5cfc">100%</div>
+            <div style="font-size:18px; color:#6b6b80; margin-top:4px">On-chain</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:56px; font-weight:800; color:#ff4d6d">0</div>
+            <div style="font-size:18px; color:#6b6b80; margin-top:4px">Invoices</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scene 5: CTA (48-60s) -->
+    <section id="s5" class="clip" data-start="48" data-duration="12" data-track-index="1">
+      <div class="scene-content">
+        <div id="s5-logo" class="logo-final" style="opacity:0">
+          Weft
+        </div>
+        <div style="height:24px"></div>
+        <div id="s5-line1" style="font-size:40px; font-weight:500; color:#8888bb; opacity:0; letter-spacing:0.02em">
+          Escrow that releases itself.
+        </div>
+        <div style="height:48px"></div>
+        <div id="s5-url" style="font-family:'JetBrains Mono',monospace; font-size:28px; opacity:0; padding:16px 48px; border-radius:100px; background:rgba(124,92,252,0.1); border:1px solid rgba(124,92,252,0.25); color:#b088ff">
+          weft.thisyearnofear.com
+        </div>
+        <div style="height:40px"></div>
+        <div id="s5-badge" class="text-badge" style="opacity:0">
+          Built with Zama FHE
+        </div>
+        <div style="height:80px"></div>
+        <div id="s5-outro" style="font-size:20px; color:#6b6b80; opacity:0; font-family:'JetBrains Mono',monospace">
+          Zama Developer Program &mdash; Builder Track S3
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    // --- Background canvas: tech grid + particles ---
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 1920;
+    canvas.height = 1080;
+
+    const gridSize = 60;
+    const particles = [];
+    for (let i = 0; i < 40; i++) {
+      particles.push({
+        x: Math.sin(i * 1.7) * 0.5 + 0.5,
+        y: Math.cos(i * 2.3) * 0.5 + 0.5,
+        r: 1 + (i % 3),
+        speed: 0.02 + (i % 5) * 0.005,
+        phase: i * 0.7,
+      });
+    }
+
+    function drawBg(progress) {
+      ctx.clearRect(0, 0, 1920, 1080);
+
+      ctx.strokeStyle = 'rgba(124, 92, 252, 0.04)';
+      ctx.lineWidth = 1;
+
+      for (let x = 0; x < 1920; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 1080);
+        ctx.stroke();
+      }
+      for (let y = 0; y < 1080; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(1920, y);
+        ctx.stroke();
+      }
+
+      for (const p of particles) {
+        const px = p.x * 1920;
+        const py = p.y * 1080 + Math.sin(progress * Math.PI * 4 + p.phase) * 40;
+        const alpha = 0.15 + Math.sin(progress * Math.PI * 2 + p.phase) * 0.1;
+        ctx.beginPath();
+        ctx.arc(px, py, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(124, 92, 252, ${alpha})`;
+        ctx.fill();
+      }
+    }
+
+    // --- GSAP Timeline ---
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({ paused: true });
+    const dur = { d: 0.35, e: 'power3.out' };
+    const ds = { d: 0.5, e: 'power3.out' };
+    const dm = { d: 0.6, e: 'power3.out' };
+    const dl = { d: 0.8, e: 'power3.out' };
+
+    // ===== SCENE 1: The Problem (0-10s) =====
+    tl.fromTo('#s1-line1', { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, 0.3);
+    tl.fromTo('#s1-line2', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' }, 1.0);
+    tl.fromTo('#s1-line3', { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.7, ease: 'back.out(1.7)' }, 2.2);
+
+    // Outro: fade all out
+    tl.to('#s1-line1', { opacity: 0, y: -20, duration: 0.3, ease: 'power2.in' }, 9.0);
+    tl.to('#s1-line2', { opacity: 0, y: -20, duration: 0.3, ease: 'power2.in' }, 9.0);
+    tl.to('#s1-line3', { opacity: 0, scale: 0.9, duration: 0.3, ease: 'power2.in' }, 9.0);
+
+    // ===== SCENE 2: How It Works (10-24s) =====
+    // Flow nodes animate in sequence
+    tl.fromTo('#flow-sponsor', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'back.out(1.7)' }, 10.3);
+    tl.fromTo('#flow-eth', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: 'back.out(1.7)' }, 10.8);
+    tl.fromTo('#flow-escrow', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'back.out(1.7)' }, 11.3);
+    tl.fromTo('#flow-builder', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: 'back.out(1.7)' }, 11.8);
+    tl.fromTo('#flow-agent1', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'back.out(1.7)' }, 12.5);
+    tl.fromTo('#flow-agent2', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'back.out(1.7)' }, 13.2);
+    tl.fromTo('#flow-agent3', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'back.out(1.7)' }, 13.9);
+    tl.fromTo('#flow-release', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' }, 15.0);
+
+    // Agent 3 fills green when it arrives (quorum reached)
+    tl.set('#flow-agent3', { borderColor: 'rgba(34,214,94,0.4)', background: 'rgba(34,214,94,0.12)', color: '#22d65e' }, 13.9);
+
+    // Text overlays
+    tl.fromTo('#s2-line1', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, 10.5);
+    tl.fromTo('#s2-line2', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, 11.5);
+    tl.to('#s2-line1', { opacity: 0, y: -20, duration: 0.3 }, 14.0);
+    tl.to('#s2-line2', { opacity: 0, y: -20, duration: 0.3 }, 14.0);
+
+    // Progress bar
+    tl.fromTo('#s2-progress', { opacity: 0 }, { opacity: 1, duration: 0.2 }, 15.0);
+    tl.to('#s2-progress-fill', { width: '100%', duration: 2.0, ease: 'power2.out' }, 15.5);
+
+    // Scene 2 outro
+    tl.to('#flow-sponsor, #flow-eth, #flow-escrow, #flow-builder, #flow-agent1, #flow-agent2, #flow-agent3, #flow-release, #s2-progress', {
+      opacity: 0, duration: 0.4, ease: 'power2.in'
+    }, 23.0);
+
+    // ===== SCENE 3: Zama FHE (24-36s) =====
+    tl.fromTo('#s3-shield', { scale: 0, opacity: 0, rotation: -180 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.6, ease: 'back.out(1.7)' }, 24.3);
+    tl.fromTo('#s3-line1', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, 25.0);
+    tl.fromTo('#s3-line2', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, 25.6);
+    tl.fromTo('#s3-code1', { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power3.out' }, 26.5);
+    tl.fromTo('#s3-code2', { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power3.out' }, 27.0);
+    tl.fromTo('#s3-code3', { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power3.out' }, 27.5);
+    tl.fromTo('#s3-line3', { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2)' }, 29.0);
+
+    // Scene 3 outro
+    tl.to('#s3-shield, #s3-line1, #s3-line2, #s3-code1, #s3-code2, #s3-code3, #s3-line3', {
+      opacity: 0, y: -20, duration: 0.3, ease: 'power2.in'
+    }, 35.0);
+
+    // ===== SCENE 4: Benefits (36-48s) =====
+    tl.fromTo('#s4-row1', { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, 36.3);
+    tl.fromTo('#s4-row2', { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, 37.0);
+    tl.fromTo('#s4-line1', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, 38.5);
+    tl.fromTo('#s4-line2', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, 39.5);
+    tl.fromTo('#s4-stats', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' }, 41.0);
+
+    // Animate stats counters
+    tl.to('#s4-stats', { opacity: 1, duration: 0.1 }, 41.0);
+
+    // Scene 4 outro
+    tl.to('#s4-row1, #s4-row2, #s4-line1, #s4-line2, #s4-stats', {
+      opacity: 0, y: -20, duration: 0.3, ease: 'power2.in'
+    }, 47.0);
+
+    // ===== SCENE 5: CTA (48-60s) =====
+    tl.fromTo('#s5-logo', { y: 40, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.8, ease: 'power3.out' }, 48.3);
+    tl.fromTo('#s5-line1', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, 49.3);
+    tl.fromTo('#s5-url', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, 50.5);
+    tl.fromTo('#s5-badge', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, 51.5);
+    tl.fromTo('#s5-outro', { opacity: 0 }, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 53.0);
+
+    // Pulse the logo
+    tl.to('#s5-logo', { scale: 1.03, duration: 1.5, ease: 'sine.inOut', yoyo: true, repeat: 4 }, 55.0);
+
+    window.__timelines["weft-trailer"] = tl;
+
+    // --- Canvas background frame render ---
+    // HyperFrames calls updateFrame on each seek
+    window.__hyperframes = window.__hyperframes || {};
+    window.__hyperframes.updateFrame = function(time, compositionId) {
+      if (compositionId !== 'weft-trailer') return;
+      const progress = time / 60;
+      drawBg(progress);
+    };
+  </script>
+</body>
+</html>

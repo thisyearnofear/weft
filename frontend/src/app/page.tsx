@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo, FormEvent } from "react";
-import { ArrowRight, Bot, Sparkles, Search } from "lucide-react";
+import { useState, useMemo } from "react";
+import { ArrowRight, Bot, Sparkles } from "lucide-react";
 
 import { HeroLoom } from "@/components/HeroLoom";
 import { MilestoneCard } from "@/components/MilestoneCard";
@@ -14,6 +14,7 @@ import { HowItWorks } from "@/components/HowItWorks";
 import { TileFlip } from "@/components/TileFlip";
 import { BlockReveal } from "@/components/BlockReveal";
 import { SVGPathMarquee } from "@/components/SVGPathMarquee";
+import { InteractiveDemo } from "@/components/InteractiveDemo";
 import { useMilestones, useMilestone } from "@/hooks/useMilestones";
 import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
 import { useExplorerMilestones } from "@/hooks/useExplorer";
@@ -21,122 +22,6 @@ import { useBuilderPassport } from "@/hooks/useBuilderPassport";
 import type { Milestone as MilestoneType, MilestoneState } from "@/lib/milestone-types";
 import { track } from "@/lib/track";
 import styles from "./page.module.css";
-
-/* ── Milestone Lookup ── */
-function MilestoneLookup() {
-  const [input, setInput] = useState("");
-  const [hash, setHash] = useState("");
-  const { data, isLoading, error } = useStatusMilestone(hash, true);
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    const trimmed = input.trim();
-    const fullHash = trimmed.startsWith("0x") ? trimmed : `0x${trimmed}`;
-    if (/^0x[a-fA-F0-9]{64}$/.test(fullHash)) {
-      setHash(fullHash);
-    }
-  };
-
-  const stakedEth = data ? (Number(data.totalStaked) / 1e18).toFixed(4) : null;
-  const isVerified = data?.verified;
-  const hasResult = data && !isLoading && !error;
-
-  return (
-    <div className={styles.lookupWrap}>
-      <form onSubmit={handleSubmit} className={styles.lookupForm}>
-        <div className={styles.lookupInputWrap}>
-          <Search size={16} color="var(--c-text-3)" />
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Paste a milestone hash (0x...)"
-            className={styles.lookupInput}
-          />
-        </div>
-        <button type="submit" className={styles.lookupSubmit}>
-          Check
-        </button>
-      </form>
-
-      <div className={styles.lookupTryRow}>
-        <span>Try:</span>
-        <button
-          type="button"
-          onClick={() => {
-            setInput("0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f");
-            setHash("0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f");
-          }}
-          className={styles.lookupTryBtn}
-          title="Click to check the demo milestone"
-        >
-          0x516975...b1c16f
-        </button>
-      </div>
-
-      {isLoading && (
-        <div className={`${styles.lookupStatus} ${styles.lookupStatusLoading}`}>
-          Loading milestone data...
-        </div>
-      )}
-
-      {error && (
-        <div className={`${styles.lookupStatus} ${styles.lookupStatusError}`}>
-          Milestone not found. Check the hash and try again.
-        </div>
-      )}
-
-      {hasResult && (
-        <div className={styles.lookupResult}>
-          <div className={styles.lookupResultRow}>
-            <span
-              className={`${styles.lookupResultIcon} ${
-                isVerified ? styles.lookupResultIconOk : styles.lookupResultIconPending
-              }`}
-            >
-              {isVerified ? "✓" : "○"}
-            </span>
-            <div>
-              <div className={styles.lookupResultStatus}>
-                {isVerified ? "Verified" : data?.finalized ? "Failed" : "Pending"}
-              </div>
-              <div className={styles.lookupResultHash}>
-                {hash.slice(0, 10)}...{hash.slice(-6)}
-              </div>
-            </div>
-            <div className={styles.lookupResultRight}>
-              <div className={styles.lookupResultAmount}>
-                {stakedEth} ETH
-              </div>
-              <div className={styles.lookupResultState}>
-                {data?.released ? "Released" : data?.finalized ? "Refundable" : "Locked"}
-              </div>
-            </div>
-          </div>
-          <div className={styles.lookupMetaRow}>
-            {data?.builder && (
-              <span>
-                Builder: <strong className={styles.lookupBuilderAddr}>
-                  {data.builder.slice(0, 6)}...{data.builder.slice(-4)}
-                </strong>
-              </span>
-            )}
-            {data?.deadline && (
-              <span>
-                Deadline: {new Date(Number(data.deadline) * 1000).toLocaleDateString()}
-              </span>
-            )}
-          </div>
-          {data?.verified && data?.verifiedVotes > 0 && (
-            <div className={styles.lookupVotes}>
-              ✓ {data.verifiedVotes} of {data.verifierCount} verifier votes
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 /* ── Milestone from contract ── */
 function MilestoneFromContract({ hash, index }: { hash: `0x${string}`; index: number }) {
@@ -315,15 +200,16 @@ export default function Home() {
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>Live demo</span>
-            <h2 className={styles.sectionTitle}>Don&apos;t take our word for it</h2>
+            <h2 className={styles.sectionTitle}>Watch capital release itself</h2>
           </div>
         </div>
         <p className={`${styles.sectionText} ${styles.sectionLede}`}>
-          A real milestone was verified on 0G Testnet — 0.01 ETH released after 2 of 3
-          verifier nodes reached consensus. Check the onchain proof yourself.
+          This is a real milestone verified on 0G Testnet. Step through the
+          verification flow — or run it end-to-end — and see the actual evidence,
+          consensus, and release that happened onchain.
         </p>
         <div className={styles.demoSingle}>
-          <MilestoneLookup />
+          <InteractiveDemo />
           <button
             type="button"
             className={styles.demoChatToggle}
