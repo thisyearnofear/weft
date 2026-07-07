@@ -28,39 +28,9 @@
 }
 
 .formCard {
-  background: rgba(17, 17, 24, 0.9);
+  background: rgba(31, 33, 56, 0.9);
   border: 1px solid var(--c-border);
   border-radius: 28px;
   padding: 1.5rem;
-  box-shadow: var(--shadow-lg);
-}
-
-.guideCard {
-  background: rgba(17, 17, 24, 0.9);
-  border: 1px solid var(--c-border);
-  border-radius: 28px;
-  padding: 1.25rem 1.5rem 1.5rem;
-}
-
-.guideTitle {
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.guideList {
-  color: var(--c-text-secondary);
-  line-height: 1.8;
-  padding-left: 1.25rem;
-  font-size: 0.9rem;
-}
-
-.guideNote {
-  margin-top: 1rem;
-  padding: 0.85rem 1rem;
-  border-radius: var(--radius-md);
-  background: var(--c-verified-20);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--c-text-2);
-  font-size: 0.85rem;
-  line-height: 1.6;
+  box-shadow: 0 8px 32px rgba(4, 5, 22, 0.3);
 }
