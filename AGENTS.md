@@ -502,7 +502,7 @@ Weft ships 7 Hermes skills that auto-load via `external_dirs` — no manual `Loa
 
 ```bash
 # One-time: install Hermes, wire skills into ~/.hermes/config.yaml, write SOUL.md
-bash setup-hermes.sh
+bash scripts/setup-hermes.sh
 
 # Launch Hermes with all Weft env vars pre-loaded (KIMI, FAL, KeeperHub, 0G, ENS)
 bash scripts/hermes_weft.sh
@@ -523,13 +523,13 @@ bash scripts/hermes_weft.sh
 
 ### Identity (`~/.hermes/SOUL.md`)
 
-Written by `setup-hermes.sh`. Defines Weft's weaving identity — warp/weft metaphor, skill
+Written by `scripts/setup-hermes.sh`. Defines Weft's weaving identity — warp/weft metaphor, skill
 descriptions, contract context, and demo milestone hash. Edit to customise the agent's
 personality for your deployment.
 
 ### How skills are wired
 
-`setup-hermes.sh` writes the following to `~/.hermes/config.yaml`:
+`scripts/setup-hermes.sh` writes the following to `~/.hermes/config.yaml`:
 
 ```yaml
 skills:

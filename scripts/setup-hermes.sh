@@ -6,9 +6,9 @@ set -e
 
 echo "🧵 Setting up Weft Hermes Agent..."
 
-# Determine WEFT_ROOT from script location
+# Determine WEFT_ROOT from script location (one level up from scripts/)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-WEFT_ROOT="$SCRIPT_DIR"
+WEFT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 export WEFT_ROOT
 
 # 1. Install Hermes if not present
