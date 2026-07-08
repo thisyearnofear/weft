@@ -171,36 +171,17 @@ refuse to claim privacy we don't actually deliver.**
 **Additive by design.** The public escrow (`WeftMilestone.sol`) is the plaintext
 control that revealed the herding flaw; the two confidential contracts are the fix
 and the star of this submission. All three run side by side and the frontend
-handles all three:
-
-- `contracts/src-fhe/WeftMilestoneConfidential.sol` — v1 FHEVM escrow,
-  addition-class sealed-ballot consensus (`FHE.add`, `FHE.ge`, `FHE.select`)
-- `contracts/src-fhe/WeftMilestoneConfidentialWeighted.sol` — v2 FHEVM escrow,
-  multiplication-class sealed-ballot consensus (`FHE.mul`, `FHE.and`, `FHE.add`,
-  `FHE.ge`, `FHE.select`, `FHE.eq`)
-- `contracts/test-fhe/` — Foundry tests via `forge-fhevm` (v1: 3 tests, v2: 5
-  tests including high/low confidence, binary gate, inflated ballot clamping)
-- `frontend/src/app/project/[hash]/ConfidentialMilestoneView.tsx` — v1
-  confidential milestone page with relayer-backed decrypt panel
-- `frontend/src/app/project/[hash]/WeightedMilestoneView.tsx` — v2 weighted
-  milestone page with FHE.mul computation breakdown
-- `frontend/src/lib/fhe.ts` — Zama relayer SDK, lazy singleton (WASM loads only
-  when a confidential milestone needs decryption)
-- `frontend/src/hooks/useWeightedConfidentialMilestone.ts` — v2 contract reads
-- `agent/scripts/fhe_encrypt_vote.mjs` — v1 verifier encryption helper:
-  `createEncryptedInput → add32 → encrypt → submitVerdict`
-- `agent/scripts/fhe_encrypt_weighted_vote.mjs` — v2 verifier encryption helper:
-  batch-encrypts ballot (0/1) + confidence (1–100) → `submitWeightedVerdict`
-- `agent/scripts/fhe_confirm_weighted_result.mjs` — v2 result confirmation:
-  decrypts via relayer, submits KMS proof onchain
-- The same milestone URL serves all three worlds: `/project/<hash>` tries the
-  public contract, then v1 (with `?confidential=1`), then v2 (with `?weighted=1`).
+handles all three — the same `/project/<hash>` URL tries the public contract,
+then v1 (`?confidential=1`), then v2 (`?weighted=1`).
 
 **The verifiers are autonomous agents, not humans clicking buttons.** The same
 Python daemon that verifies public milestones (onchain evidence, GitHub commits,
 LLM-reasoned verdicts) detects confidential milestones and routes its verdict
 through the Zama encryption path. FHE consensus between AI agents — each agent's
 judgment stays private, only the collective outcome is revealed.
+
+See [AGENTS.md](AGENTS.md) for the full technical reference (contracts, library
+modules, data model, scripts).
 
 ## Demo flow (reproducible)
 
@@ -273,5 +254,5 @@ node scripts/fhe_encrypt_weighted_vote.mjs --rpc-url <sepolia-rpc> \
 
 ---
 
-*Previous hackathon submission (NVIDIA × Stripe × NousResearch):
-[docs/submissions/hermes-hackathon.md](docs/submissions/hermes-hackathon.md)*
+*Previous hackathon submissions:
+[docs/hackathons.md](docs/hackathons.md)*

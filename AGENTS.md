@@ -1,8 +1,80 @@
-# Weft Agent — Hermes Integration
+# Weft — Technical Reference
 
-Single source of truth for Weft's Hermes agent layer behavior.
+Single source of truth for Weft's architecture, agent layer, and data model.
 
-## Overview
+## System Overview
+
+Weft is an autonomous coordination layer that replaces four institutional primitives:
+
+| Primitive | Replaced by |
+|---|---|
+| Identity / CV | ENS text records (portable, machine-readable) |
+| Funding / equity | `WeftMilestone.sol` — milestone-staked ETH |
+| Verification / managers | Deterministic verifier daemon + optional Hermes/AXL surfaces |
+| Settlement / payroll | Contract release/refund path; KeeperHub preferred verdict execution when configured |
+
+### Architecture Diagram
+
+```text
+                                      ┌──────────────────────────────┐
+                                      │         Builder / Team       │
+                                      │   ENS identity + milestone   │
+                                      └──────────────┬───────────────┘
+                                                     │
+                                      createMilestone│ stake
+                                                     ▼
+                              ┌──────────────────────────────────────────┐
+                              │        WeftMilestone on 0G Chain         │
+                              │ milestone escrow + verifier quorum       │
+                              └──────────────────┬───────────────────────┘
+                                                 │
+                                       deadline passed / pending
+                                                 ▼
+                   ┌─────────────────────────────────────────────────────────────┐
+                   │                    Weft Verifier Swarm                     │
+                   │                                                             │
+                   │  Verifier A       Verifier B        Verifier C              │
+                   │  ──────────       ──────────        ──────────              │
+                   │  poll             poll              poll                    │
+                   │  verify           verify            verify                  │
+                   │  narrate          narrate           narrate                 │
+                   │  vote             vote              vote                    │
+                   └──────────────┬───────────────┬───────────────┬─────────────┘
+                                  │               │               │
+                                  └──── signed peer verdict envelopes ──────────┐
+                                                                                 │
+                                                                                 ▼
+                                                  ┌──────────────────────────────┐
+                                                  │       Gensyn AXL layer       │
+                                                  │ peer messaging / corroboration│
+                                                  └──────────────┬───────────────┘
+                                                                 │
+                                                         consensus on
+                                                   (verified, evidenceRoot)
+                                                                 │
+                         ┌───────────────────────────────────────┴──────────────────────────────────────┐
+                         │                                                                              │
+                         ▼                                                                              ▼
+        ┌────────────────────────────────┐                                   ┌────────────────────────────────────┐
+        │        0G Storage / Indexer    │                                   │            KeeperHub                │
+        │ metadata, evidence, bundles,   │                                   │ reliable submitVerdict() execution │
+        │ consensus artifacts, KV roots  │                                   │ retry + gas optimization + audit   │
+        └────────────────┬───────────────┘                                   └────────────────┬───────────────────┘
+                         │                                                                    │
+                         └─────────────────────────────── evidenceRoot / bundle pointers ─────┘
+                                                                                               │
+                                                                                               ▼
+                                                            ┌────────────────────────────────────────┐
+                                                            │      Onchain verdict / release path    │
+                                                            │ finalized milestone + capital movement │
+                                                            └────────────────────────────────────────┘
+```
+
+**Reading the diagram:** 0G anchors the contract, metadata lookup, and evidence artifacts. AXL coordinates the verifier swarm across separate nodes. KeeperHub is the preferred execution path once the swarm reaches confidence. ENS gives builders and verifier agents human-readable identity at the edge of the system.
+
+> Weft takes milestone funding from manual trust to agentic execution: verifiers gather evidence, corroborate it over AXL, persist proofs on 0G, and execute verdicts reliably with KeeperHub.
+
+## Agent Tiers
 
 Weft has two agent tiers:
 
@@ -20,6 +92,19 @@ memory, auto-generated skills, anomaly detection, and a messaging interface. It 
 a managed service — builders text the bot, the agent handles everything.
 
 See [Product Plan](docs/product-plan.md) for the full tier structure and monetization.
+
+## Contracts (`contracts/src/`)
+
+| Contract | Purpose |
+|---|---|
+| `WeftMilestone.sol` | Milestone staking + 2-of-3 verifier quorum (0G Chain) |
+| `VerifierRegistry.sol` | Authorized verifier node registry |
+| `interfaces/IKeeperHub.sol` | KeeperHub interface (stub) |
+| `interfaces/IWeftMilestone.sol` | ABI interface for external callers |
+| `src-fhe/WeftMilestoneConfidential.sol` | v1 FHEVM escrow — addition-class sealed-ballot consensus (Sepolia) |
+| `src-fhe/WeftMilestoneConfidentialWeighted.sol` | v2 FHEVM escrow — multiplication-class weighted consensus (Sepolia) |
+
+See [SUBMISSION.md](SUBMISSION.md) for deployed addresses and FHE details.
 
 ## Library (`agent/lib/`)
 
@@ -43,6 +128,15 @@ The single source of truth for all shared agent logic. All scripts import from h
 | `stripe_skills_client.py` | Stripe Skills autonomous spend layer — agent pays for its own services + sweeps earned revenue (env: `STRIPE_SKILLS_KEY`) |
 | `llm_backend.py` | Pluggable LLM backend selector: Nemotron 3 Ultra (NVIDIA/NemoClaw), Kimi, NousResearch (env: `LLM_BACKEND`) |
 | `fhe_client.py` | Zama FHE sealed-ballot votes — encrypts the verdict via `scripts/fhe_encrypt_vote.mjs` and submits to `WeftMilestoneConfidential` on Sepolia (env: `WEFT_MILESTONE_CONFIDENTIAL`, `FHE_SEPOLIA_RPC`) |
+| `eth_rpc.py` | Low-level Ethereum RPC helpers |
+| `weft_topics.py` | Event topic constants for WeftMilestone |
+| `verifier_registry_reader.py` | Reads verifier list from VerifierRegistry |
+| `ens_client.py` | ENS text record updates |
+| `peer_inbox.py` | Filesystem-based peer verdict aggregation |
+| `verdict_envelope.py` | Signed envelope construction/verification |
+| `metadata_reader.py` | Reads milestone metadata from 0G Storage |
+| `bundle_manifest.py` | Deterministic bundle manifest (hashes + sizes) |
+| `bundle_pack.py` | Packs attestation directory into `bundle.tar.gz` |
 | `__init__.py` | Re-exports all public symbols |
 
 ## Verification Flow
@@ -465,6 +559,99 @@ adding a new skill — just create a new subdirectory with a `SKILL.md`.
 ## Config
 
 See `agent/hermes.config.yml` for full environment variable documentation.
+
+## Data Model
+
+### ENS Text Record Schema
+
+Each builder's ENS name serves as their portable reputation profile.
+
+**Root level:**
+
+| Record Key | Type | Description |
+|---|---|---|
+| `weft.projects` | Array | List of project IDs the builder has participated in |
+| `weft.milestones.verified` | Integer | Total count of verified milestones completed |
+| `weft.earned.total` | Integer | Cumulative earnings in wei |
+| `weft.cobuilders` | Array | List of ENS subnames for agent co-builders |
+| `weft.reputation.score` | Integer | Composite score (0-1000) based on completed work |
+
+**Per-project** (`weft.project.{projectId}.*`): `role`, `joined`, `earnings`, `milestones`
+
+**Per-milestone** (`weft.milestone.{milestoneHash}.*`): `project`, `status`, `evidence`, `released`, `timestamp`
+
+**Agent co-builders** (ENS subnames `{agent-name}.{project}.weft.eth`): `weft.agent.contributions`, `weft.agent.earnings`, `weft.agent.projects`
+
+### Smart Contract Data Model
+
+**WeftMilestone structs:**
+
+```solidity
+struct MilestoneCore {
+    bytes32 projectId;         // Parent project identifier
+    bytes32 templateId;        // Deterministic verification template ID
+    bytes32 metadataHash;      // Pointer to project/milestone metadata (0G/IPFS/etc)
+    address builder;           // Project builder address
+    uint64  createdAt;         // When the milestone was created
+    uint64  deadline;          // Unix timestamp deadline
+    uint256 totalStaked;       // Total ETH staked by backers
+    bool    finalized;         // Resolved by verifier quorum (success/fail)
+    bool    verified;          // True iff quorum reached with didComplete=true
+    bool    released;          // True once capital has been released
+    uint8   verifierCount;     // How many verifier votes were submitted
+    uint8   verifiedVotes;     // How many votes were didComplete=true
+    bytes32 finalEvidenceRoot; // Content hash / 0G root of the evidence bundle
+}
+
+struct Split {
+    address wallet;   // Recipient wallet (builder or co-builder)
+    uint16  shareBps; // Basis points (10000 = 100%)
+}
+```
+
+**Storage mappings:**
+
+| Mapping | Key | Value | Description |
+|---|---|---|---|
+| `milestones` | `bytes32` (milestoneHash) | `MilestoneCore` | All milestone core data |
+| `stakes` | `bytes32` → `address` → `uint256` | Amount | Individual backer stakes |
+| `splits` | `bytes32` → `Split[]` | Array | Capital recipients for a verified milestone |
+| `verifierVoted` | `bytes32` → `address` → `bool` | Flag | Prevents double-voting |
+| `evidenceByVerifier` | `bytes32` → `address` → `bytes32` | Root | Each verifier's evidence pointer |
+
+**Functions:** `createMilestone(...)`, `stake(bytes32)`, `submitVerdict(bytes32,bool,bytes32)`, `release(bytes32)`, `refund(bytes32)`
+
+**VerifierRegistry:** `addVerifier(address)`, `removeVerifier(address)`
+
+### 0G Storage Schema
+
+**KV layer** (fast lookup): `milestoneHash` → JSON with `projectId`, `templateId`, `builder`, `totalStaked`, `deadline`, `finalized`, `verified`, `released`, `finalEvidenceRoot`, `verifierNodes`, `verifiedVotes`, `consensusBlock`
+
+**Log layer** (permanent evidence archive): `evidenceHash` → JSON with `milestoneHash`, `evidenceType` ("github" | "deployment" | "usage" | "synthesis"), `rawData`, `kimisummary`, `timestamp`, `nodeSignature`
+
+### Hash Calculations
+
+- **Milestone hash:** `keccak256(abi.encodePacked(projectId, milestoneIndex, builderAddress, deadline))`
+- **Project hash:** `keccak256(abi.encodePacked(projectName, builderAddress, timestamp))`
+- **Evidence hash:** `keccak256(abi.encodePacked(milestoneHash, evidenceType, rawDataHash, kimisummaryHash))`
+
+## Dependencies
+
+- **0G Chain** — Deployment target (EVM-compatible)
+- **Sepolia** — FHEVM confidential contracts (Zama FHE)
+- **Foundry** — Smart contract development + testing
+- **Python 3** — Agent scripts (no external pip dependencies)
+- **Next.js 16** — Frontend
+
+## Security
+
+- Multi-sig verification (2-of-3 Hermes nodes)
+- Time-locked release mechanism
+- Evidence immutability via 0G Storage
+- Reentrancy guards on release/refund
+- KeeperHub audit trail for all onchain executions
+- Signed AXL envelopes with authorized-peer verification
+- FHE sealed ballots — individual votes encrypted forever, only final result decryptable
 
 <!-- BEGIN TESTSPRITE AGENT SECTION (testsprite agent install codex) -->
 # TestSprite Verification Loop

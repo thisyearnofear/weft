@@ -244,22 +244,74 @@ The builder keeps the story — and a portable trust record.
 
 ## 3. TestSprite S3 — CLI Launch & Loop Engineering (Jul 2026)
 
-**Active hackathon.** See [testsprite-s3-plan.md](testsprite-s3-plan.md) for the full plan.
-
 **One-line pitch:** Weft is a verification business. We used a verification loop (TestSprite CLI) to build its public audit surface — the Verifier's Ledger — so the verifier itself is verified.
 
-**What we're building during the week:**
+**What we built:**
 - `/explorer` — public registry of every milestone Weft verified
 - `/operations` — agent operations dashboard (verification log + financial ledger + consensus participation)
 - `/builder/[ens]` — builder reputation profiles from ENS text records
+- `/sponsor` — sponsor dashboard with capital flow
+- `/activity` — chronological timeline of every agent action
+- `/verifiers` — verifier network with consensus agreement rates
+- `/api/docs` — interactive API reference with 12 documented endpoints
+- `/recovery` — chaos engineering demo with fault injection
 
-**The loop:** write → TestSprite verify → fix → rerun, logged in LOOP.md, backed by commits + run history.
+**The loop:** 28 TestSprite tests across 3 project types (14 frontend, 8 backend, 12 MCP-generated). 25 iterations logged in [LOOP.md](../LOOP.md), backed by commits + TestSprite run history. The loop caught a real bug (iter 19): wei-to-ETH conversion error in the explorer API.
 
 **Links:**
 - **Live site**: https://weft.thisyearnofear.com
 - **Repo**: https://github.com/thisyearnofear/weft
-- **Plan**: [docs/testsprite-s3-plan.md](testsprite-s3-plan.md)
+- **Build log**: [LOOP.md](../LOOP.md)
 
 ---
 
-*Archived: May 2026 (entries 1-2) · Active: Jul 2026 (entry 3)*
+## 4. Hermes Agent Accelerated Business Hackathon — NVIDIA × Stripe × NousResearch (Jun 2026)
+
+**One-line pitch:** An agent-run company that earns, spends, and runs real operations.
+
+Weft is an autonomous verification business. It locks capital in smart contracts behind builder deliverables, verifies the work using a swarm of AI-powered agent nodes, and releases payment when consensus is reached. The agent earns 3% of every milestone it verifies — then uses that revenue to pay for its own infrastructure via Stripe Skills, reason about evidence using NVIDIA Nemotron 3 Ultra, and run as a self-sustaining company with open books visible on the frontend.
+
+| Field | Value |
+|---|---|
+| **Live site** | https://weft.thisyearnofear.com |
+| **Source** | https://github.com/thisyearnofear/weft |
+| **Chain** | 0G Galileo Testnet (chain ID 16602) |
+| **WeftMilestone contract** | [`0x9f66158c560ce5c8b40820fdcd2874ff8d852192`](https://explorer-testnet.0g.ai/address/0x9f66158c560ce5c8b40820fdcd2874ff8d852192) |
+| **Demo milestone** | `0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f` |
+| **ENS identity** | `weft.thisyearnofear.eth` |
+| **Treasury API** | `GET /api/treasury` — live P&L |
+
+**The Business: Earn → Spend → Run**
+
+- **Earn**: 3% of every milestone verified, swept into Stripe balance
+- **Spend**: Pays for Kimi (narratives), fal.ai (images), KeeperHub (execution) via Stripe Skills
+- **Run**: Self-healing infrastructure (RPC fallback, AXL rerouting, AI fallback, KeeperHub retry)
+
+**Sponsor integrations:**
+- **NVIDIA Nemotron 3 Ultra** — reasoning engine for verdict justifications and narratives (`LLM_BACKEND=nemotron`)
+- **Stripe Skills** — autonomous earn→spend loop (`stripe_skills_client.py`)
+- **NousResearch** — code-ready alternative LLM via pluggable backend (`LLM_BACKEND=nous`)
+
+**Demo walkthrough:** Landing page → demo milestone chip → treasury widget (live Stripe P&L) → Builder Journey narrative → /recovery (chaos engineering) → `curl /api/treasury`
+
+---
+
+## 5. Zama Developer Program Mainnet Season 3 — Builder Track (Jul 2026)
+
+**One-line pitch:** Sealed-ballot consensus between autonomous AI agents — a primitive that only exists because of Zama FHE.
+
+Two FHEVM contracts on Sepolia:
+- **v1 (FHE.add):** Boolean ballots, encrypted quorum check, no vote ever decrypted
+- **v2 (FHE.mul):** Ballot × confidence, multiplied on ciphertext, weighted consensus
+
+See [SUBMISSION.md](../SUBMISSION.md) for the full submission and [docs/submissions/zama-s3-x-thread-and-video.md](submissions/zama-s3-x-thread-and-video.md) for the X thread + video script.
+
+**Links:**
+- **Live site**: https://weft.thisyearnofear.com
+- **Repo**: https://github.com/thisyearnofear/weft
+- **v1 demo**: [weft.thisyearnofear.com/project/0xa22c…?confidential=1](https://weft.thisyearnofear.com/project/0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1)
+- **v2 demo**: [weft.thisyearnofear.com/project/0xbd5c…?weighted=1](https://weft.thisyearnofear.com/project/0xbd5c85db97cd5a8f30779da9311651e549f702b6ce72ebd03dcb816d3b071722?weighted=1)
+
+---
+
+*Archived: May 2026 (entries 1-2, 4) · Jul 2026 (entries 3, 5)*

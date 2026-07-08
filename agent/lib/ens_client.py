@@ -197,7 +197,7 @@ class EnsClient:
         earnings: int = 0,
         projects: Optional[List[str]] = None,
     ) -> str:
-        """Update co-builder agent subname records per docs/data-model.md:
+        """Update co-builder agent subname records per AGENTS.md data model:
           weft.agent.contributions, weft.agent.earnings, weft.agent.projects
         """
         updates: Dict[str, str] = {}

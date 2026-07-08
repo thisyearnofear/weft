@@ -119,12 +119,12 @@ is ever decrypted. This is FHE multiplication, not just addition.
 
 - [Zama S3 submission details](SUBMISSION.md)
 - [X thread + video script](docs/submissions/zama-s3-x-thread-and-video.md)
-- [Agent workflow](AGENTS.md) — full agent layer reference, env vars, scripts
-- [Architecture diagram](docs/architecture-diagram.svg)
+- [Technical reference](AGENTS.md) — architecture, agent layer, data model, env vars, scripts
 - [Product plan & monetization](docs/product-plan.md)
-- [Technical architecture](docs/architecture.md)
 - [MVP spec](docs/mvp.md)
 - [Hackathon archive](docs/hackathons.md) — past submission materials
+- [Build log](LOOP.md) — TestSprite verification loop
+- [Known issues & feedback](FEEDBACK.md)
 
 ## Quick start
 
