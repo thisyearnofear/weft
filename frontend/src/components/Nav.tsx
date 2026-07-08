@@ -7,16 +7,17 @@ import { Plus, ChevronDown } from "lucide-react";
 import styles from "./Nav.module.css";
 
 // Primary nav covers the two builder flows (Create / Fund) plus the
-// public read surfaces (Explorer / Activity / Confidential). The
-// developer/ops pages live in a "Developers" dropdown so they stay
-// reachable without crowding the bar.
+// public read surfaces (Explorer / Activity). The sealed-ballot / FHE
+// demos live as a section at the top of Explorer (and on the landing
+// page), so they don't need a separate nav entry. Developer/ops pages
+// live in a "Developers" dropdown so they stay reachable without
+// crowding the bar.
 const NAV_GROUPS = [
   {
     label: "Explore",
     links: [
       { href: "/explorer", label: "Explorer" },
       { href: "/activity", label: "Activity" },
-      { href: "/explorer#fhe-demos", label: "Confidential" },
     ],
   },
 ];

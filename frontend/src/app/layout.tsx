@@ -17,14 +17,28 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Weft — Escrow That Releases Itself',
+  metadataBase: new URL('https://weft.thisyearnofear.com'),
+  title: {
+    default: 'Weft — Escrow That Releases Itself',
+    template: '%s · Weft',
+  },
   description:
     'A sponsor locks ETH behind a deliverable. The builder ships. Autonomous agents verify the work onchain — and capital releases automatically. No manual reviews. No chasing. No politics.',
   keywords: ['milestone funding', 'autonomous agents', 'escrow', 'ENS', 'reputation', '0G Chain', 'builder verification'],
+  applicationName: 'Weft',
   openGraph: {
-    title: 'Weft — Escrow That Releases Itself',
-    description: 'Autonomous agents verify onchain work and release escrowed capital. No manual reviews. No chasing sponsors.',
     type: 'website',
+    url: 'https://weft.thisyearnofear.com',
+    siteName: 'Weft',
+    title: 'Weft — Escrow That Releases Itself',
+    description:
+      'Autonomous agents verify onchain work and release escrowed capital. No manual reviews. No chasing sponsors.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Weft — Escrow That Releases Itself',
+    description:
+      'Autonomous agents verify onchain work and release escrowed capital. No manual reviews. No chasing sponsors.',
   },
 };
 
