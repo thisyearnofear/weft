@@ -191,10 +191,11 @@ export default function ExplorerPage() {
             >
               <div className={styles.fheDemoIcon}><Lock size={18} /></div>
               <div className={styles.fheDemoCopy}>
-                <span className={styles.fheDemoKicker}>v1 · FHE.add</span>
-                <h3 className={styles.fheDemoTitle}>Sealed-ballot quorum</h3>
+                <span className={styles.fheDemoKicker}>v1 · Sealed ballots</span>
+                <h3 className={styles.fheDemoTitle}>Boolean quorum</h3>
                 <p className={styles.fheDemoBody}>
-                  Boolean ballots, encrypted quorum check. No vote ever decrypted.
+                  Each verifier encrypts a yes/no ballot. The contract checks quorum
+                  on encrypted votes and only reveals the final pass/fail result.
                 </p>
               </div>
               <ArrowRight size={16} className={styles.fheDemoArrow} />
@@ -206,10 +207,12 @@ export default function ExplorerPage() {
             >
               <div className={styles.fheDemoIcon}><Zap size={18} /></div>
               <div className={styles.fheDemoCopy}>
-                <span className={styles.fheDemoKicker}>v2 · FHE.mul</span>
+                <span className={styles.fheDemoKicker}>v2 · Weighted consensus</span>
                 <h3 className={styles.fheDemoTitle}>Confidence-weighted votes</h3>
                 <p className={styles.fheDemoBody}>
-                  Ballot × confidence, multiplied on ciphertext. Weighted consensus.
+                  Each verifier encrypts a ballot and a confidence score. The
+                  contract weights every vote before revealing only the weighted
+                  outcome.
                 </p>
               </div>
               <ArrowRight size={16} className={styles.fheDemoArrow} />

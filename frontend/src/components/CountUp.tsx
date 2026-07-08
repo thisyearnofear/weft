@@ -25,6 +25,11 @@ export function CountUp({
   const hasAnimated = useRef(false);
 
   useEffect(() => {
+    // Reset animation lock whenever the value changes, so a late-loaded
+    // value (e.g. explorer stats switching from 0 → 3) actually animates.
+    hasAnimated.current = false;
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
     const el = document.documentElement;
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 

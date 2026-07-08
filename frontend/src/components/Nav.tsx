@@ -15,6 +15,7 @@ const NAV_GROUPS = [
     links: [
       { href: "/explorer", label: "Explorer" },
       { href: "/activity", label: "Activity" },
+      { href: "/explorer", label: "Demos" },
     ],
   },
 ];

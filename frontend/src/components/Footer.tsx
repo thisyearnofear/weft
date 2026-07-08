@@ -14,6 +14,7 @@ const FOOTER_GROUPS = [
       { href: "/create-milestone", label: "Create a milestone" },
       { href: "/explorer", label: "Explorer" },
       { href: "/activity", label: "Activity" },
+      { href: "/explorer", label: "Demos" },
       { href: "/sponsor", label: "Fund a milestone" },
     ],
   },
