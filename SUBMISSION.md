@@ -177,8 +177,12 @@ then v1 (`?confidential=1`), then v2 (`?weighted=1`).
 **The verifiers are autonomous agents, not humans clicking buttons.** The same
 Python daemon that verifies public milestones (onchain evidence, GitHub commits,
 LLM-reasoned verdicts) detects confidential milestones and routes its verdict
-through the Zama encryption path. FHE consensus between AI agents — each agent's
-judgment stays private, only the collective outcome is revealed.
+through the Zama encryption path — for both v1 (boolean ballot via `FHE.add`)
+and v2 (weighted ballot via `FHE.mul`). For v2, the daemon computes a
+deterministic confidence score (1-100) from evidence strength and encrypts it
+alongside the ballot, so the contract multiplies ballot × confidence on
+ciphertext without ever reading either value. FHE consensus between AI agents —
+each agent's judgment stays private, only the collective outcome is revealed.
 
 See [AGENTS.md](AGENTS.md) for the full technical reference (contracts, library
 modules, data model, scripts).

@@ -62,6 +62,57 @@ ZERO_HASH = "0x" + "00" * 32
 CONSENSUS_SCHEMA_VERSION = 1
 
 
+def _compute_confidence_score(
+    *,
+    verified: bool,
+    code_hash: str,
+    unique_callers: int,
+    threshold: int,
+) -> int:
+    """Derive a deterministic confidence score (1-100) from evidence strength.
+
+    This is NOT the LLM narrative confidence — it is an auditable, reproducible
+    score based on the raw evidence signals available at vote time. Used as the
+    encrypted confidence input for v2 weighted FHE ballots (FHE.mul).
+
+    Scoring:
+    - Deployment confirmed (code exists at address): 35
+    - Unique callers meet threshold: 35 (scaled by ratio up to 2x)
+    - Margin above threshold: up to 20 (capped)
+    - Verified verdict bonus: 10
+
+    A "no" vote (verified=false) caps at 30 — the agent is confident in its
+    negative verdict, but the evidence for non-completion is inherently weaker
+    than positive evidence of completion.
+    """
+    score = 0
+
+    # Deployment: code exists at the stated address
+    if code_hash != ZERO_HASH:
+        score += 35
+
+    # Usage: unique callers relative to threshold
+    if threshold > 0:
+        ratio = unique_callers / threshold
+        if ratio >= 1.0:
+            score += 35
+            # Margin bonus: up to +20 for exceeding threshold by 2x
+            margin = min(20, int((ratio - 1.0) * 20))
+            score += margin
+        else:
+            # Partial credit for approaching threshold
+            score += int(35 * ratio)
+
+    # Verified verdict bonus
+    if verified:
+        score += 10
+
+    # Clamp to 1-100 (minimum 1 because 0 would zero out the FHE.mul product)
+    if not verified:
+        score = min(score, 30)
+    return max(1, min(100, score))
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description="Weft verifier daemon (MVP)")
     p.add_argument("--rpc-url", default=os.environ.get("ETH_RPC_URL") or os.environ.get("RPC_URL") or "")
@@ -520,8 +571,54 @@ def _process_one(
 
     # Submit onchain vote — confidential (FHE) or public (KeeperHub/cast)
     confidential_contract = os.environ.get("WEFT_MILESTONE_CONFIDENTIAL", "")
-    if confidential_contract and os.environ.get("FHE_SEPOLIA_RPC", ""):
-        # Confidential milestone: encrypt vote via Zama SDK + submit to FHE contract
+    weighted_contract = os.environ.get("WEFT_MILESTONE_CONFIDENTIAL_WEIGHTED", "")
+    fhe_rpc = os.environ.get("FHE_SEPOLIA_RPC", "")
+
+    if weighted_contract and fhe_rpc:
+        # v2: Confidence-weighted sealed ballot (FHE.mul)
+        # Confidence is deterministic, derived from evidence strength — not LLM judgment.
+        # This keeps the weighted vote auditable and reproducible.
+        from agent.lib.fhe_client import submit_encrypted_weighted_verdict, fhe_available
+        if fhe_available():
+            confidence = _compute_confidence_score(
+                verified=verified_bool,
+                code_hash=code_hash,
+                unique_callers=unique_count,
+                threshold=unique_caller_threshold,
+            )
+            log.info(
+                "submitting encrypted weighted verdict (FHE.mul)",
+                milestone=milestone_hash,
+                confidence=confidence,
+                verified=verified_bool,
+            )
+            fhe_result = submit_encrypted_weighted_verdict(
+                milestone_hash=milestone_hash,
+                did_complete=verified_bool,
+                confidence=confidence,
+                evidence_root=evidence_root,
+                rpc_url=fhe_rpc,
+                private_key=private_key,
+                contract_address=weighted_contract,
+            )
+            if fhe_result.status == "confirmed":
+                log.info(
+                    "encrypted weighted vote submitted",
+                    milestone=milestone_hash,
+                    tx=fhe_result.tx_hash,
+                    confidence=confidence,
+                )
+            else:
+                log.error(
+                    "FHE weighted vote submission failed",
+                    milestone=milestone_hash,
+                    error=fhe_result.error,
+                )
+        else:
+            log.warning("FHE helper not available, skipping weighted vote", milestone=milestone_hash)
+
+    elif confidential_contract and fhe_rpc:
+        # v1: Sealed-ballot quorum (FHE.add)
         from agent.lib.fhe_client import submit_encrypted_verdict, fhe_available
         if fhe_available():
             log.info("submitting encrypted verdict (FHE)", milestone=milestone_hash)
@@ -529,7 +626,7 @@ def _process_one(
                 milestone_hash=milestone_hash,
                 did_complete=verified_bool,
                 evidence_root=evidence_root,
-                rpc_url=os.environ["FHE_SEPOLIA_RPC"],
+                rpc_url=fhe_rpc,
                 private_key=private_key,
                 contract_address=confidential_contract,
             )

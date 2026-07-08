@@ -127,7 +127,7 @@ The single source of truth for all shared agent logic. All scripts import from h
 | `fal_client.py` | fal.ai text-to-image client for AI-woven milestone swatch + chronicle cover images (env: `FAL_KEY`) |
 | `stripe_skills_client.py` | Stripe Skills autonomous spend layer — agent pays for its own services + sweeps earned revenue (env: `STRIPE_SKILLS_KEY`) |
 | `llm_backend.py` | Pluggable LLM backend selector: Nemotron 3 Ultra (NVIDIA/NemoClaw), Kimi, NousResearch (env: `LLM_BACKEND`) |
-| `fhe_client.py` | Zama FHE sealed-ballot votes — encrypts the verdict via `scripts/fhe_encrypt_vote.mjs` and submits to `WeftMilestoneConfidential` on Sepolia (env: `WEFT_MILESTONE_CONFIDENTIAL`, `FHE_SEPOLIA_RPC`) |
+| `fhe_client.py` | Zama FHE sealed-ballot votes — encrypts the verdict via `scripts/fhe_encrypt_vote.mjs` and submits to `WeftMilestoneConfidential` on Sepolia (env: `WEFT_MILESTONE_CONFIDENTIAL`, `FHE_SEPOLIA_RPC`); also supports v2 weighted ballots via `fhe_encrypt_weighted_vote.mjs` (env: `WEFT_MILESTONE_CONFIDENTIAL_WEIGHTED`) |
 | `eth_rpc.py` | Low-level Ethereum RPC helpers |
 | `weft_topics.py` | Event topic constants for WeftMilestone |
 | `verifier_registry_reader.py` | Reads verifier list from VerifierRegistry |
@@ -162,8 +162,11 @@ mvp_verifier.build_attestation()  → attestation JSON
         ▼
 keeperhub_client.execute_verdict()  → KeeperHub (preferred)
         │   ├─ fallback: cast send submitVerdict()  (onchain vote)
-        │   └─ confidential milestones: fhe_client.submit_encrypted_verdict()
-        │        (Zama FHE sealed ballot on Sepolia — vote encrypted, never decrypted)
+        │   ├─ v1 confidential: fhe_client.submit_encrypted_verdict()
+        │   │    (Zama FHE sealed ballot — FHE.add, vote encrypted, never decrypted)
+        │   └─ v2 confidential: fhe_client.submit_encrypted_weighted_verdict()
+        │        (Zama FHE weighted ballot — FHE.mul, ballot × confidence, never decrypted)
+        │        confidence = deterministic score from evidence strength (1-100)
         │
         ▼
 indexer_client.get_milestone() reads final state
@@ -436,9 +439,10 @@ GitHub evidence is collected as additional signal but does not gate the verdict.
 The verdict is deliberately deterministic — payment decisions are made by
 auditable evidence rules, not LLM judgment. The LLM produces a narrative
 summary with a confidence score (`kimi_client.py`), which attaches to the
-attestation as context. Confidence-weighted encrypted ballots are now live
-on the v2 contract (`WeftMilestoneConfidentialWeighted` on Sepolia) using
-`FHE.mul` — see `agent/scripts/fhe_encrypt_weighted_vote.mjs`.
+attestation as context. For v2 confidential milestones, the daemon also
+computes a deterministic confidence score (1-100) from evidence strength
+(deployment + usage signals) and encrypts it alongside the ballot via
+`FHE.mul` — see `_compute_confidence_score()` in `weft_daemon.py`.
 
 ## Environment Variables
 
@@ -495,6 +499,17 @@ ZERO_G_INDEXER_RPC        # 0G storage indexer RPC
 ZERO_G_PRIVATE_KEY        # signer private key (or reuse PRIVATE_KEY)
 ZERO_G_STREAM_ID          # KV stream ID (optional)
 ```
+
+FHE Confidential milestones (optional — Zama FHEVM on Sepolia):
+```bash
+FHE_SEPOLIA_RPC                        # Sepolia RPC for FHE transactions
+WEFT_MILESTONE_CONFIDENTIAL            # v1 contract address (FHE.add sealed ballots)
+WEFT_MILESTONE_CONFIDENTIAL_WEIGHTED   # v2 contract address (FHE.mul weighted ballots)
+```
+When `WEFT_MILESTONE_CONFIDENTIAL_WEIGHTED` is set, the daemon computes a deterministic
+confidence score (1-100) from evidence strength and submits a weighted encrypted ballot
+via `FHE.mul`. When only `WEFT_MILESTONE_CONFIDENTIAL` is set, it submits a boolean
+encrypted ballot via `FHE.add`.
 
 ## Hermes Agent Setup
 
