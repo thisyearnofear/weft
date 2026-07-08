@@ -46,6 +46,112 @@
   margin: 0;
 }
 
+/* ── FHE demo section ── */
+.fheSection {
+  margin-bottom: 2.5rem;
+}
+
+.fheSectionHeader {
+  margin-bottom: 0.85rem;
+}
+
+.fheSectionKicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+.fheDemoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.fheDemoCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem;
+  border-radius: 10px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 200ms var(--ease-out), border-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+}
+
+.fheDemoCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 12px 28px -12px rgba(99, 102, 241, 0.2);
+}
+
+.fheDemoIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--c-accent);
+  flex-shrink: 0;
+}
+
+.fheDemoCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+}
+
+.fheDemoKicker {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+.fheDemoTitle {
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.fheDemoBody {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--c-text-2);
+  margin: 0;
+}
+
+.fheDemoArrow {
+  color: var(--c-accent);
+  flex-shrink: 0;
+  transition: transform 200ms var(--ease-out);
+}
+
+.fheDemoCard:hover .fheDemoArrow {
+  transform: translateX(3px);
+}
+
+/* ── Section label ── */
+.sectionLabel {
+  margin-bottom: 1rem;
+}
+
+.sectionLabelText {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
 /* ── Stats bar ── */
 .statsBar {
   display: flex;

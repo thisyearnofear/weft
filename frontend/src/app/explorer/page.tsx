@@ -2,9 +2,10 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Search, Lock, Zap, ArrowRight } from "lucide-react";
 import { useExplorerMilestones } from "@/hooks/useExplorer";
 import { CountUp } from "@/components/CountUp";
+import { track } from "@/lib/track";
 import styles from "./page.module.css";
 
 type StatusFilter = "all" | "verified" | "pending" | "failed";
@@ -83,11 +84,56 @@ export default function ExplorerPage() {
           <div className={styles.eyebrow}>
             <Search size={15} /> Verification Explorer
           </div>
-          <h1 className={styles.title}>Every milestone. Publicly auditable.</h1>
+          <h1 className={styles.title}>Onchain evidence, publicly auditable.</h1>
           <p className={styles.subtitle}>
-            Browse every milestone Weft has verified. Filter by status, search by builder or hash,
-            and inspect the onchain evidence for each verdict.
+            Browse public milestones on 0G Chain, and try the sealed-ballot demos on
+            Sepolia — verifier votes encrypted with Zama FHE, tallied homomorphically,
+            decrypted by you.
           </p>
+        </div>
+
+        {/* Sealed-ballot demos on Sepolia */}
+        <div className={styles.fheSection}>
+          <div className={styles.fheSectionHeader}>
+            <span className={styles.fheSectionKicker}>Sealed-ballot demos · Sepolia (Zama FHE)</span>
+          </div>
+          <div className={styles.fheDemoGrid}>
+            <Link
+              href="/project/0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1"
+              className={styles.fheDemoCard}
+              onClick={() => track("explorer_fhe_v1_click")}
+            >
+              <div className={styles.fheDemoIcon}><Lock size={18} /></div>
+              <div className={styles.fheDemoCopy}>
+                <span className={styles.fheDemoKicker}>v1 · FHE.add</span>
+                <h3 className={styles.fheDemoTitle}>Sealed-ballot quorum</h3>
+                <p className={styles.fheDemoBody}>
+                  Boolean ballots, encrypted quorum check. No vote ever decrypted.
+                </p>
+              </div>
+              <ArrowRight size={16} className={styles.fheDemoArrow} />
+            </Link>
+            <Link
+              href="/project/0xbd5c85db97cd5a8f30779da9311651e549f702b6ce72ebd03dcb816d3b071722?weighted=1"
+              className={styles.fheDemoCard}
+              onClick={() => track("explorer_fhe_v2_click")}
+            >
+              <div className={styles.fheDemoIcon}><Zap size={18} /></div>
+              <div className={styles.fheDemoCopy}>
+                <span className={styles.fheDemoKicker}>v2 · FHE.mul</span>
+                <h3 className={styles.fheDemoTitle}>Confidence-weighted votes</h3>
+                <p className={styles.fheDemoBody}>
+                  Ballot × confidence, multiplied on ciphertext. Weighted consensus.
+                </p>
+              </div>
+              <ArrowRight size={16} className={styles.fheDemoArrow} />
+            </Link>
+          </div>
+        </div>
+
+        {/* Public milestones on 0G */}
+        <div className={styles.sectionLabel}>
+          <span className={styles.sectionLabelText}>Public milestones · 0G Chain</span>
         </div>
 
         {/* Stats bar */}
