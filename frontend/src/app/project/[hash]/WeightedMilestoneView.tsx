@@ -6,6 +6,7 @@ import { ArrowUpRight, Bot, Lock, LockOpen, ShieldCheck, Zap } from "lucide-reac
 import { WeightedConfidentialMilestone, useDecryptWeightedResult } from "../../../hooks/useWeightedConfidentialMilestone";
 import { SealedReveal } from "../../../components/SealedReveal";
 import { VerificationReceipt } from "../../../components/VerificationReceipt";
+import { AutonomousFlow } from "../../../components/AutonomousFlow";
 import { getWeightedConfidentialAddress } from "../../../lib/contracts";
 import { resolveMilestoneMeta, shortHash } from "../../../lib/milestone-meta";
 import styles from "./page.module.css";
@@ -225,6 +226,8 @@ verified = FHE.select(FHE.and(binaryQuorum, weightedQuorum), true, verified);`}
             </pre>
           </div>
         </article>
+
+        <AutonomousFlow variant="v2" />
 
         {!isActive && <WeightedDecryptPanel m={m} />}
 

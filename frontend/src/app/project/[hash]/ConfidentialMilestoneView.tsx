@@ -8,6 +8,7 @@ import { ConfidentialMilestone, useDecryptSealedResult } from "../../../hooks/us
 import { SealedReveal } from "../../../components/SealedReveal";
 import { StakeForm } from "../../../components/StakeForm";
 import { VerificationReceipt } from "../../../components/VerificationReceipt";
+import { AutonomousFlow } from "../../../components/AutonomousFlow";
 import { getConfidentialAddress } from "../../../lib/contracts";
 import { resolveMilestoneMeta, shortHash } from "../../../lib/milestone-meta";
 import { keccak256, stringToHex } from "viem";
@@ -225,6 +226,8 @@ export function ConfidentialMilestoneView({ hash, milestone: m }: { hash: string
             <p>{evidenceRoot ? "Final proof anchor written onchain." : "Anchored when the last ballot lands."}</p>
           </article>
         </section>
+
+        <AutonomousFlow variant="v1" />
 
         <section className={styles.mainGrid}>
           <div className={styles.primaryColumn}>

@@ -1,0 +1,140 @@
+.flowPanel {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.flowHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.flowKicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-3);
+}
+
+.flowTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0.3rem 0 0;
+}
+
+.flowLede {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--c-text-secondary);
+  margin-bottom: 1.25rem;
+}
+
+.flowGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.85rem;
+}
+
+.flowStep {
+  padding: 1rem 1.1rem;
+  border-radius: 8px;
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  transition: border-color 200ms var(--ease-out);
+}
+
+.flowStep:hover {
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.flowNum {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--c-accent);
+  opacity: 0.7;
+}
+
+.flowStepTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0.25rem 0 0.35rem;
+}
+
+.flowStepBody {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--c-text-secondary);
+}
+
+.flowStepBody code {
+  font-size: 0.8em;
+  background: var(--c-surface-3);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: var(--c-text);
+}
+
+/* ── Problem / Solution split ── */
+.problemSolution {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .problemSolution {
+    grid-template-columns: 1fr;
+  }
+}
+
+.problemCard,
+.solutionCard {
+  padding: 1.1rem 1.2rem;
+  border-radius: 8px;
+  border: 1px solid var(--c-border);
+}
+
+.problemCard {
+  background: rgba(239, 68, 68, 0.04);
+  border-color: rgba(239, 68, 68, 0.15);
+}
+
+.solutionCard {
+  background: rgba(99, 102, 241, 0.06);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.psKicker {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.psKickerProblem {
+  color: rgba(239, 68, 68, 0.8);
+}
+
+.psKickerSolution {
+  color: var(--c-accent);
+}
+
+.psTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0.3rem 0 0.4rem;
+}
+
+.psBody {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--c-text-secondary);
+}
