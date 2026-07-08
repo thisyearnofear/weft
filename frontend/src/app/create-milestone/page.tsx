@@ -1,10 +1,12 @@
 import { AgentBriefWizard } from "@/components/AgentBriefWizard";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import styles from "./page.module.css";
 
 export default function CreateMilestonePage() {
   return (
     <main className={styles.main}>
       <div className={styles.shell}>
+        <Breadcrumbs items={[{ label: "Create" }]} />
         <div>
           <h1 className={styles.heading}>
             Brief the agent

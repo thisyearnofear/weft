@@ -172,16 +172,16 @@ export default function ExplorerPage() {
           </div>
           <h1 className={styles.title}>Onchain evidence, publicly auditable.</h1>
           <p className={styles.subtitle}>
-            Browse public milestones on 0G Chain, and try the sealed-ballot demos on
+            Browse public milestones on 0G Chain, and try the confidential demos on
             Sepolia — verifier votes encrypted with Zama FHE, tallied homomorphically,
             decrypted by you.
           </p>
         </div>
 
         {/* Sealed-ballot demos on Sepolia */}
-        <div className={styles.fheSection}>
+        <div className={styles.fheSection} id="fhe-demos">
           <div className={styles.fheSectionHeader}>
-            <span className={styles.fheSectionKicker}>Sealed-ballot demos · Sepolia (Zama FHE)</span>
+            <span className={styles.fheSectionKicker}>Confidential · Sepolia (Zama FHE)</span>
           </div>
           <div className={styles.fheDemoGrid}>
             <Link

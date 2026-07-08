@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
-import { ArrowLeft, Activity as ActivityIcon, Lock } from "lucide-react";
+import { Activity as ActivityIcon, Lock } from "lucide-react";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { ListSkeleton } from "@/components/KPISkeleton";
@@ -112,9 +112,7 @@ export default function ActivityPage() {
   return (
     <div className={styles.container}>
       <div className={styles.inner}>
-        <Link href="/" className={styles.backLink}>
-          <ArrowLeft size={14} /> Back to Weft
-        </Link>
+        <Breadcrumbs items={[{ label: "Activity" }]} />
 
         <div className={styles.header}>
           <div className={styles.eyebrow}>

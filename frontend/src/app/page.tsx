@@ -202,7 +202,7 @@ export default function Home() {
       <Reveal as="section" className={styles.section} delay={100}>
         <div className={styles.sectionHeader}>
           <div>
-            <span className={styles.sectionKicker}>Private verification</span>
+            <span className={styles.sectionKicker}>Confidential verification</span>
             <h2 className={styles.sectionTitle}>Encrypted votes, public result</h2>
           </div>
         </div>

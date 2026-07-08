@@ -1,0 +1,60 @@
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--c-border-2);
+  color: var(--c-text-2);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 160ms var(--ease-out), color 160ms var(--ease-out),
+    border-color 160ms var(--ease-out);
+}
+
+.back:hover {
+  background: var(--c-surface);
+  color: var(--c-text);
+  border-color: var(--c-border);
+}
+
+.crumb {
+  color: var(--c-text-2);
+  text-decoration: none;
+  padding: 0.25rem 0.4rem;
+  border-radius: var(--radius-sm);
+  transition: background 160ms var(--ease-out), color 160ms var(--ease-out);
+  white-space: nowrap;
+}
+
+.crumb:hover {
+  background: var(--c-surface);
+  color: var(--c-text);
+}
+
+.trail {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.sep {
+  color: var(--c-text-3);
+}
+
+.current {
+  color: var(--c-text);
+  font-weight: 600;
+  padding: 0.25rem 0.4rem;
+  white-space: nowrap;
+}

@@ -10,6 +10,7 @@ import { useConfidentialMilestone } from "../../../hooks/useConfidentialMileston
 import { useWeightedConfidentialMilestone } from "../../../hooks/useWeightedConfidentialMilestone";
 import { ConfidentialMilestoneView } from "./ConfidentialMilestoneView";
 import { WeightedMilestoneView } from "./WeightedMilestoneView";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
 import { useStatusMilestone } from "../../../hooks/useStatusApi";
 import { StakeForm } from "../../../components/StakeForm";
@@ -224,7 +225,7 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
       <div className={styles.container}>
         <div className={styles.shell}>
           <div className={styles.notFoundWrap}>
-            <Link href="/" className={styles.backLink}>← Back to system view</Link>
+            <Breadcrumbs items={[{ label: "Explorer", href: "/explorer" }, { label: `${hash.slice(0, 10)}…${hash.slice(-6)}` }]} />
             <div className={styles.notFoundCard}>
               <div className={styles.notFoundIcon}><AlertTriangle size={28} /></div>
               <span className={styles.notFoundKicker}>Thread not found</span>
@@ -255,9 +256,7 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
       <div className={styles.shell}>
         <section className={styles.heroCard}>
           <div className={styles.heroTop}>
-            <Link href="/" className={styles.backLink}>
-              ← Back to system view
-            </Link>
+            <Breadcrumbs items={[{ label: "Explorer", href: "/explorer" }, { label: `${hash.slice(0, 10)}…${hash.slice(-6)}` }]} />
             <StatusBadge milestone={milestone} />
           </div>
 

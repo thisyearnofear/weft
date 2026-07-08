@@ -5,6 +5,7 @@ import React from "react";
 import Link from "next/link";
 import { ArrowUpRight, Blocks, CheckCircle2, Coins, Globe, Sparkles, Users, Code2, Lock } from "lucide-react";
 import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import styles from "./page.module.css";
 
 function PassportSkeleton() {
@@ -59,7 +60,7 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
       <div className={styles.shell}>
         <section className={styles.heroCard}>
           <div className={styles.heroHeaderRow}>
-            <Link href="/" className={styles.backLink}>← Back to system view</Link>
+            <Breadcrumbs items={[{ label: "Explorer", href: "/explorer" }, { label: ens }]} />
             <div className={styles.roleBadge}>
               <Sparkles size={16} />
               Portable trust profile

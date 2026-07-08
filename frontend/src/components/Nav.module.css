@@ -26,6 +26,30 @@
   background: var(--c-accent-hover, #5558e6);
 }
 
+.navCtaSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--c-text);
+  background: transparent;
+  text-decoration: none;
+  padding: 0.33rem 0.7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border-2);
+  transition: background 200ms var(--ease-out), color 200ms var(--ease-out),
+    border-color 200ms var(--ease-out);
+  white-space: nowrap;
+  margin-right: 0.5rem;
+}
+
+.navCtaSecondary:hover {
+  background: var(--c-surface);
+  border-color: var(--c-border);
+  color: var(--c-text);
+}
+
 .navGroup {
   display: flex;
   align-items: center;
@@ -63,6 +87,65 @@
 .navLinkActive:hover {
   color: var(--c-accent);
   background: var(--c-accent-20);
+}
+
+.navDropdown {
+  position: relative;
+}
+
+.navDropdownBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--c-text-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-sm);
+  transition: background 200ms var(--ease-out), color 200ms var(--ease-out);
+  white-space: nowrap;
+}
+
+.navDropdownBtn:hover {
+  background: var(--c-surface);
+  color: var(--c-text);
+}
+
+.navDropdownChevron {
+  transition: transform 160ms var(--ease-out);
+}
+
+.navDropdownMenu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  min-width: 160px;
+  background: var(--c-surface-2, rgba(15, 15, 28, 0.98));
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+}
+
+.navDropdownItem {
+  font-size: 0.8rem;
+  color: var(--c-text-2);
+  text-decoration: none;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-sm);
+  transition: background 160ms var(--ease-out), color 160ms var(--ease-out);
+  white-space: nowrap;
+}
+
+.navDropdownItem:hover {
+  background: var(--c-surface);
+  color: var(--c-text);
 }
 
 .menuBtn {

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Lock, Users } from "lucide-react";
+import { Lock, Users } from "lucide-react";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
@@ -64,9 +65,7 @@ export default function VerifiersPage() {
   return (
     <div className={styles.container}>
       <div className={styles.inner}>
-        <Link href="/" className={styles.backLink}>
-          <ArrowLeft size={14} /> Back to Weft
-        </Link>
+        <Breadcrumbs items={[{ label: "Verifiers" }]} />
 
         <div className={styles.header}>
           <div className={styles.eyebrow}>
