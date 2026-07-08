@@ -4,11 +4,18 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { ArrowLeft, Search, Lock, Zap, ArrowRight } from "lucide-react";
 import { useExplorerMilestones } from "@/hooks/useExplorer";
+import { useConfidentialMilestone } from "@/hooks/useConfidentialMilestone";
+import { useWeightedConfidentialMilestone } from "@/hooks/useWeightedConfidentialMilestone";
 import { CountUp } from "@/components/CountUp";
 import { track } from "@/lib/track";
 import styles from "./page.module.css";
 
 type StatusFilter = "all" | "verified" | "pending" | "failed";
+
+// The two known FHE demo milestones on Sepolia. The contracts don't support
+// enumeration — we hardcode the hashes that were created and verified.
+const V1_HASH = "0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d";
+const V2_HASH = "0xbd5c85db97cd5a8f30779da9311651e549f702b6ce72ebd03dcb816d3b071722";
 
 function formatDate(ts: number): string {
   if (!ts) return "—";
@@ -29,31 +36,110 @@ function shortAddr(addr: string): string {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
+/// Unified row type — merges 0G public milestones and Sepolia FHE milestones
+/// into a single shape for the table.
+interface UnifiedRow {
+  milestoneHash: string;
+  state: "verified" | "pending" | "failed";
+  statusLabel: string;
+  builder: string;
+  builderEns: string | null;
+  stakedEth: string;
+  verifierCount: number;
+  verifiedVotes: number;
+  deadline: number;
+  finalEvidenceRoot: string;
+  chain: "0g" | "sepolia-fhe-v1" | "sepolia-fhe-v2";
+  href: string;
+}
+
 export default function ExplorerPage() {
   const { data: milestones, isLoading, error } = useExplorerMilestones();
+  const { data: v1Data } = useConfidentialMilestone(V1_HASH);
+  const { data: v2Data } = useWeightedConfidentialMilestone(V2_HASH);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Merge 0G public milestones + FHE milestones into unified rows
+  const allRows: UnifiedRow[] = useMemo(() => {
+    const rows: UnifiedRow[] = [];
+
+    // 0G public milestones
+    if (milestones) {
+      for (const m of milestones) {
+        rows.push({
+          milestoneHash: m.milestoneHash,
+          state: m.state,
+          statusLabel: m.statusLabel,
+          builder: m.builder,
+          builderEns: m.builderEns,
+          stakedEth: m.stakedEth,
+          verifierCount: m.verifierCount,
+          verifiedVotes: m.verifiedVotes,
+          deadline: m.deadline,
+          finalEvidenceRoot: m.finalEvidenceRoot,
+          chain: "0g",
+          href: `/project/${m.milestoneHash}`,
+        });
+      }
+    }
+
+    // v1 FHE milestone (FHE.add)
+    if (v1Data) {
+      rows.push({
+        milestoneHash: V1_HASH,
+        state: v1Data.resultVerified ? "verified" : v1Data.finalized ? "failed" : "pending",
+        statusLabel: v1Data.resultVerified ? "Sealed ✓ Verified" : v1Data.finalized ? "Sealed ✗" : "Sealed ○",
+        builder: v1Data.builder,
+        builderEns: "weft.thisyearnofear.eth",
+        stakedEth: (Number(v1Data.totalStaked) / 1e18).toFixed(4),
+        verifierCount: v1Data.verifierCount,
+        verifiedVotes: v1Data.finalized ? v1Data.verifierCount : 0, // sealed — count is known but votes aren't
+        deadline: Number(v1Data.deadline),
+        finalEvidenceRoot: v1Data.finalEvidenceRoot,
+        chain: "sepolia-fhe-v1",
+        href: `/project/${V1_HASH}?confidential=1`,
+      });
+    }
+
+    // v2 FHE milestone (FHE.mul)
+    if (v2Data) {
+      rows.push({
+        milestoneHash: V2_HASH,
+        state: v2Data.resultVerified ? "verified" : v2Data.finalized ? "failed" : "pending",
+        statusLabel: v2Data.resultVerified ? "Weighted ✓ Verified" : v2Data.finalized ? "Weighted ✗" : "Weighted ○",
+        builder: v2Data.builder,
+        builderEns: "weft.thisyearnofear.eth",
+        stakedEth: (Number(v2Data.totalStaked) / 1e18).toFixed(4),
+        verifierCount: v2Data.verifierCount,
+        verifiedVotes: v2Data.finalized ? v2Data.verifierCount : 0,
+        deadline: Number(v2Data.deadline),
+        finalEvidenceRoot: v2Data.finalEvidenceRoot,
+        chain: "sepolia-fhe-v2",
+        href: `/project/${V2_HASH}?weighted=1`,
+      });
+    }
+
+    return rows;
+  }, [milestones, v1Data, v2Data]);
+
   const filtered = useMemo(() => {
-    if (!milestones) return [];
-    return milestones.filter((m) => {
+    return allRows.filter((m) => {
       if (statusFilter !== "all" && m.state !== statusFilter) return false;
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         const matches =
           m.milestoneHash.toLowerCase().includes(q) ||
           m.builder.toLowerCase().includes(q) ||
-          (m.builderEns?.toLowerCase().includes(q) ?? false) ||
-          m.projectId.toLowerCase().includes(q);
+          (m.builderEns?.toLowerCase().includes(q) ?? false);
         if (!matches) return false;
       }
       return true;
     });
-  }, [milestones, statusFilter, searchQuery]);
+  }, [allRows, statusFilter, searchQuery]);
 
   const stats = useMemo(() => {
-    if (!milestones) return { total: 0, verified: 0, pending: 0, failed: 0, totalStaked: 0 };
-    return milestones.reduce(
+    return allRows.reduce(
       (acc, m) => {
         acc.total++;
         if (m.state === "verified") acc.verified++;
@@ -64,7 +150,7 @@ export default function ExplorerPage() {
       },
       { total: 0, verified: 0, pending: 0, failed: 0, totalStaked: 0 }
     );
-  }, [milestones]);
+  }, [allRows]);
 
   const filterBtns: { key: StatusFilter; label: string; count: number }[] = [
     { key: "all", label: "All", count: stats.total },
@@ -99,7 +185,7 @@ export default function ExplorerPage() {
           </div>
           <div className={styles.fheDemoGrid}>
             <Link
-              href="/project/0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1"
+              href={`/project/${V1_HASH}?confidential=1`}
               className={styles.fheDemoCard}
               onClick={() => track("explorer_fhe_v1_click")}
             >
@@ -114,7 +200,7 @@ export default function ExplorerPage() {
               <ArrowRight size={16} className={styles.fheDemoArrow} />
             </Link>
             <Link
-              href="/project/0xbd5c85db97cd5a8f30779da9311651e549f702b6ce72ebd03dcb816d3b071722?weighted=1"
+              href={`/project/${V2_HASH}?weighted=1`}
               className={styles.fheDemoCard}
               onClick={() => track("explorer_fhe_v2_click")}
             >
@@ -131,9 +217,9 @@ export default function ExplorerPage() {
           </div>
         </div>
 
-        {/* Public milestones on 0G */}
+        {/* All milestones — unified table */}
         <div className={styles.sectionLabel}>
-          <span className={styles.sectionLabelText}>Public milestones · 0G Chain</span>
+          <span className={styles.sectionLabelText}>All milestones · 0G Chain + Sepolia FHE</span>
         </div>
 
         {/* Stats bar */}
@@ -194,7 +280,7 @@ export default function ExplorerPage() {
             <div className={styles.emptyState}>
               <h3>No milestones found</h3>
               <p>
-                {milestones && milestones.length > 0
+                {allRows.length > 0
                   ? "Try adjusting your filters or search query."
                   : "No milestones have been recorded yet."}
               </p>
@@ -219,12 +305,17 @@ export default function ExplorerPage() {
                   <tr key={m.milestoneHash} className={`${styles.tableRow} stagger stagger-${Math.min(i + 1, 6)}`}>
                     <td>
                       <Link
-                        href={`/project/${m.milestoneHash}`}
+                        href={m.href}
                         className={styles.hashCell}
                         title={m.milestoneHash}
                       >
                         {shortHash(m.milestoneHash)}
                       </Link>
+                      {m.chain !== "0g" && (
+                        <span className={`${styles.chainBadge} ${m.chain === "sepolia-fhe-v2" ? styles.chainWeighted : ""}`}>
+                          {m.chain === "sepolia-fhe-v1" ? <><Lock size={10} /> FHE</> : <><Zap size={10} /> FHE.mul</>}
+                        </span>
+                      )}
                     </td>
                     <td>
                       <span
@@ -257,7 +348,13 @@ export default function ExplorerPage() {
                     </td>
                     <td className={styles.stakeCell}>{m.stakedEth} ETH</td>
                     <td className={styles.voteCell}>
-                      {m.verifiedVotes}/{m.verifierCount}
+                      {m.chain === "0g" ? (
+                        <>{m.verifiedVotes}/{m.verifierCount}</>
+                      ) : (
+                        <span className={styles.sealedVotes} title="Votes are encrypted — only the count is known">
+                          {m.verifiedVotes}/{m.verifierCount} sealed
+                        </span>
+                      )}
                     </td>
                     <td className={styles.dateCell}>{formatDate(m.deadline)}</td>
                     <td>
@@ -265,7 +362,7 @@ export default function ExplorerPage() {
                       m.finalEvidenceRoot !==
                         "0x0000000000000000000000000000000000000000000000000000000000000000" ? (
                         <Link
-                          href={`/project/${m.milestoneHash}`}
+                          href={m.href}
                           className={styles.hashCell}
                           title={m.finalEvidenceRoot}
                         >

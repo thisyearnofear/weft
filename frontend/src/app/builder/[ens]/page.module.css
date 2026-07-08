@@ -226,6 +226,14 @@
   margin-bottom: 0.45rem;
 }
 
+.metricHighlight {
+  border-color: rgba(99, 102, 241, 0.25);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.04), transparent);
+}
+.metricHighlight .metricLabel {
+  color: var(--c-accent);
+}
+
 .mainGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);

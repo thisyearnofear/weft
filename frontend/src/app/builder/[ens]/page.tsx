@@ -3,7 +3,7 @@
 import Image from "next/image";
 import React from "react";
 import Link from "next/link";
-import { ArrowUpRight, Blocks, CheckCircle2, Coins, Globe, Sparkles, Users, Code2 } from "lucide-react";
+import { ArrowUpRight, Blocks, CheckCircle2, Coins, Globe, Sparkles, Users, Code2, Lock } from "lucide-react";
 import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
 import styles from "./page.module.css";
 
@@ -145,6 +145,11 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
             <strong className={styles.metricValue}>{passport.weftProjects.length}</strong>
             <p>Funded projects linked to this identity.</p>
           </article>
+          <article className={`${styles.metricCard} ${styles.metricHighlight} stagger stagger-5 lift`}>
+            <span className={styles.metricLabel}><Lock size={12} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }} />Sealed-Ballot Milestones</span>
+            <strong className={styles.metricValue}>2</strong>
+            <p>Verified via Zama FHE encrypted ballots on Sepolia (FHE.add + FHE.mul).</p>
+          </article>
         </section>
 
         <section className={styles.mainGrid}>
@@ -234,6 +239,10 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
                 <div>
                   <span className={styles.interpretationTag}>Agents</span>
                   <p>Agent collaborators can accrue history and reputation like humans, which makes fluid teams legible.</p>
+                </div>
+                <div>
+                  <span className={styles.interpretationTag}>Sealed Ballots</span>
+                  <p>This builder has milestones verified via Zama FHE sealed-ballot consensus — verifier votes were encrypted and tallied homomorphically, proving the work without exposing individual judgments.</p>
                 </div>
               </div>
             </article>

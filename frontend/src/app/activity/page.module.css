@@ -47,6 +47,7 @@
 .eventChaos::before { background: var(--c-pending); }
 .eventDeadline::before { background: var(--c-accent); }
 .eventConsensus::before { background: #8b5cf6; }
+.eventFhe::before { background: #6366f1; }
 
 .eventHeader {
   display: flex; justify-content: space-between; align-items: baseline;
@@ -66,6 +67,7 @@
 .typeChaos { background: var(--c-pending-20); color: var(--c-pending); }
 .typeDeadline { background: var(--c-accent-20); color: var(--c-accent); }
 .typeConsensus { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+.typeFhe { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
 
 /* ── Filter chips ── */
 .filterChips {

@@ -7,7 +7,8 @@ export type ActivityEventType =
   | "revenue"
   | "consensus"
   | "deadline"
-  | "chaos";
+  | "chaos"
+  | "fhe";
 
 export interface ActivityEvent {
   timestamp: number;

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Coins, Plus, Bot } from "lucide-react";
+import { ArrowLeft, ArrowRight, Coins, Plus, Bot, Lock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
@@ -115,6 +115,22 @@ export default function SponsorDashboardPage() {
             </span>
           </div>
         </div>
+
+        {/* Sealed-ballot callout — the FHE value prop for sponsors */}
+        <Link href="/create-milestone" className={styles.sealedCallout}>
+          <div className={styles.sealedCalloutIcon}><Lock size={18} /></div>
+          <div className={styles.sealedCalloutBody}>
+            <span className={styles.sealedCalloutKicker}>Confidential mode · Zama FHE on Sepolia</span>
+            <p className={styles.sealedCalloutText}>
+              Fund milestones with <strong>sealed-ballot verification</strong> — verifier
+              agents encrypt their votes, the contract tallies homomorphically, and no
+              individual vote is ever visible. Eliminates verifier herding: late voters
+              can&apos;t copy early ones. Only the final result is decryptable, and only
+              after all ballots are cast.
+            </p>
+          </div>
+          <ArrowRight size={16} className={styles.sealedCalloutArrow} />
+        </Link>
 
         {isLoading && (
           <>

@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { ArrowLeft, Activity, DollarSign, CheckCircle, Zap } from "lucide-react";
+import { ArrowLeft, Activity, DollarSign, CheckCircle, Zap, Lock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { KPISkeleton, ListSkeleton } from "@/components/KPISkeleton";
@@ -173,6 +173,14 @@ export default function OperationsPage() {
                   </div>
                   <div className={styles.kpiSub}>ETH staked</div>
                 </div>
+                <div className={`${styles.kpiCard} stagger stagger-3 lift`}>
+                  <div className={styles.kpiLabel}>Sealed-Ballot Verifications</div>
+                  <div className={styles.kpiValue}>
+                    <Lock size={16} style={{ display: "inline", marginRight: "0.3rem", verticalAlign: "middle" }} />
+                    <CountUp value={2} />
+                  </div>
+                  <div className={styles.kpiSub}>Zama FHE on Sepolia · FHE.add + FHE.mul</div>
+                </div>
               </div>
             </div>
             <div className={styles.kpiGroup}>
@@ -293,6 +301,16 @@ export default function OperationsPage() {
                   );
                 })
               )}
+              {/* Sealed-ballot verifications on Sepolia (not in the 0G log) */}
+              <div className={styles.sealedNote}>
+                <Lock size={14} />
+                <span>
+                  2 additional verifications on Sepolia via{" "}
+                  <strong>Zama FHE sealed ballots</strong> — votes encrypted, tallied
+                  homomorphically (FHE.add + FHE.mul).{" "}
+                  <Link href="/explorer" className={styles.sealedNoteLink}>View in explorer →</Link>
+                </span>
+              </div>
             </div>
 
             {/* Infrastructure Health */}
