@@ -98,22 +98,24 @@ export function HowItWorks() {
                 <div className={styles.stepActor}>{step.actor}</div>
               </div>
               {i < STEPS.length - 1 && (
-                <div className={styles.connector} aria-hidden="true">
-                  <svg viewBox="0 0 40 12" fill="none" className={styles.connectorSvg}>
+                <div className={styles.connector} aria-hidden="true" data-done={isDone}>
+                  <svg viewBox="0 0 48 12" fill="none" className={styles.connectorSvg}>
                     <line
-                      x1="0" y1="6" x2="36" y2="6"
+                      x1="0" y1="6" x2="40" y2="6"
                       stroke="var(--c-accent)"
                       strokeWidth="2"
-                      strokeDasharray="4 3"
-                      opacity={isDone ? "0.6" : "0.2"}
+                      strokeLinecap="round"
+                      opacity={isDone ? "0.5" : "0.18"}
                       className={styles.connectorLine}
                     />
                     <path
-                      d="M32 2 L38 6 L32 10"
+                      d="M36 2 L44 6 L36 10"
                       stroke="var(--c-accent)"
                       strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                       fill="none"
-                      opacity={isDone ? "0.7" : "0.3"}
+                      opacity={isDone ? "0.8" : "0.35"}
                     />
                   </svg>
                 </div>

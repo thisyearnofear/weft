@@ -18,7 +18,6 @@
 /* De-carded: surfaces are embedded/stitched, not floating.
    Matches the landing page treatment. */
 .heroCard,
-.metricCard,
 .panel,
 .skeletonPanel,
 .skeletonCard {
@@ -251,41 +250,70 @@
 
 .executionCard p,
 .panelText,
-.integrationList p,
-.metricCard p {
+.integrationList p {
   color: var(--c-text-secondary);
   line-height: 1.7;
 }
 
-.executionBullets {
+.verdictFacts {
   display: grid;
-  gap: 0.8rem;
-  margin-top: 1.25rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.1rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--c-border);
 }
 
-.executionBullets > div {
+.verdictFacts > div {
   display: flex;
-  align-items: flex-start;
-  gap: 0.7rem;
-  padding: 0.85rem 0.95rem;
-  border-radius: var(--radius-md);
-  background: var(--c-surface-2);
-  border: 1px solid var(--c-border);
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
-.metricGrid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
+.verdictFactLabel {
+  font-size: 0.7rem;
+  color: var(--c-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
 }
 
-.metricCard,
+.verdictFactValue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.verdictFactValueMono {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--c-text-2);
+  word-break: break-all;
+}
+
+.verdictAction {
+  margin-top: 1.1rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--c-border);
+}
+
+.verdictReleased {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.1rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--c-border);
+  color: var(--c-verified);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .panel,
 .skeletonCard {
   padding: 1.2rem;
 }
 
-.metricLabel,
 .identityLabel,
 .codeLabel {
   display: block;
@@ -294,24 +322,6 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-bottom: 0.55rem;
-}
-
-.metricValue,
-.metricValueSmall {
-  display: block;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.metricValue {
-  font-size: 1.45rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.metricValueSmall {
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
-  word-break: break-word;
 }
 
 .mainGrid {
@@ -764,7 +774,6 @@
     grid-template-columns: 1fr;
   }
 
-  .metricGrid,
   .skeletonGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -881,7 +890,6 @@
     align-items: flex-start;
   }
 
-  .metricGrid,
   .identityStats,
   .skeletonGrid {
     grid-template-columns: 1fr;

@@ -565,8 +565,7 @@
   }
 
   .heroPanel {
-    order: -1; /* visual above copy on tablet */
-    max-width: 300px;
+    max-width: 380px;
     margin: 0 auto;
     /* Drop the shared vertical thread when stacked — it would read
        as a stray line above the proof, not as a panel split. */

@@ -19,7 +19,8 @@
 /* De-carded: no border, no shadow, no background. Steps read as
    acts in a narrative, not as floating cards. The connecting line
    between steps IS the weave thread.
-   Scroll-driven: steps activate as they enter the viewport center. */
+   Scroll-driven: the active step lifts slightly; all steps stay fully
+   readable so the narrative is never interrupted. */
 .stepCard {
   flex: 1;
   display: flex;
@@ -27,12 +28,6 @@
   gap: 0.5rem;
   padding: 1.25rem 1.25rem;
   transition: transform 0.3s var(--ease-out), opacity 0.3s var(--ease-out);
-  opacity: 0.4;
-}
-
-.stepCard[data-active="true"],
-.stepCard[data-done="true"] {
-  opacity: 1;
 }
 
 .stepCard[data-active="true"] {
@@ -41,7 +36,6 @@
 
 .stepCard:hover {
   transform: translateY(-2px);
-  opacity: 1;
 }
 
 .stepIconWrap {
@@ -113,19 +107,19 @@
   margin-top: auto;
 }
 
-/* The connector is the weft thread between steps — a dashed line
+/* The connector is the weft thread between steps — a continuous line
    with an arrow, not a card border. */
 .connector {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
+  width: 56px;
   flex-shrink: 0;
 }
 
 .connectorSvg {
-  width: 40px;
-  height: 12px;
+  width: 56px;
+  height: 14px;
 }
 
 /* ── Responsive ── */
@@ -142,7 +136,12 @@
 
   .connector {
     width: 100%;
-    height: 24px;
+    height: 36px;
     transform: rotate(90deg);
+  }
+
+  .connectorSvg {
+    width: 36px;
+    height: 14px;
   }
 }

@@ -11,8 +11,6 @@ import { AskWeft } from "@/components/AskWeft";
 import { HeroProof } from "@/components/HeroProof";
 import { Reveal } from "@/components/Reveal";
 import { HowItWorks } from "@/components/HowItWorks";
-import { TileFlip } from "@/components/TileFlip";
-import { BlockReveal } from "@/components/BlockReveal";
 import { SVGPathMarquee } from "@/components/SVGPathMarquee";
 import { InteractiveDemo } from "@/components/InteractiveDemo";
 import { ScrollWeave } from "@/components/ScrollWeave";
@@ -110,7 +108,6 @@ export default function Home() {
           HERO — What is Weft?
           ════════════════════════════════════════════════════════════════ */}
       <section className={styles.hero}>
-        <TileFlip />
         <div className={styles.heroBackdrop} aria-hidden="true">
           <HeroLoom />
         </div>
@@ -205,14 +202,14 @@ export default function Home() {
       <Reveal as="section" className={styles.section} delay={100}>
         <div className={styles.sectionHeader}>
           <div>
-            <span className={styles.sectionKicker}>Zama FHE · Sealed-ballot consensus</span>
-            <h2 className={styles.sectionTitle}>Try the encrypted demos</h2>
+            <span className={styles.sectionKicker}>Private verification</span>
+            <h2 className={styles.sectionTitle}>Encrypted votes, public result</h2>
           </div>
         </div>
         <p className={`${styles.sectionText} ${styles.sectionLede}`}>
-          Verifier agents encrypt their votes client-side. The contract tallies
-          homomorphically on Sepolia — no vote is ever decrypted. Click through
-          to decrypt the final result yourself.
+          Verifier votes stay private until the final verdict. Two live demos show
+          how consensus can be reached without exposing individual votes — then
+          let you decrypt the result yourself.
         </p>
         <div className={styles.fheDemoGrid}>
           <Link
@@ -221,12 +218,11 @@ export default function Home() {
             onClick={() => track("fhe_demo_v1_click")}
           >
             <div className={styles.fheDemoIcon}><Lock size={20} /></div>
-            <span className={styles.fheDemoKicker}>v1 · Addition-class FHE</span>
-            <h3 className={styles.fheDemoTitle}>Sealed-ballot quorum</h3>
+            <span className={styles.fheDemoKicker}>v1 · Sealed ballots</span>
+            <h3 className={styles.fheDemoTitle}>Boolean quorum</h3>
             <p className={styles.fheDemoBody}>
-              Each verifier encrypts a boolean ballot. The contract uses{" "}
-              <code>FHE.add</code>, <code>FHE.ge</code>, <code>FHE.select</code> —
-              quorum checked on ciphertext, no vote ever decrypted.
+              Each verifier encrypts a yes/no ballot. The contract checks quorum
+              on encrypted votes and only reveals the final pass/fail result.
             </p>
             <span className={styles.fheDemoLink}>
               Open &amp; decrypt <ArrowRight size={14} />
@@ -238,12 +234,12 @@ export default function Home() {
             onClick={() => track("fhe_demo_v2_click")}
           >
             <div className={styles.fheDemoIcon}><Zap size={20} /></div>
-            <span className={styles.fheDemoKicker}>v2 · Multiplication-class FHE</span>
+            <span className={styles.fheDemoKicker}>v2 · Weighted consensus</span>
             <h3 className={styles.fheDemoTitle}>Confidence-weighted votes</h3>
             <p className={styles.fheDemoBody}>
-              Each verifier encrypts a ballot <em>and</em> a confidence score.
-              The contract uses <code>FHE.mul</code> to multiply them on
-              ciphertext — weighted consensus without decrypting anything.
+              Each verifier encrypts a ballot and a confidence score. The
+              contract weights every vote before revealing only the weighted
+              outcome.
             </p>
             <span className={styles.fheDemoLink}>
               Open &amp; decrypt <ArrowRight size={14} />
@@ -257,7 +253,7 @@ export default function Home() {
           The hero animation already explains the mechanic; this section's
           only job is to prove it's real.
           ════════════════════════════════════════════════════════════════ */}
-      <BlockReveal as="section" className={styles.demoSection} delay={100}>
+      <Reveal as="section" className={styles.demoSection} delay={100}>
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>Live demo</span>
@@ -281,7 +277,7 @@ export default function Home() {
           </button>
           {showChat && <AskWeft />}
         </div>
-      </BlockReveal>
+      </Reveal>
 
       {/* ════════════════════════════════════════════════════════════════
           LIVE MILESTONES + CTA

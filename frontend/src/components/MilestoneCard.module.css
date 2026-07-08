@@ -269,12 +269,8 @@
   font-weight: 600;
   color: var(--c-accent);
   white-space: nowrap;
-  opacity: 0;
-  transition: opacity var(--transition-base);
-}
-
-.card:hover .storyCta {
   opacity: 1;
+  transition: opacity var(--transition-base);
 }
 
 /* Skeleton styles */

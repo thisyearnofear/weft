@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowUpRight, Blocks, BookOpen, CheckCircle2, Clock3, Coins, Database, Network, ShieldCheck, XCircle, Wallet, AlertTriangle, Loader2, Bot } from "lucide-react";
+import { ArrowUpRight, BookOpen, CheckCircle2, Clock3, Coins, Database, ShieldCheck, XCircle, Wallet, AlertTriangle, Loader2, Bot } from "lucide-react";
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
 import { useMilestone } from "../../../hooks/useMilestones";
 import { useConfidentialMilestone } from "../../../hooks/useConfidentialMilestone";
@@ -203,11 +203,9 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
       : isUnfunded
         ? "No capital is staked yet — verification runs regardless, and sponsors can stake until the deadline."
         : "Capital is still locked because the system is not yet confident enough.";
-  const evidenceStatus = evidenceRoot ? "Evidence root recorded onchain." : "Awaiting final evidence root publication.";
   const demo = statusMilestone?.demo;
   const peerGroup = demo?.tracks.gensyn.bestPeerGroup;
   const keeperhub = demo?.tracks.keeperhub;
-  const metadataRoot = demo?.tracks["0g"].metadataRoot;
   const fal = demo?.tracks.fal;
   const falImageUrl = fal?.available ? (fal.falImageUrl || fal.falCoverUrl || null) : null;
 
@@ -314,24 +312,46 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
             <div className={styles.executionCard}>
               <div className={styles.executionHeader}>
                 <ShieldCheck size={18} />
-                <span>Capital release readiness</span>
+                <span>Verdict</span>
               </div>
               <h2>{isVerified ? "Trust threshold cleared" : milestone.finalized ? "Trust threshold not met" : "Trust still being established"}</h2>
               <p>{payoutStatus}</p>
-              <div className={styles.executionBullets}>
+
+              <div className={styles.verdictFacts}>
                 <div>
-                  <Database size={16} />
-                  <span>{metadataRoot ? `0G metadata root: ${metadataRoot.slice(0, 12)}...${metadataRoot.slice(-8)}` : evidenceStatus}</span>
+                  <span className={styles.verdictFactLabel}>Capital at stake</span>
+                  <span className={styles.verdictFactValue}>{stakedEth} ETH</span>
                 </div>
                 <div>
-                  <Network size={16} />
-                  <span>{peerGroup ? `${peerGroup.peerCount} corroborating peers aligned on this outcome` : `${milestone.verifiedVotes}/${milestone.verifierCount} verifier votes recorded so far`}</span>
+                  <span className={styles.verdictFactLabel}>Builder</span>
+                  <span className={styles.verdictFactValue}>{builderName}</span>
                 </div>
                 <div>
-                  <Blocks size={16} />
-                  <span>{keeperhub?.configured ? `Reliable KeeperHub execution is available once the decision is final.` : "Fallback execution path remains available if KeeperHub is not configured."}</span>
+                  <span className={styles.verdictFactLabel}>Verifier confidence</span>
+                  <span className={styles.verdictFactValue}>{milestone.verifiedVotes}/{milestone.verifierCount}</span>
+                </div>
+                <div>
+                  <span className={styles.verdictFactLabel}>Evidence root</span>
+                  <span className={styles.verdictFactValueMono}>{evidenceRoot ? `${evidenceRoot.slice(0, 10)}…${evidenceRoot.slice(-8)}` : "Pending"}</span>
                 </div>
               </div>
+
+              {!milestone.released && !isUnfunded && addresses.weftMilestone && (
+                <div className={styles.verdictAction}>
+                  <ReleaseButton
+                    milestoneHash={milestoneHash}
+                    contractAddress={addresses.weftMilestone}
+                    milestone={milestone}
+                    demoMode={demoMode}
+                  />
+                </div>
+              )}
+              {milestone.released && (
+                <div className={styles.verdictReleased}>
+                  <CheckCircle2 size={16} />
+                  <span>Capital has been distributed.</span>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -346,35 +366,6 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
             verifierCount={milestone.verifierCount}
           />
         )}
-
-        <section className={styles.metricGrid}>
-          <article className={styles.metricCard}>
-            <span className={styles.metricLabel}>Capital at stake</span>
-            <strong className={styles.metricValue}>{stakedEth} ETH</strong>
-            <p>
-              {isUnfunded
-                ? "Reputation-only run. Verification proceeds without stake — sponsors can back it until the deadline."
-                : "Escrowed until the system is confident enough to release or refund."}
-            </p>
-          </article>
-          <article className={styles.metricCard}>
-            <span className={styles.metricLabel}>Verifier confidence</span>
-            <strong className={styles.metricValue}>{milestone.verifiedVotes}/{milestone.verifierCount}</strong>
-            <p>{verificationProgress}% of the current quorum has been satisfied.</p>
-          </article>
-          {peerGroup && (
-            <article className={styles.metricCard}>
-              <span className={styles.metricLabel}>Peer corroboration</span>
-              <strong className={styles.metricValue}>{peerGroup.peerCount}</strong>
-              <p>Peer consensus is visible for this funding decision.</p>
-            </article>
-          )}
-          <article className={styles.metricCard}>
-            <span className={styles.metricLabel}>Evidence root</span>
-            <strong className={styles.metricValueSmall}>{evidenceRoot ? `${evidenceRoot.slice(0, 12)}...${evidenceRoot.slice(-8)}` : "Pending"}</strong>
-            <p>{evidenceRoot ? "Final proof anchor has been written onchain." : "Root will appear after finalization."}</p>
-          </article>
-        </section>
 
         {falImageUrl && (
           <section className={styles.falSwatchSection} aria-label="AI-woven milestone swatch">
@@ -549,53 +540,6 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
                     : "Add capital to the milestone while it is still active. Funds remain governed by Weft's trust loop until the final outcome is known."}
                 </p>
                 <StakeForm milestoneHash={milestoneHash} contractAddress={addresses.weftMilestone} />
-              </article>
-            )}
-
-            {!isActive && addresses.weftMilestone && (
-              <article className={styles.panel}>
-                <div className={styles.panelHeader}>
-                  <div>
-                    <span className={styles.kicker}>Settlement</span>
-                    <h3>
-                      {milestone.verified
-                        ? isUnfunded ? "Proof minted" : "Release capital"
-                        : isUnfunded ? "Nothing to refund" : "Refund path"}
-                    </h3>
-                  </div>
-                  {milestone.verified ? <Wallet size={18} /> : <AlertTriangle size={18} />}
-                </div>
-                <p className={styles.panelText}>
-                  {milestone.verified
-                    ? isUnfunded
-                      ? "This milestone verified with zero stake. There is no capital to move — the verified proof is already minted to the builder's reputation."
-                      : "This milestone verified successfully. The escrowed capital can now be released to the builder."
-                    : isUnfunded
-                      ? "This milestone did not verify. No capital was staked, so nothing needs to be refunded."
-                      : "This milestone did not verify. Sponsors can reclaim their staked capital through the refund path."}
-                </p>
-                {milestone.released && (
-                  <div className={styles.codeBlock}>
-                    <span className={styles.codeLabel}>Already released</span>
-                    <p className={styles.releasedNote}>Capital has been distributed.</p>
-                  </div>
-                )}
-                {!milestone.released && !isUnfunded && (
-                  <ReleaseButton
-                    milestoneHash={milestoneHash}
-                    contractAddress={addresses.weftMilestone}
-                    milestone={milestone}
-                    demoMode={demoMode}
-                  />
-                )}
-                {milestone.released && demoMode && (
-                  <ReleaseButton
-                    milestoneHash={milestoneHash}
-                    contractAddress={addresses.weftMilestone}
-                    milestone={{ ...milestone, released: false }}
-                    demoMode={true}
-                  />
-                )}
               </article>
             )}
 

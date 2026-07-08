@@ -181,6 +181,7 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
         <AgentMessage>
           Connect your wallet to start briefing me on what you&apos;ll ship.
         </AgentMessage>
+        <WizardPreview />
       </div>
     );
   }
@@ -466,6 +467,36 @@ function AgentMessage({ children }: { children: React.ReactNode }) {
     <div className={styles.agentMessage}>
       <AgentAvatar />
       <div className={styles.agentText}>{children}</div>
+    </div>
+  );
+}
+
+const PREVIEW_STEPS = [
+  { icon: Bot, label: "What you'll ship", desc: "Name + description" },
+  { icon: Clock, label: "Deadline", desc: "Choose a verification date" },
+  { icon: Shield, label: "Privacy mode", desc: "Public or encrypted votes" },
+  { icon: Check, label: "Review & create", desc: "Agent starts watching" },
+];
+
+function WizardPreview() {
+  return (
+    <div className={styles.preview}>
+      <span className={styles.previewLabel}>What happens next</span>
+      <div className={styles.previewSteps}>
+        {PREVIEW_STEPS.map((s, i) => {
+          const Icon = s.icon;
+          return (
+            <div key={s.label} className={styles.previewStep}>
+              <span className={styles.previewNumber}>{i + 1}</span>
+              <span className={styles.previewIcon}><Icon size={16} /></span>
+              <div>
+                <span className={styles.previewStepLabel}>{s.label}</span>
+                <span className={styles.previewStepDesc}>{s.desc}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
