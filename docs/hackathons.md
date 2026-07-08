@@ -256,12 +256,12 @@ The builder keeps the story — and a portable trust record.
 - `/api/docs` — interactive API reference with 12 documented endpoints
 - `/recovery` — chaos engineering demo with fault injection
 
-**The loop:** 28 TestSprite tests across 3 project types (14 frontend, 8 backend, 12 MCP-generated). 25 iterations logged in [LOOP.md](../LOOP.md), backed by commits + TestSprite run history. The loop caught a real bug (iter 19): wei-to-ETH conversion error in the explorer API.
+**The loop:** 28 TestSprite tests across 3 project types (14 frontend, 8 backend, 12 MCP-generated). 25 iterations logged in [loop.md](loop.md), backed by commits + TestSprite run history. The loop caught a real bug (iter 19): wei-to-ETH conversion error in the explorer API.
 
 **Links:**
 - **Live site**: https://weft.thisyearnofear.com
 - **Repo**: https://github.com/thisyearnofear/weft
-- **Build log**: [LOOP.md](../LOOP.md)
+- **Build log**: [loop.md](loop.md)
 
 ---
 

@@ -123,8 +123,8 @@ is ever decrypted. This is FHE multiplication, not just addition.
 - [Product plan & monetization](docs/product-plan.md)
 - [MVP spec](docs/mvp.md)
 - [Hackathon archive](docs/hackathons.md) — past submission materials
-- [Build log](LOOP.md) — TestSprite verification loop
-- [Known issues & feedback](FEEDBACK.md)
+- [Build log](docs/loop.md) — TestSprite verification loop
+- [Known issues & feedback](docs/feedback.md)
 
 ## Quick start
 
