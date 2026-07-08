@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Activity as ActivityIcon, Lock } from "lucide-react";
+import { Activity as ActivityIcon } from "lucide-react";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
@@ -122,6 +122,11 @@ export default function ActivityPage() {
           <p className={styles.subtitle}>
             A chronological feed of everything the Weft agent has done — verifications submitted,
             infrastructure paid for, revenue earned, and milestones created.
+          </p>
+          <p className={styles.feedNote}>
+            The sealed-ballot (FHE) entries are reference milestones on deployed Zama FHEVM
+            contracts — the encrypted votes are real onchain ciphertext, surfaced here so you can
+            see the full confidential-verification story.
           </p>
           <div style={{ marginTop: "1rem" }}>
             <RefreshButton onClick={() => refetch()} isFetching={isFetching} />

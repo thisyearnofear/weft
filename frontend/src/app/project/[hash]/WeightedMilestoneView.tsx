@@ -7,6 +7,7 @@ import { WeightedConfidentialMilestone, useDecryptWeightedResult } from "../../.
 import { SealedReveal } from "../../../components/SealedReveal";
 import { VerificationReceipt } from "../../../components/VerificationReceipt";
 import { AutonomousFlow } from "../../../components/AutonomousFlow";
+import { ConfidentialExplainer, type Status } from "../../../components/ConfidentialExplainer";
 import { getWeightedConfidentialAddress } from "../../../lib/contracts";
 import { resolveMilestoneMeta, shortHash } from "../../../lib/milestone-meta";
 import styles from "./page.module.css";
@@ -34,11 +35,7 @@ function WeightedDecryptPanel({ m }: { m: WeightedConfidentialMilestone }) {
   // Stagger the verdict text — it appears after the reveal animation has
   // had a moment to breathe, not simultaneously with the result.
   React.useEffect(() => {
-    if (decrypted === undefined) {
-      setVerdictVisible(false);
-      return;
-    }
-    const t = setTimeout(() => setVerdictVisible(true), 600);
+    const t = setTimeout(() => setVerdictVisible(decrypted !== undefined), 600);
     return () => clearTimeout(t);
   }, [decrypted]);
 
@@ -93,6 +90,14 @@ export function WeightedMilestoneView({ hash, milestone: m }: { hash: string; mi
   const stakedEth = (Number(m.totalStaked) / 1e18).toFixed(4);
   const evidenceRoot = m.finalEvidenceRoot !== ZERO_ROOT ? m.finalEvidenceRoot : null;
   const isActive = !m.finalized;
+  const fheStatus: Status =
+    m.resultConfirmed && m.resultVerified
+      ? "verified"
+      : m.resultConfirmed && !m.resultVerified
+        ? "rejected"
+        : m.finalized
+          ? "decryptable"
+          : "sealed";
   const [now] = React.useState(() => Date.now());
   const deadlinePassed = Number(m.deadline) * 1000 < now;
 
@@ -190,6 +195,8 @@ export function WeightedMilestoneView({ hash, milestone: m }: { hash: string; mi
           </div>
         </section>
 
+        <ConfidentialExplainer variant="v2" status={fheStatus} />
+
         {/* FHE computation breakdown — the key differentiator */}
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
@@ -201,7 +208,7 @@ export function WeightedMilestoneView({ hash, milestone: m }: { hash: string; mi
           </div>
           <p className={styles.panelText}>
             The v1 contract used FHE.add, FHE.ge, and FHE.select — addition-class FHE.
-            This contract adds <strong>FHE.mul</strong>: each verifier's ballot is multiplied
+            This contract adds <strong>FHE.mul</strong>: each verifier&apos;s ballot is multiplied
             by their confidence score, both encrypted, producing an encrypted weighted vote.
             The weighted tally accumulates these products. The final result requires both
             binary quorum AND weighted quorum, combined with FHE.and — all on ciphertext.

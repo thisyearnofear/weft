@@ -9,6 +9,7 @@ import { SealedReveal } from "../../../components/SealedReveal";
 import { StakeForm } from "../../../components/StakeForm";
 import { VerificationReceipt } from "../../../components/VerificationReceipt";
 import { AutonomousFlow } from "../../../components/AutonomousFlow";
+import { ConfidentialExplainer, type Status } from "../../../components/ConfidentialExplainer";
 import { getConfidentialAddress } from "../../../lib/contracts";
 import { resolveMilestoneMeta, shortHash } from "../../../lib/milestone-meta";
 import { keccak256, stringToHex } from "viem";
@@ -36,11 +37,7 @@ function DecryptPanel({ m }: { m: ConfidentialMilestone }) {
   // Stagger the verdict text — it appears after the reveal animation has
   // had a moment to breathe, not simultaneously with the result.
   React.useEffect(() => {
-    if (decrypted === undefined) {
-      setVerdictVisible(false);
-      return;
-    }
-    const t = setTimeout(() => setVerdictVisible(true), 600);
+    const t = setTimeout(() => setVerdictVisible(decrypted !== undefined), 600);
     return () => clearTimeout(t);
   }, [decrypted]);
 
@@ -98,6 +95,14 @@ export function ConfidentialMilestoneView({ hash, milestone: m }: { hash: string
   const stakedEth = (Number(m.totalStaked) / 1e18).toFixed(4);
   const evidenceRoot = m.finalEvidenceRoot !== ZERO_ROOT ? m.finalEvidenceRoot : null;
   const isActive = !m.finalized;
+  const fheStatus: Status =
+    m.resultConfirmed && m.resultVerified
+      ? "verified"
+      : m.resultConfirmed && !m.resultVerified
+        ? "rejected"
+        : m.finalized
+          ? "decryptable"
+          : "sealed";
   // Snapshot once per mount — render must stay pure for the React Compiler
   const [now] = React.useState(() => Date.now());
   const deadlinePassed = Number(m.deadline) * 1000 < now;
@@ -199,6 +204,8 @@ export function ConfidentialMilestoneView({ hash, milestone: m }: { hash: string
             </div>
           </div>
         </section>
+
+        <ConfidentialExplainer variant="v1" status={fheStatus} />
 
         <section className={styles.metricGrid}>
           <article className={styles.metricCard}>
