@@ -115,6 +115,25 @@ is ever decrypted. This is FHE multiplication, not just addition.
 | WeftMilestoneConfidentialWeighted (v2) | `0xcc2395ac3f70ace0c1828cb0a18b00da823760f8` |
 | VerifierRegistry (Sepolia) | `0xa7e74abb5c4c4fc70aff99bc4ac0b9f9bf6b5a66` |
 
+## Verification loop (TestSprite S3)
+
+Built with the [TestSprite CLI](https://github.com/TestSprite/testsprite-cli) as the checker in a
+write → verify → fix → verify loop. Full agent-written log in [LOOP.md](LOOP.md).
+
+**40 tests** across 3 project types:
+- 14 frontend CLI tests — surface loads, API contracts, E2E user journey, chaos/resilience, onchain cross-checks
+- 8 backend Python tests — schema validation + value cross-checks for all REST endpoints
+- 12 MCP-generated Playwright tests — auto-generated from codebase analysis, executed locally
+- 6 rerun tests after polish pass
+
+**The loop caught a real bug** (iter 19): a backend test detected a wei-to-ETH conversion error in
+the explorer API (`stakedEth` returned raw wei instead of ETH). The failure bundle pinpointed the
+root cause, the fix was deployed, and the rerun confirmed the fix — the complete
+write→verify→fix→verify cycle.
+
+**CI/CD**: [.github/workflows/testsprite.yml](.github/workflows/testsprite.yml) reruns all tests
+on every PR and fails the build if anything breaks.
+
 ## Documentation
 
 - [Zama S3 submission details](SUBMISSION.md)
@@ -123,7 +142,7 @@ is ever decrypted. This is FHE multiplication, not just addition.
 - [Product plan & monetization](docs/product-plan.md)
 - [MVP spec](docs/mvp.md)
 - [Hackathon archive](docs/hackathons.md) — past submission materials
-- [Build log](docs/loop.md) — TestSprite verification loop
+- [Build log](LOOP.md) — TestSprite verification loop
 - [Known issues & feedback](docs/feedback.md)
 
 ## Quick start
