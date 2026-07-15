@@ -106,6 +106,18 @@ See [Product Plan](docs/product-plan.md) for the full tier structure and monetiz
 
 See [SUBMISSION.md](SUBMISSION.md) for deployed addresses and FHE details.
 
+## Canton institutional rail (primary market)
+
+Private milestone capital for issuers and funders who need **need-to-know** visibility.
+Daml contracts live under [`canton/`](canton/). This is the front-door GTM; the public
+EVM builder rail (0G Testnet) is the crypto-native wedge.
+
+- Agent: `WEFT_SETTLEMENT_RAIL=canton` (daemon polls Canton ledger; institutional checklist).
+  Optional: `CANTON_EVIDENCE_DIR`, `CANTON_DEMO_EVIDENCE=1` (pilot only).
+- API: `weft_canton_api.py` (:9020) — shared handlers in `agent/lib/canton_http.py`.
+- UI: `/canton`. Docs: [`canton/README.md`](canton/README.md), [`canton/BUSINESS_BRIEF.md`](canton/BUSINESS_BRIEF.md), [`canton/DEMO.md`](canton/DEMO.md).
+- **Machine-specific layout** (SSH hosts, paths, ports): copy [`OPS.local.md.example`](OPS.local.md.example) → `OPS.local.md` (gitignored). Do not put IPs or aliases in tracked docs.
+
 ## Library (`agent/lib/`)
 
 The single source of truth for all shared agent logic. All scripts import from here.
@@ -116,6 +128,12 @@ The single source of truth for all shared agent logic. All scripts import from h
 | `abi.py` | Pure ABI encoding/decoding helpers |
 | `weft_milestone_reader.py` | Reads `Milestones(bytes32)` from WeftMilestone |
 | `mvp_verifier.py` | Deterministic evidence: deployment check + unique callers + attestation |
+| `settlement.py` | Settlement rail protocol + `get_settlement_rail()` (`WEFT_SETTLEMENT_RAIL=evm\|canton`) |
+| `evm_settlement.py` | EVM SettlementRail adapter (KeeperHub / cast) |
+| `canton_http.py` | Shared `/canton/*` HTTP handlers + `pending_milestone_ids()` (DRY for APIs + daemon) |
+| `canton_client.py` | Canton SettlementRail adapter + ledger mirror (institutional primary market) |
+| `domain/` | Rail-agnostic milestone DTOs + institutional evidence template |
+| `domain/models.py` | `MilestoneViewModel.to_status_dict()` — SSOT for status JSON (frontend: `frontend/src/lib/milestone-view.ts`) |
 | `github_client.py` | GitHub commits/PRs in milestone window (env: `GITHUB_TOKEN`) |
 | `kimi_client.py` | Kimi API for narrative + chronicle generation (env: `KIMI_API_KEY`) |
 | `chronicle.py` | HTML milestone achievement cards and chronicle pages (woven-fabric motif) |

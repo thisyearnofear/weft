@@ -1,0 +1,28 @@
+# Weft — private ops playbook template
+
+Copy to `OPS.local.md` (gitignored) and fill in your hosts.
+
+```bash
+cp OPS.local.md.example OPS.local.md
+```
+
+## Host map
+
+| SSH alias | Role | Notes |
+|---|---|---|
+| *(EVM edge)* | Weft status API / daemon | Tight disk — no second Canton stack |
+| *(Canton build)* | dpm 3.4.x, DAR builds, `weft_canton_api` | Prefer the VPS with headroom |
+| *(laptop)* | Git + UI only | Clear local `~/.daml` / `~/.dpm` after remote build works |
+
+## Ports
+
+| Port | Service |
+|---|---|
+| 9010 | EVM `weft_status_api` |
+| 9020 | Canton `weft_canton_api` |
+
+## Pointers
+
+- Canton public docs: `canton/DEVNET_RUNBOOK.md`, `canton/DEMO.md`
+- Ledger mirror (gitignored): `canton/.ledger/`
+- Unit file: `canton/scripts/weft-canton-api.service`

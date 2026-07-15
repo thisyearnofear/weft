@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-export const alt = 'Weft — Escrow that releases itself';
+export const alt = 'Weft — Milestone release for program offices';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -92,13 +92,13 @@ export default function OpengraphImage() {
             marginBottom: 16,
           }}
         >
-          Autonomous milestone verification
+          Milestone release for program offices
         </div>
 
         <div style={{ fontSize: 108, fontWeight: 800, letterSpacing: -2, lineHeight: 1 }}>Weft</div>
 
         <div style={{ fontSize: 38, color: '#e8e8f2', marginTop: 22, fontWeight: 500 }}>
-          Escrow that releases itself.
+          Fund milestones. Release on evidence.
         </div>
 
         <div
@@ -111,8 +111,7 @@ export default function OpengraphImage() {
             lineHeight: 1.45,
           }}
         >
-          AI verifiers release your capital onchain the moment the evidence checks out — no manual
-          reviews, on 0G Chain.
+          Agents verify checkable deliverables. Canton settles privately for issuers and funders.
         </div>
 
         <div

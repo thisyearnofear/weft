@@ -1,35 +1,31 @@
 # Weft
 
-**Escrow that releases itself.**
+**Milestone release for program offices.**
 
-A sponsor locks ETH behind a deliverable. The builder ships. Autonomous agents verify
-the work onchain — and if 2 of 3 agree, capital releases instantly. No manual reviews.
-No chasing sponsors. No payment politics.
-
-The agent earns 3% of every milestone it verifies, uses that revenue to pay for its own
-infrastructure (LLM inference, image generation, onchain execution), and runs as a
-self-sustaining company. Verified outcomes attach to the builder's ENS identity as
-portable reputation.
+Institutional funders and grant issuers escrow capital against checkable
+deliverables. Autonomous agents verify against a fixed evidence template;
+Canton settles privately (need-to-know). A public EVM builder wedge on 0G
+Testnet remains for crypto-native demos — not production money.
 
 > *"Technology provides the warp. Liberal arts provide the weft."*
 >
 > In weaving, the **weft** is the horizontal thread that interlaces with the vertical warp
-> to create fabric. In this protocol, raw data threads — onchain events, GitHub commits,
-> peer verdicts — are woven into meaningful outcomes: verified milestones, capital released,
-> portable ENS reputation.
+> to create fabric. In this protocol, raw data threads — evidence checklists, peer verdicts,
+> settlement references — are woven into outcomes: verified milestones and capital released.
 
-## Live
+## Surfaces
 
 **https://weft.thisyearnofear.com**
 
-| Surface | URL |
-|---|---|
-| Frontend | [weft.thisyearnofear.com](https://weft.thisyearnofear.com) |
-| Verification Explorer | [/explorer](https://weft.thisyearnofear.com/explorer) |
-| Agent Operations | [/operations](https://weft.thisyearnofear.com/operations) |
-| Sponsor Dashboard | [/sponsor](https://weft.thisyearnofear.com/sponsor) |
-| Builder Profile | [/builder/weft.thisyearnofear.eth](https://weft.thisyearnofear.com/builder/weft.thisyearnofear.eth) |
-| Status API | `GET /api/status/demo` |
+| Surface | URL | Note |
+|---|---|---|
+| Institutional rail (primary) | [/canton](https://weft.thisyearnofear.com/canton) | Canton Devnet · CBTC · pilot |
+| Program dashboard | [/sponsor](https://weft.thisyearnofear.com/sponsor) | Funder view (public EVM demos) |
+| Verification Explorer | [/explorer](https://weft.thisyearnofear.com/explorer) | 0G Testnet milestones |
+| Builder create (wedge) | [/create-milestone](https://weft.thisyearnofear.com/create-milestone) | 0G Testnet — not prod |
+| Agent Operations | [/operations](https://weft.thisyearnofear.com/operations) | Developer |
+
+See [`canton/BUSINESS_BRIEF.md`](canton/BUSINESS_BRIEF.md) for ICP and who pays.
 
 ## Sealed-ballot consensus (Zama FHE)
 
@@ -50,7 +46,7 @@ Each verifier encrypts a boolean ballot. The contract counts votes on ciphertext
 2-of-3 quorum on ciphertext, and branches on ciphertext.
 
 - Contract: [`WeftMilestoneConfidential.sol`](contracts/src-fhe/WeftMilestoneConfidential.sol) — [`0x152d758d…d212`](https://sepolia.etherscan.io/address/0x152d758d496db7444a00a6b2c7fe254b9aced212)
-- Live demo: [sealed-ballot milestone](https://weft.thisyearnofear.com/project/0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1) — click "Decrypt sealed result"
+- Demo: [Confidential demos on Explorer](https://weft.thisyearnofear.com/explorer#fhe-demos) — open v1 sealed ballot and decrypt
 
 **v2 — Multiplication-class FHE** (`FHE.mul`, `FHE.and`, `FHE.add`, `FHE.ge`, `FHE.select`)
 
@@ -61,8 +57,8 @@ quorum (≥100), combined with `FHE.and`. No vote, no confidence score, and no w
 is ever decrypted. This is FHE multiplication, not just addition.
 
 - Contract: [`WeftMilestoneConfidentialWeighted.sol`](contracts/src-fhe/WeftMilestoneConfidentialWeighted.sol) — [`0xcc2395ac…60f8`](https://sepolia.etherscan.io/address/0xcc2395ac3f70ace0c1828cb0a18b00da823760f8)
-- Live demo: [confidence-weighted milestone](https://weft.thisyearnofear.com/project/0xbd5c85db97cd5a8f30779da9311651e549f702b6ce72ebd03dcb816d3b071722?weighted=1) — click "Decrypt sealed result"
-- Sealed ballot tx (FHE.mul on Sepolia): [`0xe5a94f…`](https://sepolia.etherscan.io/tx/0xe5a94fd2632c06b5837e39b14c83c0a5e1406eae9be78b295a5de038ef04b462)
+- Demo: [Confidential demos on Explorer](https://weft.thisyearnofear.com/explorer#fhe-demos) — open v2 weighted ballot and decrypt
+- Sealed ballot tx (FHE.mul on Sepolia): see [SUBMISSION.md](SUBMISSION.md) for full tx links
 - Tests: 5 forge-fhevm tests — [high confidence verified, low confidence rejected, binary gate required, inflated ballot clamped](contracts/test-fhe/WeftMilestoneConfidentialWeighted.t.sol)
 
 ### FHE operations used

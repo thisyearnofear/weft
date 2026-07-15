@@ -1,0 +1,63 @@
+-- Copyright (c) 2026 Weft Contributors
+-- SPDX-License-Identifier: Apache-2.0
+
+module Weft.Demo where
+
+import Daml.Script
+import Weft.Milestone
+import DA.Time (time)
+import DA.Date (date, Month(..))
+
+demo : Script ()
+demo = script do
+  issuer <- allocateParty "Issuer"
+  builder <- allocateParty "Builder"
+  funder <- allocateParty "Funder"
+  verifierA <- allocateParty "VerifierA"
+  verifierB <- allocateParty "VerifierB"
+  auditor <- allocateParty "Auditor"
+
+  let deadline = time (date 2030 Jan 1) 0 0 0
+      cbtc = SettlementAsset with
+        symbol = "CBTC"
+        instrumentId = "cbtc-devnet-placeholder"
+        decimals = 8
+  proposalCid <- submit issuer do
+    createCmd MilestoneProposal with
+      issuer
+      builder
+      verifiers = [verifierA, verifierB]
+      observers = [auditor]
+      milestoneId = "ms-demo-001"
+      projectId = "proj-institutional-1"
+      templateId = "canton.institutional_checklist.v1"
+      metadataHash = "0xabc123"
+      deadline
+      quorum = 2
+      settlement = cbtc
+
+  mid <- submit issuer do
+    exerciseCmd proposalCid AcceptAndCreate
+
+  mid2 <- submit funder do
+    exerciseCmd mid (Stake with
+      funder
+      amount = 0.01
+      transferRef = "cbtc-faucet-xfer-demo-1")
+
+  mid3 <- submit verifierA do
+    exerciseCmd mid2 (SubmitVerdict with
+      verifier = verifierA
+      didComplete = True
+      evidenceHash = "0xev1")
+
+  mid4 <- submit verifierB do
+    exerciseCmd mid3 (SubmitVerdict with
+      verifier = verifierB
+      didComplete = True
+      evidenceHash = "0xev1")
+
+  _ <- submit issuer do
+    exerciseCmd mid4 (Release with transferRef = "cbtc-payout-demo-1")
+
+  pure ()

@@ -3,15 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { Plus, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import styles from "./Nav.module.css";
 
-// Primary nav covers the two builder flows (Create / Fund) plus the
-// public read surfaces (Explorer / Activity). The sealed-ballot / FHE
-// demos live as a section at the top of Explorer (and on the landing
-// page), so they don't need a separate nav entry. Developer/ops pages
-// live in a "Developers" dropdown so they stay reachable without
-// crowding the bar.
+// Primary nav: institutional rail first, then public read surfaces.
+// Builder create on 0G Testnet is a secondary wedge (not the front door).
 const NAV_GROUPS = [
   {
     label: "Explore",
@@ -23,6 +19,7 @@ const NAV_GROUPS = [
 ];
 
 const DEV_LINKS = [
+  { href: "/create-milestone", label: "Builder create (0G Testnet)" },
   { href: "/verifiers", label: "Verifiers" },
   { href: "/operations", label: "Operations" },
   { href: "/api/docs", label: "API docs" },
@@ -42,7 +39,6 @@ export function Nav() {
 
   const devActive = DEV_LINKS.some((l) => isActive(l.href));
 
-  // Close the Developers dropdown on outside click or Escape.
   useEffect(() => {
     if (!devOpen) return;
     const onDown = (e: MouseEvent) => {
@@ -76,20 +72,19 @@ export function Nav() {
       </button>
 
       <nav className={styles.desktopNav} aria-label="Main navigation">
-        {/* Primary actions — visually distinct */}
         <Link
-          href="/create-milestone"
+          href="/canton"
           className={styles.navCta}
-          aria-label="Create a milestone"
+          aria-label="Institutional Canton rail"
         >
-          <Plus size={14} /> Create
+          Institutional
         </Link>
         <Link
           href="/sponsor"
           className={styles.navCtaSecondary}
-          aria-label="Fund a milestone"
+          aria-label="Program dashboard"
         >
-          Fund
+          Programs
         </Link>
 
         {NAV_GROUPS.map((group, gi) => (
@@ -108,7 +103,6 @@ export function Nav() {
           </div>
         ))}
 
-        {/* Developers dropdown */}
         <div className={styles.navDropdown} ref={devRef}>
           <button
             type="button"
@@ -142,11 +136,19 @@ export function Nav() {
       {open && (
         <nav className={styles.mobileNav} id="mobile-nav" aria-label="Mobile navigation">
           <Link
-            href="/create-milestone"
+            href="/canton"
             className={styles.mobileNavCta}
             onClick={() => setOpen(false)}
           >
-            <Plus size={16} /> Create a milestone
+            Institutional rail
+          </Link>
+          <Link
+            href="/sponsor"
+            className={styles.mobileNavLink}
+            onClick={() => setOpen(false)}
+            aria-current={isActive("/sponsor") ? "page" : undefined}
+          >
+            Programs
           </Link>
           {[...NAV_GROUPS, { label: "Developers", links: DEV_LINKS }].map((group) => (
             <div key={group.label} className={styles.mobileNavGroup}>

@@ -1,0 +1,177 @@
+-- Copyright (c) 2026 Weft Contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- Private institutional milestone escrow on Canton.
+-- Settlement asset is CBTC (BitSafe / CIP-style instrument id + amount).
+-- Actual CBTC Holding transfers go through DA Utilities / BitSafe APIs off
+-- this template; Stake records the economic units escrowed into the milestone.
+
+module Weft.Milestone where
+
+-- | Off-ledger evidence is referenced by hash only.
+data Vote = Vote
+  with
+    verifier : Party
+    didComplete : Bool
+    evidenceHash : Text
+  deriving (Eq, Show)
+
+-- | CIP-style instrument pointer for CBTC (or other listed assets).
+data SettlementAsset = SettlementAsset
+  with
+    symbol : Text
+    -- ^ e.g. "CBTC"
+    instrumentId : Text
+    -- ^ BitSafe / registry instrument id for the network
+    decimals : Int
+  deriving (Eq, Show)
+
+template Milestone
+  with
+    issuer : Party
+    builder : Party
+    verifiers : [Party]
+    observers : [Party]
+    funders : [Party]
+    milestoneId : Text
+    projectId : Text
+    templateId : Text
+    metadataHash : Text
+    deadline : Time
+    quorum : Int
+    settlement : SettlementAsset
+    totalStaked : Decimal
+    -- ^ Sum of CBTC (or listed asset) units locked into this milestone
+    stakes : [(Party, Decimal)]
+    votes : [Vote]
+    finalized : Bool
+    verified : Bool
+    released : Bool
+    refunded : Bool
+    finalEvidenceRoot : Text
+    -- | Last CBTC transfer refs (off-ledger / utility tx ids) for audit UX
+    lastTransferRef : Text
+  where
+    signatory issuer
+    observer builder, verifiers, observers, funders
+
+    ensure
+      quorum >= 1
+        && length verifiers >= quorum
+        && milestoneId /= ""
+        && settlement.symbol /= ""
+        && settlement.instrumentId /= ""
+
+    choice Stake : ContractId Milestone
+      with
+        funder : Party
+        amount : Decimal
+        transferRef : Text
+        -- ^ BitSafe / Console Wallet transfer id proving CBTC moved in
+      controller funder
+      do
+        assertMsg "amount must be positive" (amount > 0.0)
+        assertMsg "not finalized" (not finalized)
+        assertMsg "not released" (not released)
+        create this with
+          totalStaked = totalStaked + amount
+          stakes = (funder, amount) :: stakes
+          funders = if elem funder funders then funders else funder :: funders
+          lastTransferRef = transferRef
+
+    choice SubmitVerdict : ContractId Milestone
+      with
+        verifier : Party
+        didComplete : Bool
+        evidenceHash : Text
+      controller verifier
+      do
+        assertMsg "authorized verifier" (elem verifier verifiers)
+        assertMsg "not finalized" (not finalized)
+        assertMsg "no double vote" (and [v.verifier /= verifier | v <- votes])
+        let newVote = Vote with verifier, didComplete, evidenceHash
+            newVotes = newVote :: votes
+            vCount = length newVotes
+            yesVotes = length [v | v <- newVotes, v.didComplete]
+        if vCount >= quorum
+          then do
+            let isVerified = yesVotes >= quorum
+                root = if isVerified then evidenceHash else ""
+            create this with
+              votes = newVotes
+              finalized = True
+              verified = isVerified
+              finalEvidenceRoot = root
+          else
+            create this with votes = newVotes
+
+    choice Release : ContractId Milestone
+      with
+        transferRef : Text
+        -- ^ CBTC payout ref to builder (BitSafe / wallet)
+      controller issuer
+      do
+        assertMsg "finalized" finalized
+        assertMsg "verified" verified
+        assertMsg "not released" (not released)
+        assertMsg "not refunded" (not refunded)
+        assertMsg "has stake" (totalStaked > 0.0)
+        create this with
+          released = True
+          lastTransferRef = transferRef
+
+    choice Refund : ContractId Milestone
+      with
+        transferRef : Text
+      controller issuer
+      do
+        assertMsg "not released" (not released)
+        assertMsg "not already refunded" (not refunded)
+        assertMsg "failed finalize" (finalized && not verified)
+        create this with
+          refunded = True
+          lastTransferRef = transferRef
+
+-- | Issuer creates a live Milestone denominated in CBTC (default) or another listed asset.
+template MilestoneProposal
+  with
+    issuer : Party
+    builder : Party
+    verifiers : [Party]
+    observers : [Party]
+    milestoneId : Text
+    projectId : Text
+    templateId : Text
+    metadataHash : Text
+    deadline : Time
+    quorum : Int
+    settlement : SettlementAsset
+  where
+    signatory issuer
+    observer builder, verifiers, observers
+
+    choice AcceptAndCreate : ContractId Milestone
+      controller issuer
+      do
+        create Milestone with
+          issuer
+          builder
+          verifiers
+          observers
+          funders = []
+          milestoneId
+          projectId
+          templateId
+          metadataHash
+          deadline
+          quorum
+          settlement
+          totalStaked = 0.0
+          stakes = []
+          votes = []
+          finalized = False
+          verified = False
+          released = False
+          refunded = False
+          finalEvidenceRoot = ""
+          lastTransferRef = ""

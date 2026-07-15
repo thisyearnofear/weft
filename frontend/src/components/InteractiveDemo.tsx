@@ -203,8 +203,8 @@ export function InteractiveDemo() {
               <span className={styles.badgeReleased}>Released</span>
             </div>
             <p className={styles.beatBody}>
-              The contract releases {stakedEth} ETH to {builderEns}. No manual approval.
-              No dispute window. The evidence root is permanently onchain as proof.
+              At quorum the contract releases {stakedEth} ETH to {builderEns}.
+              The evidence root stays onchain as an auditable receipt (0G Testnet demo).
             </p>
             <div className={styles.payoff}>
               <Coins size={16} />

@@ -1,0 +1,18 @@
+[Unit]
+Description=Weft Canton API (institutional CBTC rail)
+After=network.target
+
+[Service]
+Type=simple
+User=linuxuser
+WorkingDirectory=/opt/weft-canton
+Environment=WEFT_SETTLEMENT_RAIL=canton
+Environment=CANTON_NETWORK=devnet
+Environment=CANTON_LEDGER_STORE=/opt/weft-canton/canton/.ledger/milestones.json
+Environment=PATH=/home/linuxuser/.dpm/bin:/usr/bin:/bin
+ExecStart=/usr/bin/python3 /opt/weft-canton/agent/scripts/weft_canton_api.py --host 0.0.0.0 --port 9020
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

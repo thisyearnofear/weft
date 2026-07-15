@@ -1,3 +1,11 @@
+import {
+  parseMilestoneView,
+  statusFromFlags,
+  type MilestoneView,
+} from "./milestone-view";
+
+export type { MilestoneView };
+
 export interface DemoTrack0G {
   storageConfigured: boolean;
   metadataIndexer: string | null;
@@ -71,6 +79,7 @@ export interface MilestoneDemoPayload {
 
 export interface StatusApiMilestone {
   ok: boolean;
+  /** EVM status API uses milestoneHash; maps to MilestoneView.milestoneId. */
   milestoneHash: string;
   projectId: string;
   templateId: string;
@@ -87,6 +96,63 @@ export interface StatusApiMilestone {
   finalEvidenceRoot: string;
   demo: MilestoneDemoPayload;
   metadata?: Record<string, unknown> & { ok?: boolean };
+}
+
+/** Lift EVM status-API payload into the shared MilestoneView shape. */
+export function statusApiMilestoneToView(m: StatusApiMilestone): MilestoneView {
+  return (
+    parseMilestoneView(
+      {
+        milestoneId: m.milestoneHash,
+        rail: "evm",
+        projectId: m.projectId,
+        templateId: m.templateId,
+        metadataHash: m.metadataHash,
+        deadline: m.deadline,
+        totalStaked: m.totalStaked,
+        finalized: m.finalized,
+        verified: m.verified,
+        released: m.released,
+        verifierCount: m.verifierCount,
+        verifiedVotes: m.verifiedVotes,
+        quorum: 2,
+        finalEvidenceRoot: m.finalEvidenceRoot,
+        parties: {
+          issuer: m.builder,
+          builder: m.builder,
+          funders: [],
+          verifiers: [],
+          observers: [],
+        },
+        stakes: [],
+      },
+      "evm",
+    ) ?? {
+      milestoneId: m.milestoneHash,
+      rail: "evm",
+      projectId: m.projectId,
+      templateId: m.templateId,
+      metadataHash: m.metadataHash,
+      deadline: m.deadline,
+      totalStaked: m.totalStaked,
+      status: statusFromFlags(m),
+      finalized: m.finalized,
+      verified: m.verified,
+      released: m.released,
+      verifierCount: m.verifierCount,
+      verifiedVotes: m.verifiedVotes,
+      quorum: 2,
+      finalEvidenceRoot: m.finalEvidenceRoot,
+      parties: {
+        issuer: m.builder,
+        builder: m.builder,
+        funders: [],
+        verifiers: [],
+        observers: [],
+      },
+      stakes: [],
+    }
+  );
 }
 
 export interface StatusApiOverview {

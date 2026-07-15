@@ -96,6 +96,8 @@ from .llm_backend import (
     generate_chat,
 )
 from .fhe_client import FheVoteResult, fhe_available, submit_encrypted_verdict
+from .settlement import SettlementRail, get_settlement_rail, get_settlement_rail_name
+from .canton_client import CantonSettlement, CantonLedgerStore
 
 __all__ = [
     # abi
@@ -149,4 +151,7 @@ __all__ = [
     "ChatResult", "backend_info", "generate_chat",
     # fhe_client
     "FheVoteResult", "fhe_available", "submit_encrypted_verdict",
+    # settlement / canton
+    "SettlementRail", "get_settlement_rail", "get_settlement_rail_name",
+    "CantonSettlement", "CantonLedgerStore",
 ]

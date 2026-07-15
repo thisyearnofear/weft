@@ -19,26 +19,26 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://weft.thisyearnofear.com'),
   title: {
-    default: 'Weft — Escrow That Releases Itself',
+    default: 'Weft — Milestone Release for Program Offices',
     template: '%s · Weft',
   },
   description:
-    'A sponsor locks ETH behind a deliverable. The builder ships. Autonomous agents verify the work onchain — and capital releases automatically. No manual reviews. No chasing. No politics.',
-  keywords: ['milestone funding', 'autonomous agents', 'escrow', 'ENS', 'reputation', '0G Chain', 'builder verification'],
+    'Institutional funders escrow capital against checkable deliverables. Agents verify against a fixed template; Canton settles privately. Builder wedge on 0G Testnet for crypto-native demos.',
+  keywords: ['milestone funding', 'program office', 'Canton', 'institutional settlement', 'autonomous agents', 'escrow', 'grant programs'],
   applicationName: 'Weft',
   openGraph: {
     type: 'website',
     url: 'https://weft.thisyearnofear.com',
     siteName: 'Weft',
-    title: 'Weft — Escrow That Releases Itself',
+    title: 'Weft — Milestone Release for Program Offices',
     description:
-      'Autonomous agents verify onchain work and release escrowed capital. No manual reviews. No chasing sponsors.',
+      'Agents verify checkable deliverables; private settlement for program issuers and funders. No public-chain leakage of counterparties.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Weft — Escrow That Releases Itself',
+    title: 'Weft — Milestone Release for Program Offices',
     description:
-      'Autonomous agents verify onchain work and release escrowed capital. No manual reviews. No chasing sponsors.',
+      'Agents verify checkable deliverables for program offices. Private Canton settlement; public EVM wedge on testnet.',
   },
 };
 

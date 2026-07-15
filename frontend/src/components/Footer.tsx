@@ -2,25 +2,24 @@ import Link from "next/link";
 import styles from "./Footer.module.css";
 
 /**
- * Footer — home for the machinery pages that used to crowd the primary nav.
- * Verifiers/Operations are developer-facing; they live here under "Developers"
- * so the top nav can stay focused on the builder path.
+ * Footer — product surfaces lean institutional; builder/testnet wedge under Developers.
  */
 
 const FOOTER_GROUPS = [
   {
     label: "Product",
     links: [
-      { href: "/create-milestone", label: "Create a milestone" },
+      { href: "/canton", label: "Institutional rail (Canton)" },
+      { href: "/sponsor", label: "Program dashboard" },
       { href: "/explorer", label: "Explorer" },
       { href: "/activity", label: "Activity" },
-      { href: "/explorer#fhe-demos", label: "Confidential demos" },
-      { href: "/sponsor", label: "Fund a milestone" },
     ],
   },
   {
     label: "Developers",
     links: [
+      { href: "/create-milestone", label: "Builder create (0G Testnet)" },
+      { href: "/explorer#fhe-demos", label: "Confidential demos (Sepolia)" },
       { href: "/verifiers", label: "Verifiers" },
       { href: "/operations", label: "Operations" },
       { href: "/api/docs", label: "API docs" },
@@ -37,8 +36,8 @@ export function Footer() {
             ⬡ Weft
           </Link>
           <p className={styles.tagline}>
-            Escrow that releases itself. Work verified onchain by autonomous
-            agents on 0G Chain.
+            Milestone release for program offices — agents verify checkable
+            deliverables; Canton settles privately.
           </p>
         </div>
 

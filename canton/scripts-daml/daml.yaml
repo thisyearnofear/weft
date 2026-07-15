@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: Apache-2.0
+# Local scripts/tests only — do not upload this DAR to Devnet.
+sdk-version: 3.4.11
+name: weft-canton-milestone-scripts
+source: daml
+version: 0.1.0
+dependencies:
+  - daml-prim
+  - daml-stdlib
+  - daml-script
+data-dependencies:
+  - ../.daml/dist/weft-canton-milestone-0.1.0.dar

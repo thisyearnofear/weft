@@ -2,9 +2,14 @@
 
 ## Vision
 
-Weft is the verification infrastructure layer for onchain work. Builders create milestones, backers stake capital, and Weft's autonomous agents verify completion — replacing managers, lawyers, and escrow services with onchain proof.
+Weft is verification + settlement infrastructure for **program offices and institutional
+funders** who escrow capital against checkable deliverables. Agents verify against a fixed
+evidence template; Canton settles privately. A public EVM builder wedge (0G Testnet)
+remains for crypto-native demos.
 
 **The business model: sell trust at a percentage of the capital it unlocks.**
+
+Primary ICP: see [`canton/BUSINESS_BRIEF.md`](../canton/BUSINESS_BRIEF.md).
 
 ## Product Tiers
 

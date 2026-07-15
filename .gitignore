@@ -16,6 +16,10 @@ build/
 .env.local
 .env.*.local
 
+# Private multi-host ops playbook (SSH aliases, IPs, disk policy)
+OPS.local.md
+ops.local.md
+
 # IDE
 .vscode/
 .idea/

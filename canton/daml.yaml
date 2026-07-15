@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: Apache-2.0
+# Templates-only package for ledger upload (no daml-script bloat).
+sdk-version: 3.4.11
+name: weft-canton-milestone
+source: daml
+version: 0.1.0
+dependencies:
+  - daml-prim
+  - daml-stdlib

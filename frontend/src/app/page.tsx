@@ -19,11 +19,17 @@ import { useMilestones, useMilestone } from "@/hooks/useMilestones";
 import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
 import { useExplorerMilestones } from "@/hooks/useExplorer";
 import { useBuilderPassport } from "@/hooks/useBuilderPassport";
-import type { Milestone as MilestoneType, MilestoneState } from "@/lib/milestone-types";
+import {
+  DEMO_FHE_V1_HASH,
+  DEMO_FHE_V2_HASH,
+  DEMO_RELEASE_HASH,
+} from "@/lib/demo-milestones";
+import { milestoneCardFromView, shortAddress } from "@/lib/milestone-types";
+import { parseMilestoneView, statusFromFlags } from "@/lib/milestone-view";
 import { track } from "@/lib/track";
 import styles from "./page.module.css";
 
-/* ── Milestone from contract ── */
+/* ── Milestone from contract → shared MilestoneView → card ── */
 function MilestoneFromContract({ hash, index }: { hash: `0x${string}`; index: number }) {
   const { data, isLoading, error } = useMilestone(hash);
   const { data: statusData } = useStatusMilestone(hash, true);
@@ -31,9 +37,8 @@ function MilestoneFromContract({ hash, index }: { hash: `0x${string}`; index: nu
   if (isLoading) return <SkeletonCard key={hash} index={index} />;
   if (error || !data || !data.builder) return null;
 
-  const state: MilestoneState = data.verified ? "verified" : data.finalized ? "failed" : "pending";
   const stakedEth = (Number(data.totalStaked ?? 0) / 1e18).toFixed(4);
-  const builderShort = data.builder ? `${data.builder.slice(0, 6)}...${data.builder.slice(-4)}` : "Unknown";
+  const builderShort = shortAddress(data.builder);
   const demo = statusData?.demo;
   const liveTags = [
     data.verified ? "Capital Released" : data.finalized ? "Refundable" : "Capital Locked",
@@ -41,28 +46,53 @@ function MilestoneFromContract({ hash, index }: { hash: `0x${string}`; index: nu
     demo?.tracks.keeperhub.configured ? "Reliable execution" : "Fallback execution",
   ];
 
-  const milestone: MilestoneType = {
-    hash,
-    projectName: `Milestone ${hash.slice(0, 8)}...`,
-    projectId: data.projectId,
+  const view =
+    parseMilestoneView(
+      {
+        milestoneId: hash,
+        rail: "evm",
+        projectId: data.projectId,
+        templateId: data.templateId ?? "",
+        metadataHash: data.metadataHash ?? "",
+        deadline: Number(data.deadline),
+        totalStaked: String(data.totalStaked ?? "0"),
+        status: statusFromFlags({
+          finalized: Boolean(data.finalized),
+          verified: Boolean(data.verified),
+          released: Boolean(data.released),
+          totalStaked: String(data.totalStaked ?? "0"),
+        }),
+        finalized: Boolean(data.finalized),
+        verified: Boolean(data.verified),
+        released: Boolean(data.released),
+        verifierCount: data.verifierCount,
+        verifiedVotes: data.verifiedVotes,
+        quorum: 2,
+        finalEvidenceRoot: data.finalEvidenceRoot ?? "",
+        parties: {
+          issuer: data.builder,
+          builder: data.builder,
+          funders: [],
+          verifiers: [],
+          observers: [],
+        },
+        stakes: [],
+      },
+      "evm",
+    )!;
+
+  const builderEns = demo?.tracks.ens.builderEns || builderShort;
+  const milestone = milestoneCardFromView(view, {
+    projectName: `Milestone ${hash.slice(0, 8)}…`,
     description: data.verified
-      ? `Outcome verified. ${stakedEth} ETH unlocked for ${demo?.tracks.ens.builderEns || builderShort}.`
+      ? `Outcome verified. ${stakedEth} ETH unlocked for ${builderEns}.`
       : data.finalized
         ? `Outcome did not verify. ${stakedEth} ETH can move through the refund path.`
         : `${stakedEth} ETH is gated behind evidence collection and verifier corroboration.`,
-    builder: { ens: demo?.tracks.ens.builderEns || builderShort, address: data.builder, type: "human" },
-    coBuilders: [],
-    deadline: Number(data.deadline) * 1000,
-    totalStaked: stakedEth,
-    state,
-    verifiedVotes: data.verifiedVotes,
-    verifierCount: data.verifierCount,
+    builderEns,
     tags: liveTags,
-    evidenceRoot:
-      data.finalEvidenceRoot !== "0x0000000000000000000000000000000000000000000000000000000000000000"
-        ? data.finalEvidenceRoot
-        : undefined,
-  };
+    totalStakedDisplay: stakedEth,
+  });
 
   const falImageUrl = statusData?.demo?.tracks?.fal?.available
     ? (statusData.demo.tracks.fal.falImageUrl || statusData.demo.tracks.fal.falCoverUrl || null)
@@ -86,7 +116,7 @@ export default function Home() {
   }, [hashes, overview?.demoHints?.milestones]);
   const verifiedOutcomeCount = Math.max(milestoneHashes.length, builderPassport?.weftMilestonesVerified ?? 0);
 
-  // Live stats from explorer data (with hardcoded fallbacks for when API is unreachable)
+  // Real explorer stats only — no synthetic fallbacks when the API is empty
   const stats = useMemo(() => {
     const ms = explorerMilestones ?? [];
     const verifiedCount = ms.filter(m => m.verified).length;
@@ -94,9 +124,9 @@ export default function Home() {
     const totalVotes = ms.reduce((sum, m) => sum + (m.verified ? m.verifiedVotes : 0), 0);
     const maxVerifierSlots = ms.length > 0 ? Math.max(...ms.map(m => m.verifierCount)) : 3;
     return {
-      verifiedCount: verifiedCount || 1,
-      ethReleased: totalEth > 0 ? totalEth.toFixed(2) : "0.01",
-      verifierVotes: totalVotes || 2,
+      verifiedCount,
+      ethReleased: totalEth > 0 ? totalEth.toFixed(2) : "0.00",
+      verifierVotes: totalVotes,
       quorum: `2/${maxVerifierSlots}`,
     };
   }, [explorerMilestones]);
@@ -112,58 +142,55 @@ export default function Home() {
           <HeroLoom />
         </div>
         <div className={styles.heroCopy}>
-          <Link
-            href="/project/0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1"
-            className={`${styles.confidentialBanner} stagger stagger-1`}
-            onClick={() => track("confidential_banner_click")}
-          >
-            <Sparkles size={14} />
-            <span>
-              <strong>New — Confidential mode:</strong> verifier votes are now sealed
-              ballots, encrypted &amp; tallied with <strong>Zama FHE</strong> on Sepolia
-            </span>
-            <ArrowRight size={14} />
-          </Link>
           <div className={`${styles.eyebrow} stagger stagger-1`}>
             <Bot size={15} />
-            {overview?.pitch || "Proof-of-work funding on 0G Chain"}
+            {overview?.pitch || "Milestone release for program offices"}
           </div>
           <h1 className={`${styles.title} stagger stagger-2`}>
-            Prove your work.{" "}
-            <span className={styles.accent}>Get paid instantly.</span>
+            Fund milestones.{" "}
+            <span className={styles.accent}>Release on evidence.</span>
           </h1>
           <p className={`${styles.subtitle} stagger stagger-3`}>
-            Stop chasing invoices and waiting on approvals. Lock a deliverable,
-            ship it, and AI verifiers release your capital onchain the moment the
-            evidence checks out — then attach the win to your reputation, forever.
+            For grant programs, R&amp;D carve-outs, and institutional funders who
+            already escrow capital: agents verify objectively checkable
+            deliverables and settle privately — so tranche release doesn&apos;t wait
+            on a six-week review queue.
           </p>
 
           <div className={`${styles.heroActions} stagger stagger-4`}>
-            <Link href="/create-milestone" className={styles.primaryAction}>
-              Get your work verified <ArrowRight size={16} />
+            <Link
+              href="/canton"
+              className={styles.primaryAction}
+              onClick={() => track("hero_canton_door_click")}
+            >
+              Open institutional rail <ArrowRight size={16} />
             </Link>
             <Link
               href="/sponsor"
               className={styles.secondaryAction}
               onClick={() => track("hero_fund_door_click")}
             >
-              Fund work, get receipts <ArrowRight size={16} />
+              Program dashboard <ArrowRight size={16} />
             </Link>
           </div>
 
-          {/* One honest, concrete proof line — a real release, not empty counters */}
-          <Link
-            href="/project/0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f"
-            className={`${styles.proofLine} stagger stagger-5`}
-            onClick={() => track("proofline_click")}
-          >
+          {/* Honest environment line — demo rails, not production money */}
+          <p className={`${styles.proofLine} stagger stagger-5`} style={{ cursor: "default" }}>
             <span className={styles.proofDot} />
             <span>
-              Latest release: <strong>{stats.ethReleased} ETH</strong> paid to{" "}
-              <strong>{builderEns}</strong> · verified {stats.quorum}
+              Pilot rails: <strong>Canton Devnet</strong> (private CBTC) ·{" "}
+              <strong>0G Testnet</strong> (builder wedge)
+              {stats.ethReleased !== "0.00" && explorerMilestones && explorerMilestones.length > 0 ? (
+                <>
+                  {" "}
+                  · demo release{" "}
+                  <Link href={`/project/${DEMO_RELEASE_HASH}`} onClick={() => track("proofline_click")}>
+                    <strong>{stats.ethReleased} ETH</strong>
+                  </Link>
+                </>
+              ) : null}
             </span>
-            <ArrowRight size={14} />
-          </Link>
+          </p>
         </div>
 
         <div className={styles.heroPanel}>
@@ -184,8 +211,9 @@ export default function Home() {
           </div>
         </div>
         <p className={`${styles.sectionText} ${styles.sectionLede}`}>
-          Capital is escrowed, work is shipped, verifiers check the evidence,
-          and the contract releases on its own. No one approves anything.
+          The funder locks capital against a checkable deliverable. Agents
+          collect evidence against a fixed template. At quorum, settlement
+          releases or refunds — no manual approval gate.
         </p>
         {/* Ambient evidence thread — swatch chips traveling a woven path.
             The Weft metaphor in motion, not just in the background grid. */}
@@ -213,7 +241,7 @@ export default function Home() {
         </p>
         <div className={styles.fheDemoGrid}>
           <Link
-            href="/project/0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1"
+            href={`/project/${DEMO_FHE_V1_HASH}?confidential=1`}
             className={styles.fheDemoCard}
             onClick={() => track("fhe_demo_v1_click")}
           >
@@ -229,7 +257,7 @@ export default function Home() {
             </span>
           </Link>
           <Link
-            href="/project/0xbd5c85db97cd5a8f30779da9311651e549f702b6ce72ebd03dcb816d3b071722?weighted=1"
+            href={`/project/${DEMO_FHE_V2_HASH}?weighted=1`}
             className={styles.fheDemoCard}
             onClick={() => track("fhe_demo_v2_click")}
           >
@@ -256,14 +284,14 @@ export default function Home() {
       <Reveal as="section" className={styles.demoSection} delay={100}>
         <div className={styles.sectionHeader}>
           <div>
-            <span className={styles.sectionKicker}>Live demo</span>
-            <h2 className={styles.sectionTitle}>Watch capital release itself</h2>
+            <span className={styles.sectionKicker}>Builder wedge · 0G Testnet</span>
+            <h2 className={styles.sectionTitle}>Public EVM demo (not production money)</h2>
           </div>
         </div>
         <p className={`${styles.sectionText} ${styles.sectionLede}`}>
-          This is a real milestone verified on 0G Testnet. Step through the
-          verification flow — or run it end-to-end — and see the actual evidence,
-          consensus, and release that happened onchain.
+          Crypto-native wedge for objectively checkable software milestones
+          (deployment + usage). Step through a real 0G Testnet verification —
+          evidence, consensus, release — separate from the institutional Canton rail.
         </p>
         <div className={styles.demoSingle}>
           <InteractiveDemo />
@@ -285,8 +313,8 @@ export default function Home() {
       <Reveal as="section" className={styles.section} delay={100}>
         <div className={styles.sectionHeader}>
           <div>
-            <span className={styles.sectionKicker}>Live trust decisions</span>
-            <h2 className={styles.sectionTitle}>Milestones being verified right now</h2>
+            <span className={styles.sectionKicker}>0G Testnet milestones</span>
+            <h2 className={styles.sectionTitle}>Public demo milestones</h2>
           </div>
           <span className={styles.sectionCount}>
             {isLoading ? "Loading..." : `${verifiedOutcomeCount > 0 ? verifiedOutcomeCount : '—'} verified`}
@@ -322,12 +350,12 @@ export default function Home() {
               <Sparkles size={28} className={styles.emptyIcon} />
               <h3 className={styles.emptyTitle}>No milestones yet</h3>
               <p className={styles.emptyBody}>
-                Be the first to create a milestone and experience autonomous verification.
-                Weft handles evidence collection, peer consensus, and capital release —
-                you just ship the work.
+                No public demo milestones loaded yet. Start on the institutional
+                Canton rail (program office flow), or use the builder wedge on
+                0G Testnet for deployment + usage verification.
               </p>
-              <Link href="/create-milestone" className={styles.emptyCta}>
-                Create your first milestone <ArrowRight size={16} />
+              <Link href="/canton" className={styles.emptyCta}>
+                Open institutional rail <ArrowRight size={16} />
               </Link>
             </div>
           </div>
@@ -335,66 +363,65 @@ export default function Home() {
       </Reveal>
 
       {/* ════════════════════════════════════════════════════════════════
-          FOR ORGANIZATIONS — grant programs, bounty boards, DAO treasuries.
-          The durable buyer is the org with repeat volume; this section
-          speaks compliance + economics, not crypto mechanics.
+          FOR PROGRAM OFFICES — grants, R&D carve-outs, supply-chain advances.
+          Primary institutional buyer; Canton is the settlement rail.
           ════════════════════════════════════════════════════════════════ */}
       <Reveal as="section" className={styles.section} delay={100}>
         <div className={styles.sectionHeader}>
           <div>
-            <span className={styles.sectionKicker}>For organizations</span>
+            <span className={styles.sectionKicker}>For program offices</span>
             <h2 className={styles.sectionTitle}>
-              Built for programs that fund work on repeat
+              Built for funders who already escrow capital
             </h2>
           </div>
         </div>
         <p className={`${styles.sectionText} ${styles.sectionLede}`}>
-          Grant rounds, bounty boards, DAO treasuries — anywhere payouts need
-          review, Weft replaces the manual queue with verification you can
-          hand to your community and your auditors.
+          Grants, R&amp;D carve-outs, supply-chain advances — anywhere a program
+          office needs to release a tranche when a checklist is met, without
+          putting prices and counterparties on a public chain.
         </p>
         <div className={styles.orgGrid}>
           <div className={styles.orgCard}>
-            <h3 className={styles.orgCardTitle}>A receipt for every payout</h3>
+            <h3 className={styles.orgCardTitle}>A receipt for every release</h3>
             <p className={styles.orgCardBody}>
-              Each release carries its evidence root, verifier quorum, and
-              settlement transactions — anchored onchain, exportable as a
-              verification receipt. When someone asks &ldquo;why did this get
-              paid?&rdquo;, the answer is a link, not a meeting.
+              Each release carries its evidence hash, verifier quorum, and
+              settlement reference — visible to parties that need to know.
+              When someone asks &ldquo;why did this get paid?&rdquo;, the answer is
+              an audit trail, not a meeting.
             </p>
           </div>
           <div className={styles.orgCard}>
-            <h3 className={styles.orgCardTitle}>Reviews that can&apos;t herd</h3>
+            <h3 className={styles.orgCardTitle}>Checkable deliverables only</h3>
             <p className={styles.orgCardBody}>
-              In confidential mode, verifiers vote by sealed ballot — encrypted
-              with Zama FHE, tallied on ciphertext. No reviewer can see another&apos;s
-              vote before quorum, so independence isn&apos;t a policy, it&apos;s
-              cryptography.
+              Agents verify against a fixed template — institutional checklist
+              on Canton, or deployment + usage on the public EVM wedge. Scope
+              ambiguity and subjective quality are out of band; Weft settles
+              what can be evidenced.
             </p>
           </div>
           <div className={styles.orgCard}>
-            <h3 className={styles.orgCardTitle}>3% flat, no dispute overhead</h3>
+            <h3 className={styles.orgCardTitle}>3% of released capital</h3>
             <p className={styles.orgCardBody}>
-              The protocol fee is 3% of released capital — it funds the agent&apos;s
-              own operations. Compare that to what a recurring program spends on
-              manual milestone review, escrow middlemen, and settling disputes.
+              Success fee aligned with unlocked capital — funds autonomous
+              verification ops. Compare that to recurring spend on manual
+              tranche review and escrow middlemen for the same programs.
             </p>
           </div>
         </div>
         <div className={styles.orgActions}>
           <Link
-            href="/sponsor"
+            href="/canton"
             className={styles.emptyCta}
-            onClick={() => track("org_section_sponsor_click")}
+            onClick={() => track("org_section_canton_click")}
           >
-            Run a funding round <ArrowRight size={16} />
+            Open institutional rail <ArrowRight size={16} />
           </Link>
           <Link
-            href="/project/0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d?confidential=1"
+            href="/sponsor"
             className={styles.orgSecondaryLink}
-            onClick={() => track("org_section_confidential_click")}
+            onClick={() => track("org_section_sponsor_click")}
           >
-            See a sealed-ballot verification →
+            Public program dashboard →
           </Link>
         </div>
       </Reveal>

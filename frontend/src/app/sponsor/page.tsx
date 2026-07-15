@@ -89,13 +89,13 @@ export default function SponsorDashboardPage() {
           <div className={styles.eyebrow}>
             <Coins size={15} /> Program Dashboard
           </div>
-          <h1 className={styles.title}>Run your funding program on autopilot.</h1>
+          <h1 className={styles.title}>Run your funding program on evidence.</h1>
           <p className={styles.subtitle}>
-            Grant rounds, bounty boards, milestone-based contracts — lock ETH
-            behind each deliverable and AI agents verify the work onchain.
-            Capital releases automatically when 2 of 3 agents agree, and every
-            payout carries a verification receipt your community and auditors
-            can check themselves. No review queue, no chasing, no disputes.
+            Grant rounds and milestone-based programs — lock capital behind
+            checkable deliverables. Agents verify against a fixed template
+            (deployment + usage on this public dashboard; institutional
+            checklist on Canton). Every release carries a receipt auditors can
+            inspect. For private settlement, use the institutional rail.
           </p>
           <div style={{ marginTop: "1.25rem", display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
             <Link href="/create-milestone" className={styles.primaryCta}>

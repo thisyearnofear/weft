@@ -5,16 +5,16 @@
 Weft verifier daemon (MVP).
 
 Enhancement-first + DRY:
-- Reuses agent/lib modules (deadline_scheduler, mvp_verifier, zero_storage, axl_client)
-- Keeps deterministic verification logic in mvp_verifier (this file orchestrates only)
+- Reuses agent/lib modules (deadline_scheduler, mvp_verifier, domain/templates, settlement)
+- Evidence template selected by rail: EVM deployment+usage vs Canton institutional checklist
 
 Behavior:
-1) Poll for milestones past deadline and not finalized
-2) Collect deterministic evidence + build attestation
+1) Poll for milestones past deadline and not finalized (EVM events or Canton ledger)
+2) Collect deterministic evidence + build attestation (template by rail)
 3) Compute evidenceRoot (keccak of canonical attestation JSON)
-4) Optionally publish to 0G (official CLI if available; see agent/lib/zero_storage.py)
-5) Submit onchain vote via KeeperHub (preferred) or cast send (fallback)
-6) Optionally broadcast verdict to peers (AXL shim) for multi-node coordination
+4) Optionally publish to 0G (EVM path)
+5) Submit verdict via SettlementRail (Canton or EVM/KeeperHub)
+6) Optionally broadcast verdict to peers (AXL) for multi-node coordination
 """
 
 import argparse
@@ -33,7 +33,7 @@ if REPO_ROOT not in sys.path:
 from agent.lib.axl_client import broadcast_verdict
 from agent.lib.ens_client import update_ens_after_verification, issue_verified_subname
 from agent.lib.jsonrpc import JsonRpcClient, default_cache
-from agent.lib.keeperhub_client import ExecutionStatus, execute_verdict, keeperhub_configured, release_after_verification
+from agent.lib.keeperhub_client import ExecutionStatus, keeperhub_configured, release_after_verification
 from agent.lib.logger import get_logger
 from agent.lib.peer_inbox import consensus_signers_for_base_root, default_inbox_dir
 from agent.lib.recovery import EventType, Outcome, emit as recovery_emit
@@ -204,6 +204,13 @@ def main() -> int:
         help="Seconds to wait for KeeperHub execution confirmation (default: 120).",
     )
     args = p.parse_args()
+
+    from agent.lib.settlement import get_settlement_rail_name
+
+    settlement_rail = get_settlement_rail_name()
+
+    if settlement_rail == "canton":
+        return _run_canton_loop(once=bool(args.once), interval=args.interval)
 
     if not args.rpc_url:
         raise SystemExit("Missing --rpc-url (or ETH_RPC_URL/RPC_URL env var)")
@@ -569,7 +576,7 @@ def _process_one(
         evidence_root=evidence_root,
     )
 
-    # Submit onchain vote — confidential (FHE) or public (KeeperHub/cast)
+    # Submit verdict: FHE (Sepolia) or public EVM SettlementRail
     confidential_contract = os.environ.get("WEFT_MILESTONE_CONFIDENTIAL", "")
     weighted_contract = os.environ.get("WEFT_MILESTONE_CONFIDENTIAL_WEIGHTED", "")
     fhe_rpc = os.environ.get("FHE_SEPOLIA_RPC", "")
@@ -637,19 +644,36 @@ def _process_one(
         else:
             log.warning("FHE helper not available, skipping confidential vote", milestone=milestone_hash)
     else:
-        # Public milestone: KeeperHub (preferred) or cast send (fallback)
-        _submit_verdict(
-            milestone_hash=milestone_hash,
-            verified_arg=verified_arg,
-            evidence_root=evidence_root,
-            weft=weft,
-            rpc_url=rpc_url,
-            private_key=private_key,
-            use_keeperhub=use_keeperhub,
-            keeperhub_timeout=keeperhub_timeout,
-            chain_id=cached_chain_id,
-            out_dir=out_dir,
+        # Public EVM milestone: SettlementRail (KeeperHub preferred or cast send)
+        from agent.lib.settlement import get_settlement_rail
+        from agent.lib.domain.models import VerdictPayload as _VP
+
+        rail = get_settlement_rail()
+        # Pass runtime overrides for this daemon cycle
+        if hasattr(rail, "contract_address"):
+            rail.contract_address = weft  # type: ignore[attr-defined]
+            rail.rpc_url = rpc_url  # type: ignore[attr-defined]
+            rail.private_key = private_key  # type: ignore[attr-defined]
+            rail.use_keeperhub = use_keeperhub  # type: ignore[attr-defined]
+            rail.keeperhub_timeout = keeperhub_timeout  # type: ignore[attr-defined]
+            rail.chain_id = cached_chain_id  # type: ignore[attr-defined]
+            rail.out_dir = out_dir  # type: ignore[attr-defined]
+
+        receipt = rail.submit_verdict(
+            milestone_hash,
+            _VP(did_complete=verified_bool, evidence_hash=evidence_root),
         )
+        if receipt.ok:
+            via = (receipt.raw or {}).get("via", "evm")
+            log.info("vote submitted via settlement", milestone=milestone_hash, via=via, tx=receipt.reference)
+            recovery_emit(
+                EventType.VERDICT_SUBMITTED,
+                context={"milestone": milestone_hash, "tx": receipt.reference, "via": via},
+                action="onchain_confirmed",
+                outcome=Outcome.SUCCESS,
+            )
+        else:
+            log.error("settlement verdict failed", milestone=milestone_hash, error=receipt.error)
 
     # Release escrowed capital via KeeperHub after a verified verdict
     if verified_bool and keeperhub_configured():
@@ -853,82 +877,169 @@ def _process_one(
     return True
 
 
-def _submit_verdict(
-    *,
-    milestone_hash: str,
-    verified_arg: str,
-    evidence_root: str,
-    weft: str,
-    rpc_url: str,
-    private_key: str,
-    use_keeperhub: bool,
-    keeperhub_timeout: int = 120,
-    chain_id: Optional[int] = None,
-    out_dir: Optional[str] = None,
-) -> None:
-    """Submit onchain verdict via KeeperHub (if configured) or cast send (fallback)."""
-    if use_keeperhub and keeperhub_configured():
-        result = execute_verdict(
-            contract_address=weft,
-            function_name="submitVerdict(bytes32,bool,bytes32)",
-            args=[milestone_hash, verified_arg, evidence_root],
-            chain_id=chain_id,
-            timeout=keeperhub_timeout,
-            out_dir=out_dir,
-        )
-        if result is not None:
-            if result.status == ExecutionStatus.CONFIRMED:
-                log.info("vote submitted via KeeperHub", milestone=milestone_hash, tx=result.tx_hash)
-                recovery_emit(
-                    EventType.VERDICT_SUBMITTED,
-                    context={"milestone": milestone_hash, "tx": result.tx_hash, "via": "keeperhub"},
-                    action="onchain_confirmed",
-                    outcome=Outcome.SUCCESS,
-                )
-                return
-            else:
-                log.warning(
-                    "KeeperHub execution failed, falling back to cast",
-                    milestone=milestone_hash,
-                    status=result.status.value,
-                    error=result.error,
-                )
-        else:
-            log.warning("KeeperHub unavailable, falling back to cast", milestone=milestone_hash)
 
-    # Fallback: raw cast send
-    try:
-        proc = subprocess.run(
-            [
-                "cast",
-                "send",
-                "--rpc-url",
-                rpc_url,
-                "--private-key",
-                private_key,
-                weft,
-                "submitVerdict(bytes32,bool,bytes32)",
-                milestone_hash,
-                verified_arg,
-                evidence_root,
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            check=False,
+def _load_institutional_evidence(milestone_id: str, rec: Optional[dict] = None):
+    """Load institutional checklist evidence for a Canton milestone.
+
+    Order:
+    1) pendingEvidence on ledger record
+    2) CANTON_EVIDENCE_DIR/{milestone_id}.json
+    3) CANTON_DEMO_EVIDENCE=1 → deterministic demo checklist (pilot only)
+    """
+    from agent.lib.domain.templates import InstitutionalChecklistEvidence
+
+    raw = None
+    if rec and isinstance(rec.get("pendingEvidence"), dict):
+        raw = rec["pendingEvidence"]
+    else:
+        evid_dir = os.environ.get("CANTON_EVIDENCE_DIR", "").strip()
+        if evid_dir:
+            path = os.path.join(evid_dir, f"{milestone_id}.json")
+            if os.path.isfile(path):
+                with open(path, encoding="utf-8") as f:
+                    raw = json.load(f)
+
+    if raw is None and os.environ.get("CANTON_DEMO_EVIDENCE") == "1":
+        raw = {
+            "documentHash": "0x" + "cd" * 32,
+            "deliveryConfirmed": True,
+            "invoiceSettled": True,
+            "checklistItemsPassed": 3,
+            "checklistItemsRequired": 3,
+            "notes": "daemon demo evidence (CANTON_DEMO_EVIDENCE=1)",
+        }
+
+    if not raw:
+        return None
+
+    return InstitutionalChecklistEvidence(
+        document_hash=str(raw.get("documentHash") or raw.get("document_hash") or ""),
+        delivery_confirmed=bool(raw.get("deliveryConfirmed", raw.get("delivery_confirmed", False))),
+        invoice_settled=bool(raw.get("invoiceSettled", raw.get("invoice_settled", False))),
+        checklist_items_passed=int(raw.get("checklistItemsPassed", raw.get("checklist_items_passed", 0))),
+        checklist_items_required=int(raw.get("checklistItemsRequired", raw.get("checklist_items_required", 1))),
+        notes=str(raw.get("notes") or ""),
+    )
+
+
+def _process_canton_one(milestone_id: str) -> None:
+    """Institutional rail: checklist evidence → attestation → CantonSettlement verdict."""
+    from agent.lib.canton_client import CantonSettlement
+    from agent.lib.domain.models import VerdictPayload
+    from agent.lib.domain.templates import build_institutional_attestation, evaluate_institutional_checklist
+    from agent.lib.mvp_verifier import keccak_bytes, write_attestation_files
+
+    c = CantonSettlement.from_env()
+    rec = c.store.get(milestone_id)
+    if not rec:
+        log.error("canton milestone not found", milestone=milestone_id)
+        return
+
+    recovery_emit(
+        EventType.VERIFICATION_STARTED,
+        context={"milestone": milestone_id, "rail": "canton"},
+        action="process_canton_milestone",
+        outcome=Outcome.PENDING,
+    )
+
+    evidence = _load_institutional_evidence(milestone_id, rec)
+    if evidence is None:
+        log.warning(
+            "skipping canton milestone — no institutional evidence "
+            "(set pendingEvidence on ledger, CANTON_EVIDENCE_DIR, or CANTON_DEMO_EVIDENCE=1)",
+            milestone=milestone_id,
         )
-        if proc.returncode != 0:
-            log.error("cast send failed", milestone=milestone_hash, output=proc.stdout)
-        else:
-            log.info("vote submitted via cast", milestone=milestone_hash)
-            recovery_emit(
-                EventType.VERDICT_SUBMITTED,
-                context={"milestone": milestone_hash, "via": "cast_send"},
-                action="onchain_confirmed",
-                outcome=Outcome.SUCCESS,
-            )
-    except Exception as e:
-        log.error("cast send error", milestone=milestone_hash, error=str(e))
+        return
+
+    evaluated = evaluate_institutional_checklist(evidence)
+    verified_bool = bool(evaluated["verdict"]["verified"])
+    node = os.environ.get("CANTON_VERIFIER_PARTY") or os.environ.get("VERIFIER_ADDRESS") or "VerifierA"
+    attested_at = int(time.time())
+    attestation = build_institutional_attestation(
+        schema_version=1,
+        project_id=str(rec.get("projectId") or ""),
+        milestone_id=milestone_id,
+        template_id=str(rec.get("templateId") or "canton.institutional_checklist.v1"),
+        evidence=evidence,
+        node_address=node,
+        attested_at=attested_at,
+        deadline=int(rec.get("deadline") or 0),
+    )
+
+    out_dir = os.path.join("agent", ".attestations", "canton", milestone_id, str(attested_at))
+    out_json = os.path.join(out_dir, "attestation.json")
+    canonical_path = write_attestation_files(attestation, out_json)
+    with open(canonical_path, "rb") as f:
+        evidence_root = keccak_bytes(f.read())
+
+    recovery_emit(
+        EventType.EVIDENCE_COLLECTED,
+        context={"milestone": milestone_id, "rail": "canton", "verified": verified_bool},
+        action="evidence_ready",
+        outcome=Outcome.SUCCESS,
+    )
+
+    receipt = c.submit_verdict(
+        milestone_id,
+        VerdictPayload(
+            did_complete=verified_bool,
+            evidence_hash=evidence.document_hash or evidence_root,
+            verifier=node,
+        ),
+    )
+    if receipt.ok:
+        log.info(
+            "canton verdict submitted",
+            milestone=milestone_id,
+            verified=verified_bool,
+            reference=receipt.reference,
+        )
+        recovery_emit(
+            EventType.VERDICT_SUBMITTED,
+            context={"milestone": milestone_id, "via": "canton", "ref": receipt.reference},
+            action="onchain_confirmed",
+            outcome=Outcome.SUCCESS,
+        )
+        if verified_bool:
+            rel = c.release(milestone_id)
+            if rel.ok:
+                log.info("canton release ok", milestone=milestone_id, reference=rel.reference)
+    else:
+        log.error("canton verdict failed", milestone=milestone_id, error=receipt.error)
+
+
+def _run_canton_loop(*, once: bool, interval: int) -> int:
+    """Poll Canton ledger mirror for funded, past-deadline milestones."""
+    from agent.lib.canton_client import CantonSettlement
+    from agent.lib import canton_http as ch
+
+    c = CantonSettlement.from_env()
+    log.info(
+        "daemon starting (canton institutional rail)",
+        ledger=str(c.store.path),
+        interval=f"{interval}s",
+        once=once,
+        demo_evidence=os.environ.get("CANTON_DEMO_EVIDENCE") == "1",
+    )
+
+    while True:
+        try:
+            pending = ch.pending_milestone_ids(c)
+            log.info("canton poll", pending=len(pending))
+            for mid in pending:
+                try:
+                    _process_canton_one(mid)
+                except Exception as e:
+                    log.error("canton process failed", milestone=mid, error=str(e), exc_info=True)
+        except KeyboardInterrupt:
+            log.info("shutting down (keyboard interrupt)")
+            return 0
+        except Exception as e:
+            log.error("canton poll cycle failed", error=str(e), exc_info=True)
+
+        if once:
+            return 0
+        time.sleep(interval)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,28 @@
-export type MilestoneState = 'pending' | 'verified' | 'failed';
-export type BuilderType = 'human' | 'agent';
+/**
+ * Presentation models for landing / explorer cards.
+ * Canonical status shape: see milestone-view.ts (matches agent MilestoneViewModel).
+ */
+
+import type { MilestoneCardState, MilestoneView } from "./milestone-view";
+import {
+  cardStateFromFlags,
+  cardStateFromStatus,
+  formatDeadline,
+  isZeroEvidenceRoot,
+  shortAddress,
+} from "./milestone-view";
+
+export type { MilestoneCardState };
+export type MilestoneState = MilestoneCardState;
+export type BuilderType = "human" | "agent";
+
+export {
+  cardStateFromFlags,
+  cardStateFromStatus,
+  formatDeadline,
+  isZeroEvidenceRoot,
+  shortAddress,
+};
 
 export interface CoBuilder {
   ens: string;
@@ -8,6 +31,7 @@ export interface CoBuilder {
   shareBps: number;
 }
 
+/** UI card model — derived from MilestoneView or onchain reads. */
 export interface Milestone {
   hash: string;
   projectName: string;
@@ -17,37 +41,59 @@ export interface Milestone {
   coBuilders: CoBuilder[];
   deadline: number;
   totalStaked: string;
-  state: MilestoneState;
+  state: MilestoneCardState;
   verifiedVotes: number;
   verifierCount: number;
   tags: string[];
   evidenceRoot?: string;
+  rail?: "evm" | "canton";
 }
 
-export interface Builder {
-  ens: string;
-  address: string;
-  type: BuilderType;
-  verifiedMilestones: number;
-  failedMilestones: number;
-  totalEarned: string;
-  reputationScore: number;
-  projects: string[];
-  joinedAt: string;
-  bio: string;
-}
+export function milestoneCardFromView(
+  view: MilestoneView,
+  opts?: {
+    projectName?: string;
+    description?: string;
+    builderEns?: string;
+    tags?: string[];
+    /** Display total (e.g. ETH decimals already formatted). */
+    totalStakedDisplay?: string;
+    /** If true, treat deadline as unix seconds (multiply for card). */
+    deadlineIsUnixSeconds?: boolean;
+  },
+): Milestone {
+  const builderAddr = view.parties.builder || "";
+  const deadlineMs =
+    opts?.deadlineIsUnixSeconds !== false && view.deadline < 1e12
+      ? view.deadline * 1000
+      : view.deadline;
 
-const now = Date.now();
-
-export function formatDeadline(ts: number): string {
-  const diff = ts - Date.now();
-  if (diff < 0) return 'Ended';
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hrs = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  if (days > 0) return `${days}d ${hrs}h remaining`;
-  return `${hrs}h remaining`;
-}
-
-export function shortAddress(addr: string) {
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+  return {
+    hash: view.milestoneId,
+    projectName: opts?.projectName || `Milestone ${view.milestoneId.slice(0, 8)}…`,
+    projectId: view.projectId,
+    description:
+      opts?.description ||
+      (view.verified
+        ? `Verified · ${view.totalStaked} released path open`
+        : view.finalized
+          ? `Not verified · refund path`
+          : `Capital locked · awaiting evidence`),
+    builder: {
+      ens: opts?.builderEns || shortAddress(builderAddr),
+      address: builderAddr,
+      type: "human",
+    },
+    coBuilders: [],
+    deadline: deadlineMs,
+    totalStaked: opts?.totalStakedDisplay ?? view.totalStaked,
+    state: cardStateFromStatus(view.status),
+    verifiedVotes: view.verifiedVotes,
+    verifierCount: view.verifierCount,
+    tags: opts?.tags ?? [view.rail, view.status, view.templateId].filter(Boolean),
+    evidenceRoot: isZeroEvidenceRoot(view.finalEvidenceRoot)
+      ? undefined
+      : view.finalEvidenceRoot,
+    rail: view.rail,
+  };
 }

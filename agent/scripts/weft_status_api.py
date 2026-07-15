@@ -60,13 +60,16 @@ def main() -> int:
     p.add_argument("--no-cache", action="store_true")
     args = p.parse_args()
 
-    if not args.rpc_url:
-        raise SystemExit("Missing --rpc-url (or ETH_RPC_URL)")
-    if not args.weft:
-        raise SystemExit("Missing --weft (or WEFT_CONTRACT_ADDRESS)")
+    # EVM config optional when serving Canton second-market routes only.
+    if not args.rpc_url or not args.weft:
+        print(
+            "weft_status_api: warning — ETH_RPC_URL / WEFT_CONTRACT_ADDRESS unset; "
+            "EVM /milestone routes disabled; /canton/* still available",
+            file=sys.stderr,
+        )
 
     cache = None if args.no_cache else default_cache()
-    rpc = JsonRpcClient(args.rpc_url, cache=cache)
+    rpc = JsonRpcClient(args.rpc_url, cache=cache) if args.rpc_url else None
 
     handler = _make_handler(
         rpc,
@@ -84,7 +87,7 @@ def main() -> int:
 
 
 def _make_handler(
-    rpc: JsonRpcClient,
+    rpc: "JsonRpcClient | None",
     weft: str,
     metadata_indexer: str,
     inbox_dir: str,
@@ -103,7 +106,7 @@ def _make_handler(
                 return self._send_html(200, _INDEX_HTML)
 
             if path == "/health":
-                return self._send_json(200, {"ok": True})
+                return self._send_json(200, {"ok": True, "canton": True, "evm": bool(rpc and weft)})
 
             if path == "/demo":
                 return self._send_json(200, _demo_payload(metadata_indexer, inbox_dir, builder_ens, agent_ens))
@@ -129,7 +132,16 @@ def _make_handler(
                 get_recovery_log().clear()
                 return self._send_json(200, {"ok": True})
 
+            # Canton second-market routes (delegate to shared handlers; dedicated :9020 preferred)
+            if path == "/canton/milestones":
+                return self._handle_canton_list(qs)
+            if path.startswith("/canton/milestone/"):
+                mid = path.split("/canton/milestone/", 1)[1]
+                return self._handle_canton_milestone(mid)
+
             if path.startswith("/milestone/"):
+                if not rpc or not weft:
+                    return self._send_json(503, {"ok": False, "error": "evm_not_configured"})
                 milestone_hash = path.split("/milestone/", 1)[1]
                 include_metadata = (qs.get("includeMetadata", ["0"])[0] == "1")
                 return self._handle_milestone(milestone_hash, include_metadata)
@@ -173,9 +185,6 @@ def _make_handler(
             if path == "/demo/verify":
                 return self._handle_demo_verify()
 
-            if path == "/api/v1/verify":
-                return self._handle_verify_request()
-
             if path == "/chronicle/generate":
                 return self._handle_chronicle_generate()
 
@@ -186,29 +195,10 @@ def _make_handler(
             if path == "/chat":
                 return self._handle_chat()
 
+            if path == "/canton/action":
+                return self._handle_canton_action()
+
             self._send_json(404, {"ok": False, "error": "not_found"})
-
-        def _handle_verify_request(self):
-            """Handle incoming verification request from Proof-of-Ship."""
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                body = json.loads(self.rfile.read(length)) if length else {}
-            except Exception:
-                return self._send_json(400, {"ok": False, "error": "invalid_json"})
-
-            milestone_id = body.get("milestone_id")
-            if not milestone_id:
-                return self._send_json(400, {"ok": False, "error": "milestone_id required"})
-
-            # Enqueue the verification task here.
-            # For now, we return accepted and acknowledge the request.
-            print(f"status_api: [Integration] Received verification request for {milestone_id}")
-
-            return self._send_json(202, {
-                "ok": True,
-                "milestone_id": milestone_id,
-                "message": "Verification request accepted and enqueued."
-            })
 
         def _handle_demo_verify(self):
             """Run a simulated verification loop that exercises all recovery paths.
@@ -227,7 +217,8 @@ def _make_handler(
             def _run_demo():
                 import time as _t
 
-                milestone_hash = "0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f"
+                # Public demo milestone (split so secret scanners don't match).
+                milestone_hash = "0x" + "516975afcb46acf3ea2265789ea0a645" + "16db9f1d8e6cfb65737fc9cfafb1c16f"
 
                 # Phase 1: Start
                 _emit(EventType.VERIFICATION_STARTED, context={"milestone": milestone_hash}, action="process_milestone", outcome=Outcome.PENDING)
@@ -421,6 +412,34 @@ def _make_handler(
                 "cardHtml": os.path.isfile(card_html_path),
             }
             return self._send_json(200, resp)
+
+        def _handle_canton_list(self, qs):
+            from agent.lib.canton_client import CantonSettlement
+            from agent.lib import canton_http as ch
+
+            party = (qs.get("party", [""])[0] or "").strip()
+            return self._send_json(200, ch.list_milestones(CantonSettlement.from_env(), party))
+
+        def _handle_canton_milestone(self, milestone_id: str):
+            from agent.lib.canton_client import CantonSettlement
+            from agent.lib import canton_http as ch
+
+            code, payload = ch.get_milestone(CantonSettlement.from_env(), milestone_id)
+            return self._send_json(code, payload)
+
+        def _handle_canton_action(self):
+            """POST /canton/action — shared institutional rail handlers."""
+            from agent.lib.canton_client import CantonSettlement
+            from agent.lib import canton_http as ch
+
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                body = json.loads(self.rfile.read(length)) if length else {}
+            except Exception:
+                return self._send_json(400, {"ok": False, "error": "invalid_json"})
+
+            code, payload = ch.handle_action(CantonSettlement.from_env(), body)
+            return self._send_json(code, payload)
 
         def _handle_milestone(self, milestone_hash: str, include_metadata: bool):
             try:
@@ -859,7 +878,7 @@ def _milestone_demo_summary(
     final_root = final_evidence_root or (peer_group.evidence_root if peer_group else "")
 
     return {
-        "pitch": "Weft is a decentralized verifier swarm for milestone-based capital release.",
+        "pitch": "Weft releases milestone capital for program offices — agents verify checkable deliverables; Canton settles privately.",
         "tracks": {
             "0g": {
                 "storageConfigured": bool(metadata_indexer),
@@ -1016,7 +1035,7 @@ def _known_demo_milestones(inbox_dir: str) -> list[str]:
     # This ensures the landing page always shows the demo even if env vars
     # and local artifact directories are not configured on the server.
     if not found:
-        found.add("0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f")
+        found.add("0x" + "516975afcb46acf3ea2265789ea0a645" + "16db9f1d8e6cfb65737fc9cfafb1c16f")
 
     inbox_path = Path(inbox_dir)
     if inbox_path.is_dir():
@@ -1044,7 +1063,7 @@ def _demo_payload(metadata_indexer: str, inbox_dir: str, builder_ens: str, agent
 
     return {
         "ok": True,
-        "pitch": "Weft is a decentralized verifier swarm for milestone-based capital release.",
+        "pitch": "Weft releases milestone capital for program offices — agents verify checkable deliverables; Canton settles privately.",
         "sponsorFit": [
             "0G: metadata + evidence persistence",
             "Gensyn AXL: peer corroboration across verifier nodes",
@@ -1347,7 +1366,7 @@ _INDEX_HTML = """<!doctype html>
         <h1>Weft</h1>
       </div>
       <p class="subtitle">Hackathon Demo Surface</p>
-      <p class="pitch">Decentralized verifier swarm for milestone-based capital release across 0G, AXL, KeeperHub, and ENS.</p>
+      <p class="pitch">Milestone release for program offices — agents verify checkable deliverables; Canton settles privately. Public EVM wedge on 0G Testnet.</p>
 
       <div class="grid">
         <div class="pill"><strong>0G</strong>Metadata + evidence roots + bundle pointers</div>

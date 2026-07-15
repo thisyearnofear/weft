@@ -41,11 +41,15 @@ while IFS= read -r -d '' file; do
     continue
   fi
 
-  # Get staged content for this file
-  staged_content=$(git diff --cached -- "$file" 2>/dev/null || true)
+  # Only scan added lines (not deletions/context) — removing an old demo hash
+  # must not false-positive as "introducing a secret".
+  staged_adds=$(git diff --cached -U0 -- "$file" 2>/dev/null | grep '^+' | grep -v '^+++' || true)
+  if [[ -z "$staged_adds" ]]; then
+    continue
+  fi
 
   for pattern in "${SECRET_PATTERNS[@]}"; do
-    if echo "$staged_content" | $GREP_CMD "$pattern"; then
+    if echo "$staged_adds" | $GREP_CMD "$pattern"; then
       echo -e "${RED}⚠️  Possible secret detected in $file${NC}"
       echo "   Matched pattern: $pattern"
       FOUND=1
