@@ -75,9 +75,9 @@ export function Nav() {
         <Link
           href="/canton"
           className={styles.navCta}
-          aria-label="Institutional Canton rail"
+          aria-label="Post-award program ops"
         >
-          Institutional
+          Program ops
         </Link>
         <Link
           href="/sponsor"
@@ -140,7 +140,7 @@ export function Nav() {
             className={styles.mobileNavCta}
             onClick={() => setOpen(false)}
           >
-            Institutional rail
+            Program ops
           </Link>
           <Link
             href="/sponsor"

@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from .canton_client import CantonSettlement
 from .domain.models import VerdictPayload
+from .domain.receipt import build_verification_receipt
 from .domain.templates import (
     InstitutionalChecklistEvidence,
     build_institutional_attestation,
@@ -205,6 +206,147 @@ def handle_action(c: CantonSettlement, body: Dict[str, Any]) -> Tuple[int, Dict[
         "ok": receipt.ok,
         "milestoneId": mid,
         "receipt": _receipt_dict(receipt),
+    }
+
+
+def get_receipt(c: CantonSettlement, milestone_id: str) -> Tuple[int, Dict[str, Any]]:
+    d = c.read_milestone_dict(milestone_id)
+    if not d:
+        return 404, {"ok": False, "error": "not_found", "rail": "canton"}
+    rec = c.store.get(milestone_id) or {}
+    vr = build_verification_receipt(
+        milestone=d,
+        external_ref=str(rec.get("externalRef") or ""),
+    )
+    return 200, {"ok": True, "rail": "canton", "verificationReceipt": vr}
+
+
+def _checklist_from_body(evidence: Dict[str, Any], body: Dict[str, Any]) -> InstitutionalChecklistEvidence:
+    return InstitutionalChecklistEvidence(
+        document_hash=str(
+            evidence.get("documentHash")
+            or body.get("evidenceHash")
+            or evidence.get("document_hash")
+            or ("0x" + "cd" * 32)
+        ),
+        delivery_confirmed=bool(
+            evidence.get("deliveryConfirmed", evidence.get("delivery_confirmed", True))
+        ),
+        invoice_settled=bool(
+            evidence.get("invoiceSettled", evidence.get("invoice_settled", True))
+        ),
+        checklist_items_passed=int(
+            evidence.get("checklistItemsPassed", evidence.get("checklist_items_passed", 3))
+        ),
+        checklist_items_required=int(
+            evidence.get("checklistItemsRequired", evidence.get("checklist_items_required", 3))
+        ),
+        notes=str(evidence.get("notes") or body.get("notes") or ""),
+    )
+
+
+def handle_ingest(c: CantonSettlement, body: Dict[str, Any]) -> Tuple[int, Dict[str, Any]]:
+    """
+    GMS webhook stub: externalRef + checklist evidence → pendingEvidence (+ optional verdicts).
+
+    Body:
+      externalRef (required for writeback)
+      milestoneId (optional — creates if missing)
+      projectId, evidence{...}, autoVerdict (default true), autoQuorum (default true for pilot)
+    """
+    external_ref = str(body.get("externalRef") or body.get("external_ref") or "").strip()
+    if not external_ref:
+        return 400, {"ok": False, "error": "externalRef required (GMS grant / milestone id)"}
+
+    evidence = body.get("evidence") if isinstance(body.get("evidence"), dict) else {}
+    checklist = _checklist_from_body(evidence, body)
+    evaluated = evaluate_institutional_checklist(checklist)
+
+    mid = (body.get("milestoneId") or body.get("milestone_id") or "").strip()
+    if not mid:
+        mid = f"gms-{external_ref}"[:64].replace(" ", "-")
+        create_code, create_payload = handle_action(
+            c,
+            {
+                "action": "create",
+                "milestoneId": mid,
+                "projectId": body.get("projectId") or f"proj-{external_ref}",
+                "templateId": "canton.institutional_checklist.v1",
+                "metadataHash": body.get("metadataHash") or "",
+                "issuer": body.get("issuer") or os.environ.get("CANTON_ISSUER_PARTY", "Issuer"),
+                "builder": body.get("builder") or os.environ.get("CANTON_BUILDER_PARTY", "Builder"),
+            },
+        )
+        if not create_payload.get("ok"):
+            return create_code, create_payload
+
+    rec = c.store.get(mid)
+    if not rec:
+        return 404, {"ok": False, "error": "milestone not found after create", "milestoneId": mid}
+
+    rec["externalRef"] = external_ref
+    rec["pendingEvidence"] = {
+        "documentHash": checklist.document_hash,
+        "deliveryConfirmed": checklist.delivery_confirmed,
+        "invoiceSettled": checklist.invoice_settled,
+        "checklistItemsPassed": checklist.checklist_items_passed,
+        "checklistItemsRequired": checklist.checklist_items_required,
+        "notes": checklist.notes,
+    }
+    rec["ingestedAt"] = int(time.time())
+    c.store.put(mid, rec)
+
+    attestation = build_institutional_attestation(
+        schema_version=1,
+        project_id=str(rec.get("projectId") or body.get("projectId") or ""),
+        milestone_id=mid,
+        template_id="canton.institutional_checklist.v1",
+        evidence=checklist,
+        node_address=os.environ.get("CANTON_VERIFIER_PARTY", "VerifierA"),
+        attested_at=int(time.time()),
+        deadline=int(rec.get("deadline") or 0),
+    )
+
+    auto_verdict = body.get("autoVerdict", True)
+    auto_quorum = body.get("autoQuorum", True)
+    verdict_results: List[Dict[str, Any]] = []
+
+    if auto_verdict and evaluated["verdict"]["verified"]:
+        verifiers = ["VerifierA"]
+        if auto_quorum:
+            verifiers.append("VerifierB")
+        for v in verifiers:
+            _code, payload = handle_action(
+                c,
+                {
+                    "action": "verdict",
+                    "milestoneId": mid,
+                    "verifier": v,
+                    "useChecklist": True,
+                    "evidence": rec["pendingEvidence"],
+                    "projectId": rec.get("projectId") or "",
+                },
+            )
+            verdict_results.append({"verifier": v, "ok": payload.get("ok"), "error": (payload.get("receipt") or {}).get("error")})
+
+    d = c.read_milestone_dict(mid) or {}
+    d["externalRef"] = external_ref
+    vr = build_verification_receipt(
+        milestone=d,
+        external_ref=external_ref,
+        attestation=attestation,
+    )
+
+    return 200, {
+        "ok": True,
+        "rail": "canton",
+        "milestoneId": mid,
+        "externalRef": external_ref,
+        "checklist": evaluated,
+        "verdicts": verdict_results,
+        "verificationReceipt": vr,
+        "attestation": attestation,
+        "hint": "POST verificationReceipt.writeback.suggestedFields onto the GMS grant record",
     }
 
 

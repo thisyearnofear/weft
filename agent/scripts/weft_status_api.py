@@ -138,6 +138,9 @@ def _make_handler(
             if path.startswith("/canton/milestone/"):
                 mid = path.split("/canton/milestone/", 1)[1]
                 return self._handle_canton_milestone(mid)
+            if path.startswith("/canton/receipt/"):
+                mid = path.split("/canton/receipt/", 1)[1]
+                return self._handle_canton_receipt(mid)
 
             if path.startswith("/milestone/"):
                 if not rpc or not weft:
@@ -197,6 +200,9 @@ def _make_handler(
 
             if path == "/canton/action":
                 return self._handle_canton_action()
+
+            if path == "/canton/ingest":
+                return self._handle_canton_ingest()
 
             self._send_json(404, {"ok": False, "error": "not_found"})
 
@@ -439,6 +445,26 @@ def _make_handler(
                 return self._send_json(400, {"ok": False, "error": "invalid_json"})
 
             code, payload = ch.handle_action(CantonSettlement.from_env(), body)
+            return self._send_json(code, payload)
+
+        def _handle_canton_ingest(self):
+            from agent.lib.canton_client import CantonSettlement
+            from agent.lib import canton_http as ch
+
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                body = json.loads(self.rfile.read(length)) if length else {}
+            except Exception:
+                return self._send_json(400, {"ok": False, "error": "invalid_json"})
+
+            code, payload = ch.handle_ingest(CantonSettlement.from_env(), body)
+            return self._send_json(code, payload)
+
+        def _handle_canton_receipt(self, milestone_id: str):
+            from agent.lib.canton_client import CantonSettlement
+            from agent.lib import canton_http as ch
+
+            code, payload = ch.get_receipt(CantonSettlement.from_env(), milestone_id)
             return self._send_json(code, payload)
 
         def _handle_milestone(self, milestone_hash: str, include_metadata: bool):

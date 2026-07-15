@@ -7,10 +7,10 @@ import { parseMilestoneView } from "@/lib/milestone-view";
 import styles from "./page.module.css";
 
 const ROLES: { id: CantonRole; label: string; blurb: string }[] = [
-  { id: "issuer", label: "Issuer", blurb: "Create milestones and release capital" },
-  { id: "funder", label: "Funder", blurb: "Stake against private deliverables" },
-  { id: "verifier", label: "Verifier", blurb: "Submit agent-backed verdicts" },
-  { id: "observer", label: "Observer", blurb: "Audit status without stake control" },
+  { id: "issuer", label: "Program officer", blurb: "Ingest from GMS · release / refund" },
+  { id: "funder", label: "Funder", blurb: "Stake when capital is escrowed" },
+  { id: "verifier", label: "Agent", blurb: "Checklist verdict (or auto via ingest)" },
+  { id: "observer", label: "Auditor", blurb: "Download verification receipts" },
 ];
 
 function asCantonList(raw: unknown[]): CantonMilestone[] {
@@ -22,6 +22,16 @@ function asCantonList(raw: unknown[]): CantonMilestone[] {
   return out;
 }
 
+function downloadJson(filename: string, data: unknown) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function CantonPage() {
   const [role, setRole] = useState<CantonRole>("issuer");
   const [milestones, setMilestones] = useState<CantonMilestone[]>([]);
@@ -30,6 +40,8 @@ export default function CantonPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [cbtc, setCbtc] = useState<string>("—");
   const [pending, startTransition] = useTransition();
+  const [externalRef, setExternalRef] = useState("fluxx-grant-demo-001");
+  const [notes, setNotes] = useState("Grantee submitted final report");
 
   const party = ROLE_PARTIES[role];
 
@@ -93,25 +105,107 @@ export default function CantonPage() {
     refresh();
   }
 
+  async function ingestFromGms() {
+    setMsg(null);
+    setError(null);
+    const res = await fetch("/api/canton/ingest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        externalRef,
+        projectId: `proj-${externalRef}`,
+        autoVerdict: true,
+        autoQuorum: true,
+        evidence: {
+          documentHash: `0x${"ab".repeat(32)}`,
+          deliveryConfirmed: true,
+          invoiceSettled: true,
+          checklistItemsPassed: 3,
+          checklistItemsRequired: 3,
+          notes,
+        },
+      }),
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      setError(data.error || "ingest failed");
+      return;
+    }
+    setMsg(
+      `Ingested ${data.externalRef} → ${data.milestoneId} · checklist ${
+        data.checklist?.verdict?.verified ? "passed" : "failed"
+      } · receipt ready for GMS writeback`,
+    );
+    if (data.verificationReceipt) {
+      downloadJson(
+        `weft-receipt-${data.milestoneId}.json`,
+        data.verificationReceipt,
+      );
+    }
+    refresh();
+  }
+
+  async function downloadReceipt(mid: string) {
+    setError(null);
+    const res = await fetch(`/api/canton/receipt/${encodeURIComponent(mid)}`, {
+      cache: "no-store",
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      setError(data.error || "receipt unavailable");
+      return;
+    }
+    downloadJson(`weft-receipt-${mid}.json`, data.verificationReceipt);
+    setMsg(`Receipt downloaded for ${mid}`);
+  }
+
   return (
     <div className={styles.wrap}>
       <header className={styles.hero}>
-        <p className={styles.eyebrow}>Primary market · Canton Devnet · CBTC · pilot</p>
+        <p className={styles.eyebrow}>
+          Post-award ops · sits beside your GMS · Canton Devnet pilot
+        </p>
         <h1 className={styles.brand}>Weft</h1>
         <p className={styles.lede}>
-          Private milestone capital for issuers and funders — need-to-know
-          visibility, institutional checklist verification, CBTC settlement.
-          Agents verify document hash + delivery + invoice + checklist items;
-          at quorum, capital releases or refunds. Sign via{" "}
-          <a href="https://devnet.consolewallet.io" target="_blank" rel="noreferrer">
-            Console Wallet
-          </a>
-          .
+          For program officers: when a grantee claims a milestone in Fluxx,
+          Foundant, AmpliFund, or Salesforce, Weft checks a fixed checklist and
+          returns a verification receipt you paste onto that grant record.
+          Private settlement is optional lab infrastructure — not the pitch.
         </p>
         <p className={styles.balance}>
-          {party} CBTC balance: <strong>{cbtc}</strong>
+          {party} pilot balance: <strong>{cbtc}</strong> CBTC
         </p>
       </header>
+
+      <section className={styles.ingest} aria-label="GMS ingest">
+        <h2 className={styles.ingestTitle}>Simulate GMS webhook</h2>
+        <p className={styles.ingestLede}>
+          Mimics <code>POST /canton/ingest</code> from your grant system of
+          record — external grant id + checklist → auto verdict + receipt JSON.
+        </p>
+        <div className={styles.ingestRow}>
+          <label className={styles.field}>
+            <span>GMS external ref</span>
+            <input
+              value={externalRef}
+              onChange={(e) => setExternalRef(e.target.value)}
+              placeholder="fluxx-grant-123"
+            />
+          </label>
+          <label className={styles.field}>
+            <span>Notes</span>
+            <input value={notes} onChange={(e) => setNotes(e.target.value)} />
+          </label>
+          <button
+            type="button"
+            className={styles.btnPrimary}
+            onClick={ingestFromGms}
+            disabled={pending || !externalRef.trim()}
+          >
+            Ingest + download receipt
+          </button>
+        </div>
+      </section>
 
       <section className={styles.roles} aria-label="Select role">
         {ROLES.map((r) => (
@@ -142,11 +236,11 @@ export default function CantonPage() {
         {role === "issuer" && (
           <button
             type="button"
-            className={styles.btnPrimary}
+            className={styles.btn}
             onClick={() =>
               act({
                 action: "create",
-                projectId: "proj-institutional-1",
+                projectId: "proj-post-award-1",
                 templateId: "canton.institutional_checklist.v1",
                 metadataHash: "0xmeta",
                 issuer: ROLE_PARTIES.issuer,
@@ -154,7 +248,7 @@ export default function CantonPage() {
               })
             }
           >
-            Create CBTC milestone
+            Create empty milestone
           </button>
         )}
       </div>
@@ -168,7 +262,9 @@ export default function CantonPage() {
       <div className={styles.grid}>
         <ul className={styles.list}>
           {milestones.length === 0 && (
-            <li className={styles.empty}>No visible milestones for this party.</li>
+            <li className={styles.empty}>
+              No milestones yet — run a GMS ingest above or create one.
+            </li>
           )}
           {milestones.map((m) => (
             <li key={m.milestoneId}>
@@ -179,7 +275,7 @@ export default function CantonPage() {
                 }
                 onClick={() => setSelected(m)}
               >
-                <strong>{m.milestoneId}</strong>
+                <strong>{m.externalRef || m.milestoneId}</strong>
                 <span>{m.status}</span>
                 <span>{m.totalStaked} staked</span>
               </button>
@@ -191,8 +287,16 @@ export default function CantonPage() {
           {!selected && <p className={styles.empty}>Select a milestone.</p>}
           {selected && (
             <>
-              <h2>{selected.milestoneId}</h2>
+              <h2>{selected.externalRef || selected.milestoneId}</h2>
               <dl className={styles.dl}>
+                <div>
+                  <dt>GMS ref</dt>
+                  <dd className={styles.mono}>{selected.externalRef || "—"}</dd>
+                </div>
+                <div>
+                  <dt>Weft id</dt>
+                  <dd className={styles.mono}>{selected.milestoneId}</dd>
+                </div>
                 <div>
                   <dt>Status</dt>
                   <dd>{selected.status}</dd>
@@ -200,47 +304,39 @@ export default function CantonPage() {
                 <div>
                   <dt>Asset</dt>
                   <dd>
-                    {selected.settlement?.symbol || "CBTC"} ·{" "}
-                    {selected.totalStaked} staked
+                    {selected.settlement?.symbol || "CBTC"} · {selected.totalStaked}{" "}
+                    staked
                   </dd>
-                </div>
-                <div>
-                  <dt>Transfer</dt>
-                  <dd className={styles.mono}>{selected.lastTransferRef || "—"}</dd>
                 </div>
                 <div>
                   <dt>Votes</dt>
                   <dd>
-                    {selected.verifiedVotes}/{selected.quorum} quorum · {selected.verifierCount}{" "}
-                    cast
+                    {selected.verifiedVotes}/{selected.quorum} quorum ·{" "}
+                    {selected.verifierCount} cast
                   </dd>
-                </div>
-                <div>
-                  <dt>Verified</dt>
-                  <dd>{selected.verified ? "yes" : "no"}</dd>
-                </div>
-                <div>
-                  <dt>Released</dt>
-                  <dd>{selected.released ? "yes" : "no"}</dd>
                 </div>
                 <div>
                   <dt>Evidence</dt>
                   <dd className={styles.mono}>{selected.finalEvidenceRoot || "—"}</dd>
                 </div>
                 <div>
-                  <dt>Parties</dt>
-                  <dd className={styles.mono}>
-                    issuer {selected.parties.issuer} · verifiers{" "}
-                    {selected.parties.verifiers.join(", ")}
-                  </dd>
+                  <dt>Settlement</dt>
+                  <dd className={styles.mono}>{selected.lastTransferRef || "—"}</dd>
                 </div>
               </dl>
 
               <div className={styles.actions}>
+                <button
+                  type="button"
+                  className={styles.btnPrimary}
+                  onClick={() => downloadReceipt(selected.milestoneId)}
+                >
+                  Download GMS receipt
+                </button>
                 {role === "funder" && !selected.finalized && (
                   <button
                     type="button"
-                    className={styles.btnPrimary}
+                    className={styles.btn}
                     onClick={() =>
                       act({
                         action: "stake",
@@ -256,7 +352,7 @@ export default function CantonPage() {
                 {role === "verifier" && !selected.finalized && (
                   <button
                     type="button"
-                    className={styles.btnPrimary}
+                    className={styles.btn}
                     onClick={() =>
                       act({
                         action: "verdict",
@@ -264,7 +360,7 @@ export default function CantonPage() {
                         verifier: ROLE_PARTIES.verifier,
                         useChecklist: true,
                         evidence: {
-                          documentHash: "0x" + "cd".repeat(32),
+                          documentHash: `0x${"ab".repeat(32)}`,
                           deliveryConfirmed: true,
                           invoiceSettled: true,
                           checklistItemsPassed: 3,
@@ -276,17 +372,20 @@ export default function CantonPage() {
                     Submit checklist verdict
                   </button>
                 )}
-                {role === "issuer" && selected.finalized && selected.verified && !selected.released && (
-                  <button
-                    type="button"
-                    className={styles.btnPrimary}
-                    onClick={() =>
-                      act({ action: "release", milestoneId: selected.milestoneId })
-                    }
-                  >
-                    Release
-                  </button>
-                )}
+                {role === "issuer" &&
+                  selected.finalized &&
+                  selected.verified &&
+                  !selected.released && (
+                    <button
+                      type="button"
+                      className={styles.btn}
+                      onClick={() =>
+                        act({ action: "release", milestoneId: selected.milestoneId })
+                      }
+                    >
+                      Release
+                    </button>
+                  )}
                 {role === "issuer" &&
                   selected.finalized &&
                   !selected.verified &&

@@ -13,7 +13,7 @@ Record against **Devnet** (or nuncio mirror for rehearsal). Target: judges see w
 
 | Time | Say / show |
 |---|---|
-| 0:00–0:20 | Problem: program offices cannot put tranche prices/counterparties on a public mempool. Weft’s primary rail settles **privately on Canton**; agents verify a checkable checklist. |
+| 0:00–0:20 | Problem: post-award review queues — money stuck until evidence clears. Weft sits **beside Fluxx/Foundant/your GMS**, not instead of it. |
 | 0:20–0:45 | Open Console Wallet — party, **CBTC balance**. Fund faucet if needed. |
 | 0:45–1:10 | `/canton` as **Issuer** — create milestone (settlement asset = CBTC). |
 | 1:10–1:35 | Switch to **Funder** — show balance before → Stake 0.01 CBTC → balance after + `lastTransferRef`. |
@@ -23,10 +23,10 @@ Record against **Devnet** (or nuncio mirror for rehearsal). Target: judges see w
 
 ## Deck one-pager bullets
 
-1. ICP: program offices / institutional funders (primary market)  
-2. Asset: **CBTC** moves app state (stake → release)  
+1. ICP: program officers — agent beside GMS already paid for  
+2. Proof artifact: verification receipt writeback (not “live on chain” badge)  
 3. Agent: institutional checklist — not LLM judgment, not scope disputes  
-4. Infra: `dpm 3.4.11` + `weft_canton_api`; EVM wedge stays on testnet  
+4. Settlement: Canton Devnet optional back-end when capital is escrowed  
 
 
 ## Live links to paste in submission

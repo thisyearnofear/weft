@@ -144,6 +144,7 @@ def _view_from_record(rec: Dict[str, Any]) -> MilestoneViewModel:
     # Attach CBTC settlement extras via to_status_dict monkeypatch field — store on object
     vm._settlement = settlement  # type: ignore[attr-defined]
     vm._last_transfer_ref = rec.get("lastTransferRef", "")  # type: ignore[attr-defined]
+    vm._external_ref = rec.get("externalRef", "")  # type: ignore[attr-defined]
     return vm
 
 
@@ -157,6 +158,10 @@ def _enrich_status(vm: MilestoneViewModel) -> Dict[str, Any]:
         "decimals": int(settlement.get("decimals") or 8),
     }
     d["lastTransferRef"] = getattr(vm, "_last_transfer_ref", "") or ""
+    # GMS linkage (set by /canton/ingest)
+    ext = getattr(vm, "_external_ref", None)
+    if ext:
+        d["externalRef"] = ext
     return d
 
 

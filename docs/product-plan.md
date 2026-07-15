@@ -2,14 +2,17 @@
 
 ## Vision
 
-Weft is verification + settlement infrastructure for **program offices and institutional
-funders** who escrow capital against checkable deliverables. Agents verify against a fixed
-evidence template; Canton settles privately. A public EVM builder wedge (0G Testnet)
-remains for crypto-native demos.
+Weft is verification infrastructure for **post-award program offices**: agents sit
+beside the grant management SoR the buyer already pays for (Fluxx, Foundant,
+AmpliFund, Salesforce Nonprofit, etc.), evaluate a fixed checklist, and write a
+verification receipt back onto the grant record. Canton is optional private
+settlement when capital is escrowed — not the commercial lead. A public EVM
+builder wedge (0G Testnet) remains for crypto-native demos.
 
-**The business model: sell trust at a percentage of the capital it unlocks.**
+**The business model: sell trust at a percentage of the capital it unlocks
+(and/or pilot SaaS on time-to-tranche).**
 
-Primary ICP: see [`canton/BUSINESS_BRIEF.md`](../canton/BUSINESS_BRIEF.md).
+Primary ICP + SoR thesis: see [`canton/BUSINESS_BRIEF.md`](../canton/BUSINESS_BRIEF.md).
 
 ## Product Tiers
 

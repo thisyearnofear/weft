@@ -58,6 +58,8 @@ export interface MilestoneView {
   /** Canton enrichments (optional on EVM). */
   settlement?: SettlementInstrument;
   lastTransferRef?: string;
+  /** GMS / CRM grant id (from /canton/ingest). */
+  externalRef?: string;
 }
 
 export type CantonMilestone = MilestoneView & {
@@ -179,5 +181,6 @@ export function parseMilestoneView(raw: unknown, fallbackRail: SettlementRail = 
       : [],
     settlement,
     lastTransferRef: d.lastTransferRef ? String(d.lastTransferRef) : undefined,
+    externalRef: d.externalRef ? String(d.externalRef) : undefined,
   };
 }

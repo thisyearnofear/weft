@@ -95,7 +95,8 @@ export default function SponsorDashboardPage() {
             checkable deliverables. Agents verify against a fixed template
             (deployment + usage on this public dashboard; institutional
             checklist on Canton). Every release carries a receipt auditors can
-            inspect. For private settlement, use the institutional rail.
+            inspect. For post-award checklist + GMS receipts, use{" "}
+            <Link href="/canton">program ops</Link>.
           </p>
           <div style={{ marginTop: "1.25rem", display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
             <Link href="/create-milestone" className={styles.primaryCta}>

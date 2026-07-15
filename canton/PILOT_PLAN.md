@@ -1,28 +1,55 @@
-# Pilot plan — Weft Canton institutional rail
+# Pilot plan — post-award SoR + Weft
 
-## Step 1 — Party + package on Devnet
+## Thesis
 
-- Allocate parties: Issuer, Builder, Funder, VerifierA, VerifierB, Auditor.
-- Build and upload `weft-canton-milestone` DAR to the Canton Devnet validator.
-- Record party IDs in `canton/.ledger/parties.json` and ledger refs in `deployed.json`.
+Win one program office by sitting **beside their grant management SoR**, not by asking
+them to migrate capital UX onto Weft. Canton remains the private settlement lab.
 
-**Integrations:** Canton Devnet validator, Daml SDK (`daml build` / upload-dar).
+## Step 0 — Pick the SoR (this week)
 
-## Step 2 — One live milestone workflow
+Target orgs that already run **one of**: Fluxx, Foundant, AmpliFund, Submittable,
+Salesforce Nonprofit Cloud, SmartSimple, or a Salesforce+spreadsheet stack.
 
-- Issuer creates milestone via UI (`/canton`) or `POST /canton/action`.
-- Funder stakes.
-- Agent or Verifier submits institutional checklist verdict (`canton.institutional_checklist.v1`).
-- Second verifier reaches quorum → finalize → Issuer releases.
+Pilot offer (one sentence): *When a grantee marks a milestone complete, Weft checks
+your checklist and writes a verification receipt onto that grant record — so tranche
+release doesn’t wait on a six-week review queue.*
 
-**Integrations:** `agent/lib/canton_client.py`, `agent/lib/canton_http.py`,
-`WEFT_SETTLEMENT_RAIL=canton` daemon (`CANTON_EVIDENCE_DIR` or ledger `pendingEvidence`),
-`weft_canton_api.py` (:9020).
+Measure: **hours from “deliverable claimed” → “tranche decision.”**
 
-## Step 3 — Pilot ops pack
+## Step 1 — Wire ingest + receipt (week 1–2)
 
-- Export audit view for Observer/Auditor (status API list by party).
-- Agree evidence checklist fields with the pilot issuer (document hash, delivery, invoice).
-- Decide go-live fee (success % vs flat pilot).
+- `POST /canton/ingest` accepts GMS-shaped payload (`externalRef` + checklist evidence).
+- Store `pendingEvidence` on the ledger milestone; daemon or `autoVerdict` evaluates
+  `canton.institutional_checklist.v1`.
+- `GET /canton/receipt/<milestoneId>` returns writeback JSON for the GMS.
+- UI `/canton`: program-officer flow — attach evidence, download receipt (Canton wallet
+  remains labeled pilot / Devnet).
 
-**Integrations:** Optional JSON API URL (`CANTON_JSON_API_URL`), Hermes skill later (out of scope for week-1 MVP).
+**Integrations:** `agent/lib/canton_http.py`, `agent/lib/domain/receipt.py`,
+`weft_canton_api.py` (:9020), frontend `/api/canton/*`.
+
+## Step 2 — Devnet settlement rehearsal (parallel)
+
+- Parties + DAR on Canton Devnet (existing runbook).
+- Issuer / funder stake → quorum → release with CBTC mirror.
+- Keep this as the **honest network label** for the deck, not the sales lead.
+
+## Step 3 — Live GMS writeback (week 3–4)
+
+- Map receipt fields to the pilot’s grant object (status, evidence hash, attestedAt,
+  settlementRef).
+- Start with webhook out + manual paste into GMS if API access is slow; automate once
+  credentials exist.
+- Agree checklist fields with the issuer; freeze the template for the pilot window.
+
+## Step 4 — Pilot ops pack
+
+- Auditor export (receipt JSON + timeline).
+- Fee decision: flat pilot vs success % of released capital.
+- Optional: folder watch (`CANTON_EVIDENCE_DIR`) for SharePoint/Drive as evidence *source*.
+
+## Explicitly later
+
+- Native Fluxx/Foundant connectors beyond webhook stub
+- Generic Xero AP (portfolio sibling, not Weft)
+- Expanding EVM builder marketing

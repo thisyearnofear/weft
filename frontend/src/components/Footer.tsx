@@ -9,7 +9,7 @@ const FOOTER_GROUPS = [
   {
     label: "Product",
     links: [
-      { href: "/canton", label: "Institutional rail (Canton)" },
+      { href: "/canton", label: "Program ops (post-award)" },
       { href: "/sponsor", label: "Program dashboard" },
       { href: "/explorer", label: "Explorer" },
       { href: "/activity", label: "Activity" },

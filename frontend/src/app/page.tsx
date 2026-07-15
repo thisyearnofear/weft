@@ -151,10 +151,11 @@ export default function Home() {
             <span className={styles.accent}>Release on evidence.</span>
           </h1>
           <p className={`${styles.subtitle} stagger stagger-3`}>
-            For grant programs, R&amp;D carve-outs, and institutional funders who
-            already escrow capital: agents verify objectively checkable
-            deliverables and settle privately — so tranche release doesn&apos;t wait
-            on a six-week review queue.
+            For program officers: when a grantee claims a milestone in your grant
+            system of record, agents verify a fixed checklist and return a
+            receipt for that grant record — so tranche release needn&apos;t wait
+            on a six-week review queue. Private settlement is optional lab
+            infrastructure.
           </p>
 
           <div className={`${styles.heroActions} stagger stagger-4`}>
@@ -163,7 +164,7 @@ export default function Home() {
               className={styles.primaryAction}
               onClick={() => track("hero_canton_door_click")}
             >
-              Open institutional rail <ArrowRight size={16} />
+              Open program ops <ArrowRight size={16} />
             </Link>
             <Link
               href="/sponsor"
@@ -350,12 +351,12 @@ export default function Home() {
               <Sparkles size={28} className={styles.emptyIcon} />
               <h3 className={styles.emptyTitle}>No milestones yet</h3>
               <p className={styles.emptyBody}>
-                No public demo milestones loaded yet. Start on the institutional
-                Canton rail (program office flow), or use the builder wedge on
-                0G Testnet for deployment + usage verification.
+                No public demo milestones loaded yet. Start on program ops
+                (GMS ingest + receipt), or use the builder wedge on 0G Testnet
+                for deployment + usage verification.
               </p>
               <Link href="/canton" className={styles.emptyCta}>
-                Open institutional rail <ArrowRight size={16} />
+                Open program ops <ArrowRight size={16} />
               </Link>
             </div>
           </div>
@@ -363,22 +364,21 @@ export default function Home() {
       </Reveal>
 
       {/* ════════════════════════════════════════════════════════════════
-          FOR PROGRAM OFFICES — grants, R&D carve-outs, supply-chain advances.
-          Primary institutional buyer; Canton is the settlement rail.
+          FOR PROGRAM OFFICES — post-award beside GMS SoR.
           ════════════════════════════════════════════════════════════════ */}
       <Reveal as="section" className={styles.section} delay={100}>
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>For program offices</span>
             <h2 className={styles.sectionTitle}>
-              Built for funders who already escrow capital
+              Built to sit beside the grant system you already pay for
             </h2>
           </div>
         </div>
         <p className={`${styles.sectionText} ${styles.sectionLede}`}>
-          Grants, R&amp;D carve-outs, supply-chain advances — anywhere a program
-          office needs to release a tranche when a checklist is met, without
-          putting prices and counterparties on a public chain.
+          Fluxx, Foundant, AmpliFund, Salesforce Nonprofit — when a grantee
+          claims a milestone, Weft checks your checklist and returns a receipt
+          for that grant record. Private settlement stays optional for pilots.
         </p>
         <div className={styles.orgGrid}>
           <div className={styles.orgCard}>
@@ -414,7 +414,7 @@ export default function Home() {
             className={styles.emptyCta}
             onClick={() => track("org_section_canton_click")}
           >
-            Open institutional rail <ArrowRight size={16} />
+                Open program ops <ArrowRight size={16} />
           </Link>
           <Link
             href="/sponsor"

@@ -1,11 +1,12 @@
 # Weft
 
-**Milestone release for program offices.**
+**Post-award verification beside the grant system you already pay for.**
 
-Institutional funders and grant issuers escrow capital against checkable
-deliverables. Autonomous agents verify against a fixed evidence template;
-Canton settles privately (need-to-know). A public EVM builder wedge on 0G
-Testnet remains for crypto-native demos — not production money.
+Program officers run milestones in Fluxx, Foundant, AmpliFund, or Salesforce.
+Weft checks a fixed evidence checklist and writes a verification receipt back
+onto that grant record — so tranche decisions need not wait on a review queue.
+Canton is an optional private settlement lab when capital is escrowed. A public
+EVM builder wedge on 0G Testnet remains for crypto-native demos — not production money.
 
 > *"Technology provides the warp. Liberal arts provide the weft."*
 >
@@ -19,13 +20,13 @@ Testnet remains for crypto-native demos — not production money.
 
 | Surface | URL | Note |
 |---|---|---|
-| Institutional rail (primary) | [/canton](https://weft.thisyearnofear.com/canton) | Canton Devnet · CBTC · pilot |
-| Program dashboard | [/sponsor](https://weft.thisyearnofear.com/sponsor) | Funder view (public EVM demos) |
+| Program ops (primary) | [/canton](https://weft.thisyearnofear.com/canton) | GMS ingest + receipt · Canton Devnet pilot |
+| Program dashboard | [/sponsor](https://weft.thisyearnofear.com/sponsor) | Public EVM demos |
 | Verification Explorer | [/explorer](https://weft.thisyearnofear.com/explorer) | 0G Testnet milestones |
 | Builder create (wedge) | [/create-milestone](https://weft.thisyearnofear.com/create-milestone) | 0G Testnet — not prod |
 | Agent Operations | [/operations](https://weft.thisyearnofear.com/operations) | Developer |
 
-See [`canton/BUSINESS_BRIEF.md`](canton/BUSINESS_BRIEF.md) for ICP and who pays.
+See [`canton/BUSINESS_BRIEF.md`](canton/BUSINESS_BRIEF.md) for ICP, SoR thesis, and pilot plan.
 
 ## Sealed-ballot consensus (Zama FHE)
 

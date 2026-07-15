@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: '%s · Weft',
   },
   description:
-    'Institutional funders escrow capital against checkable deliverables. Agents verify against a fixed template; Canton settles privately. Builder wedge on 0G Testnet for crypto-native demos.',
+    'Program officers: Weft verifies post-award checklists and writes a receipt back to your grant system of record. Canton is optional private settlement for pilots.',
   keywords: ['milestone funding', 'program office', 'Canton', 'institutional settlement', 'autonomous agents', 'escrow', 'grant programs'],
   applicationName: 'Weft',
   openGraph: {

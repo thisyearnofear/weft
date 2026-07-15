@@ -85,11 +85,25 @@ def _make_handler(c: CantonSettlement):
             if path == "/canton/wallet":
                 return self._json(200, ch.get_wallet_info())
 
+            if path.startswith("/canton/receipt/"):
+                mid = path.split("/canton/receipt/", 1)[1]
+                code, payload = ch.get_receipt(c, mid)
+                return self._json(code, payload)
+
             return self._json(404, {"ok": False, "error": "not_found"})
 
         def do_POST(self):  # noqa: N802
             parsed = urlparse(self.path)
             path = parsed.path.rstrip("/")
+            if path == "/canton/ingest":
+                try:
+                    length = int(self.headers.get("Content-Length", 0))
+                    body = json.loads(self.rfile.read(length)) if length else {}
+                except Exception:
+                    return self._json(400, {"ok": False, "error": "invalid_json"})
+                code, payload = ch.handle_ingest(c, body)
+                return self._json(code, payload)
+
             if path != "/canton/action":
                 return self._json(404, {"ok": False, "error": "not_found"})
             try:

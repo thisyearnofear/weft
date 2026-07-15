@@ -57,6 +57,57 @@
   color: var(--canton-accent);
 }
 
+.ingest {
+  max-width: 920px;
+  margin: 0 auto 1.75rem;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid var(--canton-line);
+  background: #fff;
+}
+
+.ingestTitle {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.ingestLede {
+  margin: 0 0 1rem;
+  color: var(--canton-muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  max-width: 62ch;
+}
+
+.ingestLede code {
+  font-size: 0.85em;
+  background: var(--canton-accent-soft);
+  padding: 0.1em 0.35em;
+}
+
+.ingestRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1 1 14rem;
+  font-size: 0.8rem;
+  color: var(--canton-muted);
+}
+
+.field input {
+  border: 1px solid var(--canton-line);
+  padding: 0.55rem 0.65rem;
+  font-size: 0.95rem;
+  color: var(--canton-ink);
+  background: #fff;
+}
+
 .roles {
   max-width: 920px;
   margin: 0 auto 1.5rem;

@@ -10,6 +10,7 @@ from .models import (
     StakeRecord,
     VerdictPayload,
 )
+from .receipt import build_verification_receipt
 from .templates import (
     EvidenceTemplateId,
     InstitutionalChecklistEvidence,
@@ -29,6 +30,7 @@ __all__ = [
     "StakeRecord",
     "VerdictPayload",
     "build_institutional_attestation",
+    "build_verification_receipt",
     "evaluate_institutional_checklist",
     "select_template",
 ]

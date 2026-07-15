@@ -17,7 +17,7 @@ export default function CreateMilestonePage() {
             milestone (deployment + usage). Agents collect evidence and reach
             quorum on 0G Testnet — not production money. Program offices should
             start on the{" "}
-            <Link href="/canton">institutional Canton rail</Link> instead.
+            <Link href="/canton">program ops</Link> instead.
           </p>
         </div>
 
