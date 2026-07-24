@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
-import { getSignozDashboardUrl } from "@/lib/signoz";
+import { ArrowRight, Info } from "lucide-react";
+import { getSignozDashboardUrl, getSignozPrivateDashboardUrl } from "@/lib/signoz";
 import type { ObservabilityData } from "@/hooks/useObservability";
 import { SIGNOZ_DASHBOARD_PANELS } from "@/lib/signoz-config";
 import styles from "./DashboardScreenshotStrip.module.css";
@@ -36,49 +36,54 @@ export function DashboardScreenshotStrip({
   recovery?: ObservabilityData["recovery"];
   isLoading?: boolean;
 }) {
-  const dashboardUrl = getSignozDashboardUrl();
-  if (!dashboardUrl) return null;
+  const publicDashboardUrl = getSignozDashboardUrl();
+  const privateDashboardUrl = getSignozPrivateDashboardUrl();
+
+  if (!signoz) return null;
 
   return (
-    <div className={styles.strip}>
-      {signoz && (
-        <div className={styles.liveMirror} aria-label="Live dashboard counts from Weft API">
-          <div className={styles.liveMirrorHeader}>
-            <span className={styles.liveMirrorLabel}>Live dashboard counts (SigNoz-backed)</span>
-            <a href={dashboardUrl} target="_blank" rel="noopener noreferrer" className={styles.openLink}>
-              Open in SigNoz <ArrowRight size={14} />
+    <div className={styles.strip} aria-label="Weft Agent Observatory dashboard">
+      <div className={styles.liveMirrorHeader}>
+        <div>
+          <strong className={styles.title}>Weft Autonomous Agent Observatory</strong>
+          <span className={styles.liveMirrorLabel}>Live counts · last 24h · SigNoz API</span>
+        </div>
+        <div className={styles.linkRow}>
+          {privateDashboardUrl && (
+            <a href={privateDashboardUrl} target="_blank" rel="noopener noreferrer" className={styles.openLinkPrimary}>
+              Open SigNoz charts <ArrowRight size={14} />
             </a>
-          </div>
-          <div className={styles.liveGrid}>
-            {SIGNOZ_DASHBOARD_PANELS.map((panel) => {
-              const metric = panelMetricValue(panel.metricKey, signoz, recovery ?? null);
-              const barWidth = Math.min(100, (Number(metric) || 0) * 8 + 14);
-              return (
-                <div key={panel.title} className={styles.livePanel}>
-                  <span>{panel.title}</span>
-                  <strong>{isLoading ? "…" : metric}</strong>
-                  <div className={styles.liveBar} aria-hidden="true">
-                    <i style={{ width: `${barWidth}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          )}
+          {publicDashboardUrl && (
+            <a href={publicDashboardUrl} target="_blank" rel="noopener noreferrer" className={styles.openLink}>
+              Public link
+            </a>
+          )}
         </div>
-      )}
+      </div>
 
-      <div className={styles.embedBlock}>
-        <div className={styles.header}>
-          <strong>SigNoz dashboard embed</strong>
-          <span className={styles.timeHint}>Last 24 hours · use Run demo trace if panels are empty</span>
-        </div>
-        <iframe
-          src={dashboardUrl}
-          title="Weft Agent Observatory — SigNoz dashboard"
-          className={styles.iframe}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        />
+      <p className={styles.note}>
+        <Info size={14} />
+        SigNoz&apos;s public dashboard publish currently strips panel filters for v5 dashboards, so the
+        embedded public view shows &quot;No Data&quot; even while telemetry is live. These counts are queried
+        directly from SigNoz and match the private dashboard panels.
+      </p>
+
+      <div className={styles.liveGrid}>
+        {SIGNOZ_DASHBOARD_PANELS.map((panel) => {
+          const metric = panelMetricValue(panel.metricKey, signoz, recovery ?? null);
+          const barWidth = Math.min(100, (Number(metric) || 0) * 8 + 14);
+          return (
+            <div key={panel.title} className={styles.livePanel}>
+              <span>{panel.title}</span>
+              <strong>{isLoading ? "…" : metric}</strong>
+              <p>{panel.body}</p>
+              <div className={styles.liveBar} aria-hidden="true">
+                <i style={{ width: `${barWidth}%` }} />
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

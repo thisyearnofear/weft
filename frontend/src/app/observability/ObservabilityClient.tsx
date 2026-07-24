@@ -51,27 +51,6 @@ function alertStateLabel(state: string): string {
   return "Provisioned";
 }
 
-function panelMetricValue(
-  key: (typeof SIGNOZ_DASHBOARD_PANELS)[number]["metricKey"],
-  signoz: NonNullable<ReturnType<typeof useObservability>["data"]>["signoz"],
-  recovery: NonNullable<ReturnType<typeof useObservability>["data"]>["recovery"]
-): string {
-  switch (key) {
-    case "spanGroups":
-      return String(signoz.spanGroups);
-    case "llmSpans":
-      return String(signoz.spanCounts["weft.llm.chat"] ?? 0);
-    case "traceCount":
-      return signoz.traceCount != null ? String(signoz.traceCount) : "—";
-    case "toolSpans":
-      return String(signoz.spanCounts["weft.agent.tool_call"] ?? 0);
-    case "recoveryEvents":
-      return recovery ? String(recovery.totalEvents) : "—";
-    default:
-      return "—";
-  }
-}
-
 export function ObservabilityClient({
   guided = false,
   present = false,
@@ -292,29 +271,6 @@ export function ObservabilityClient({
             <h2>Eight panels — live counts when SigNoz is connected.</h2>
           </div>
           <DashboardScreenshotStrip signoz={signoz} recovery={recovery} isLoading={isLoading} />
-          {signozDashboard && (
-            <a href={signozDashboard} target="_blank" rel="noopener noreferrer" className={styles.dashboardEmbed}>
-              <div className={styles.dashboardEmbedHeader}>
-                <strong>Quick panel snapshot</strong>
-                <span>Open full dashboard <ArrowRight size={14} /></span>
-              </div>
-              <div className={styles.dashboardPreview}>
-                {SIGNOZ_DASHBOARD_PANELS.slice(0, 4).map((panel) => {
-                  const metric = signoz ? panelMetricValue(panel.metricKey, signoz, recovery) : "—";
-                  const barWidth = Math.min(100, (Number(metric) || 0) * 12 + 18);
-                  return (
-                    <div key={panel.title} className={styles.previewPanel}>
-                      <span>{panel.title}</span>
-                      <strong>{isLoading ? "…" : metric}</strong>
-                      <div className={styles.previewBar} aria-hidden="true">
-                        <i style={{ width: `${barWidth}%` }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </a>
-          )}
           <div className={styles.panelGrid}>
             {SIGNOZ_DASHBOARD_PANELS.map((panel, index) => (
               <div key={panel.title} className={styles.panelItem}>

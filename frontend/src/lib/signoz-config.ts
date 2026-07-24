@@ -3,9 +3,12 @@
 export const SIGNOZ_WINNING_TRACE_FILTER =
   "service.name = 'weft-daemon' AND weft.milestone_hash = '0xwinningagent2'";
 
+export const SIGNOZ_PRIVATE_DASHBOARD_ID = "019f939c-cffa-7134-a7ee-9622693ec4fb";
+
+/** Public dashboard id (submission link — panel queries may be empty due to SigNoz v5 publish bug). */
 export const SIGNOZ_DASHBOARD_ID = "019f93e2-4d26-7816-889d-cf5da1756d5d";
 
-/** Public dashboard URL (no SigNoz login required — for judges and deep links). */
+/** Public dashboard URL for hackathon submission (judges may need the Weft mirror for live counts). */
 export const SIGNOZ_PUBLIC_DASHBOARD_URL =
   "https://modest-mosquito.us2.signoz.cloud/public/dashboard/019f93e2-4d26-7816-889d-cf5da1756d5d";
 

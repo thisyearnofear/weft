@@ -1,6 +1,7 @@
 import {
   SIGNOZ_ALERTS,
   SIGNOZ_DASHBOARD_ID,
+  SIGNOZ_PRIVATE_DASHBOARD_ID,
   SIGNOZ_PUBLIC_DASHBOARD_URL,
   SIGNOZ_WINNING_TRACE_FILTER,
 } from "@/lib/signoz-config";
@@ -10,6 +11,7 @@ export {
   SIGNOZ_DASHBOARD_ID,
   SIGNOZ_DASHBOARD_PANELS,
   SIGNOZ_DEMO_SPAN_COUNTS,
+  SIGNOZ_PRIVATE_DASHBOARD_ID,
   SIGNOZ_PUBLIC_DASHBOARD_URL,
   SIGNOZ_SPAN_NAMES,
   SIGNOZ_WINNING_TRACE_FILTER,
@@ -18,7 +20,7 @@ export {
 export const SIGNOZ_WINNING_MILESTONE_HASH = "0xwinningagent2";
 
 const DEFAULT_INSTANCE = "https://modest-mosquito.us2.signoz.cloud";
-const DEFAULT_DASHBOARD_RELATIVE_TIME = "1d";
+const DEFAULT_DASHBOARD_RELATIVE_TIME = "24h";
 
 function withDashboardTimeRange(url: string, relativeTime = DEFAULT_DASHBOARD_RELATIVE_TIME): string {
   try {
@@ -41,6 +43,12 @@ export function getSignozDashboardUrl(): string | null {
   const url = process.env.NEXT_PUBLIC_SIGNOZ_DASHBOARD_URL?.trim();
   const base = url || SIGNOZ_PUBLIC_DASHBOARD_URL;
   return withDashboardTimeRange(base);
+}
+
+/** Full SigNoz dashboard with working panel queries (requires SigNoz login). */
+export function getSignozPrivateDashboardUrl(): string | null {
+  const base = getSignozInstanceUrl().replace(/\/$/, "");
+  return withDashboardTimeRange(`${base}/dashboard/${SIGNOZ_PRIVATE_DASHBOARD_ID}`);
 }
 
 export function getSignozTracesExplorerUrl(filter = SIGNOZ_WINNING_TRACE_FILTER): string {
