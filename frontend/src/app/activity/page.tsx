@@ -6,6 +6,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { ListSkeleton } from "@/components/KPISkeleton";
+import { Reveal } from "@/components/Reveal";
 import type { ActivityEvent } from "@/lib/activity";
 import styles from "./page.module.css";
 
@@ -135,6 +136,7 @@ export default function ActivityPage() {
 
         {/* Filter chips */}
         {!isLoading && !error && allEvents.length > 0 && (
+          <Reveal as="div" delay={0}>
           <div className={styles.filterChips}>
             {FILTER_GROUPS.map((f) => (
               <button
@@ -147,6 +149,7 @@ export default function ActivityPage() {
               </button>
             ))}
           </div>
+          </Reveal>
         )}
 
         {isLoading && <ListSkeleton rows={6} />}
@@ -165,6 +168,7 @@ export default function ActivityPage() {
         )}
 
         {!isLoading && !error && filteredEvents.length > 0 && (
+          <Reveal as="div" delay={0}>
           <div className={styles.timeline}>
             {filteredEvents.map((event, i) => (
               <div key={`${event.timestamp}-${i}`} className={`${styles.event} ${styles[`event${event.type.charAt(0).toUpperCase() + event.type.slice(1)}`]} stagger stagger-${Math.min(i + 1, 6)}`}>
@@ -186,6 +190,7 @@ export default function ActivityPage() {
               </div>
             ))}
           </div>
+          </Reveal>
         )}
       </div>
     </div>

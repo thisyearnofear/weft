@@ -6,6 +6,8 @@ import Link from "next/link";
 import { ArrowUpRight, Blocks, CheckCircle2, Coins, Globe, Sparkles, Users, Code2, Lock } from "lucide-react";
 import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { Reveal } from "@/components/Reveal";
+import { ActSection } from "@/components/ui/ActSection";
 import styles from "./page.module.css";
 
 function PassportSkeleton() {
@@ -124,35 +126,51 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
           </div>
         </section>
 
-        <section className={styles.metricsGrid}>
-          <article className={`${styles.metricCard} stagger stagger-1 lift`}>
-            <span className={styles.metricLabel}>Verified Outcomes</span>
-            <strong className={styles.metricValue}>{passport.weftMilestonesVerified}</strong>
-            <p>Milestones verified by AI agents with capital released.</p>
-          </article>
-          <article className={`${styles.metricCard} stagger stagger-2 lift`}>
-            <span className={styles.metricLabel}>Capital Unlocked</span>
-            <strong className={styles.metricValue}>{earnedEth} ETH</strong>
-            <p>Total earned through verified milestone deliveries.</p>
-          </article>
-          <article className={`${styles.metricCard} stagger stagger-3 lift`}>
-            <span className={styles.metricLabel}>Collaborators</span>
-            <strong className={styles.metricValue}>{passport.weftCobuilders.length}</strong>
-            <p>Builders and agents who shipped on the same milestones.</p>
-          </article>
-          <article className={`${styles.metricCard} stagger stagger-4 lift`}>
-            <span className={styles.metricLabel}>Projects</span>
-            <strong className={styles.metricValue}>{passport.weftProjects.length}</strong>
-            <p>Funded projects linked to this identity.</p>
-          </article>
-          <article className={`${styles.metricCard} ${styles.metricHighlight} stagger stagger-5 lift`}>
-            <span className={styles.metricLabel}><Lock size={12} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }} />Sealed-Ballot Milestones</span>
-            <strong className={styles.metricValue}>2</strong>
-            <p>Verified via Zama FHE encrypted ballots on Sepolia (FHE.add + FHE.mul).</p>
-          </article>
-        </section>
+        <ActSection
+          act={1}
+          id="act-identity"
+          title="Reputation and outcomes."
+          subtitle="Portable trust built from verified work, not social claims."
+        >
+          <Reveal as="div" delay={0}>
+            <section className={styles.metricsGrid}>
+              <article className={`${styles.metricCard} stagger stagger-1 lift`}>
+                <span className={styles.metricLabel}>Verified Outcomes</span>
+                <strong className={styles.metricValue}>{passport.weftMilestonesVerified}</strong>
+                <p>Milestones verified by AI agents with capital released.</p>
+              </article>
+              <article className={`${styles.metricCard} stagger stagger-2 lift`}>
+                <span className={styles.metricLabel}>Capital Unlocked</span>
+                <strong className={styles.metricValue}>{earnedEth} ETH</strong>
+                <p>Total earned through verified milestone deliveries.</p>
+              </article>
+              <article className={`${styles.metricCard} stagger stagger-3 lift`}>
+                <span className={styles.metricLabel}>Collaborators</span>
+                <strong className={styles.metricValue}>{passport.weftCobuilders.length}</strong>
+                <p>Builders and agents who shipped on the same milestones.</p>
+              </article>
+              <article className={`${styles.metricCard} stagger stagger-4 lift`}>
+                <span className={styles.metricLabel}>Projects</span>
+                <strong className={styles.metricValue}>{passport.weftProjects.length}</strong>
+                <p>Funded projects linked to this identity.</p>
+              </article>
+              <article className={`${styles.metricCard} ${styles.metricHighlight} stagger stagger-5 lift`}>
+                <span className={styles.metricLabel}><Lock size={12} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }} />Sealed-Ballot Milestones</span>
+                <strong className={styles.metricValue}>2</strong>
+                <p>Verified via Zama FHE encrypted ballots on Sepolia (FHE.add + FHE.mul).</p>
+              </article>
+            </section>
+          </Reveal>
+        </ActSection>
 
-        <section className={styles.mainGrid}>
+        <ActSection
+          act={2}
+          id="act-evidence"
+          title="Trust graph and protocol interpretation."
+          subtitle="How Weft reads this passport, and who this builder ships with."
+        >
+          <Reveal as="div" delay={0}>
+            <section className={styles.mainGrid}>
           <div className={styles.primaryColumn}>
             <article className={styles.panel}>
               <div className={styles.panelHeader}>
@@ -247,7 +265,9 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
               </div>
             </article>
           </aside>
-        </section>
+            </section>
+          </Reveal>
+        </ActSection>
       </div>
     </div>
   );

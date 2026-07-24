@@ -7,6 +7,7 @@ import { useExplorerMilestones } from "@/hooks/useExplorer";
 import { useConfidentialMilestone } from "@/hooks/useConfidentialMilestone";
 import { useWeightedConfidentialMilestone } from "@/hooks/useWeightedConfidentialMilestone";
 import { CountUp } from "@/components/CountUp";
+import { Reveal } from "@/components/Reveal";
 import { track } from "@/lib/track";
 import { DEMO_FHE_V1_HASH, DEMO_FHE_V2_HASH } from "@/lib/demo-milestones";
 import styles from "./page.module.css";
@@ -175,6 +176,7 @@ export default function ExplorerPage() {
         </div>
 
         {/* Sealed-ballot demos on Sepolia */}
+        <Reveal as="div" delay={0}>
         <div className={styles.fheSection} id="fhe-demos">
           <div className={styles.fheSectionHeader}>
             <span className={styles.fheSectionKicker}>Confidential · Sepolia (Zama FHE)</span>
@@ -215,8 +217,10 @@ export default function ExplorerPage() {
             </Link>
           </div>
         </div>
+        </Reveal>
 
         {/* All milestones — unified table */}
+        <Reveal as="div" delay={80}>
         <div className={styles.sectionLabel}>
           <span className={styles.sectionLabelText}>All milestones · 0G Chain + Sepolia FHE</span>
         </div>
@@ -377,6 +381,7 @@ export default function ExplorerPage() {
             </table>
           )}
         </div>
+        </Reveal>
       </div>
     </div>
   );
