@@ -698,6 +698,13 @@ from `@zama-fhe/relayer-sdk` into `public/zama/` via `scripts/sync-zama-sdk.mjs`
 `frontend/.npmrc` sets `legacy-peer-deps=true` because `@rainbow-me/rainbowkit@2.x` peers on
 wagmi 2 while Weft uses wagmi 3. Remove `.npmrc` after upgrading to RainbowKit 3 on npm.
 
+### SigNoz observability links
+
+After provisioning SigNoz assets, `/observability` deep-links to the live dashboard and winning
+trace filter. Run [`agent/scripts/weft_signoz_provision.sh`](../agent/scripts/weft_signoz_provision.sh)
+(OpenTofu/Terraform) — it writes `NEXT_PUBLIC_SIGNOZ_*` into `frontend/.env.local` (gitignored).
+See [`signoz/README.md`](../signoz/README.md).
+
 ## Dependencies
 
 - **0G Chain** — Deployment target (EVM-compatible)

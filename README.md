@@ -256,6 +256,12 @@ export WEFT_OTEL_EXPORT_TIMEOUT=3
 # one-command hackathon demo data pack
 agent/scripts/weft_signoz_demo.sh
 
+# provision dashboard + alerts (service-account API key; OpenTofu or Terraform)
+brew install opentofu   # if neither tofu nor terraform is installed
+export SIGNOZ_ENDPOINT='https://modest-mosquito.us2.signoz.cloud'
+export SIGNOZ_ACCESS_TOKEN='<service-account-api-key>'
+agent/scripts/weft_signoz_provision.sh   # also writes frontend/.env.local
+
 # real verifier run
 .venv-signoz/bin/python agent/scripts/weft_daemon.py --once
 ```
@@ -264,7 +270,8 @@ For self-hosted SigNoz, set `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318`.
 `casting.yaml` and `casting.yaml.lock` are kept for hackathon reproducibility and judge
 reruns; active development can use SigNoz Cloud without running Docker locally. See
 [the SigNoz hackathon scope](docs/signoz-hackathon-scope.md) for the dashboard, alert,
-and demo plan.
+and demo plan. Dashboard/alerts are provisioned via [`signoz/terraform/`](signoz/terraform/)
+and [`docs/signoz-demo-recording.md`](docs/signoz-demo-recording.md).
 
 SigNoz Cloud has two separate credential types:
 

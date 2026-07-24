@@ -63,11 +63,27 @@ The demo trace `weft.milestone_hash = '0xwinningagent2'` is queryable in SigNoz 
 
 Dashboard build notes are in `docs/signoz-dashboard-build-sheet.md`.
 
+Provision the live dashboard and alerts (OpenTofu or Terraform):
+
+```bash
+brew install opentofu   # or hashicorp/tap/terraform
+export SIGNOZ_ENDPOINT='https://modest-mosquito.us2.signoz.cloud'
+export SIGNOZ_ACCESS_TOKEN='<service-account-api-key>'
+agent/scripts/weft_signoz_provision.sh
+```
+
+The provision script writes `NEXT_PUBLIC_SIGNOZ_INSTANCE_URL` and
+`NEXT_PUBLIC_SIGNOZ_DASHBOARD_URL` into `frontend/.env.local` for `/observability` deep links.
+
+Infrastructure definitions: [`signoz/terraform/`](../../signoz/terraform/).
+
 The demo data can be regenerated with:
 
 ```bash
 agent/scripts/weft_signoz_demo.sh
 ```
+
+Record the submission demo with `docs/signoz-demo-recording.md`.
 
 ## Reproducibility
 

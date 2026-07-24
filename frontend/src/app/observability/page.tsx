@@ -19,9 +19,16 @@ import {
   TerminalSquare,
 } from "lucide-react";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import {
+  getSignozAlertsUrl,
+  getSignozDashboardUrl,
+  getSignozInstanceUrl,
+  getSignozTracesExplorerUrl,
+  SIGNOZ_WINNING_TRACE_FILTER,
+} from "@/lib/signoz";
 import styles from "./page.module.css";
 
-const TRACE_FILTER = "service.name = 'weft-daemon' AND weft.milestone_hash = '0xwinningagent2'";
+const TRACE_FILTER = SIGNOZ_WINNING_TRACE_FILTER;
 
 const SPANS = [
   {
@@ -95,6 +102,10 @@ const ALERTS = [
 ];
 
 export default function ObservabilityPage() {
+  const signozInstance = getSignozInstanceUrl();
+  const signozDashboard = getSignozDashboardUrl();
+  const tracesExplorer = getSignozTracesExplorerUrl();
+
   return (
     <div className={styles.container}>
       <div className={styles.inner}>
@@ -116,13 +127,32 @@ export default function ObservabilityPage() {
                 Open operations <ArrowRight size={16} />
               </Link>
               <a
-                href="https://modest-mosquito.us2.signoz.cloud"
+                href={tracesExplorer}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.secondaryAction}
               >
-                Open SigNoz <ArrowRight size={16} />
+                Open winning trace <ArrowRight size={16} />
               </a>
+              {signozDashboard ? (
+                <a
+                  href={signozDashboard}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.secondaryAction}
+                >
+                  Open dashboard <ArrowRight size={16} />
+                </a>
+              ) : (
+                <a
+                  href={signozInstance}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.secondaryAction}
+                >
+                  Open SigNoz <ArrowRight size={16} />
+                </a>
+              )}
             </div>
           </div>
 
@@ -237,14 +267,22 @@ export default function ObservabilityPage() {
               </div>
             ))}
           </div>
+          <a
+            href={getSignozAlertsUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.alertLink}
+          >
+            View alert rules in SigNoz <ArrowRight size={14} />
+          </a>
         </section>
 
         <section className={styles.demoStrip}>
           <div>
             <Clock3 size={18} />
-            <span>Demo command</span>
+            <span>Demo commands</span>
           </div>
-          <code>agent/scripts/weft_signoz_demo.sh</code>
+          <code>agent/scripts/weft_signoz_demo.sh && agent/scripts/weft_signoz_provision.sh</code>
           <CheckCircle2 size={18} />
         </section>
       </div>

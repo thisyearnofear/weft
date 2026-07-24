@@ -191,3 +191,19 @@ service.name = 'weft-daemon' AND name = 'weft.llm.chat' AND weft.llm.outcome = '
 ```
 
 Condition: `count() > 0` over 5 minutes.
+
+## Provision in SigNoz Cloud
+
+Terraform definitions live in [`signoz/terraform/`](../signoz/terraform/). After emitting demo
+telemetry:
+
+```bash
+export SIGNOZ_ENDPOINT='https://modest-mosquito.us2.signoz.cloud'
+export SIGNOZ_ACCESS_TOKEN='<service-account-api-key>'
+agent/scripts/weft_signoz_provision.sh
+```
+
+This creates the dashboard and all three alert rules (`signoz_rule` on SigNoz v2 API).
+The script also bootstraps a `weft-demo` notification channel and writes
+`NEXT_PUBLIC_SIGNOZ_*` into `frontend/.env.local` (gitignored).
+See [`signoz/README.md`](../signoz/README.md) for credential types and outputs.

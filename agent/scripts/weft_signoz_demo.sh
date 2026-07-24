@@ -26,8 +26,15 @@ export WEFT_OTEL_EXPORT_TIMEOUT="${WEFT_OTEL_EXPORT_TIMEOUT:-10}"
 cat <<'EOF'
 SigNoz demo telemetry emitted.
 
+Next: provision dashboard + alerts (service-account API key):
+  export SIGNOZ_ENDPOINT='https://modest-mosquito.us2.signoz.cloud'
+  export SIGNOZ_ACCESS_TOKEN='<service-account-api-key>'
+  agent/scripts/weft_signoz_provision.sh
+
 Suggested trace filter:
   service.name = 'weft-daemon' AND weft.milestone_hash = '0xwinningagent2'
+
+Record the demo: docs/signoz-demo-recording.md
 
 Expected span names:
   weft.verification_cycle

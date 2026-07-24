@@ -317,6 +317,21 @@
   background: rgba(245, 158, 11, 0.055);
 }
 
+.alertLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+  color: var(--c-accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.alertLink:hover {
+  text-decoration: underline;
+}
+
 .alertItem svg {
   color: var(--c-pending);
   margin-top: 0.1rem;

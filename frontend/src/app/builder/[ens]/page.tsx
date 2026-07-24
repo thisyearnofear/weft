@@ -53,7 +53,6 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
   }
 
   const earnedEth = passport.weftEarnedTotal ? (passport.weftEarnedTotal / 1e18).toFixed(3) : "0.000";
-  const collaborationDensity = passport.weftCobuilders.length + passport.weftProjects.length;
 
   return (
     <div className={styles.container}>

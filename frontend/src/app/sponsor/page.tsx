@@ -57,19 +57,6 @@ function shortHash(hash: string): string {
   return `${hash.slice(0, 10)}...${hash.slice(-6)}`;
 }
 
-function formatDate(ts: number): string {
-  if (!ts) return "—";
-  return new Date(ts * 1000).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
-}
-
-function formatDuration(seconds: number): string {
-  if (!seconds || seconds <= 0) return "—";
-  const days = Math.floor(seconds / 86400);
-  const hours = Math.floor((seconds % 86400) / 3600);
-  if (days > 0) return `${days}d ${hours}h`;
-  return `${hours}h`;
-}
-
 export default function SponsorDashboardPage() {
   const { data, isLoading, error, refetch, isFetching } = useSponsor();
   const milestones = data?.milestones ?? [];

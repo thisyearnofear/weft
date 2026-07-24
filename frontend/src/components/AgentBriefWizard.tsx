@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useWriteContract, useWaitForTransactionReceipt, useAccount, useChainId, useSwitchChain } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import { keccak256, encodePacked, stringToHex } from "viem";
-import { Bot, ArrowRight, Lock, Globe, Shield, Clock, Check, Loader2, Eye, EyeOff } from "lucide-react";
+import { Bot, ArrowRight, Lock, Globe, Shield, Clock, Check, Loader2, Eye } from "lucide-react";
 import { WeftMilestoneAbi, WeftMilestoneConfidentialAbi, getAddresses, getConfidentialAddress, DEFAULT_CHAIN } from "../lib/contracts";
 import { rememberMilestoneName } from "../lib/milestone-meta";
 import { track } from "../lib/track";
