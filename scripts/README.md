@@ -4,6 +4,25 @@ Shell scripts for deploying and managing Weft contracts and verifier nodes.
 
 ## Scripts
 
+### `deploy-frontend.sh`
+Legacy partial deploy (rsync frontend only). Prefer **`deploy-snel-bot.sh`** for production.
+
+### `deploy-snel-bot.sh`
+Safe full deploy to `snel-bot` (`weft.thisyearnofear.com`): git pull without `git clean`, preserves
+`frontend/.env.local`, `ecosystem.config.js`, `agent/.axl/`, and `venv/`, rebuilds frontend, restarts PM2.
+
+```bash
+./scripts/deploy-snel-bot.sh
+```
+
+### `weft_axl_bootstrap.sh`
+Creates persistent AXL node config under `agent/.axl/` (ed25519 key + `node-config.json`). Idempotent.
+
+```bash
+./scripts/weft_axl_bootstrap.sh
+# AXL_PORT=9002 AXL_DIR=/opt/weft/agent/.axl ./scripts/weft_axl_bootstrap.sh
+```
+
 ### `deploy.sh`
 Deploys `WeftMilestone` + `VerifierRegistry` to the target chain via Foundry.
 

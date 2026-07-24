@@ -45,6 +45,7 @@ canton/PILOT_TARGETS.local.md
 agent/.cache/
 agent/.attestations/
 agent/.inbox/
+agent/.axl/
 agent/.downloads/
 __pycache__/
 *.pyc
