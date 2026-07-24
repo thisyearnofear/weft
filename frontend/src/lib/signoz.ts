@@ -18,7 +18,7 @@ export {
 export const SIGNOZ_WINNING_MILESTONE_HASH = "0xwinningagent2";
 
 const DEFAULT_INSTANCE = "https://modest-mosquito.us2.signoz.cloud";
-const DEFAULT_DASHBOARD_RELATIVE_TIME = "7d";
+const DEFAULT_DASHBOARD_RELATIVE_TIME = "1d";
 
 function withDashboardTimeRange(url: string, relativeTime = DEFAULT_DASHBOARD_RELATIVE_TIME): string {
   try {

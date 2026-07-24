@@ -70,7 +70,7 @@ export function DashboardScreenshotStrip({
       <div className={styles.embedBlock}>
         <div className={styles.header}>
           <strong>SigNoz dashboard embed</strong>
-          <span className={styles.timeHint}>Last 7 days · use Run demo trace if panels are empty</span>
+          <span className={styles.timeHint}>Last 24 hours · use Run demo trace if panels are empty</span>
         </div>
         <iframe
           src={dashboardUrl}
