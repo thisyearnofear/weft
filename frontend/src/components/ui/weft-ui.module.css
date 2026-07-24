@@ -73,29 +73,78 @@
   width: 100%;
   text-align: left;
   cursor: pointer;
-  padding: 0.5rem 0;
-  border: none;
-  background: none;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--c-border);
+  border-left: 3px solid var(--c-border-2);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
   color: inherit;
-  opacity: 0.55;
+  position: relative;
+  overflow: hidden;
   transition:
-    opacity var(--motion-duration-base) var(--ease-out),
-    transform var(--motion-duration-base) var(--ease-out);
+    border-color var(--motion-duration-base) var(--ease-out),
+    background var(--motion-duration-base) var(--ease-out),
+    transform var(--motion-duration-base) var(--ease-out),
+    box-shadow var(--motion-duration-base) var(--ease-out);
+}
+
+.actTeaser::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(99, 102, 241, 0.04) 60%,
+    rgba(20, 184, 166, 0.06) 100%
+  );
+  opacity: 0;
+  transition: opacity var(--motion-duration-slow) var(--ease-out);
+  pointer-events: none;
 }
 
 .actTeaser:hover {
+  border-color: rgba(20, 184, 166, 0.3);
+  border-left-color: var(--c-verified);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(2px);
+  box-shadow: var(--shadow-md);
+}
+
+.actTeaser:hover::after {
   opacity: 1;
-  transform: translateX(4px);
+}
+
+.actTeaser:active {
+  transform: translateX(2px) scale(0.995);
 }
 
 .actTeaser .actHeader {
   margin-bottom: 0;
 }
 
+.actTeaserHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  color: var(--c-text-3);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color var(--motion-duration-fast) var(--ease-out);
+}
+
+.actTeaser:hover .actTeaserHint {
+  color: var(--c-verified);
+}
+
 .actTeaserChevron {
   flex-shrink: 0;
   color: var(--c-text-3);
-  transition: transform var(--motion-duration-fast) var(--ease-out);
+  transition: transform var(--motion-duration-fast) var(--ease-out),
+    color var(--motion-duration-fast) var(--ease-out);
 }
 
 .actTeaser:hover .actTeaserChevron {

@@ -47,6 +47,9 @@ export function ActSection({
             {subtitle && (
               <p style={{ margin: "0.45rem 0 0", color: "var(--c-text-2)", fontSize: "0.9rem" }}>{subtitle}</p>
             )}
+            <span className={styles.actTeaserHint}>
+              Click to expand <ChevronRight size={13} />
+            </span>
           </div>
           <ChevronRight size={20} className={styles.actTeaserChevron} />
         </div>
