@@ -16,14 +16,14 @@ const EXPLORER_TX = "https://chainscan-new.0g.ai/tx";
 const SEPOLIA_EXPLORER_TX = "https://sepolia.etherscan.io/tx";
 const DEMO_DEADLINE = 0; // sentinel: 10-minute deadline for confidential demo
 
-type WizardStep = 0 | 1 | 2 | 3 | "creating" | "done";
+type WizardStep = -1 | 0 | 1 | 2 | 3 | "creating" | "done";
 
 export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => void }) {
   const { isConnected, address } = useAccount();
   const chainId = useChainId();
   const { switchChainAsync } = useSwitchChain();
 
-  const [step, setStep] = useState<WizardStep>(0);
+  const [step, setStep] = useState<WizardStep>(-1);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [deadlineDays, setDeadlineDays] = useState(14);
@@ -198,17 +198,66 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
     <div className={styles.wrap}>
       {/* Progress dots */}
       <div className={styles.progress} aria-hidden="true">
-        {[0, 1, 2, 3].map((i) => {
-          const stepNum = typeof step === "number" ? step : 4;
+        {[-1, 0, 1, 2, 3].map((i) => {
+          const stepNum = typeof step === "number" ? step + 1 : 5;
+          const idx = i + 1;
           return (
             <span
               key={i}
               className={styles.progressDot}
-              data-state={i < stepNum ? "done" : i === stepNum ? "active" : "idle"}
+              data-state={idx < stepNum ? "done" : idx === stepNum ? "active" : "idle"}
             />
           );
         })}
       </div>
+
+      {/* ── Step -1: What is this? ── */}
+      {step === -1 && (
+        <div className={styles.step} key="step-intro">
+          <AgentMessage>
+            I&apos;m your verification agent. Here&apos;s what I do.
+          </AgentMessage>
+          <p className={styles.agentSubtext}>
+            You tell me what you&apos;ll ship. I watch for it — contract deployments,
+            real usage, GitHub commits. When your deadline passes, I verify
+            autonomously and sign the result onchain. If you have a sponsor,
+            capital releases instantly. If not, you still get a portable proof
+            of work tied to your ENS name.
+          </p>
+
+          <div className={styles.introCards}>
+            <div className={styles.introCard}>
+              <span className={styles.introIcon}><Eye size={16} /></span>
+              <div>
+                <strong>I check evidence</strong>
+                <p>Contract deployed? Real callers? GitHub activity? I collect it all.</p>
+              </div>
+            </div>
+            <div className={styles.introCard}>
+              <span className={styles.introIcon}><Shield size={16} /></span>
+              <div>
+                <strong>I reach quorum</strong>
+                <p>3 independent verifier nodes must agree. No single party fakes a result.</p>
+              </div>
+            </div>
+            <div className={styles.introCard}>
+              <span className={styles.introIcon}><Check size={16} /></span>
+              <div>
+                <strong>You get a receipt</strong>
+                <p>A permanent, portable proof tied to your ENS name. Sponsors can fund it anytime.</p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className={styles.stepBtn}
+            onClick={() => goToStep(0)}
+          >
+            <Bot size={16} /> Start briefing me
+          </button>
+        </div>
+      )}
 
       {/* ── Step 0: What are you building? ── */}
       {step === 0 && (
@@ -473,6 +522,7 @@ function AgentMessage({ children }: { children: React.ReactNode }) {
 }
 
 const PREVIEW_STEPS = [
+  { icon: Bot, label: "What I do", desc: "How verification works" },
   { icon: Bot, label: "What you'll ship", desc: "Name + description" },
   { icon: Clock, label: "Deadline", desc: "Choose a verification date" },
   { icon: Shield, label: "Privacy mode", desc: "Public or encrypted votes" },

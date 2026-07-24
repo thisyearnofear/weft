@@ -8,7 +8,7 @@
 }
 
 .shell {
-  max-width: 540px;
+  max-width: 820px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -24,7 +24,14 @@
 .subtitle {
   color: var(--c-text-secondary);
   line-height: 1.7;
-  max-width: 48ch;
+  max-width: 56ch;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 1.5rem;
+  align-items: start;
 }
 
 .formCard {
@@ -33,4 +40,23 @@
   border-radius: 28px;
   padding: 1.5rem;
   box-shadow: 0 8px 32px rgba(4, 5, 22, 0.3);
+}
+
+.helperCol {
+  position: sticky;
+  top: calc(var(--nav-h) + 1rem);
+}
+
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .helperCol {
+    position: static;
+  }
+
+  .shell {
+    max-width: 540px;
+  }
 }
