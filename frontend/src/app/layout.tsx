@@ -10,6 +10,7 @@ import { Footer } from '@/components/Footer';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ClientToasts } from '@/components/ClientToasts';
 import { SmoothScroll } from '@/components/SmoothScroll';
+import { GuidedDemoLauncher } from '@/components/GuidedDemoLauncher';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <Footer />
           <ClientToasts />
+          <GuidedDemoLauncher />
         </Providers>
       </body>
     </html>
