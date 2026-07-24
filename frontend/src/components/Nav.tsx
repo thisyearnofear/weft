@@ -22,6 +22,7 @@ const DEV_LINKS = [
   { href: "/create-milestone", label: "Builder create (0G Testnet)" },
   { href: "/verifiers", label: "Verifiers" },
   { href: "/observability", label: "Agent observatory" },
+  { href: "/confidential", label: "Confidential vault" },
   { href: "/operations", label: "Operations" },
   { href: "/api/docs", label: "API docs" },
 ];

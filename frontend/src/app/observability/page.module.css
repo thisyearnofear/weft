@@ -124,11 +124,62 @@
 
 .proofPanel > code {
   display: block;
-  margin: 1.25rem 0;
+  margin: 1.25rem 0 0.75rem;
   padding: 1rem;
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.22);
   border: 1px solid var(--c-border);
+}
+
+.proofActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.liveBadge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-text-3);
+}
+
+.liveBadge[data-live="true"] {
+  color: var(--c-verified);
+}
+
+.proofMeta {
+  margin: 0.75rem 0 0;
+  color: var(--c-text-3);
+  font-size: 0.72rem;
+}
+
+.refreshBtn {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  border: 1px solid var(--c-border-2);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--c-text-2);
+  cursor: pointer;
+}
+
+.refreshBtn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .proofStats {
@@ -315,6 +366,122 @@
   border: 1px solid rgba(245, 158, 11, 0.22);
   border-radius: 6px;
   background: rgba(245, 158, 11, 0.055);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.alertItem:hover {
+  border-color: rgba(245, 158, 11, 0.42);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.alertTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.alertState {
+  flex-shrink: 0;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-text-3);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.alertState[data-state="firing"] {
+  color: #fff;
+  background: rgba(239, 68, 68, 0.85);
+}
+
+.alertState[data-state="ok"] {
+  color: var(--c-verified);
+  background: rgba(20, 184, 166, 0.12);
+}
+
+.alertLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.85rem;
+}
+
+.dashboardEmbed {
+  display: block;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.06);
+  text-decoration: none;
+  color: inherit;
+}
+
+.dashboardEmbed:hover {
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+.dashboardEmbedHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.dashboardEmbedHeader span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--c-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.dashboardPreview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.previewPanel {
+  padding: 0.75rem;
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.previewPanel span {
+  display: block;
+  color: var(--c-text-3);
+  font-size: 0.68rem;
+  margin-bottom: 0.35rem;
+}
+
+.previewPanel strong {
+  display: block;
+  font-size: 1.25rem;
+  margin-bottom: 0.45rem;
+}
+
+.previewBar {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.previewBar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--c-verified), var(--c-accent));
 }
 
 .alertLink {
@@ -387,7 +554,8 @@
   }
 
   .proofStats,
-  .panelGrid {
+  .panelGrid,
+  .dashboardPreview {
     grid-template-columns: 1fr;
   }
 

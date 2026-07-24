@@ -11,6 +11,8 @@ import { CountUp } from "@/components/CountUp";
 import { ErrorState } from "@/components/ErrorState";
 import { OfflineBadge } from "@/components/OfflineBadge";
 import { ResiliencePanel } from "@/components/ResiliencePanel";
+import { useObservability } from "@/hooks/useObservability";
+import { SIGNOZ_SPAN_NAMES } from "@/lib/signoz-config";
 import styles from "./page.module.css";
 
 interface TreasuryData {
@@ -109,6 +111,7 @@ const SERVICE_LABELS: Record<string, string> = {
 
 export default function OperationsPage() {
   const { data, isLoading, error, refetch, isFetching } = useOperations();
+  const { data: observability } = useObservability();
 
   const treasury = data?.treasury ?? null;
   const recovery = data?.recovery ?? null;
@@ -170,18 +173,11 @@ export default function OperationsPage() {
                 </Link>
               </div>
               <div className={styles.traceStack} aria-label="Validated SigNoz span stack">
-                {[
-                  ["weft.agent.plan", "1"],
-                  ["weft.agent.tool_call", "2"],
-                  ["weft.llm.chat", "1"],
-                  ["weft.verification_cycle", "1"],
-                  ["weft.evidence.deployment", "1"],
-                  ["weft.evidence.usage", "1"],
-                ].map(([name, count]) => (
+                {SIGNOZ_SPAN_NAMES.map((name) => (
                   <div key={name} className={styles.traceRow}>
                     <Bot size={14} />
                     <span>{name}</span>
-                    <strong>{count}</strong>
+                    <strong>{observability?.signoz.spanCounts[name] ?? "—"}</strong>
                   </div>
                 ))}
               </div>

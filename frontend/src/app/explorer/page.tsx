@@ -8,14 +8,10 @@ import { useConfidentialMilestone } from "@/hooks/useConfidentialMilestone";
 import { useWeightedConfidentialMilestone } from "@/hooks/useWeightedConfidentialMilestone";
 import { CountUp } from "@/components/CountUp";
 import { track } from "@/lib/track";
+import { DEMO_FHE_V1_HASH, DEMO_FHE_V2_HASH } from "@/lib/demo-milestones";
 import styles from "./page.module.css";
 
 type StatusFilter = "all" | "verified" | "pending" | "failed";
-
-// The two known FHE demo milestones on Sepolia. The contracts don't support
-// enumeration — we hardcode the hashes that were created and verified.
-const V1_HASH = "0xa22c4a43e1ded5d10cb6b46b801c0385a5107a013ae263d3fb04c807a99af40d";
-const V2_HASH = "0xbd5c85db97cd5a8f30779da9311651e549f702b6ce72ebd03dcb816d3b071722";
 
 function formatDate(ts: number): string {
   if (!ts) return "—";
@@ -55,8 +51,8 @@ interface UnifiedRow {
 
 export default function ExplorerPage() {
   const { data: milestones, isLoading, error } = useExplorerMilestones();
-  const { data: v1Data } = useConfidentialMilestone(V1_HASH);
-  const { data: v2Data } = useWeightedConfidentialMilestone(V2_HASH);
+  const { data: v1Data } = useConfidentialMilestone(DEMO_FHE_V1_HASH);
+  const { data: v2Data } = useWeightedConfidentialMilestone(DEMO_FHE_V2_HASH);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -87,7 +83,7 @@ export default function ExplorerPage() {
     // v1 FHE milestone (FHE.add)
     if (v1Data) {
       rows.push({
-        milestoneHash: V1_HASH,
+        milestoneHash: DEMO_FHE_V1_HASH,
         state: v1Data.resultVerified ? "verified" : v1Data.finalized ? "failed" : "pending",
         statusLabel: v1Data.resultVerified ? "Sealed ✓ Verified" : v1Data.finalized ? "Sealed ✗" : "Sealed ○",
         builder: v1Data.builder,
@@ -98,14 +94,14 @@ export default function ExplorerPage() {
         deadline: Number(v1Data.deadline),
         finalEvidenceRoot: v1Data.finalEvidenceRoot,
         chain: "sepolia-fhe-v1",
-        href: `/project/${V1_HASH}?confidential=1`,
+        href: `/project/${DEMO_FHE_V1_HASH}?confidential=1`,
       });
     }
 
     // v2 FHE milestone (FHE.mul)
     if (v2Data) {
       rows.push({
-        milestoneHash: V2_HASH,
+        milestoneHash: DEMO_FHE_V2_HASH,
         state: v2Data.resultVerified ? "verified" : v2Data.finalized ? "failed" : "pending",
         statusLabel: v2Data.resultVerified ? "Weighted ✓ Verified" : v2Data.finalized ? "Weighted ✗" : "Weighted ○",
         builder: v2Data.builder,
@@ -116,7 +112,7 @@ export default function ExplorerPage() {
         deadline: Number(v2Data.deadline),
         finalEvidenceRoot: v2Data.finalEvidenceRoot,
         chain: "sepolia-fhe-v2",
-        href: `/project/${V2_HASH}?weighted=1`,
+        href: `/project/${DEMO_FHE_V2_HASH}?weighted=1`,
       });
     }
 
@@ -185,7 +181,7 @@ export default function ExplorerPage() {
           </div>
           <div className={styles.fheDemoGrid}>
             <Link
-              href={`/project/${V1_HASH}?confidential=1`}
+              href={`/project/${DEMO_FHE_V1_HASH}?confidential=1`}
               className={styles.fheDemoCard}
               onClick={() => track("explorer_fhe_v1_click")}
             >
@@ -201,7 +197,7 @@ export default function ExplorerPage() {
               <ArrowRight size={16} className={styles.fheDemoArrow} />
             </Link>
             <Link
-              href={`/project/${V2_HASH}?weighted=1`}
+              href={`/project/${DEMO_FHE_V2_HASH}?weighted=1`}
               className={styles.fheDemoCard}
               onClick={() => track("explorer_fhe_v2_click")}
             >

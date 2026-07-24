@@ -1,0 +1,315 @@
+.container {
+  min-height: 100dvh;
+  padding: 3rem 3rem 4rem;
+  color: var(--c-text);
+  background:
+    linear-gradient(135deg, rgba(99, 102, 241, 0.06), transparent 28%),
+    radial-gradient(circle at 88% 8%, rgba(20, 184, 166, 0.08), transparent 32%);
+}
+
+.inner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.hero,
+.stepsSection,
+.variantSection,
+.explainerSection,
+.compareSection,
+.stepCard,
+.variantCard,
+.compareCard,
+.visualPanel {
+  background: rgba(255, 255, 255, 0.065);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(4, 5, 22, 0.32);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.heroCopy {
+  padding: 2rem;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  border-radius: 6px;
+  color: var(--c-accent);
+  background: rgba(99, 102, 241, 0.08);
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.hero h1 {
+  max-width: 12ch;
+  margin: 0 0 1rem;
+  font-size: clamp(2.2rem, 5.5vw, 4.2rem);
+  line-height: 0.95;
+}
+
+.hero p {
+  max-width: 58ch;
+  color: var(--c-text-2);
+  line-height: 1.55;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.35rem;
+}
+
+.primaryAction,
+.secondaryAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 38px;
+  border-radius: 6px;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.primaryAction {
+  color: #fff;
+  background: var(--c-accent);
+}
+
+.secondaryAction {
+  color: var(--c-text);
+  border: 1px solid var(--c-border-2);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.visualPanel {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.visualHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--c-accent);
+  font-weight: 800;
+  font-size: 0.82rem;
+}
+
+.visualCaption {
+  margin: 0;
+  color: var(--c-text-2);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.stepsSection,
+.variantSection,
+.explainerSection {
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.sectionHeader span {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--c-accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.sectionHeader h2 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  line-height: 1;
+}
+
+.stepsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.stepCard {
+  padding: 1rem;
+}
+
+.stepIndex {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-bottom: 0.65rem;
+  border-radius: 5px;
+  background: rgba(99, 102, 241, 0.16);
+  color: var(--c-accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.stepIcon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 0.65rem;
+  border-radius: 6px;
+  color: var(--c-accent);
+  background: rgba(99, 102, 241, 0.12);
+}
+
+.stepCard h3 {
+  margin: 0 0 0.45rem;
+  font-size: 1.05rem;
+}
+
+.stepCard p {
+  margin: 0;
+  color: var(--c-text-2);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.variantGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.variantCard {
+  padding: 1.1rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.variantCard:hover {
+  border-color: rgba(99, 102, 241, 0.45);
+  transform: translateY(-1px);
+}
+
+.variantIcon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 0.75rem;
+  border-radius: 6px;
+  color: var(--c-accent);
+  background: rgba(99, 102, 241, 0.12);
+}
+
+.variantKicker {
+  display: block;
+  color: var(--c-text-3);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.35rem;
+}
+
+.variantCard h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+}
+
+.variantCard p {
+  margin: 0 0 0.85rem;
+  color: var(--c-text-2);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.variantCard code {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.variantLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--c-accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.compareSection {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.compareCard {
+  padding: 1rem;
+}
+
+.compareCard svg {
+  color: var(--c-accent);
+  margin-bottom: 0.65rem;
+}
+
+.compareCard h2 {
+  margin: 0 0 0.45rem;
+  font-size: 1.05rem;
+}
+
+.compareCard p {
+  margin: 0;
+  color: var(--c-text-2);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.crossLink {
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--c-text-2);
+  font-size: 0.9rem;
+}
+
+.crossLink a {
+  color: var(--c-verified);
+  font-weight: 700;
+}
+
+@media (max-width: 980px) {
+  .hero,
+  .stepsGrid,
+  .variantGrid,
+  .compareSection {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 2rem 1rem 3rem;
+  }
+
+  .heroCopy {
+    padding: 1.25rem;
+  }
+}

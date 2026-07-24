@@ -14,102 +14,99 @@ import {
   ListChecks,
   RadioTower,
   ReceiptText,
+  RefreshCw,
   ServerCog,
   ShieldCheck,
   TerminalSquare,
 } from "lucide-react";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { CopyCodeButton } from "@/components/CopyCodeButton";
+import { ErrorState } from "@/components/ErrorState";
+import { OfflineBadge } from "@/components/OfflineBadge";
+import { useObservability } from "@/hooks/useObservability";
 import {
   getSignozAlertsUrl,
   getSignozDashboardUrl,
-  getSignozInstanceUrl,
+  getSignozAlertEditUrl,
   getSignozTracesExplorerUrl,
+  SIGNOZ_DASHBOARD_PANELS,
   SIGNOZ_WINNING_TRACE_FILTER,
 } from "@/lib/signoz";
 import styles from "./page.module.css";
 
-const TRACE_FILTER = SIGNOZ_WINNING_TRACE_FILTER;
-
 const SPANS = [
-  {
-    name: "weft.agent.plan",
-    count: 1,
-    label: "Plan",
-    detail: "The verifier decides how to verify and release capital safely.",
-    icon: Bot,
-  },
-  {
-    name: "weft.agent.tool_call",
-    count: 2,
-    label: "Tools",
-    detail: "Chain evidence calls are visible as agent tool use.",
-    icon: TerminalSquare,
-  },
-  {
-    name: "weft.llm.chat",
-    count: 1,
-    label: "LLM",
-    detail: "Narrative generation exposes model, tokens, latency, and cost.",
-    icon: Braces,
-  },
-  {
-    name: "weft.verification_cycle",
-    count: 1,
-    label: "Cycle",
-    detail: "The capital-release decision is one inspectable trace.",
-    icon: Gauge,
-  },
-  {
-    name: "weft.evidence.deployment",
-    count: 1,
-    label: "Deploy",
-    detail: "Deployment evidence is checked deterministically.",
-    icon: ShieldCheck,
-  },
-  {
-    name: "weft.evidence.usage",
-    count: 1,
-    label: "Usage",
-    detail: "Unique-caller threshold is checked before any verdict.",
-    icon: ListChecks,
-  },
-];
+  { name: "weft.agent.plan", label: "Plan", detail: "The verifier decides how to verify and release capital safely.", icon: Bot },
+  { name: "weft.agent.tool_call", label: "Tools", detail: "Chain evidence calls are visible as agent tool use.", icon: TerminalSquare },
+  { name: "weft.llm.chat", label: "LLM", detail: "Narrative generation exposes model, tokens, latency, and cost.", icon: Braces },
+  { name: "weft.verification_cycle", label: "Cycle", detail: "The capital-release decision is one inspectable trace.", icon: Gauge },
+  { name: "weft.evidence.deployment", label: "Deploy", detail: "Deployment evidence is checked deterministically.", icon: ShieldCheck },
+  { name: "weft.evidence.usage", label: "Usage", detail: "Unique-caller threshold is checked before any verdict.", icon: ListChecks },
+] as const;
 
-const DASHBOARD_PANELS = [
-  ["Agent workflow spans", "Traces grouped by span name"],
-  ["LLM requests", "Backend, model, outcome"],
-  ["LLM token cost", "Total tokens and estimated cost"],
-  ["Verification outcomes", "Verified, rejected, degraded, fallback"],
-  ["Tool call outcomes", "RPC and verifier tools by result"],
-  ["Peer consensus health", "Matching peers vs quorum threshold"],
-  ["KeeperHub reliability", "Confirmed vs fallback settlement"],
-  ["Recovery events", "Degraded paths and autonomous recovery"],
-];
+function formatRelative(ms: number | null): string {
+  if (!ms) return "No live trace yet";
+  const delta = Date.now() - ms;
+  if (delta < 60_000) return "Last trace · just now";
+  if (delta < 3_600_000) return `Last trace · ${Math.round(delta / 60_000)}m ago`;
+  if (delta < 86_400_000) return `Last trace · ${Math.round(delta / 3_600_000)}h ago`;
+  return `Last trace · ${new Date(ms).toLocaleString()}`;
+}
 
-const ALERTS = [
-  {
-    name: "KeeperHub fallback activated",
-    filter: "name = 'weft.keeperhub.release' AND weft.keeperhub_status = 'fallback'",
-  },
-  {
-    name: "Peer quorum degraded",
-    filter: "weft.recovery.event = 'consensus_degraded'",
-  },
-  {
-    name: "LLM narrative failures",
-    filter: "name = 'weft.llm.chat' AND weft.llm.outcome = 'error'",
-  },
-];
+function alertStateLabel(state: string): string {
+  if (state === "firing") return "Firing";
+  if (state === "ok") return "OK";
+  if (state === "disabled") return "Disabled";
+  return "Provisioned";
+}
+
+function panelMetricValue(
+  key: (typeof SIGNOZ_DASHBOARD_PANELS)[number]["metricKey"],
+  signoz: NonNullable<ReturnType<typeof useObservability>["data"]>["signoz"],
+  recovery: NonNullable<ReturnType<typeof useObservability>["data"]>["recovery"]
+): string {
+  switch (key) {
+    case "spanGroups":
+      return String(signoz.spanGroups);
+    case "llmSpans":
+      return String(signoz.spanCounts["weft.llm.chat"] ?? 0);
+    case "traceCount":
+      return signoz.traceCount != null ? String(signoz.traceCount) : "—";
+    case "toolSpans":
+      return String(signoz.spanCounts["weft.agent.tool_call"] ?? 0);
+    case "recoveryEvents":
+      return recovery ? String(recovery.totalEvents) : "—";
+    default:
+      return "—";
+  }
+}
 
 export default function ObservabilityPage() {
-  const signozInstance = getSignozInstanceUrl();
+  const { data, isLoading, error, refetch, isFetching } = useObservability();
   const signozDashboard = getSignozDashboardUrl();
   const tracesExplorer = getSignozTracesExplorerUrl();
+  const signoz = data?.signoz;
+  const recovery = data?.recovery ?? null;
+  const alerts = signoz?.alerts?.length
+    ? signoz.alerts
+    : [
+        { id: "keeperhub_fallback", slug: "keeperhub_fallback", name: "KeeperHub fallback activated", filter: "name = 'weft.keeperhub.release' AND weft.keeperhub_status = 'fallback'", state: "unknown" as const, url: getSignozAlertEditUrl("019f939d-e7f7-7c2e-be4d-a410b06a9b78") },
+        { id: "peer_quorum_degraded", slug: "peer_quorum_degraded", name: "Peer quorum degraded", filter: "weft.recovery.event = 'consensus_degraded'", state: "unknown" as const, url: getSignozAlertEditUrl("019f939d-e7fb-764d-ad71-1772135c9e93") },
+        { id: "llm_narrative_failures", slug: "llm_narrative_failures", name: "LLM narrative failures", filter: "name = 'weft.llm.chat' AND weft.llm.outcome = 'error'", state: "unknown" as const, url: getSignozAlertEditUrl("019f939d-e7f6-7d5c-843f-9ab67b2234c5") },
+      ];
 
   return (
     <div className={styles.container}>
       <div className={styles.inner}>
         <Breadcrumbs items={[{ label: "Agent Observatory" }]} />
+
+        {error && !data && (
+          <ErrorState
+            message={`Failed to load observability: ${error instanceof Error ? error.message : "Unknown error"}`}
+            onRetry={() => refetch()}
+            isRetrying={isFetching}
+          />
+        )}
+        {error && data && <OfflineBadge />}
 
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
@@ -126,56 +123,47 @@ export default function ObservabilityPage() {
               <Link href="/operations" className={styles.primaryAction}>
                 Open operations <ArrowRight size={16} />
               </Link>
-              <a
-                href={tracesExplorer}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.secondaryAction}
-              >
+              <a href={tracesExplorer} target="_blank" rel="noopener noreferrer" className={styles.secondaryAction}>
                 Open winning trace <ArrowRight size={16} />
               </a>
-              {signozDashboard ? (
-                <a
-                  href={signozDashboard}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.secondaryAction}
-                >
+              {signozDashboard && (
+                <a href={signozDashboard} target="_blank" rel="noopener noreferrer" className={styles.secondaryAction}>
                   Open dashboard <ArrowRight size={16} />
                 </a>
-              ) : (
-                <a
-                  href={signozInstance}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.secondaryAction}
-                >
-                  Open SigNoz <ArrowRight size={16} />
-                </a>
               )}
+              <button type="button" className={styles.refreshBtn} onClick={() => refetch()} disabled={isFetching} aria-label="Refresh live SigNoz stats">
+                <RefreshCw size={15} className={isFetching ? styles.spin : undefined} />
+              </button>
             </div>
           </div>
 
           <div className={styles.proofPanel}>
             <div className={styles.proofHeader}>
               <ServerCog size={18} />
-              <span>Validated trace</span>
+              <span>{signoz?.live ? "Live validated trace" : "Validated trace filter"}</span>
             </div>
-            <code>{TRACE_FILTER}</code>
+            <code>{SIGNOZ_WINNING_TRACE_FILTER}</code>
+            <div className={styles.proofActions}>
+              <CopyCodeButton value={SIGNOZ_WINNING_TRACE_FILTER} label="Copy filter" />
+              <span className={styles.liveBadge} data-live={signoz?.live ? "true" : "false"}>
+                {signoz?.live ? "SigNoz connected" : "Demo snapshot"}
+              </span>
+            </div>
             <div className={styles.proofStats}>
               <div>
-                <strong>6</strong>
+                <strong>{isLoading ? "…" : signoz?.spanGroups ?? 6}</strong>
                 <span>span groups</span>
               </div>
               <div>
-                <strong>7</strong>
+                <strong>{isLoading ? "…" : signoz?.totalSpans ?? 7}</strong>
                 <span>visible spans</span>
               </div>
               <div>
-                <strong>200</strong>
-                <span>API read</span>
+                <strong>{isLoading ? "…" : signoz?.traceCount ?? "—"}</strong>
+                <span>matching traces</span>
               </div>
             </div>
+            <p className={styles.proofMeta}>{formatRelative(signoz?.lastTraceAt ?? null)}</p>
           </div>
         </section>
 
@@ -187,6 +175,7 @@ export default function ObservabilityPage() {
           <div className={styles.timeline}>
             {SPANS.map((span, index) => {
               const Icon = span.icon;
+              const count = signoz?.spanCounts[span.name] ?? (isLoading ? "…" : 0);
               return (
                 <div key={span.name} className={styles.timelineItem}>
                   <div className={styles.timelineIndex}>{String(index + 1).padStart(2, "0")}</div>
@@ -200,7 +189,7 @@ export default function ObservabilityPage() {
                     </div>
                     <p>{span.detail}</p>
                   </div>
-                  <strong className={styles.timelineCount}>{span.count}</strong>
+                  <strong className={styles.timelineCount}>{count}</strong>
                 </div>
               );
             })}
@@ -238,14 +227,37 @@ export default function ObservabilityPage() {
         <section className={styles.dashboardSection}>
           <div className={styles.sectionHeader}>
             <span>Dashboard</span>
-            <h2>Eight panels that match the judging criteria.</h2>
+            <h2>Eight panels — live counts when SigNoz is connected.</h2>
           </div>
+          {signozDashboard && (
+            <a href={signozDashboard} target="_blank" rel="noopener noreferrer" className={styles.dashboardEmbed}>
+              <div className={styles.dashboardEmbedHeader}>
+                <strong>Weft Autonomous Agent Observatory</strong>
+                <span>Open full dashboard <ArrowRight size={14} /></span>
+              </div>
+              <div className={styles.dashboardPreview}>
+                {SIGNOZ_DASHBOARD_PANELS.slice(0, 4).map((panel) => {
+                  const metric = signoz ? panelMetricValue(panel.metricKey, signoz, recovery) : "—";
+                  const barWidth = Math.min(100, (Number(metric) || 0) * 12 + 18);
+                  return (
+                    <div key={panel.title} className={styles.previewPanel}>
+                      <span>{panel.title}</span>
+                      <strong>{isLoading ? "…" : metric}</strong>
+                      <div className={styles.previewBar} aria-hidden="true">
+                        <i style={{ width: `${barWidth}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </a>
+          )}
           <div className={styles.panelGrid}>
-            {DASHBOARD_PANELS.map(([title, body], index) => (
-              <div key={title} className={styles.panelItem}>
+            {SIGNOZ_DASHBOARD_PANELS.map((panel, index) => (
+              <div key={panel.title} className={styles.panelItem}>
                 <span>{index + 1}</span>
-                <strong>{title}</strong>
-                <p>{body}</p>
+                <strong>{panel.title}</strong>
+                <p>{panel.body}</p>
               </div>
             ))}
           </div>
@@ -257,24 +269,27 @@ export default function ObservabilityPage() {
             <h2>Failure modes become operating signals.</h2>
           </div>
           <div className={styles.alertList}>
-            {ALERTS.map((alert) => (
-              <div key={alert.name} className={styles.alertItem}>
+            {alerts.map((alert) => (
+              <a key={alert.slug} href={alert.url || getSignozAlertsUrl()} target="_blank" rel="noopener noreferrer" className={styles.alertItem}>
                 <RadioTower size={17} />
                 <div>
-                  <strong>{alert.name}</strong>
+                  <div className={styles.alertTitleRow}>
+                    <strong>{alert.name}</strong>
+                    <span className={styles.alertState} data-state={alert.state}>{alertStateLabel(alert.state)}</span>
+                  </div>
                   <code>{alert.filter}</code>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
-          <a
-            href={getSignozAlertsUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.alertLink}
-          >
-            View alert rules in SigNoz <ArrowRight size={14} />
-          </a>
+          <div className={styles.alertLinks}>
+            <a href={getSignozAlertsUrl("rules")} target="_blank" rel="noopener noreferrer" className={styles.alertLink}>
+              View alert rules <ArrowRight size={14} />
+            </a>
+            <a href={getSignozAlertsUrl("triggered")} target="_blank" rel="noopener noreferrer" className={styles.alertLink}>
+              View triggered alerts <ArrowRight size={14} />
+            </a>
+          </div>
         </section>
 
         <section className={styles.demoStrip}>

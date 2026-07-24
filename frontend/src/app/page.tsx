@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useMemo } from "react";
-import { ArrowRight, Bot, Sparkles, Lock, Zap } from "lucide-react";
+import { ArrowRight, Bot, Sparkles, Lock, Zap, Eye } from "lucide-react";
 
 import { HeroLoom } from "@/components/HeroLoom";
 import { MilestoneCard } from "@/components/MilestoneCard";
@@ -200,6 +200,34 @@ export default function Home() {
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
+          PLATFORM WEDGES — SigNoz observability + Zama confidential
+          ════════════════════════════════════════════════════════════════ */}
+      <Reveal as="section" className={styles.section} delay={80}>
+        <div className={styles.wedgeGrid}>
+          <Link href="/observability" className={styles.wedgeCard} onClick={() => track("wedge_observability_click")}>
+            <div className={styles.wedgeIcon}><Eye size={20} /></div>
+            <span className={styles.wedgeKicker}>SigNoz · Agent observatory</span>
+            <h3 className={styles.wedgeTitle}>Trace every autonomous step</h3>
+            <p className={styles.wedgeBody}>
+              Live span counts, winning trace filter, dashboard preview, and alert states —
+              the audit lens program officers read before capital moves.
+            </p>
+            <span className={styles.wedgeLink}>Open observatory <ArrowRight size={14} /></span>
+          </Link>
+          <Link href="/confidential" className={styles.wedgeCard} onClick={() => track("wedge_confidential_click")}>
+            <div className={styles.wedgeIcon}><Lock size={20} /></div>
+            <span className={styles.wedgeKicker}>Zama FHE · Confidential vault</span>
+            <h3 className={styles.wedgeTitle}>Seal votes, reveal only the verdict</h3>
+            <p className={styles.wedgeBody}>
+              Two live Sepolia demos — boolean quorum and confidence-weighted consensus —
+              with in-browser relayer decrypt and sealed-ballot visuals.
+            </p>
+            <span className={styles.wedgeLink}>Open confidential vault <ArrowRight size={14} /></span>
+          </Link>
+        </div>
+      </Reveal>
+
+      {/* ════════════════════════════════════════════════════════════════
           HOW IT WORKS — the weave story (Lock → Ship → Verify → Release)
           This is the narrative arc the page was missing. De-carded:
           steps are acts in a story, connected by the weft thread.
@@ -234,6 +262,9 @@ export default function Home() {
             <span className={styles.sectionKicker}>Confidential verification</span>
             <h2 className={styles.sectionTitle}>Encrypted votes, public result</h2>
           </div>
+          <Link href="/confidential" className={styles.sectionAction} onClick={() => track("fhe_section_vault_click")}>
+            Full vault tour <ArrowRight size={14} />
+          </Link>
         </div>
         <p className={`${styles.sectionText} ${styles.sectionLede}`}>
           Verifier votes stay private until the final verdict. Two live demos show

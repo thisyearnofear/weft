@@ -19,6 +19,8 @@ const FOOTER_GROUPS = [
     label: "Developers",
     links: [
       { href: "/create-milestone", label: "Builder create (0G Testnet)" },
+      { href: "/observability", label: "Agent observatory" },
+      { href: "/confidential", label: "Confidential vault" },
       { href: "/explorer#fhe-demos", label: "Confidential demos (Sepolia)" },
       { href: "/verifiers", label: "Verifiers" },
       { href: "/operations", label: "Operations" },
