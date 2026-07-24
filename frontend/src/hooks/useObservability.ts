@@ -12,6 +12,16 @@ export interface ObservabilityAlert {
   url: string;
 }
 
+export interface ObservabilityLlmSpan {
+  backend: string | null;
+  model: string | null;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  totalTokens: number | null;
+  costUsd: number | null;
+  outcome: string | null;
+}
+
 export interface ObservabilityData {
   ok: boolean;
   filter: string;
@@ -23,6 +33,7 @@ export interface ObservabilityData {
     spanCounts: Partial<Record<SignozSpanName, number>>;
     totalSpans: number;
     spanGroups: number;
+    llmSpan: ObservabilityLlmSpan | null;
     alerts: ObservabilityAlert[];
   };
   recovery: {

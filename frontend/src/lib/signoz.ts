@@ -13,6 +13,8 @@ export {
   SIGNOZ_WINNING_TRACE_FILTER,
 } from "@/lib/signoz-config";
 
+export const SIGNOZ_WINNING_MILESTONE_HASH = "0xwinningagent2";
+
 const DEFAULT_INSTANCE = "https://modest-mosquito.us2.signoz.cloud";
 
 export function getSignozInstanceUrl(): string {
@@ -28,6 +30,17 @@ export function getSignozDashboardUrl(): string | null {
 export function getSignozTracesExplorerUrl(filter = SIGNOZ_WINNING_TRACE_FILTER): string {
   const base = getSignozInstanceUrl().replace(/\/$/, "");
   return `${base}/traces-explorer?filter=${encodeURIComponent(filter)}`;
+}
+
+/** Deep link for a single span name within the winning demo trace. */
+export function getSignozSpanExplorerUrl(spanName: string): string {
+  const filter = `${SIGNOZ_WINNING_TRACE_FILTER} AND name = '${spanName}'`;
+  return getSignozTracesExplorerUrl(filter);
+}
+
+export function getSignozLogExplorerUrl(filter: string): string {
+  const base = getSignozInstanceUrl().replace(/\/$/, "");
+  return `${base}/logs/logs-explorer?filter=${encodeURIComponent(filter)}`;
 }
 
 export function getSignozAlertsUrl(tab: "rules" | "triggered" = "rules"): string {

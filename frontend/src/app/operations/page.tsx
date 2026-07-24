@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { Activity, ArrowRight, Bot, DollarSign, CheckCircle, Eye, ServerCog, Zap, Lock } from "lucide-react";
+import { Activity, ArrowRight, DollarSign, CheckCircle, Eye, ServerCog, Zap, Lock } from "lucide-react";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
@@ -11,8 +11,10 @@ import { CountUp } from "@/components/CountUp";
 import { ErrorState } from "@/components/ErrorState";
 import { OfflineBadge } from "@/components/OfflineBadge";
 import { ResiliencePanel } from "@/components/ResiliencePanel";
+import { AgentTraceReceipt } from "@/components/AgentTraceReceipt";
+import { TraceWaterfall } from "@/components/TraceWaterfall";
 import { useObservability } from "@/hooks/useObservability";
-import { SIGNOZ_SPAN_NAMES } from "@/lib/signoz-config";
+import { getSignozTracesExplorerUrl, SIGNOZ_WINNING_MILESTONE_HASH } from "@/lib/signoz";
 import styles from "./page.module.css";
 
 interface TreasuryData {
@@ -168,25 +170,44 @@ export default function OperationsPage() {
                   calls, LLM narrative generation, deterministic evidence checks, and settlement
                   fallback handling.
                 </p>
-                <Link href="/observability" className={styles.observatoryLink}>
-                  Open Agent Observatory <ArrowRight size={15} />
-                </Link>
+                <div className={styles.observatoryLinks}>
+                  <Link href="/observability" className={styles.observatoryLink}>
+                    Open Agent Observatory <ArrowRight size={15} />
+                  </Link>
+                  <a
+                    href={getSignozTracesExplorerUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.observatoryLinkSecondary}
+                  >
+                    SigNoz trace <ArrowRight size={15} />
+                  </a>
+                </div>
               </div>
-              <div className={styles.traceStack} aria-label="Validated SigNoz span stack">
-                {SIGNOZ_SPAN_NAMES.map((name) => (
-                  <div key={name} className={styles.traceRow}>
-                    <Bot size={14} />
-                    <span>{name}</span>
-                    <strong>{observability?.signoz.spanCounts[name] ?? "—"}</strong>
-                  </div>
-                ))}
+              <div className={styles.traceStackWrap}>
+                <TraceWaterfall
+                  spanCounts={observability?.signoz.spanCounts}
+                  isLoading={!observability}
+                  showDeepLinks
+                  compact
+                />
               </div>
               <div className={styles.sigNozProof}>
                 <ServerCog size={18} />
                 <span>Validated in SigNoz</span>
-                <code>0xwinningagent2</code>
+                <code>{SIGNOZ_WINNING_MILESTONE_HASH}</code>
               </div>
             </div>
+
+            {observability?.signoz && (
+              <div className={styles.receiptBand}>
+                <AgentTraceReceipt
+                  signoz={observability.signoz}
+                  recovery={observability.recovery}
+                  compact
+                />
+              </div>
+            )}
 
             {/* KPI Cards — grouped by intent */}
             <div className={styles.kpiGroup}>

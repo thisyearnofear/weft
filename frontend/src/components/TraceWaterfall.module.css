@@ -1,0 +1,115 @@
+.timeline {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.compactTimeline {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.timelineItem {
+  display: grid;
+  grid-template-columns: 38px 34px minmax(0, 1fr) 34px 28px;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem;
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.compactTimeline .timelineItem {
+  grid-template-columns: 28px minmax(0, 1fr) 28px 24px;
+  padding: 0.55rem 0.65rem;
+}
+
+.compactTimeline .timelineIcon {
+  display: none;
+}
+
+.timelineHighlight {
+  border-color: rgba(99, 102, 241, 0.35);
+  background: rgba(99, 102, 241, 0.06);
+}
+
+.timelineIndex,
+.timelineCount {
+  font-family: var(--font-mono);
+  color: var(--c-text-3);
+  font-size: 0.76rem;
+}
+
+.timelineIcon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: var(--c-verified);
+  background: rgba(20, 184, 166, 0.10);
+}
+
+.timelineIcon[data-highlight="true"] {
+  color: var(--c-accent);
+  background: rgba(99, 102, 241, 0.14);
+}
+
+.timelineTitle {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.2rem;
+}
+
+.timelineTitle span {
+  font-weight: 800;
+}
+
+.timelineTitle code {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--c-text-3);
+}
+
+.timelineBody p {
+  margin: 0;
+  color: var(--c-text-2);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.compactTimeline .timelineBody p {
+  display: none;
+}
+
+.timelineCount {
+  color: var(--c-text);
+  text-align: right;
+}
+
+.spanLink {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--c-accent);
+  background: rgba(99, 102, 241, 0.10);
+  text-decoration: none;
+}
+
+.spanLink:hover {
+  background: rgba(99, 102, 241, 0.18);
+}
+
+@media (max-width: 640px) {
+  .timelineItem {
+    grid-template-columns: 28px minmax(0, 1fr) 28px 24px;
+  }
+
+  .timelineIcon {
+    display: none;
+  }
+}

@@ -43,6 +43,7 @@ export async function GET() {
           spanCounts,
           totalSpans,
           spanGroups,
+          llmSpan: live?.llmSpan ?? null,
           alerts: live?.alerts ?? [],
         },
         recovery: recoveryRaw

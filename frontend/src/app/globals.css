@@ -330,3 +330,14 @@ a[class*="Action"]:active,
     animation: none !important;
   }
 }
+
+/* Presentation mode — hide chrome for demo recording */
+body.present-mode header,
+body.present-mode footer,
+body.present-mode .skipLink {
+  display: none !important;
+}
+
+body.present-mode main {
+  min-height: 100dvh;
+}

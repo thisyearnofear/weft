@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-label="Weft Agent Observatory dashboard preview placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181a30"/>
+      <stop offset="100%" stop-color="#1f2138"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="420" fill="url(#bg)"/>
+  <text x="40" y="48" fill="#e8e8f2" font-family="system-ui,sans-serif" font-size="22" font-weight="700">Weft Autonomous Agent Observatory</text>
+  <text x="40" y="72" fill="#99a3b8" font-family="system-ui,sans-serif" font-size="13">Run frontend/scripts/capture-signoz-screenshots.mjs to replace with a live PNG</text>
+  <g transform="translate(40 96)">
+    <rect x="0" y="0" width="260" height="120" rx="8" fill="#282a4a" stroke="#ffffff22"/>
+    <rect x="280" y="0" width="260" height="120" rx="8" fill="#282a4a" stroke="#ffffff22"/>
+    <rect x="560" y="0" width="260" height="120" rx="8" fill="#282a4a" stroke="#ffffff22"/>
+    <rect x="840" y="0" width="260" height="120" rx="8" fill="#282a4a" stroke="#ffffff22"/>
+    <rect x="0" y="140" width="260" height="120" rx="8" fill="#282a4a" stroke="#ffffff22"/>
+    <rect x="280" y="140" width="260" height="120" rx="8" fill="#282a4a" stroke="#ffffff22"/>
+    <rect x="560" y="140" width="260" height="120" rx="8" fill="#282a4a" stroke="#ffffff22"/>
+    <rect x="840" y="140" width="260" height="120" rx="8" fill="#282a4a" stroke="#ffffff22"/>
+    <rect x="24" y="88" width="180" height="6" rx="3" fill="url(#bar)" opacity="0.85"/>
+    <rect x="304" y="88" width="140" height="6" rx="3" fill="url(#bar)" opacity="0.85"/>
+    <rect x="584" y="88" width="200" height="6" rx="3" fill="url(#bar)" opacity="0.85"/>
+    <rect x="864" y="88" width="120" height="6" rx="3" fill="url(#bar)" opacity="0.85"/>
+  </g>
+</svg>

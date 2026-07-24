@@ -1,0 +1,36 @@
+.strip {
+  margin-bottom: 0.85rem;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.fallback {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+  padding: 0.85rem;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.bar {
+  height: 56px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(20, 184, 166, 0.35), rgba(99, 102, 241, 0.35));
+}
+
+@media (max-width: 640px) {
+  .fallback {
+    grid-template-columns: 1fr 1fr;
+  }
+}

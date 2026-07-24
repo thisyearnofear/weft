@@ -10,6 +10,16 @@ import {
 
 const QUERY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
+export interface LlmSpanAttrs {
+  backend: string | null;
+  model: string | null;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  totalTokens: number | null;
+  costUsd: number | null;
+  outcome: string | null;
+}
+
 export interface SignozLiveSnapshot {
   configured: boolean;
   traceCount: number | null;
@@ -17,6 +27,7 @@ export interface SignozLiveSnapshot {
   spanCounts: Partial<Record<SignozSpanName, number>>;
   totalSpans: number | null;
   spanGroups: number | null;
+  llmSpan: LlmSpanAttrs | null;
   alerts: Array<{
     id: string;
     slug: string;
@@ -78,6 +89,23 @@ function windowRange(): { start: number; end: number } {
   return { start: end - QUERY_WINDOW_MS, end };
 }
 
+function parseNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
+function normalizeTimestamp(value: unknown): number | null {
+  const n = parseNumber(value);
+  if (n == null) return null;
+  if (n > 1e15) return Math.round(n / 1_000_000);
+  if (n > 1e12) return Math.round(n / 1_000);
+  return Math.round(n);
+}
+
 function scalarFromResponse(body: unknown): number | null {
   if (!body || typeof body !== "object") return null;
   const data = (body as { data?: { result?: unknown[] } }).data?.result;
@@ -87,21 +115,25 @@ function scalarFromResponse(body: unknown): number | null {
     if (!item || typeof item !== "object") continue;
     const table = (item as { table?: { rows?: unknown[][] } }).table;
     const row = table?.rows?.[0];
-    if (Array.isArray(row) && row.length > 0) {
-      const value = row[0];
-      if (typeof value === "number" && Number.isFinite(value)) return value;
-      if (typeof value === "string" && value.trim() !== "") {
-        const parsed = Number(value);
-        if (Number.isFinite(parsed)) return parsed;
+    if (Array.isArray(row)) {
+      for (const cell of row) {
+        const n = parseNumber(cell);
+        if (n != null) return n;
       }
     }
     const series = (item as { series?: Array<{ values?: Array<{ value?: number | string }> }> }).series;
-    const point = series?.[0]?.values?.[series[0].values.length - 1]?.value;
-    if (typeof point === "number" && Number.isFinite(point)) return point;
-    if (typeof point === "string") {
-      const parsed = Number(point);
-      if (Number.isFinite(parsed)) return parsed;
+    if (series?.length) {
+      for (const s of series) {
+        const values = s.values ?? [];
+        for (let i = values.length - 1; i >= 0; i -= 1) {
+          const n = parseNumber(values[i]?.value);
+          if (n != null) return n;
+        }
+      }
     }
+    const aggValue = (item as { aggStats?: Array<{ value?: unknown }> }).aggStats?.[0]?.value;
+    const aggN = parseNumber(aggValue);
+    if (aggN != null) return aggN;
   }
   return null;
 }
@@ -115,20 +147,36 @@ function groupedCountsFromResponse(body: unknown): Record<string, number> {
   for (const item of data) {
     if (!item || typeof item !== "object") continue;
     const table = (item as { table?: { columns?: Array<{ name?: string }>; rows?: unknown[][] } }).table;
-    if (!table?.rows?.length || !table.columns?.length) continue;
-
-    const nameIdx = table.columns.findIndex((c) => c.name === "name" || c.name === "span_name");
-    const countIdx = table.columns.findIndex((c) =>
-      ["span_count", "trace_count", "count", "value"].includes(String(c.name))
-    );
-    if (nameIdx < 0 || countIdx < 0) continue;
-
-    for (const row of table.rows) {
-      const name = row[nameIdx];
-      const count = row[countIdx];
-      if (typeof name !== "string") continue;
-      const n = typeof count === "number" ? count : Number(count);
-      if (Number.isFinite(n)) out[name] = n;
+    if (table?.rows?.length && table.columns?.length) {
+      const nameIdx = table.columns.findIndex((c) =>
+        ["name", "span_name", "span.name", "attribute.name"].includes(String(c.name))
+      );
+      const countIdx = table.columns.findIndex((c) =>
+        ["span_count", "trace_count", "count", "value", "A"].includes(String(c.name))
+      );
+      if (nameIdx >= 0 && countIdx >= 0) {
+        for (const row of table.rows) {
+          const name = row[nameIdx];
+          const count = row[countIdx];
+          if (typeof name !== "string") continue;
+          const n = parseNumber(count);
+          if (n != null) out[name] = n;
+        }
+        continue;
+      }
+      for (const row of table.rows) {
+        if (!Array.isArray(row) || row.length < 2) continue;
+        const name = row.find((cell) => typeof cell === "string");
+        const count = row.map(parseNumber).find((n) => n != null);
+        if (typeof name === "string" && count != null) out[name] = count;
+      }
+    }
+    const series = (item as { series?: Array<{ labels?: Record<string, string>; values?: Array<{ value?: unknown }> }> }).series;
+    for (const s of series ?? []) {
+      const name = s.labels?.name ?? s.labels?.["span.name"];
+      const last = s.values?.[s.values.length - 1]?.value;
+      const n = parseNumber(last);
+      if (name && n != null) out[name] = n;
     }
   }
   return out;
@@ -140,15 +188,58 @@ function timestampFromRawResponse(body: unknown): number | null {
   if (!Array.isArray(data)) return null;
 
   for (const item of data) {
-    const list = (item as { list?: Array<{ timestamp?: number | string }> }).list;
-    const ts = list?.[0]?.timestamp;
-    if (typeof ts === "number" && Number.isFinite(ts)) return ts;
-    if (typeof ts === "string") {
-      const parsed = Number(ts);
-      if (Number.isFinite(parsed)) return parsed;
+    if (!item || typeof item !== "object") continue;
+    const list = (item as { list?: Array<Record<string, unknown>> }).list;
+    for (const entry of list ?? []) {
+      const ts =
+        normalizeTimestamp(entry.timestamp) ??
+        normalizeTimestamp(entry.startTime) ??
+        normalizeTimestamp(entry.startTimeUnixNano) ??
+        normalizeTimestamp(entry.timeUnixNano);
+      if (ts != null) return ts;
+      const dataField = entry.data;
+      if (dataField && typeof dataField === "object") {
+        const nested = normalizeTimestamp((dataField as { timestamp?: unknown }).timestamp);
+        if (nested != null) return nested;
+      }
+    }
+    const records = (item as { records?: Array<Record<string, unknown>> }).records;
+    for (const entry of records ?? []) {
+      const ts = normalizeTimestamp(entry.timestamp) ?? normalizeTimestamp(entry.time);
+      if (ts != null) return ts;
     }
   }
   return null;
+}
+
+function attrsFromRawResponse(body: unknown): Record<string, string | number | boolean> {
+  const out: Record<string, string | number | boolean> = {};
+  if (!body || typeof body !== "object") return out;
+  const data = (body as { data?: { result?: unknown[] } }).data?.result;
+  if (!Array.isArray(data)) return out;
+
+  for (const item of data) {
+    const list = (item as { list?: Array<Record<string, unknown>> }).list;
+    const entry = list?.[0];
+    if (!entry) continue;
+    const attrs =
+      (entry.attributes as Record<string, unknown> | undefined) ??
+      (entry.data as { attributes?: Record<string, unknown> } | undefined)?.attributes;
+    if (!attrs || typeof attrs !== "object") continue;
+    for (const [key, value] of Object.entries(attrs)) {
+      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+        out[key] = value;
+      }
+    }
+    for (const [key, value] of Object.entries(entry)) {
+      if (key.startsWith("weft.") || key.startsWith("gen_ai.")) {
+        if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+          out[key] = value;
+        }
+      }
+    }
+  }
+  return out;
 }
 
 async function queryScalar(filter: string): Promise<number | null> {
@@ -239,6 +330,63 @@ async function queryLastTraceAt(filter: string): Promise<number | null> {
   return timestampFromRawResponse(body);
 }
 
+async function queryLlmSpanAttrs(filter: string): Promise<LlmSpanAttrs | null> {
+  const llmFilter = `${filter} AND name = 'weft.llm.chat'`;
+  const { start, end } = windowRange();
+  const body = await signozJson<unknown>("/api/v5/query_range", {
+    method: "POST",
+    body: JSON.stringify({
+      start,
+      end,
+      requestType: "raw",
+      variables: {},
+      compositeQuery: {
+        queries: [
+          {
+            type: "builder_query",
+            spec: {
+              name: "A",
+              signal: "traces",
+              filter: { expression: llmFilter },
+              selectFields: [
+                { name: "weft.llm.backend", fieldContext: "span" },
+                { name: "weft.llm.model", fieldContext: "span" },
+                { name: "gen_ai.usage.input_tokens", fieldContext: "span" },
+                { name: "gen_ai.usage.output_tokens", fieldContext: "span" },
+                { name: "gen_ai.usage.total_tokens", fieldContext: "span" },
+                { name: "weft.llm.cost_usd", fieldContext: "span" },
+                { name: "weft.llm.outcome", fieldContext: "span" },
+              ],
+              order: [{ key: { name: "timestamp", fieldContext: "span" }, direction: "desc" }],
+              limit: 1,
+              offset: 0,
+              disabled: false,
+            },
+          },
+        ],
+      },
+    }),
+  });
+
+  const attrs = attrsFromRawResponse(body);
+  if (Object.keys(attrs).length === 0) return null;
+
+  return {
+    backend: typeof attrs["weft.llm.backend"] === "string" ? attrs["weft.llm.backend"] : null,
+    model:
+      typeof attrs["weft.llm.model"] === "string"
+        ? attrs["weft.llm.model"]
+        : typeof attrs["gen_ai.request.model"] === "string"
+          ? attrs["gen_ai.request.model"]
+          : null,
+    inputTokens: parseNumber(attrs["gen_ai.usage.input_tokens"]),
+    outputTokens: parseNumber(attrs["gen_ai.usage.output_tokens"]),
+    totalTokens: parseNumber(attrs["gen_ai.usage.total_tokens"]),
+    costUsd: parseNumber(attrs["weft.llm.cost_usd"]),
+    outcome: typeof attrs["weft.llm.outcome"] === "string" ? attrs["weft.llm.outcome"] : null,
+  };
+}
+
 interface SignozRuleRow {
   id?: string;
   alert?: string;
@@ -248,41 +396,80 @@ interface SignozRuleRow {
   status?: string;
 }
 
+const ALERT_NAME_HINTS: Record<string, string[]> = {
+  keeperhub_fallback: ["keeperhub", "fallback"],
+  peer_quorum_degraded: ["quorum", "degraded", "consensus"],
+  llm_narrative_failures: ["llm", "narrative", "failure"],
+};
+
+function ruleMatchesAlert(row: SignozRuleRow, alert: (typeof SIGNOZ_ALERTS)[number]): boolean {
+  if (row.id === alert.id) return true;
+  const label = String(row.alert ?? row.alertName ?? "").toLowerCase();
+  if (!label) return false;
+  const hints = ALERT_NAME_HINTS[alert.slug] ?? [];
+  return hints.some((hint) => label.includes(hint)) || label.includes(alert.name.toLowerCase().slice(0, 12));
+}
+
 async function fetchAlertStates(): Promise<Map<string, "ok" | "firing" | "disabled" | "unknown">> {
   const states = new Map<string, "ok" | "firing" | "disabled" | "unknown">();
   for (const alert of SIGNOZ_ALERTS) states.set(alert.id, "unknown");
 
-  const rulesBody = await signozJson<{ data?: SignozRuleRow[] } | SignozRuleRow[]>("/api/v1/rules");
-  const rows = Array.isArray(rulesBody)
+  const rulesBody = await signozJson<{ data?: { rules?: SignozRuleRow[] }; rules?: SignozRuleRow[] } | SignozRuleRow[]>(
+    "/api/v1/rules"
+  );
+  const rows: SignozRuleRow[] = Array.isArray(rulesBody)
     ? rulesBody
     : Array.isArray(rulesBody?.data)
       ? rulesBody.data
-      : [];
+      : Array.isArray(rulesBody?.data?.rules)
+        ? rulesBody.data.rules
+        : Array.isArray(rulesBody?.rules)
+          ? rulesBody.rules
+          : [];
 
   for (const row of rows) {
-    const id = row.id;
-    if (!id || !states.has(id)) continue;
-    if (row.disabled) {
-      states.set(id, "disabled");
-      continue;
-    }
-    const raw = String(row.state ?? row.status ?? "").toLowerCase();
-    if (raw.includes("firing") || raw.includes("alerting") || raw.includes("active")) {
-      states.set(id, "firing");
-    } else if (raw.includes("disabled")) {
-      states.set(id, "disabled");
-    } else if (raw) {
-      states.set(id, "ok");
+    for (const alert of SIGNOZ_ALERTS) {
+      if (!ruleMatchesAlert(row, alert)) continue;
+      if (row.disabled) {
+        states.set(alert.id, "disabled");
+        continue;
+      }
+      const raw = String(row.state ?? row.status ?? "").toLowerCase();
+      if (raw.includes("firing") || raw.includes("alerting") || raw.includes("active")) {
+        states.set(alert.id, "firing");
+      } else if (raw.includes("disabled")) {
+        states.set(alert.id, "disabled");
+      } else if (raw) {
+        states.set(alert.id, "ok");
+      }
     }
   }
 
-  const triggeredBody = await signozJson<{ data?: Array<{ ruleId?: string; alert?: string }> }>(
-    "/api/v1/alerts?active=true"
-  );
-  const triggered = triggeredBody?.data ?? [];
-  for (const hit of triggered) {
-    const id = hit.ruleId;
-    if (id && states.has(id)) states.set(id, "firing");
+  const triggeredPaths = ["/api/v1/alerts?active=true", "/api/v1/alerts"];
+  for (const path of triggeredPaths) {
+    const triggeredBody = await signozJson<{
+      data?: Array<{ ruleId?: string; alert?: string; labels?: Record<string, string> }>;
+    }>(path);
+    for (const hit of triggeredBody?.data ?? []) {
+      const ruleId = hit.ruleId;
+      if (ruleId && states.has(ruleId)) {
+        states.set(ruleId, "firing");
+        continue;
+      }
+      const alertLabel = String(hit.alert ?? "").toLowerCase();
+      for (const alert of SIGNOZ_ALERTS) {
+        const hints = ALERT_NAME_HINTS[alert.slug] ?? [];
+        if (hints.some((hint) => alertLabel.includes(hint))) {
+          states.set(alert.id, "firing");
+        }
+      }
+    }
+  }
+
+  for (const alert of SIGNOZ_ALERTS) {
+    if (states.get(alert.id) === "unknown") {
+      states.set(alert.id, "ok");
+    }
   }
 
   return states;
@@ -293,14 +480,21 @@ export async function fetchSignozLiveSnapshot(): Promise<SignozLiveSnapshot> {
   const configured = Boolean(base && apiKey());
   const filter = SIGNOZ_WINNING_TRACE_FILTER;
 
-  const [traceCount, spanCountsRaw, lastTraceAt, alertStates] = configured
+  const [traceCount, spanCountsRaw, lastTraceAt, alertStates, llmSpan] = configured
     ? await Promise.all([
         queryScalar(filter),
         querySpanCounts(filter),
         queryLastTraceAt(filter),
         fetchAlertStates(),
+        queryLlmSpanAttrs(filter),
       ])
-    : [null, {} as Record<string, number>, null, new Map<string, "ok" | "firing" | "disabled" | "unknown">()];
+    : [
+        null,
+        {} as Record<string, number>,
+        null,
+        new Map<string, "ok" | "firing" | "disabled" | "unknown">(),
+        null,
+      ];
 
   const spanCounts: Partial<Record<SignozSpanName, number>> = {};
   let totalSpans = 0;
@@ -321,6 +515,7 @@ export async function fetchSignozLiveSnapshot(): Promise<SignozLiveSnapshot> {
     spanCounts,
     totalSpans: totalSpans > 0 ? totalSpans : null,
     spanGroups: spanGroups && spanGroups > 0 ? spanGroups : null,
+    llmSpan,
     alerts: SIGNOZ_ALERTS.map((alert) => ({
       id: alert.id,
       slug: alert.slug,
