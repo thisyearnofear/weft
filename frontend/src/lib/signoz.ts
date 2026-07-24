@@ -1,6 +1,7 @@
 import {
   SIGNOZ_ALERTS,
   SIGNOZ_DASHBOARD_ID,
+  SIGNOZ_PUBLIC_DASHBOARD_URL,
   SIGNOZ_WINNING_TRACE_FILTER,
 } from "@/lib/signoz-config";
 
@@ -9,6 +10,7 @@ export {
   SIGNOZ_DASHBOARD_ID,
   SIGNOZ_DASHBOARD_PANELS,
   SIGNOZ_DEMO_SPAN_COUNTS,
+  SIGNOZ_PUBLIC_DASHBOARD_URL,
   SIGNOZ_SPAN_NAMES,
   SIGNOZ_WINNING_TRACE_FILTER,
 } from "@/lib/signoz-config";
@@ -24,7 +26,7 @@ export function getSignozInstanceUrl(): string {
 export function getSignozDashboardUrl(): string | null {
   const url = process.env.NEXT_PUBLIC_SIGNOZ_DASHBOARD_URL?.trim();
   if (url) return url;
-  return `${getSignozInstanceUrl().replace(/\/$/, "")}/dashboard/${SIGNOZ_DASHBOARD_ID}`;
+  return SIGNOZ_PUBLIC_DASHBOARD_URL;
 }
 
 export function getSignozTracesExplorerUrl(filter = SIGNOZ_WINNING_TRACE_FILTER): string {
