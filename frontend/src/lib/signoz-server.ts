@@ -20,6 +20,14 @@ export interface LlmSpanAttrs {
   outcome: string | null;
 }
 
+export interface ObservabilitySeries {
+  traceCount: number[];
+  spanGroups: number[];
+  llmSpans: number[];
+  toolSpans: number[];
+  recoveryEvents: number[];
+}
+
 export interface SignozLiveSnapshot {
   configured: boolean;
   traceCount: number | null;
@@ -28,6 +36,7 @@ export interface SignozLiveSnapshot {
   totalSpans: number | null;
   spanGroups: number | null;
   llmSpan: LlmSpanAttrs | null;
+  series: ObservabilitySeries | null;
   alerts: Array<{
     id: string;
     slug: string;
@@ -405,6 +414,54 @@ async function queryLastTraceAt(filter: string): Promise<number | null> {
   return timestampFromRawResponse(body);
 }
 
+function timeSeriesFromResponse(body: unknown): number[] {
+  if (!body || typeof body !== "object") return [];
+  const results = (body as { data?: { data?: { results?: unknown[] } } }).data?.data?.results;
+  if (!Array.isArray(results) || results.length === 0) return [];
+
+  const first = results[0] as {
+    aggregations?: Array<{
+      series?: Array<{
+        values?: Array<{ value?: unknown }>;
+      }>;
+    }>;
+  };
+  const values = first.aggregations?.[0]?.series?.[0]?.values ?? [];
+  return values
+    .map((point) => parseNumber(point.value) ?? 0)
+    .reverse();
+}
+
+async function queryTimeSeries(filter: string, hours = 24): Promise<number[]> {
+  const end = Date.now();
+  const start = end - hours * 3600 * 1000;
+  const body = await signozJson<unknown>("/api/v5/query_range", {
+    method: "POST",
+    body: JSON.stringify({
+      start,
+      end,
+      requestType: "time_series",
+      variables: {},
+      compositeQuery: {
+        queries: [
+          {
+            type: "builder_query",
+            spec: {
+              name: "A",
+              signal: "traces",
+              filter: { expression: filter },
+              aggregations: [{ expression: "count()" }],
+              stepInterval: 3600,
+              disabled: false,
+            },
+          },
+        ],
+      },
+    }),
+  });
+  return timeSeriesFromResponse(body);
+}
+
 async function queryLlmSpanAttrs(filter: string): Promise<LlmSpanAttrs | null> {
   const llmFilter = `${filter} AND name = 'weft.llm.chat'`;
   const { start, end } = windowRange();
@@ -555,13 +612,18 @@ export async function fetchSignozLiveSnapshot(): Promise<SignozLiveSnapshot> {
   const configured = Boolean(base && apiKey());
   const filter = SIGNOZ_WINNING_TRACE_FILTER;
 
-  const [traceCount, spanCountsRaw, lastTraceAt, alertStates, llmSpan] = configured
+  const [traceCount, spanCountsRaw, lastTraceAt, alertStates, llmSpan, traceSeries, llmSeries, toolSeries, recoverySeries] =
+    configured
     ? await Promise.all([
         queryScalar(filter),
         querySpanCounts(filter),
         queryLastTraceAt(filter),
         fetchAlertStates(),
         queryLlmSpanAttrs(filter),
+        queryTimeSeries(filter, 24),
+        queryTimeSeries(`${filter} AND name = 'weft.llm.chat'`, 24),
+        queryTimeSeries(`${filter} AND name = 'weft.agent.tool_call'`, 24),
+        queryTimeSeries(`${filter} AND name = 'weft.recovery'`, 24),
       ])
     : [
         null,
@@ -569,6 +631,10 @@ export async function fetchSignozLiveSnapshot(): Promise<SignozLiveSnapshot> {
         null,
         new Map<string, "ok" | "firing" | "disabled" | "unknown">(),
         null,
+        [] as number[],
+        [] as number[],
+        [] as number[],
+        [] as number[],
       ];
 
   const spanCounts: Partial<Record<SignozSpanName, number>> = {};
@@ -583,6 +649,17 @@ export async function fetchSignozLiveSnapshot(): Promise<SignozLiveSnapshot> {
 
   const spanGroups = Object.keys(spanCounts).length || null;
 
+  const series: ObservabilitySeries | null =
+    configured && traceSeries.length > 0
+      ? {
+          traceCount: traceSeries,
+          spanGroups: Array.from({ length: traceSeries.length }, () => spanGroups ?? 0),
+          llmSpans: llmSeries,
+          toolSpans: toolSeries,
+          recoveryEvents: recoverySeries,
+        }
+      : null;
+
   return {
     configured,
     traceCount,
@@ -591,6 +668,7 @@ export async function fetchSignozLiveSnapshot(): Promise<SignozLiveSnapshot> {
     totalSpans: totalSpans > 0 ? totalSpans : null,
     spanGroups: spanGroups && spanGroups > 0 ? spanGroups : null,
     llmSpan,
+    series,
     alerts: SIGNOZ_ALERTS.map((alert) => ({
       id: alert.id,
       slug: alert.slug,

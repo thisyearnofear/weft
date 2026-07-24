@@ -19,17 +19,21 @@ import {
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { AgentTraceReceipt } from "@/components/AgentTraceReceipt";
 import { CopyCodeButton } from "@/components/CopyCodeButton";
+import { CountUp } from "@/components/CountUp";
 import { DashboardScreenshotStrip } from "@/components/DashboardScreenshotStrip";
 import { ErrorState } from "@/components/ErrorState";
 import { OfflineBadge } from "@/components/OfflineBadge";
 import { TraceWaterfall } from "@/components/TraceWaterfall";
+import { ActSection } from "@/components/ui/ActSection";
+import { GuidedPresenter } from "@/components/ui/GuidedPresenter";
+import ui from "@/components/ui/weft-ui.module.css";
 import { useObservability } from "@/hooks/useObservability";
+import { sectionVisible } from "@/lib/observability-metrics";
 import {
   getSignozAlertsUrl,
   getSignozDashboardUrl,
   getSignozAlertEditUrl,
   getSignozTracesExplorerUrl,
-  SIGNOZ_DASHBOARD_PANELS,
   SIGNOZ_WINNING_TRACE_FILTER,
 } from "@/lib/signoz";
 import { GUIDED_DEMO_STEPS } from "@/lib/trace-waterfall";
@@ -48,7 +52,7 @@ function alertStateLabel(state: string): string {
   if (state === "firing") return "Firing";
   if (state === "ok") return "OK";
   if (state === "disabled") return "Disabled";
-  return "Provisioned";
+  return "Unknown";
 }
 
 export function ObservabilityClient({
@@ -61,6 +65,7 @@ export function ObservabilityClient({
   const { data, isLoading, error, refetch, isFetching } = useObservability();
   const [demoRunning, setDemoRunning] = useState(false);
   const [demoMessage, setDemoMessage] = useState<string | null>(null);
+  const [demoPulse, setDemoPulse] = useState(0);
   const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
@@ -73,13 +78,52 @@ export function ObservabilityClient({
   const tracesExplorer = getSignozTracesExplorerUrl();
   const signoz = data?.signoz;
   const recovery = data?.recovery ?? null;
+  const steps = useMemo(() => [...GUIDED_DEMO_STEPS], []);
+
+  const visible = useCallback(
+    (anchor: string) => sectionVisible(anchor, guided, present, activeStep, steps),
+    [guided, present, activeStep, steps]
+  );
+
+  // Act visibility: an act is "full" if any of its anchors is active.
+  // In guided (non-present) mode, non-active acts collapse to teasers.
+  const actVisibility = useCallback(
+    (anchors: string[]): "full" | "teaser" | "hidden" => {
+      if (!guided) return "full";
+      const isActive = anchors.some((a) => steps[activeStep]?.anchor === a);
+      if (isActive) return "full";
+      return present ? "hidden" : "teaser";
+    },
+    [guided, present, activeStep, steps]
+  );
 
   const alerts = signoz?.alerts?.length
     ? signoz.alerts
     : [
-        { id: "keeperhub_fallback", slug: "keeperhub_fallback", name: "KeeperHub fallback activated", filter: "name = 'weft.keeperhub.release' AND weft.keeperhub_status = 'fallback'", state: "unknown" as const, url: getSignozAlertEditUrl("019f939d-e7f7-7c2e-be4d-a410b06a9b78") },
-        { id: "peer_quorum_degraded", slug: "peer_quorum_degraded", name: "Peer quorum degraded", filter: "weft.recovery.event = 'consensus_degraded'", state: "unknown" as const, url: getSignozAlertEditUrl("019f939d-e7fb-764d-ad71-1772135c9e93") },
-        { id: "llm_narrative_failures", slug: "llm_narrative_failures", name: "LLM narrative failures", filter: "name = 'weft.llm.chat' AND weft.llm.outcome = 'error'", state: "unknown" as const, url: getSignozAlertEditUrl("019f939d-e7f6-7d5c-843f-9ab67b2234c5") },
+        {
+          id: "keeperhub_fallback",
+          slug: "keeperhub_fallback",
+          name: "KeeperHub fallback activated",
+          filter: "name = 'weft.keeperhub.release' AND weft.keeperhub_status = 'fallback'",
+          state: "unknown" as const,
+          url: getSignozAlertEditUrl("019f939d-e7f7-7c2e-be4d-a410b06a9b78"),
+        },
+        {
+          id: "peer_quorum_degraded",
+          slug: "peer_quorum_degraded",
+          name: "Peer quorum degraded",
+          filter: "weft.recovery.event = 'consensus_degraded'",
+          state: "unknown" as const,
+          url: getSignozAlertEditUrl("019f939d-e7fb-764d-ad71-1772135c9e93"),
+        },
+        {
+          id: "llm_narrative_failures",
+          slug: "llm_narrative_failures",
+          name: "LLM narrative failures",
+          filter: "name = 'weft.llm.chat' AND weft.llm.outcome = 'error'",
+          state: "unknown" as const,
+          url: getSignozAlertEditUrl("019f939d-e7f6-7d5c-843f-9ab67b2234c5"),
+        },
       ];
 
   const runDemoTrace = useCallback(async () => {
@@ -98,6 +142,8 @@ export function ObservabilityClient({
         await refetch();
       }
       setDemoMessage("Demo trace should be visible in SigNoz.");
+      // Trigger pulse animation + CountUp re-mount on proof stats
+      setDemoPulse((n) => n + 1);
     } catch (err) {
       setDemoMessage(err instanceof Error ? err.message : "Demo trace failed");
     } finally {
@@ -105,41 +151,45 @@ export function ObservabilityClient({
     }
   }, [refetch]);
 
-  const scrollToStep = useCallback((index: number) => {
-    setActiveStep(index);
-    const anchor = GUIDED_DEMO_STEPS[index]?.anchor;
-    if (!anchor) return;
-    document.getElementById(anchor)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
+  const handleStepChange = useCallback(
+    (index: number) => {
+      setActiveStep(index);
+      if (!present) {
+        const anchor = steps[index]?.anchor;
+        if (anchor) document.getElementById(anchor)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    },
+    [present, steps]
+  );
 
-  const guidedRail = useMemo(() => {
-    if (!guided) return null;
-    return (
-      <nav className={styles.guidedRail} aria-label="Guided demo steps">
-        {GUIDED_DEMO_STEPS.map((step, index) => (
-          <button
-            key={step.id}
-            type="button"
-            className={styles.guidedStep}
-            data-active={index === activeStep ? "true" : "false"}
-            onClick={() => scrollToStep(index)}
-          >
-            <span>{index + 1}</span>
-            <div>
-              <strong>{step.title}</strong>
-              <p>{step.blurb}</p>
-            </div>
-          </button>
-        ))}
-      </nav>
-    );
-  }, [guided, activeStep, scrollToStep]);
+  // Jump to an act (find the step whose anchor matches)
+  const goToAnchor = useCallback(
+    (anchor: string) => {
+      const idx = steps.findIndex((s) => s.anchor === anchor);
+      if (idx >= 0) handleStepChange(idx);
+    },
+    [steps, handleStepChange]
+  );
+
+  const actEntering = present && guided;
+
+  const act1Vis = actVisibility(["step-problem"]);
+  const act2Vis = actVisibility(["step-waterfall", "step-receipt"]);
+  const act3Vis = actVisibility(["step-dashboard", "step-alerts"]);
 
   return (
     <div className={`${styles.container} ${present ? styles.presentContainer : ""}`}>
       <div className={styles.inner}>
         {!present && <Breadcrumbs items={[{ label: "Agent Observatory" }]} />}
-        {guidedRail}
+
+        {guided && (
+          <GuidedPresenter
+            steps={steps}
+            activeStep={activeStep}
+            onStepChange={handleStepChange}
+            presentMode={present}
+          />
+        )}
 
         {error && !data && (
           <ErrorState
@@ -150,169 +200,224 @@ export function ObservabilityClient({
         )}
         {error && data && <OfflineBadge />}
 
-        <section className={styles.hero} id="step-problem">
-          <div className={styles.heroCopy}>
-            <div className={styles.eyebrow}>
-              <Eye size={15} /> SigNoz-powered agent observability
-            </div>
-            <h1>{present ? "Weft × SigNoz" : "See inside the agent before it moves money."}</h1>
-            <p>
-              Weft traces the autonomous verifier from plan to tool calls to LLM narrative
-              to deterministic evidence checks. SigNoz is the evidence backend; this page
-              is the user-facing audit lens.
-            </p>
-            <div className={styles.heroActions}>
-              {!present && (
-                <Link href="/operations" className={styles.primaryAction}>
-                  Open operations <ArrowRight size={16} />
-                </Link>
-              )}
-              <a href={tracesExplorer} target="_blank" rel="noopener noreferrer" className={styles.secondaryAction}>
-                Open winning trace <ArrowRight size={16} />
-              </a>
-              {signozDashboard && (
-                <a href={signozDashboard} target="_blank" rel="noopener noreferrer" className={styles.secondaryAction}>
-                  Open dashboard <ArrowRight size={16} />
-                </a>
-              )}
-              <button
-                type="button"
-                className={styles.demoBtn}
-                onClick={runDemoTrace}
-                disabled={demoRunning}
-              >
-                {demoRunning ? <Loader2 size={15} className={styles.spin} /> : <Play size={15} />}
-                Run demo trace
-              </button>
-              <button type="button" className={styles.refreshBtn} onClick={() => refetch()} disabled={isFetching} aria-label="Refresh live SigNoz stats">
-                <RefreshCw size={15} className={isFetching ? styles.spin : undefined} />
-              </button>
-            </div>
-            {demoMessage && <p className={styles.demoMessage}>{demoMessage}</p>}
-          </div>
-
-          <div className={styles.proofPanel}>
-            <div className={styles.proofHeader}>
-              <ServerCog size={18} />
-              <span>{signoz?.live ? "Live validated trace" : "Validated trace filter"}</span>
-            </div>
-            <code>{SIGNOZ_WINNING_TRACE_FILTER}</code>
-            <div className={styles.proofActions}>
-              <CopyCodeButton value={SIGNOZ_WINNING_TRACE_FILTER} label="Copy filter" />
-              <span className={styles.liveBadge} data-live={signoz?.live ? "true" : "false"}>
-                {signoz?.live ? "SigNoz connected" : "Demo snapshot"}
-              </span>
-            </div>
-            <div className={styles.proofStats}>
-              <div>
-                <strong>{isLoading ? "…" : signoz?.spanGroups ?? 6}</strong>
-                <span>span groups</span>
-              </div>
-              <div>
-                <strong>{isLoading ? "…" : signoz?.totalSpans ?? 7}</strong>
-                <span>visible spans</span>
-              </div>
-              <div>
-                <strong>{isLoading ? "…" : signoz?.traceCount ?? "—"}</strong>
-                <span>matching traces</span>
-              </div>
-            </div>
-            <p className={styles.proofMeta}>{formatRelative(signoz?.lastTraceAt ?? null)}</p>
-          </div>
-        </section>
-
-        {signoz && (
-          <section className={styles.receiptSection} id="step-receipt">
-            <AgentTraceReceipt signoz={signoz} recovery={recovery} />
-          </section>
-        )}
-
-        <section className={styles.traceSection} id="step-waterfall">
-          <div className={styles.sectionHeader}>
-            <span>Trace Waterfall</span>
-            <h2>The agent is not a black box.</h2>
-          </div>
-          <TraceWaterfall spanCounts={signoz?.spanCounts} isLoading={isLoading} showDeepLinks />
-        </section>
-
-        {!present && (
-          <section className={styles.gridSection}>
-            <div className={styles.valueCard}>
-              <div className={styles.cardIcon}><Coins size={18} /></div>
-              <h2>Why users should care</h2>
-              <p>
-                Program officers do not need SigNoz accounts. They need a defensible receipt:
-                what evidence was checked, what the agent did, whether the LLM merely narrated,
-                and why capital released or stayed locked.
-              </p>
-            </div>
-            <div className={styles.valueCard}>
-              <div className={styles.cardIcon}><ReceiptText size={18} /></div>
-              <h2>What the receipt proves</h2>
-              <p>
-                The boolean verdict is deterministic. The LLM span exists so teams can inspect
-                cost and narrative behavior, not because an LLM is allowed to decide payment.
-              </p>
-            </div>
-            <div className={styles.valueCard}>
-              <div className={styles.cardIcon}><AlertTriangle size={18} /></div>
-              <h2>What failures reveal</h2>
-              <p>
-                KeeperHub fallback, degraded peer quorum, and LLM failures become alertable
-                conditions. A failed dependency is no longer hidden inside an autonomous run.
-              </p>
-            </div>
-          </section>
-        )}
-
-        <section className={styles.dashboardSection} id="step-dashboard">
-          <div className={styles.sectionHeader}>
-            <span>Dashboard</span>
-            <h2>Eight panels — live counts when SigNoz is connected.</h2>
-          </div>
-          <DashboardScreenshotStrip signoz={signoz} recovery={recovery} isLoading={isLoading} />
-          <div className={styles.panelGrid}>
-            {SIGNOZ_DASHBOARD_PANELS.map((panel, index) => (
-              <div key={panel.title} className={styles.panelItem}>
-                <span>{index + 1}</span>
-                <strong>{panel.title}</strong>
-                <p>{panel.body}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className={styles.alertSection} id="step-alerts">
-          <div className={styles.sectionHeader}>
-            <span>Alerts</span>
-            <h2>Failure modes become operating signals.</h2>
-          </div>
-          <div className={styles.alertList}>
-            {alerts.map((alert) => (
-              <a key={alert.slug} href={alert.url || getSignozAlertsUrl()} target="_blank" rel="noopener noreferrer" className={styles.alertItem}>
-                <RadioTower size={17} />
-                <div>
-                  <div className={styles.alertTitleRow}>
-                    <strong>{alert.name}</strong>
-                    <span className={styles.alertState} data-state={alert.state}>{alertStateLabel(alert.state)}</span>
-                  </div>
-                  <code>{alert.filter}</code>
+        <ActSection
+          act={1}
+          id="act-problem"
+          title="If an agent can release capital, it cannot be a black box."
+          subtitle="SigNoz traces every autonomous step — plan, tools, LLM, evidence — before money moves."
+          visibility={act1Vis}
+          entering={actEntering && activeStep === 0}
+          onActivate={() => goToAnchor("step-problem")}
+        >
+            <section className={styles.hero} id="step-problem">
+              <div className={styles.heroCopy}>
+                <div className={ui.eyebrow}>
+                  <Eye size={15} /> SigNoz-powered agent observability
                 </div>
-              </a>
-            ))}
-          </div>
-          <div className={styles.alertLinks}>
-            <a href={getSignozAlertsUrl("rules")} target="_blank" rel="noopener noreferrer" className={styles.alertLink}>
-              View alert rules <ArrowRight size={14} />
-            </a>
-            <a href={getSignozAlertsUrl("triggered")} target="_blank" rel="noopener noreferrer" className={styles.alertLink}>
-              View triggered alerts <ArrowRight size={14} />
-            </a>
-          </div>
-        </section>
+                <h1>{present ? "Weft × SigNoz" : "See inside the agent before it moves money."}</h1>
+                <p>
+                  Weft traces the autonomous verifier from plan to tool calls to LLM narrative to deterministic
+                  evidence checks. SigNoz is the evidence backend; this page is the user-facing audit lens.
+                </p>
+                <div className={styles.heroActions}>
+                  {!present && (
+                    <Link href="/operations" className={styles.primaryAction}>
+                      Open operations <ArrowRight size={16} />
+                    </Link>
+                  )}
+                  <a href={tracesExplorer} target="_blank" rel="noopener noreferrer" className={styles.secondaryAction}>
+                    Open winning trace <ArrowRight size={16} />
+                  </a>
+                  {signozDashboard && (
+                    <a href={signozDashboard} target="_blank" rel="noopener noreferrer" className={styles.secondaryAction}>
+                      Open dashboard <ArrowRight size={16} />
+                    </a>
+                  )}
+                  <button type="button" className={styles.demoBtn} onClick={runDemoTrace} disabled={demoRunning}>
+                    {demoRunning ? <Loader2 size={15} className={styles.spin} /> : <Play size={15} />}
+                    Run demo trace
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.refreshBtn}
+                    onClick={() => refetch()}
+                    disabled={isFetching}
+                    aria-label="Refresh live SigNoz stats"
+                  >
+                    <RefreshCw size={15} className={isFetching ? styles.spin : undefined} />
+                  </button>
+                </div>
+                {demoMessage && <p className={styles.demoMessage}>{demoMessage}</p>}
+              </div>
+
+              <div
+                className={`${styles.proofPanel} ${ui.surface} ${ui.surfaceIndigo} ${demoPulse > 0 ? ui.pulseSuccess : ""}`}
+                key={demoPulse}
+              >
+                <div className={styles.proofHeader}>
+                  <ServerCog size={18} />
+                  <span>{signoz?.live ? "Live validated trace" : "Validated trace filter"}</span>
+                </div>
+                <code>{SIGNOZ_WINNING_TRACE_FILTER}</code>
+                <div className={styles.proofActions}>
+                  <CopyCodeButton value={SIGNOZ_WINNING_TRACE_FILTER} label="Copy filter" />
+                  <span className={styles.liveBadge} data-live={signoz?.live ? "true" : "false"}>
+                    {signoz?.live ? "SigNoz connected" : "Demo snapshot"}
+                  </span>
+                </div>
+                <div className={styles.proofStats}>
+                  <div>
+                    <strong>
+                      {isLoading ? "…" : <CountUp value={signoz?.spanGroups ?? 6} />}
+                    </strong>
+                    <span>span groups</span>
+                  </div>
+                  <div>
+                    <strong>
+                      {isLoading ? "…" : <CountUp value={signoz?.totalSpans ?? 7} />}
+                    </strong>
+                    <span>visible spans</span>
+                  </div>
+                  <div>
+                    <strong>
+                      {isLoading ? "…" : <CountUp value={signoz?.traceCount ?? 0} />}
+                    </strong>
+                    <span>matching traces</span>
+                  </div>
+                </div>
+                <p className={styles.proofMeta}>{formatRelative(signoz?.lastTraceAt ?? null)}</p>
+              </div>
+            </section>
+
+            {!present && (
+              <div className={styles.gridSection}>
+                <div className={`${styles.valueCard} ${ui.surface}`}>
+                  <div className={styles.cardIcon}>
+                    <Coins size={18} />
+                  </div>
+                  <h2>Why users should care</h2>
+                  <p>
+                    Program officers do not need SigNoz accounts. They need a defensible receipt: what evidence was
+                    checked, what the agent did, whether the LLM merely narrated, and why capital released or stayed
+                    locked.
+                  </p>
+                </div>
+                <div className={`${styles.valueCard} ${ui.surface}`}>
+                  <div className={styles.cardIcon}>
+                    <ReceiptText size={18} />
+                  </div>
+                  <h2>What the receipt proves</h2>
+                  <p>
+                    The boolean verdict is deterministic. The LLM span exists so teams can inspect cost and narrative
+                    behavior, not because an LLM is allowed to decide payment.
+                  </p>
+                </div>
+                <div className={`${styles.valueCard} ${ui.surface}`}>
+                  <div className={styles.cardIcon}>
+                    <AlertTriangle size={18} />
+                  </div>
+                  <h2>What failures reveal</h2>
+                  <p>
+                    KeeperHub fallback, degraded peer quorum, and LLM failures become alertable conditions. A failed
+                    dependency is no longer hidden inside an autonomous run.
+                  </p>
+                </div>
+              </div>
+            )}
+          </ActSection>
+
+        <ActSection
+          act={2}
+          id="act-proof"
+          title="The agent is not a black box."
+          subtitle="Trace waterfall and audit receipt — SigNoz ground truth, Weft audit lens."
+          visibility={act2Vis}
+          entering={actEntering && (activeStep === 1 || activeStep === 2)}
+          onActivate={() => goToAnchor("step-waterfall")}
+        >
+            {(!present || visible("step-waterfall") !== "hidden") && (
+              <section className={styles.traceSection} id="step-waterfall">
+                <div className={ui.sectionHeader}>
+                  <span className={ui.sectionKicker}>Trace waterfall</span>
+                  <h2 className={ui.sectionTitle}>Plan → tools → LLM → evidence → cycle.</h2>
+                </div>
+                <TraceWaterfall spanCounts={signoz?.spanCounts} isLoading={isLoading} showDeepLinks />
+              </section>
+            )}
+
+            {signoz && (!present || visible("step-receipt") !== "hidden") && (
+              <section className={styles.receiptSection} id="step-receipt">
+                <AgentTraceReceipt signoz={signoz} recovery={recovery} />
+              </section>
+            )}
+          </ActSection>
+
+        <ActSection
+            act={3}
+            id="act-ops"
+            title="Operations at a glance."
+            subtitle="Eight live panels and three alert rules — failure modes become operating signals."
+            visibility={act3Vis}
+            entering={actEntering && (activeStep === 3 || activeStep === 4)}
+            onActivate={() => goToAnchor("step-dashboard")}
+          >
+            {(!present || visible("step-dashboard") !== "hidden") && (
+              <section className={styles.dashboardSection} id="step-dashboard">
+                <div className={ui.sectionHeader}>
+                  <span className={ui.sectionKicker}>Dashboard</span>
+                  <h2 className={ui.sectionTitle}>Live mirror of the SigNoz observatory.</h2>
+                </div>
+                <DashboardScreenshotStrip signoz={signoz} recovery={recovery} isLoading={isLoading} />
+              </section>
+            )}
+
+            {(!present || visible("step-alerts") !== "hidden") && (
+              <section className={styles.alertSection} id="step-alerts">
+                <div className={ui.sectionHeader}>
+                  <span className={ui.sectionKicker}>Alerts</span>
+                  <h2 className={ui.sectionTitle}>Failure modes become operating signals.</h2>
+                </div>
+                <div className={styles.alertList}>
+                  {alerts.map((alert) => (
+                    <a
+                      key={alert.slug}
+                      href={alert.url || getSignozAlertsUrl()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${styles.alertItem} ${ui.surface}`}
+                    >
+                      <RadioTower size={17} />
+                      <div>
+                        <div className={styles.alertTitleRow}>
+                          <strong>{alert.name}</strong>
+                          <span className={styles.alertState} data-state={alert.state}>
+                            {alertStateLabel(alert.state)}
+                          </span>
+                        </div>
+                        <code>{alert.filter}</code>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+                <div className={styles.alertLinks}>
+                  <a href={getSignozAlertsUrl("rules")} target="_blank" rel="noopener noreferrer" className={styles.alertLink}>
+                    View alert rules <ArrowRight size={14} />
+                  </a>
+                  <a
+                    href={getSignozAlertsUrl("triggered")}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.alertLink}
+                  >
+                    View triggered alerts <ArrowRight size={14} />
+                  </a>
+                </div>
+              </section>
+            )}
+          </ActSection>
 
         {!present && (
-          <section className={styles.demoStrip}>
+          <section className={`${styles.demoStrip} ${ui.surface}`}>
             <div>
               <Clock3 size={18} />
               <span>Demo commands</span>

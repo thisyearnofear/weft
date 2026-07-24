@@ -13,6 +13,7 @@ import { OfflineBadge } from "@/components/OfflineBadge";
 import { ResiliencePanel } from "@/components/ResiliencePanel";
 import { AgentTraceReceipt } from "@/components/AgentTraceReceipt";
 import { TraceWaterfall } from "@/components/TraceWaterfall";
+import ui from "@/components/ui/weft-ui.module.css";
 import { useObservability } from "@/hooks/useObservability";
 import { getSignozTracesExplorerUrl, SIGNOZ_WINNING_MILESTONE_HASH } from "@/lib/signoz";
 import styles from "./page.module.css";
@@ -159,9 +160,9 @@ export default function OperationsPage() {
 
         {!isLoading && data && (
           <>
-            <div className={styles.observatoryBand}>
+            <div className={`${styles.observatoryBand} ${ui.surface} ${ui.surfaceAccent}`}>
               <div className={styles.observatoryCopy}>
-                <div className={styles.observatoryEyebrow}>
+                <div className={ui.eyebrow}>
                   <Eye size={15} /> SigNoz agent observability
                 </div>
                 <h2>Every autonomous step is inspectable.</h2>
@@ -192,7 +193,7 @@ export default function OperationsPage() {
                   compact
                 />
               </div>
-              <div className={styles.sigNozProof}>
+              <div className={`${styles.sigNozProof} ${ui.surfaceIndigo}`}>
                 <ServerCog size={18} />
                 <span>Validated in SigNoz</span>
                 <code>{SIGNOZ_WINNING_MILESTONE_HASH}</code>
@@ -200,7 +201,7 @@ export default function OperationsPage() {
             </div>
 
             {observability?.signoz && (
-              <div className={styles.receiptBand}>
+              <div className={`${styles.receiptBand} ${ui.surface}`}>
                 <AgentTraceReceipt
                   signoz={observability.signoz}
                   recovery={observability.recovery}
@@ -240,14 +241,14 @@ export default function OperationsPage() {
             <div className={styles.kpiGroup}>
               <span className={styles.kpiGroupLabel}>Financials</span>
               <div className={styles.kpiGrid}>
-                <div className={`${styles.kpiCard} stagger stagger-3 lift`}>
+                <div className={`${styles.kpiCard} stagger stagger-4 lift`}>
                   <div className={styles.kpiLabel}>Revenue Earned</div>
                   <div className={`${styles.kpiValue} ${(treasury?.net ?? 0) >= 0 ? styles.kpiPositive : styles.kpiNegative}`}>
                     {formatCurrency(treasury?.earned ?? 0)}
                   </div>
                   <div className={styles.kpiSub}>{treasury?.chargeCount ?? 0} charges</div>
                 </div>
-                <div className={`${styles.kpiCard} stagger stagger-4 lift`}>
+                <div className={`${styles.kpiCard} stagger stagger-5 lift`}>
                   <div className={styles.kpiLabel}>Net P&amp;L</div>
                   <div className={`${styles.kpiValue} ${(treasury?.net ?? 0) >= 0 ? styles.kpiPositive : styles.kpiNegative}`}>
                     {formatCurrency(treasury?.net ?? 0)}

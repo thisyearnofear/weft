@@ -76,6 +76,13 @@
   --transition-fast: 0.15s var(--ease-out);
   --transition-base: 0.2s var(--ease-out);
 
+  /* transitions.dev-aligned motion scale */
+  --motion-duration-instant: 100ms;
+  --motion-duration-fast: 160ms;
+  --motion-duration-base: 240ms;
+  --motion-duration-slow: 400ms;
+  --motion-stagger-step: 50ms;
+
   /* Strong custom easing curves (from Emil Kowalski / animations.dev) */
   --ease-out:        cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in:         cubic-bezier(0.7, 0, 0.84, 0);

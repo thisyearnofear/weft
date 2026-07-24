@@ -1,31 +1,15 @@
 "use client";
 
-import { ArrowRight, Info } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight } from "lucide-react";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { getSignozDashboardUrl, getSignozPrivateDashboardUrl } from "@/lib/signoz";
 import type { ObservabilityData } from "@/hooks/useObservability";
+import { panelMetricValue, panelSeries } from "@/lib/observability-metrics";
 import { SIGNOZ_DASHBOARD_PANELS } from "@/lib/signoz-config";
+import ui from "@/components/ui/weft-ui.module.css";
 import styles from "./DashboardScreenshotStrip.module.css";
-
-function panelMetricValue(
-  key: (typeof SIGNOZ_DASHBOARD_PANELS)[number]["metricKey"],
-  signoz: ObservabilityData["signoz"],
-  recovery: ObservabilityData["recovery"]
-): string {
-  switch (key) {
-    case "spanGroups":
-      return String(signoz.spanGroups);
-    case "llmSpans":
-      return String(signoz.spanCounts["weft.llm.chat"] ?? 0);
-    case "traceCount":
-      return signoz.traceCount != null ? String(signoz.traceCount) : "—";
-    case "toolSpans":
-      return String(signoz.spanCounts["weft.agent.tool_call"] ?? 0);
-    case "recoveryEvents":
-      return recovery ? String(recovery.totalEvents) : "—";
-    default:
-      return "—";
-  }
-}
 
 export function DashboardScreenshotStrip({
   signoz,
@@ -38,15 +22,16 @@ export function DashboardScreenshotStrip({
 }) {
   const publicDashboardUrl = getSignozDashboardUrl();
   const privateDashboardUrl = getSignozPrivateDashboardUrl();
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   if (!signoz) return null;
 
   return (
-    <div className={styles.strip} aria-label="Weft Agent Observatory dashboard">
+    <div className={`${styles.strip} ${ui.surface} ${ui.surfaceAccent}`} aria-label="Weft Agent Observatory dashboard">
       <div className={styles.liveMirrorHeader}>
         <div>
           <strong className={styles.title}>Weft Autonomous Agent Observatory</strong>
-          <span className={styles.liveMirrorLabel}>Live counts · last 24h · SigNoz API</span>
+          <span className={styles.liveMirrorLabel}>Live counts · 24h sparklines · SigNoz API</span>
         </div>
         <div className={styles.linkRow}>
           {privateDashboardUrl && (
@@ -63,25 +48,37 @@ export function DashboardScreenshotStrip({
       </div>
 
       <p className={styles.note}>
-        <Info size={14} />
-        SigNoz&apos;s public dashboard publish currently strips panel filters for v5 dashboards, so the
-        embedded public view shows &quot;No Data&quot; even while telemetry is live. These counts are queried
-        directly from SigNoz and match the private dashboard panels.
+        Live counts from the SigNoz API — no login required for judges.
       </p>
 
-      <div className={styles.liveGrid}>
-        {SIGNOZ_DASHBOARD_PANELS.map((panel) => {
-          const metric = panelMetricValue(panel.metricKey, signoz, recovery ?? null);
-          const barWidth = Math.min(100, (Number(metric) || 0) * 8 + 14);
+      <div style={{ marginBottom: "0.75rem" }}>
+        <Disclosure label="Why the public SigNoz dashboard shows No Data">
+          <p style={{ margin: 0, color: "var(--c-text-2)", fontSize: "0.82rem", lineHeight: 1.5 }}>
+            SigNoz&apos;s public dashboard publish strips panel filters for v5 dashboards, so the embedded
+            public view shows &quot;No Data&quot; while telemetry is live. These panels query SigNoz directly
+            and match the private dashboard. The private dashboard link above works when logged in.
+          </p>
+        </Disclosure>
+      </div>
+
+      <div className={ui.metricGrid}>
+        {SIGNOZ_DASHBOARD_PANELS.map((panel, index) => {
+          const value = panelMetricValue(panel.metricKey, signoz, recovery ?? null);
+          const series = panelSeries(panel.metricKey, signoz.series ?? undefined);
+          const expanded = expandedIndex === index;
+
           return (
-            <div key={panel.title} className={styles.livePanel}>
-              <span>{panel.title}</span>
-              <strong>{isLoading ? "…" : metric}</strong>
-              <p>{panel.body}</p>
-              <div className={styles.liveBar} aria-hidden="true">
-                <i style={{ width: `${barWidth}%` }} />
-              </div>
-            </div>
+            <MetricCard
+              key={panel.title}
+              label={panel.title}
+              value={value}
+              detail={panel.body}
+              series={series}
+              isLoading={isLoading}
+              expanded={expanded}
+              staggerIndex={index}
+              onToggle={() => setExpandedIndex(expanded ? null : index)}
+            />
           );
         })}
       </div>

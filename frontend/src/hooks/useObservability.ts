@@ -22,6 +22,14 @@ export interface ObservabilityLlmSpan {
   outcome: string | null;
 }
 
+export interface ObservabilitySeries {
+  traceCount: number[];
+  spanGroups: number[];
+  llmSpans: number[];
+  toolSpans: number[];
+  recoveryEvents: number[];
+}
+
 export interface ObservabilityData {
   ok: boolean;
   filter: string;
@@ -34,6 +42,7 @@ export interface ObservabilityData {
     totalSpans: number;
     spanGroups: number;
     llmSpan: ObservabilityLlmSpan | null;
+    series: ObservabilitySeries | null;
     alerts: ObservabilityAlert[];
   };
   recovery: {

@@ -1,0 +1,462 @@
+/* Shared Weft UI primitives — motion, surfaces, metrics, disclosure */
+
+.surface {
+  background: rgba(255, 255, 255, 0.065);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+}
+
+.surfaceAccent {
+  border-color: rgba(20, 184, 166, 0.22);
+  background:
+    linear-gradient(135deg, rgba(20, 184, 166, 0.07), transparent 42%),
+    rgba(255, 255, 255, 0.055);
+}
+
+.surfaceIndigo {
+  border-color: rgba(99, 102, 241, 0.28);
+  background: rgba(99, 102, 241, 0.06);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid rgba(20, 184, 166, 0.24);
+  border-radius: var(--radius-sm);
+  color: var(--c-verified);
+  background: rgba(20, 184, 166, 0.08);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sectionHeader {
+  margin-bottom: 1rem;
+}
+
+.sectionKicker {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--c-verified);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  line-height: 1;
+}
+
+/* ── Act sections (progressive disclosure) ── */
+.act {
+  margin-bottom: 1.5rem;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--motion-duration-base) var(--ease-out),
+    transform var(--motion-duration-base) var(--ease-out);
+}
+
+.actHidden {
+  display: none;
+}
+
+.actTeaser {
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  border: none;
+  background: none;
+  color: inherit;
+  opacity: 0.55;
+  transition:
+    opacity var(--motion-duration-base) var(--ease-out),
+    transform var(--motion-duration-base) var(--ease-out);
+}
+
+.actTeaser:hover {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+.actTeaser .actHeader {
+  margin-bottom: 0;
+}
+
+.actTeaserChevron {
+  flex-shrink: 0;
+  color: var(--c-text-3);
+  transition: transform var(--motion-duration-fast) var(--ease-out);
+}
+
+.actTeaser:hover .actTeaserChevron {
+  transform: translateX(4px);
+  color: var(--c-accent);
+}
+
+.actEntering {
+  animation: actEnter var(--motion-duration-slow) var(--ease-out) forwards;
+}
+
+@keyframes actEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.actHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.actLabel {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.16);
+  color: var(--c-accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.actBody {
+  display: grid;
+  gap: 1rem;
+}
+
+/* ── Guided presenter rail ── */
+.guidedRail {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+  position: sticky;
+  top: calc(var(--nav-h) + 0.5rem);
+  z-index: 20;
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  background: rgba(24, 26, 48, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--c-border);
+}
+
+.guidedStep {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: start;
+  padding: 0.65rem;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--motion-duration-fast) var(--ease-out),
+    background var(--motion-duration-fast) var(--ease-out),
+    transform var(--motion-duration-fast) var(--ease-out);
+}
+
+.guidedStep[data-active="true"] {
+  border-color: rgba(20, 184, 166, 0.45);
+  background: rgba(20, 184, 166, 0.1);
+  transform: translateY(-1px);
+}
+
+.guidedStep span:first-child {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.16);
+  color: var(--c-accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.guidedStep strong {
+  display: block;
+  font-size: 0.82rem;
+}
+
+.guidedStep p {
+  margin: 0.15rem 0 0;
+  color: var(--c-text-3);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.guidedNav {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.guidedNavBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 36px;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border-2);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--c-text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.guidedNavBtnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 36px;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  color: #fff;
+  background: var(--c-accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.guidedNavBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Metric card ── */
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.metricCard {
+  padding: 0.85rem;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.18);
+  transition:
+    border-color var(--motion-duration-fast) var(--ease-out),
+    transform var(--motion-duration-fast) var(--ease-out);
+}
+
+.metricCard[data-expanded="true"] {
+  border-color: rgba(99, 102, 241, 0.35);
+  grid-column: span 2;
+}
+
+.metricHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.metricLabel {
+  display: block;
+  color: var(--c-text-3);
+  font-size: 0.68rem;
+  margin-bottom: 0.35rem;
+}
+
+.metricValue {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.metricExpand {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--c-text-3);
+  cursor: pointer;
+  transition: transform var(--motion-duration-fast) var(--ease-out);
+}
+
+.metricExpand[data-open="true"] {
+  transform: rotate(180deg);
+  color: var(--c-accent);
+}
+
+.metricDetail {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition:
+    grid-template-rows var(--motion-duration-base) var(--ease-out),
+    margin var(--motion-duration-base) var(--ease-out);
+}
+
+.metricDetailOpen {
+  grid-template-rows: 1fr;
+  margin-top: 0.65rem;
+}
+
+.metricDetailInner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.metricDetail p {
+  margin: 0 0 0.5rem;
+  color: var(--c-text-2);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.metricSpark {
+  margin-top: 0.55rem;
+}
+
+/* ── Sparkline ── */
+.sparkline {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.sparklineLine {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sparklineArea {
+  opacity: 0.35;
+}
+
+.sparklineEmpty {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-dasharray: 4 4;
+}
+
+/* ── Disclosure ── */
+.disclosure {
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+.disclosureTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.disclosureTrigger strong {
+  font-size: 0.9rem;
+}
+
+.disclosureChevron {
+  transition: transform var(--motion-duration-fast) var(--ease-out);
+  color: var(--c-text-3);
+}
+
+.disclosureChevronOpen {
+  transform: rotate(180deg);
+  color: var(--c-accent);
+}
+
+.disclosurePanel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--motion-duration-base) var(--ease-out);
+}
+
+.disclosurePanelOpen {
+  grid-template-rows: 1fr;
+}
+
+.disclosurePanelInner {
+  overflow: hidden;
+  padding: 0 1rem;
+}
+
+.disclosurePanelOpen .disclosurePanelInner {
+  padding-bottom: 1rem;
+}
+
+.pulseSuccess {
+  animation: pulseSuccess 600ms var(--ease-spring);
+}
+
+@keyframes pulseSuccess {
+  0% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.45); }
+  70% { box-shadow: 0 0 0 10px rgba(20, 184, 166, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
+}
+
+@media (max-width: 980px) {
+  .metricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metricCard[data-expanded="true"] {
+    grid-column: span 2;
+  }
+
+  .guidedRail {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .metricGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .metricCard[data-expanded="true"] {
+    grid-column: span 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actEntering {
+    animation: none;
+  }
+}
