@@ -98,6 +98,12 @@ from .llm_backend import (
 from .fhe_client import FheVoteResult, fhe_available, submit_encrypted_verdict
 from .settlement import SettlementRail, get_settlement_rail, get_settlement_rail_name
 from .canton_client import CantonSettlement, CantonLedgerStore
+from .agentic_id_client import (
+    AgenticIdClient,
+    VerifierStats,
+    agentic_id_configured,
+    get_agentic_id_address,
+)
 
 __all__ = [
     # abi
@@ -154,4 +160,7 @@ __all__ = [
     # settlement / canton
     "SettlementRail", "get_settlement_rail", "get_settlement_rail_name",
     "CantonSettlement", "CantonLedgerStore",
+    # agentic id (ERC-7857-inspired, 0G Bridge Buildathon)
+    "AgenticIdClient", "VerifierStats",
+    "agentic_id_configured", "get_agentic_id_address",
 ]

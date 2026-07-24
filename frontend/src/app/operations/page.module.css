@@ -61,6 +61,132 @@
   margin: 0;
 }
 
+/* ── SigNoz observability proof ── */
+.observatoryBand {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr) minmax(190px, 0.45fr);
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid rgba(20, 184, 166, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(20, 184, 166, 0.08), transparent 42%),
+    rgba(255, 255, 255, 0.055);
+  box-shadow: 0 8px 24px rgba(4, 5, 22, 0.30);
+}
+
+.observatoryCopy {
+  padding: 0.25rem;
+}
+
+.observatoryEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid rgba(20, 184, 166, 0.22);
+  border-radius: 6px;
+  color: var(--c-verified);
+  background: rgba(20, 184, 166, 0.08);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.75rem;
+}
+
+.observatoryCopy h2 {
+  margin: 0 0 0.45rem;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  line-height: 1;
+}
+
+.observatoryCopy p {
+  max-width: 66ch;
+  margin: 0;
+  color: var(--c-text-2);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.observatoryLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 34px;
+  margin-top: 0.9rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 6px;
+  color: #fff;
+  background: var(--c-accent);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.traceStack {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.traceRow {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.045);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.traceRow svg {
+  color: var(--c-verified);
+}
+
+.traceRow span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.traceRow strong {
+  text-align: right;
+  color: var(--c-text);
+}
+
+.sigNozProof {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.85rem;
+  border: 1px solid rgba(99, 102, 241, 0.20);
+  border-radius: 6px;
+  background: rgba(99, 102, 241, 0.075);
+}
+
+.sigNozProof svg {
+  color: var(--c-accent);
+}
+
+.sigNozProof span {
+  color: var(--c-text-2);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.sigNozProof code {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--c-text);
+  overflow-wrap: anywhere;
+}
+
 /* ── KPI Cards ── */
 .kpiGroup {
   margin-bottom: 1.5rem;
@@ -375,6 +501,10 @@
 
   .section {
     padding: 1rem;
+  }
+
+  .observatoryBand {
+    grid-template-columns: 1fr;
   }
 
   .milestoneMeta,

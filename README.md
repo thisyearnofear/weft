@@ -14,6 +14,29 @@ EVM builder wedge on 0G Testnet remains for crypto-native demos — not producti
 > to create fabric. In this protocol, raw data threads — evidence checklists, peer verdicts,
 > settlement references — are woven into outcomes: verified milestones and capital released.
 
+## Positioning
+
+**The contrarian bet.** Most agent startups in 2026 use an LLM to judge work. Weft does the
+opposite: the LLM only narrates, **deterministic evidence rules decide**. Payment decisions
+must be auditable — no LLM hallucination risk on capital release. This is the philosophical
+core of the project and the defensible secret.
+
+**The wedge.** Don't compete with grant management systems (Fluxx, Foundant, AmpliFund,
+Salesforce Nonprofit). Sit **beside** them: when a grantee marks a milestone complete, Weft
+runs the checklist and writes a verification receipt back onto the grant record. Canton is
+optional private settlement when capital is escrowed. A public EVM builder wedge on 0G
+Testnet stays for crypto-native demos — not production money.
+
+**The market shape.** Small market first (one program office), dominate it, expand outward.
+Post-award verification is a niche with clear buyers (program officers) and recurring labor
+pain (39% of grants teams spend 11–20 hrs/week on manual reporting; 14% spend 31–40 hrs).
+That's the Thiel-style entry: a small market you can own, not a crowded one you compete in.
+
+**Last mover advantage.** If Weft becomes the canonical verifier layer for milestone
+escrow, latecomers face a coordination problem: verifiers, evidence archive, reputation
+schema, and ENS records are already locked in. The longer the system runs, the harder it is
+to displace.
+
 ## Surfaces
 
 **https://weft.thisyearnofear.com**
@@ -23,6 +46,7 @@ EVM builder wedge on 0G Testnet remains for crypto-native demos — not producti
 | Program ops (primary) | [/canton](https://weft.thisyearnofear.com/canton) | GMS ingest + receipt · Canton Devnet pilot |
 | Program dashboard | [/sponsor](https://weft.thisyearnofear.com/sponsor) | Public EVM demos |
 | Verification Explorer | [/explorer](https://weft.thisyearnofear.com/explorer) | 0G Testnet milestones |
+| Agent observatory | [/observability](https://weft.thisyearnofear.com/observability) | SigNoz-backed agent trace story |
 | Builder create (wedge) | [/create-milestone](https://weft.thisyearnofear.com/create-milestone) | 0G Testnet — not prod |
 | Agent Operations | [/operations](https://weft.thisyearnofear.com/operations) | Developer |
 
@@ -94,6 +118,7 @@ is ever decrypted. This is FHE multiplication, not just addition.
 | **ENS** | Builder / verifier profile records | Human-readable identity and portable reputation |
 | **Hermes + Kimi** | Managed agent layer, narrative generation, Builder Journey chronicles | Weaves raw data threads into meaningful fabric |
 | **fal.ai** | Text-to-image — AI-woven milestone swatches + chronicle covers | Visual layer for the weaving motif |
+| **0G Agentic ID (ERC-7857)** | Tokenize each verifier as an onchain agent with its track record embedded | The verifier reputation layer becomes a portable, tradeable onchain asset — deepens 0G integration and compounds the last-mover moat |
 
 ## Deployed contracts
 
@@ -141,6 +166,25 @@ on every PR and fails the build if anything breaks.
 - [Hackathon archive](docs/hackathons.md) — past submission materials
 - [Build log](LOOP.md) — TestSprite verification loop
 - [Known issues & feedback](docs/feedback.md)
+- [0G Bridge Buildathon plan](docs/0g-bridge-buildathon.md) — wave-by-wave integration plan, Agentic ID (ERC-7857) play
+
+## Distribution
+
+A technically excellent product with no engineered distribution is fighting uphill.
+Weft's distribution strategy:
+
+- **Sponsor-side wedge.** Don't sell to builders; sell to sponsors who require Weft
+  verification for their grantees. Sponsor mandates create builder demand — the buyer
+  pulls builders in, not the other way around.
+- **Canton receipt as marketing.** Every Canton receipt written back into a buyer's GMS is
+  Weft-branded. The receipt IS the marketing surface — embedded in existing institutional
+  workflows, not a separate UI to drive traffic to.
+- **Portable ENS attestations.** Builders who get verified carry a portable attestation on
+  their ENS name. When displayed on portfolios, resumes, or other sponsor pages, the
+  attestation itself surfaces Weft.
+- **Social proof bot (planned).** A Farcaster/Twitter bot that auto-verifies public
+  milestone claims and posts the attestation in reply — turns every public milestone
+  announcement into a Weft touchpoint.
 
 ## Quick start
 
@@ -160,9 +204,75 @@ FOUNDRY_PROFILE=fhe forge test --match-contract WeftMilestoneConfidentialWeighte
 
 # Python agent tests
 python -m pytest agent/test/ -v
+
+# Frontend (Next.js 16 + wagmi 3 + Zama relayer SDK)
+cd frontend
+npm ci --cache .npm-cache   # reads .npmrc for RainbowKit/wagmi peer alignment
+npm run lint
+npm run build
+npm run dev                 # predev syncs Zama WASM/worker assets automatically
 ```
 
+`frontend/.npmrc` sets `legacy-peer-deps=true` because RainbowKit 2.x peers on wagmi 2 while
+Weft runs wagmi 3 until RainbowKit 3 ships on npm. Drop `.npmrc` after upgrading RainbowKit.
+
+Zama Relayer SDK assets (UMD + WASM + workers) are copied into `public/zama/` by
+`scripts/sync-zama-sdk.mjs` on `predev` / `prebuild`. If `node_modules` is absent, the script
+falls back to existing `public/zama/` assets instead of failing the build.
+
 See [AGENTS.md](AGENTS.md) for the full agent setup, environment variables, and demo scripts.
+
+## AG Grid
+
+[AG Grid](https://www.ag-grid.com/javascript-data-grid/getting-started/) (free Community edition) could make Weft's Verification Explorer and program dashboard sortable/filterable — letting program officers filter milestones by status, sort by deadline, or group by project without custom table code. The explorer and ops pages are fundamentally tabular milestone lists.
+
+# SigNoz Observability
+
+Weft can export verifier traces, metrics, and structured recovery events to SigNoz without
+making OpenTelemetry a required runtime dependency. Install the optional exporter packages,
+then configure SigNoz Cloud before running the daemon:
+
+```bash
+python3 -m venv .venv-signoz
+.venv-signoz/bin/python -m pip install -r requirements-signoz.txt
+
+export WEFT_OBSERVABILITY=signoz
+export OTEL_SERVICE_NAME=weft-daemon
+export OTEL_RESOURCE_ATTRIBUTES=service.name=weft-daemon,deployment.environment=demo
+export OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.us2.signoz.cloud:443
+export OTEL_EXPORTER_OTLP_HEADERS=signoz-ingestion-key=<ingestion-key>
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+export WEFT_OTEL_EXPORT_TIMEOUT=3
+
+# quick ingestion check, no Docker or chain RPC required
+.venv-signoz/bin/python agent/scripts/weft_signoz_smoke.py
+
+# populate demo panels and alert conditions
+.venv-signoz/bin/python agent/scripts/weft_signoz_smoke.py --scenario verified --repeat 3
+.venv-signoz/bin/python agent/scripts/weft_signoz_smoke.py --scenario rejected
+.venv-signoz/bin/python agent/scripts/weft_signoz_smoke.py --scenario fallback
+.venv-signoz/bin/python agent/scripts/weft_signoz_smoke.py --scenario degraded
+
+# one-command hackathon demo data pack
+agent/scripts/weft_signoz_demo.sh
+
+# real verifier run
+.venv-signoz/bin/python agent/scripts/weft_daemon.py --once
+```
+
+For self-hosted SigNoz, set `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318`.
+`casting.yaml` and `casting.yaml.lock` are kept for hackathon reproducibility and judge
+reruns; active development can use SigNoz Cloud without running Docker locally. See
+[the SigNoz hackathon scope](docs/signoz-hackathon-scope.md) for the dashboard, alert,
+and demo plan.
+
+SigNoz Cloud has two separate credential types:
+
+- Ingestion key: write-only telemetry key from Settings > Ingestion. Use this in
+  `OTEL_EXPORTER_OTLP_HEADERS=signoz-ingestion-key=<ingestion-key>`.
+- Service-account API key: query/MCP key from Settings > Service Accounts. Use this for
+  `https://mcp.us2.signoz.cloud/mcp` with instance URL
+  `https://modest-mosquito.us2.signoz.cloud`; do not use it as the ingestion key.
 
 ## License
 

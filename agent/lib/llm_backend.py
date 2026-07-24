@@ -22,9 +22,12 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import time
 import urllib.request
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+
+from .observability import emit_log_event, record_counter, record_histogram, set_span_attrs, span
 
 
 # ---------------------------------------------------------------------------
@@ -57,6 +60,8 @@ class ChatResult:
     model: str = ""
     backend: str = ""
     error: str = ""
+    input_tokens: int = 0
+    output_tokens: int = 0
 
     @property
     def ok(self) -> bool:
@@ -90,12 +95,58 @@ def generate_chat(
     Returns a ChatResult. Never raises — check .ok and .error.
     """
     b = (backend or _backend()).lower().strip()
+    started = time.monotonic()
+    input_tokens = _estimate_tokens("\n".join(m.get("content", "") for m in messages))
 
-    if b == "nemotron":
-        return _call_nemotron(messages, temperature=temperature, max_tokens=max_tokens)
-    if b == "nous":
-        return _call_nous(messages, temperature=temperature, max_tokens=max_tokens)
-    return _call_kimi(messages, temperature=temperature, max_tokens=max_tokens)
+    with span(
+        "weft.llm.chat",
+        **{
+            "weft.llm.backend": b,
+            "gen_ai.system": b,
+            "gen_ai.request.max_tokens": max_tokens or 0,
+            "gen_ai.request.temperature": temperature,
+            "gen_ai.usage.input_tokens": input_tokens,
+        },
+    ):
+        if b == "nemotron":
+            result = _call_nemotron(messages, temperature=temperature, max_tokens=max_tokens)
+        elif b == "nous":
+            result = _call_nous(messages, temperature=temperature, max_tokens=max_tokens)
+        else:
+            result = _call_kimi(messages, temperature=temperature, max_tokens=max_tokens)
+
+        output_tokens = result.output_tokens or _estimate_tokens(result.content)
+        input_tokens = result.input_tokens or input_tokens
+        duration_ms = (time.monotonic() - started) * 1000
+        outcome = "success" if result.ok else "error"
+        model = result.model or ""
+        backend_name = result.backend or b
+        set_span_attrs(
+            **{
+                "weft.llm.backend": backend_name,
+                "weft.llm.model": model,
+                "weft.llm.outcome": outcome,
+                "weft.llm.duration_ms": duration_ms,
+                "gen_ai.request.model": model,
+                "gen_ai.response.model": model,
+                "gen_ai.usage.input_tokens": input_tokens,
+                "gen_ai.usage.output_tokens": output_tokens,
+                "gen_ai.usage.total_tokens": input_tokens + output_tokens,
+            }
+        )
+        record_counter("weft_llm_requests_total", backend=backend_name, model=model, outcome=outcome)
+        record_histogram("weft_llm_duration_ms", duration_ms, backend=backend_name, model=model, outcome=outcome)
+        record_histogram("weft_llm_tokens_total", input_tokens + output_tokens, backend=backend_name, model=model)
+        if not result.ok:
+            emit_log_event(
+                "weft.llm.error",
+                **{
+                    "weft.llm.backend": backend_name,
+                    "weft.llm.model": model,
+                    "weft.llm.error": result.error,
+                },
+            )
+        return result
 
 
 # ---------------------------------------------------------------------------
@@ -231,9 +282,23 @@ def _openai_compatible_call(
         with urllib.request.urlopen(req, timeout=120) as resp:
             raw = json.loads(resp.read().decode("utf-8"))
         content = raw.get("choices", [{}])[0].get("message", {}).get("content", "")
-        return ChatResult(content=content, model=model, backend=backend_name)
+        usage = raw.get("usage", {})
+        return ChatResult(
+            content=content,
+            model=model,
+            backend=backend_name,
+            input_tokens=int(usage.get("prompt_tokens") or 0),
+            output_tokens=int(usage.get("completion_tokens") or 0),
+        )
     except Exception as e:
         return ChatResult(model=model, backend=backend_name, error=str(e))
+
+
+def _estimate_tokens(text: str) -> int:
+    """Cheap token estimate for observability when a backend omits usage."""
+    if not text:
+        return 0
+    return max(1, int(len(text) / 4))
 
 
 # ---------------------------------------------------------------------------

@@ -242,7 +242,11 @@ FOUNDRY_PROFILE=fhe forge test                              # all FHE tests
 FOUNDRY_PROFILE=fhe forge test --match-contract WeftMilestoneConfidentialWeightedTest -vvv  # v2 only
 
 # Frontend
-cd frontend && npm install --legacy-peer-deps && npm run dev
+cd frontend
+npm ci --cache .npm-cache   # .npmrc enables legacy-peer-deps for wagmi 3 + RainbowKit 2
+npm run lint
+npm run build
+npm run dev                 # sync-zama-sdk runs automatically via predev
 
 # Encrypt a v1 ballot (no funds needed)
 cd agent && npm install

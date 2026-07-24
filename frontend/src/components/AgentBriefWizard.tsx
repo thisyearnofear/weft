@@ -31,6 +31,7 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
   const [error, setError] = useState<string | null>(null);
   const [milestoneHash, setMilestoneHash] = useState<string | null>(null);
   const [deadlineUnix, setDeadlineUnix] = useState<bigint>(BigInt(0));
+  const [deadlineAnchorMs] = useState(() => Date.now());
 
   const confidentialAddress = getConfidentialAddress();
   const addresses = getAddresses(DEFAULT_CHAIN);
@@ -186,9 +187,9 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
     );
   }
 
-  // ── Compute deadline display ──
+  // ── Compute deadline display (anchor time once — avoids impure Date.now in render) ──
   const deadlineSeconds = deadlineDays === DEMO_DEADLINE ? 10 * 60 : deadlineDays * 86400;
-  const deadlineDate = new Date(Date.now() + deadlineSeconds * 1000);
+  const deadlineDate = new Date(deadlineAnchorMs + deadlineSeconds * 1000);
   const deadlineLabel = deadlineDays === DEMO_DEADLINE
     ? "10 minutes (demo — sealed ballots open quickly)"
     : deadlineDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
@@ -296,7 +297,7 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
                 <div>
                   <div className={styles.deadlineOptionLabel}>{opt.label}</div>
                   <div className={styles.deadlineOptionHint}>
-                    Verify on {new Date(Date.now() + opt.days * 86400 * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    Verify on {new Date(deadlineAnchorMs + opt.days * 86400 * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                   </div>
                 </div>
               </button>

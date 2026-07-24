@@ -25,7 +25,7 @@ const ENDPOINTS: Endpoint[] = [
   "demoHints": {
     "milestones": ["0x516975af..."],
     "builderEns": "weft.thisyearnofear.eth",
-    "metadataIndexer": "https://indexer-storage-testnet-standard.0g.ai"
+    "metadataIndexer": "https://indexer-storage-testnet-turbo.0g.ai"
   }
 }`,
     tryUrl: "/api/status/demo",

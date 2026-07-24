@@ -15,10 +15,14 @@ build/
 .env
 .env.local
 .env.*.local
+.venv-signoz/
 
 # Private multi-host ops playbook (SSH aliases, IPs, disk policy)
 OPS.local.md
 ops.local.md
+
+# Private pilot outreach (org contacts — do not commit)
+canton/PILOT_TARGETS.local.md
 
 # IDE
 .vscode/
@@ -88,3 +92,4 @@ compositions/**/renders/
 # keep the test definitions in .testsprite/plans/ and .testsprite/backend/)
 .testsprite/failure/
 .testsprite/failure-*/
+pours/

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 
 interface CountUpProps {
   value: number;
@@ -19,24 +20,19 @@ export function CountUp({
   suffix = "",
   className = "",
 }: CountUpProps) {
+  const reduced = usePrefersReducedMotion();
   const [displayValue, setDisplayValue] = useState(0);
   const startTimeRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
   const hasAnimated = useRef(false);
 
   useEffect(() => {
+    if (reduced) return;
+
     // Reset animation lock whenever the value changes, so a late-loaded
     // value (e.g. explorer stats switching from 0 → 3) actually animates.
     hasAnimated.current = false;
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
-
-    const el = document.documentElement;
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (prefersReducedMotion) {
-      setDisplayValue(value);
-      return;
-    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -68,7 +64,7 @@ export function CountUp({
     );
 
     // Observe the element that renders this value
-    const target = el.querySelector(`[data-countup-target="${value}-${decimals}"]`);
+    const target = document.documentElement.querySelector(`[data-countup-target="${value}-${decimals}"]`);
     if (target) {
       observer.observe(target);
     } else {
@@ -89,9 +85,9 @@ export function CountUp({
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       observer.disconnect();
     };
-  }, [value, duration, decimals]);
+  }, [value, duration, decimals, reduced]);
 
-  const formatted = displayValue.toLocaleString("en-US", {
+  const formatted = (reduced ? value : displayValue).toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });

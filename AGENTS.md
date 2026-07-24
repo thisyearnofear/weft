@@ -578,7 +578,7 @@ adding a new skill — just create a new subdirectory with a `SKILL.md`.
 | AXL multi-node consensus | ✅ Implemented — real AXL binary with encrypted P2P transport; live node at `/api/status/axl` |
 | KeeperHub capital release | KeeperHub `scheduleRelease()` not deployed (contract-level integration) |
 | ENS text record updates | ✅ Implemented — `weft.thisyearnofear.eth` live with 6 records; subname issuance wired into daemon |
-| 0G Storage in production | ✅ Public testnet indexer available: `https://indexer-storage-testnet-standard.0g.ai` |
+| 0G Storage in production | ✅ Public testnet indexer available: `https://indexer-storage-testnet-turbo.0g.ai` |
 | Kimi narrative synthesis | ✅ Implemented — `generate_chronicle()` + `generate_narrative()` via `api.moonshot.ai/v1` |
 | Hermes skills auto-load | ✅ Implemented — `external_dirs` wired, `SOUL.md` identity written, `hermes_weft.sh` launcher |
 | MCP server | ✅ Implemented — `GET /mcp/tools`, `POST /mcp/invoke` on `weft_status_api.py`; exposes chronicle, status, verify tools to any MCP client |
@@ -665,6 +665,38 @@ struct Split {
 - **Milestone hash:** `keccak256(abi.encodePacked(projectId, milestoneIndex, builderAddress, deadline))`
 - **Project hash:** `keccak256(abi.encodePacked(projectName, builderAddress, timestamp))`
 - **Evidence hash:** `keccak256(abi.encodePacked(milestoneHash, evidenceType, rawDataHash, kimisummaryHash))`
+
+## Frontend (`frontend/`)
+
+Next.js 16 app with wagmi 3, RainbowKit 2, and a self-hosted Zama Relayer SDK bundle for
+confidential milestone decryption on Sepolia.
+
+### Install and verify
+
+```bash
+cd frontend
+npm ci --cache .npm-cache   # uses .npmrc (legacy-peer-deps for RainbowKit/wagmi peers)
+npm run lint
+npm run build
+npm run dev
+```
+
+### Zama SDK asset sync
+
+The Relayer SDK ships multiple WASM/worker files that SSR bundlers mishandle. Weft copies them
+from `@zama-fhe/relayer-sdk` into `public/zama/` via `scripts/sync-zama-sdk.mjs`:
+
+- Runs on `predev` and `prebuild` (`npm run sync-zama-sdk`)
+- Copies from `node_modules` when installed
+- Falls back to existing `public/zama/` when offline or before first install
+- Loaded client-side from `/zama/*` in `src/lib/fhe.ts`
+
+`public/zama/` is gitignored; CI and fresh clones rely on the sync script during build.
+
+### Dependency note
+
+`frontend/.npmrc` sets `legacy-peer-deps=true` because `@rainbow-me/rainbowkit@2.x` peers on
+wagmi 2 while Weft uses wagmi 3. Remove `.npmrc` after upgrading to RainbowKit 3 on npm.
 
 ## Dependencies
 

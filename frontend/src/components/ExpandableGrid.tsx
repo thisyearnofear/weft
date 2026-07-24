@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, type ReactNode } from "react";
+import { useState, useRef, type ReactNode } from "react";
+import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 import styles from "./ExpandableGrid.module.css";
 
 type ExpandableGridProps = {
@@ -25,13 +26,8 @@ type ExpandableGridProps = {
  */
 export function ExpandableGrid({ children, className = "" }: ExpandableGridProps) {
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
-  const [reduced, setReduced] = useState(false);
+  const reduced = usePrefersReducedMotion();
   const gridRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
-  }, []);
 
   const handleClick = (i: number) => {
     if (reduced) return;

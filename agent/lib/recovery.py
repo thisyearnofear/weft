@@ -66,6 +66,7 @@ class RecoveryEvent:
 
 
 from .hydradb_client import get_client as get_hydradb
+from .observability import emit_log_event, record_counter
 
 class RecoveryLog:
     """Thread-safe append-only recovery event log."""
@@ -118,6 +119,24 @@ class RecoveryLog:
                 },
                 modality="event"
             )
+
+        telemetry_context = {f"weft.context.{key}": value for key, value in entry.context.items()}
+        emit_log_event(
+            "weft.recovery",
+            **{
+                "weft.recovery.event": entry.event.value,
+                "weft.recovery.outcome": entry.outcome.value,
+                "weft.recovery.action": entry.action,
+                "weft.recovery.target": entry.target,
+                "weft.recovery.latency_ms": entry.latency_ms,
+                **telemetry_context,
+            },
+        )
+        record_counter(
+            "weft_recovery_events_total",
+            event=entry.event.value,
+            outcome=entry.outcome.value,
+        )
 
         return entry
 

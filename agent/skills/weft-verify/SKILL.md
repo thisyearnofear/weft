@@ -77,7 +77,7 @@ export ETH_RPC_URL="https://evmrpc-testnet.0g.ai"
 export WEFT_CONTRACT_ADDRESS="0x9f66158c560ce5c8b40820fdcd2874ff8d852192"
 export VERIFIER_PRIVATE_KEY="0x..."
 export VERIFIER_ADDRESS="0x..."
-export ZERO_G_INDEXER_RPC="https://indexer-storage-testnet-standard.0g.ai"
+export ZERO_G_INDEXER_RPC="https://indexer-storage-testnet-turbo.0g.ai"
 
 python3 agent/scripts/weft_daemon.py --once 
 ```
@@ -136,7 +136,7 @@ After verification, always present the result as a clean report:
 - **Not an authorized verifier:** The address must be registered in VerifierRegistry for the standard daemon path. The `cast send` fallback does NOT check authorization — any key can submit a verdict if the contract allows it. Verify the contract's access control before using the fallback.
 - **Too early:** Can't submit verdict before deadline. Check `now < deadline` first.
 - **count_unique_callers is slow:** Use `--unique-caller-threshold 1` for fast demos in the standard path.
-- **0G storage unavailable:** The indexer at `https://indexer-storage-testnet-standard.0g.ai` is unreliable (returns 503). If `0g-storage-client` is also missing, use the direct `cast send` fallback.
+- **0G storage unavailable:** If the Turbo indexer at `https://indexer-storage-testnet-turbo.0g.ai` is temporarily down, or `0g-storage-client` is missing, use the direct `cast send` fallback.
 - **Metadata leaves no fallback path:** The daemon's `_process_one()` exits silently when metadata download fails and no CLI overrides are provided. It logs the error but returns with no onchain action. If you see the daemon exit code 0 with only the startup log line, this is why.
 - **Evidence generation only works when the milestone's contract address is known.** The standard daemon path checks deployment (eth_getCode) and usage (count_unique_callers). The `cast send` fallback skips these checks entirely — it marks the milestone verified without verifying the deliverable. Use the fallback only for demo/emergency scenarios where the evidence was already manually confirmed.
 - **After the verdict lands**, the `weftEarnedTotal` in the ENS passport may still show 0 until the capital is actually released via the release path. The verdict only marks the milestone as verified — separate transactions handle capital movement.

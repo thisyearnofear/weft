@@ -9,8 +9,26 @@ verification receipt back onto the grant record. Canton is optional private
 settlement when capital is escrowed — not the commercial lead. A public EVM
 builder wedge (0G Testnet) remains for crypto-native demos.
 
+**The contrarian secret.** Most agent startups in 2026 use an LLM to judge work.
+Weft does the opposite: the LLM only narrates, **deterministic evidence rules
+decide**. Payment decisions must be auditable — no LLM hallucination risk on
+capital release. This is the philosophical core of the project and the
+defensible secret.
+
 **The business model: sell trust at a percentage of the capital it unlocks
 (and/or pilot SaaS on time-to-tranche).**
+
+**Thiel / PG framing:**
+
+- *Creative monopoly.* Define the category "post-award verification rail" rather
+  than compete in GMS or escrow. Own a small market first.
+- *Last mover advantage.* Verifiers, 0G evidence archive, ENS reputation schema,
+  Canton receipt writebacks all compound. The longer the system runs, the harder
+  to displace.
+- *Schlep taste (PG).* Take on real schleps: institutional verification, escrow,
+  FHE sealed ballots, AXL peer transport, 0G bundle provenance.
+- *Do things that don't scale (PG).* Free 0% daemon tier, CLI builder onboarding
+  script ("alpha"), founder-led pilot deployments. Classic wedge.
 
 Primary ICP + SoR thesis: see [`canton/BUSINESS_BRIEF.md`](../canton/BUSINESS_BRIEF.md).
 
@@ -84,6 +102,30 @@ Primary ICP + SoR thesis: see [`canton/BUSINESS_BRIEF.md`](../canton/BUSINESS_BR
 **Strategic role:** High-value contracts. Future expansion.
 
 ---
+
+## Distribution Strategy
+
+A technically excellent product with no engineered distribution is fighting uphill.
+Weft's distribution plan, in priority order:
+
+1. **Sponsor-side wedge.** Don't sell to builders; sell to sponsors who require Weft
+   verification for their grantees. Sponsor mandates create builder demand — the buyer
+   pulls builders in, not the other way around. This is the highest-leverage move
+   because it flips the GTM from "push to builders" to "pull from sponsors."
+2. **Canton receipt as marketing.** Every Canton receipt written back into a buyer's GMS
+   is Weft-branded. The receipt IS the marketing surface — embedded in existing
+   institutional workflows, not a separate UI to drive traffic to. Every receipt in a
+   sponsor's GMS is a permanent Weft touchpoint inside the buyer's existing system.
+3. **Portable ENS attestations.** Builders who get verified carry a portable attestation
+   on their ENS name. When displayed on portfolios, resumes, or other sponsor pages, the
+   attestation itself surfaces Weft. This is the builder-side virality loop.
+4. **Social proof bot (planned).** A Farcaster/Twitter bot that auto-verifies public
+   milestone claims and posts the attestation in reply — turns every public milestone
+   announcement into a Weft touchpoint. Low effort, high surface area.
+
+The free daemon tier (0% fee) is the wedge for builder-side adoption: lowers barrier,
+creates network effects, and every free user is a potential upgrade to the Hermes
+Agent tier.
 
 ## Revenue Model
 
@@ -288,6 +330,16 @@ The narrative is the product. The automation is the moat.
 ---
 
 ## Roadmap
+
+### 0G Bridge Buildathon (now — 10 weeks, 5 Waves)
+- [ ] **Wave 1** ($5k): Mainnet deployment of `WeftMilestone` + `VerifierRegistry` on 0G Chain. Demo video. X post.
+- [ ] **Wave 2** ($7.5k): Deepen 0G Storage integration — publish attestation bundle to mainnet 0G Storage, write KV pointers.
+- [ ] **Wave 3** ($15k): **Agentic ID (ERC-7857) integration** — deploy `VerifierAgenticId` contract; tokenize the first verifier agent with its track record.
+- [ ] **Wave 4** ($10k): Verifier swarm demo — 3 Agentic IDs, AXL peer corroboration, sealed-ballot consensus.
+- [ ] **Wave 5** ($12.5k): Token2049 Demo Day pitch + demo video. Portable ENS + Agentic ID attestations end to end.
+- [ ] Multi-Wave Completion Bonus + 0G Investment Committee recommendation.
+
+See [0G Bridge Buildathon plan](0g-bridge-buildathon.md) for the full wave-by-wave breakdown, scoping rule, and hard conditions.
 
 ### Hackathon (now — 0G APAC)
 - [x] Contracts deployed on 0G Galileo

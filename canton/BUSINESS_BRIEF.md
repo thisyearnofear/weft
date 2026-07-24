@@ -63,9 +63,50 @@ checklist items. Scope ambiguity and subjective quality disputes are out of band
 
 ## Positioning
 
+### The contrarian secret
+
+Most agent startups in 2026 use an LLM to judge work. Weft does the opposite: the LLM only
+narrates, **deterministic evidence rules decide**. Payment decisions must be auditable — no
+LLM hallucination risk on capital release. This is the philosophical core of the project
+and the defensible secret.
+
+### Thiel / PG framing
+
+| Lens | Weft's read |
+|---|---|
+| **Creative monopoly** | Define the category "post-award verification rail" rather than compete in GMS or escrow. Own a small market first. |
+| **Last mover advantage** | Verifiers, 0G evidence archive, ENS reputation schema, Canton receipt writebacks all compound. The longer the system runs, the harder to displace. |
+| **The secret** | "Milestone payment decisions should be made by deterministic evidence rules, not LLM judgment or human committees." Contrarian in 2026. |
+| **10x improvement** | vs manual review queues: 10x speed (hours, not weeks) + audit trail. vs traditional verification committees: 10x transparency. |
+| **Schlep taste (PG)** | Take on real schleps: institutional verification, escrow, FHE sealed ballots, AXL peer transport, 0G bundle provenance. Most startups avoid these. |
+| **Do things that don't scale (PG)** | Free 0% daemon tier, CLI builder onboarding script ("alpha"), founder-led pilot deployments. Classic wedge. |
+
+### Right pitch vs wrong pitch
+
 | | Wrong pitch | Right pitch |
 |---|---|---|
 | Lead with | Canton / CBTC / escrow rails | Cut post-award review load; receipt in your GMS |
 | Buyer lives in | Weft UI | Fluxx / Foundant / Salesforce (already paid) |
-| Proof | “Live on testnet” badge | Pilot metric: hours from claim → tranche decision |
+| Proof | "Live on testnet" badge | Pilot metric: hours from claim → tranche decision |
 | Settlement | The product | Optional private back-end |
+| Verdicts | "AI judges your work" | Deterministic evidence rules; LLM only narrates |
+
+## Distribution
+
+A technically excellent product with no engineered distribution is fighting uphill. Weft's
+distribution plan, in priority order:
+
+1. **Sponsor-side wedge.** Don't sell to builders; sell to sponsors who require Weft
+   verification for their grantees. Sponsor mandates create builder demand — the buyer pulls
+   builders in, not the other way around. This is the highest-leverage move because it
+   flips the GTM from "push to builders" to "pull from sponsors."
+2. **Canton receipt as marketing.** Every Canton receipt written back into a buyer's GMS is
+   Weft-branded. The receipt IS the marketing surface — embedded in existing institutional
+   workflows, not a separate UI to drive traffic to. Every receipt in a sponsor's GMS is a
+   permanent Weft touchpoint inside the buyer's existing system.
+3. **Portable ENS attestations.** Builders who get verified carry a portable attestation on
+   their ENS name. When displayed on portfolios, resumes, or other sponsor pages, the
+   attestation itself surfaces Weft. This is the builder-side virality loop.
+4. **Social proof bot (planned).** A Farcaster/Twitter bot that auto-verifies public
+   milestone claims and posts the attestation in reply — turns every public milestone
+   announcement into a Weft touchpoint. Low effort, high surface area.

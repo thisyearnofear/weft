@@ -40,6 +40,7 @@ from agent.lib.recovery import EventType, Outcome, emit as recovery_emit
 from agent.lib.verdict_envelope import verify_envelope
 from agent.lib.verifier_registry_reader import VerifierRegistryClient, read_verifier_registry_address
 from agent.lib.metadata_reader import MetadataError, read_metadata_from_0g
+from agent.lib.observability import record_counter, record_histogram, set_span_attrs, span
 from agent.lib.mvp_verifier import (
     DeploymentEvidence,
     UsageEvidence,
@@ -253,31 +254,48 @@ def main() -> int:
 
     while True:
         try:
-            for pm in scheduler.pending_milestones():
-                _process_one(
-                    rpc=rpc,
-                    rpc_url=args.rpc_url,
-                    weft=args.weft,
-                    private_key=args.private_key,
-                    node_address=args.node_address,
-                    milestone_hash=pm.milestone_hash,
-                    contract_address_override=args.contract_address,
-                    measurement_window_seconds_override=args.measurement_window_seconds,
-                    unique_caller_threshold_override=args.unique_caller_threshold,
-                    metadata_indexer=args.metadata_indexer,
-                    publish_0g=args.publish_0g,
-                    do_broadcast=args.broadcast,
-                    wait_for_peers=args.wait_for_peers,
-                    peer_threshold=args.peer_threshold,
-                    inbox_dir=args.inbox_dir,
-                    registry_client=registry_client,
-                    use_consensus_root=args.use_consensus_root,
-                    publish_consensus_0g=args.publish_consensus_0g,
-                    publish_bundle_0g=args.publish_bundle_0g,
-                    use_keeperhub=args.use_keeperhub and not args.no_keeperhub,
-                    keeperhub_timeout=args.keeperhub_timeout,
-                    builder_ens=args.builder_ens,
-                )
+            with span("weft.deadline.poll", **{"weft.rail": "evm"}):
+                pending = list(scheduler.pending_milestones())
+                set_span_attrs(**{"weft.pending_count": len(pending)})
+            for pm in pending:
+                cycle_started = time.monotonic()
+                outcome = "failed"
+                with span(
+                    "weft.verification_cycle",
+                    **{
+                        "weft.milestone_hash": pm.milestone_hash,
+                        "weft.verifier_address": args.node_address,
+                        "weft.rail": "evm",
+                    },
+                ):
+                    succeeded = _process_one(
+                        rpc=rpc,
+                        rpc_url=args.rpc_url,
+                        weft=args.weft,
+                        private_key=args.private_key,
+                        node_address=args.node_address,
+                        milestone_hash=pm.milestone_hash,
+                        contract_address_override=args.contract_address,
+                        measurement_window_seconds_override=args.measurement_window_seconds,
+                        unique_caller_threshold_override=args.unique_caller_threshold,
+                        metadata_indexer=args.metadata_indexer,
+                        publish_0g=args.publish_0g,
+                        do_broadcast=args.broadcast,
+                        wait_for_peers=args.wait_for_peers,
+                        peer_threshold=args.peer_threshold,
+                        inbox_dir=args.inbox_dir,
+                        registry_client=registry_client,
+                        use_consensus_root=args.use_consensus_root,
+                        publish_consensus_0g=args.publish_consensus_0g,
+                        publish_bundle_0g=args.publish_bundle_0g,
+                        use_keeperhub=args.use_keeperhub and not args.no_keeperhub,
+                        keeperhub_timeout=args.keeperhub_timeout,
+                        builder_ens=args.builder_ens,
+                    )
+                    outcome = "success" if succeeded else "failed"
+                duration_ms = (time.monotonic() - cycle_started) * 1000
+                record_counter("weft_verification_cycles_total", rail="evm", outcome=outcome)
+                record_histogram("weft_verification_duration_ms", duration_ms, rail="evm", outcome=outcome)
         except KeyboardInterrupt:
             log.info("shutting down (keyboard interrupt)")
             return 0
@@ -322,7 +340,16 @@ def _process_one(
     )
 
     try:
-        m = read_milestone(rpc, weft, milestone_hash)
+        with span("weft.milestone.read", **{"weft.milestone_hash": milestone_hash}):
+            m = read_milestone(rpc, weft, milestone_hash)
+            set_span_attrs(
+                **{
+                    "weft.project_id": m.projectId,
+                    "weft.template_id": m.templateId,
+                    "weft.deadline": m.deadline,
+                    "weft.finalized": m.finalized,
+                }
+            )
     except Exception as e:
         log.error("read_milestone failed", milestone=milestone_hash, error=str(e))
         return False
@@ -350,38 +377,67 @@ def _process_one(
     window_end = int(m.deadline) + int(measurement_window_seconds)
 
     # Deployment evidence
-    code = eth_get_code(rpc, contract_address, "latest")
-    code_hash = ZERO_HASH if code == "0x" else keccak_hex(code)
+    evidence_started = time.monotonic()
+    with span(
+        "weft.evidence.deployment",
+        **{"weft.milestone_hash": milestone_hash, "weft.contract_address": contract_address},
+    ):
+        code = eth_get_code(rpc, contract_address, "latest")
+        code_hash = ZERO_HASH if code == "0x" else keccak_hex(code)
+        set_span_attrs(**{"weft.code_exists": code != "0x", "weft.code_hash": code_hash})
     deployment = DeploymentEvidence(
         contractAddress=contract_address,
         codeHash=code_hash,
         blockNumber=eth_block_number(rpc),
     )
 
-    unique_count, start_block, end_block = count_unique_callers(
-        rpc,
-        contract_address,
-        window_start,
-        window_end,
-        stop_at=unique_caller_threshold,
-    )
+    with span(
+        "weft.evidence.usage",
+        **{
+            "weft.milestone_hash": milestone_hash,
+            "weft.threshold": unique_caller_threshold,
+            "weft.measurement_window_seconds": measurement_window_seconds,
+        },
+    ):
+        unique_count, start_block, end_block = count_unique_callers(
+            rpc,
+            contract_address,
+            window_start,
+            window_end,
+            stop_at=unique_caller_threshold,
+        )
+        set_span_attrs(**{"weft.unique_callers": unique_count})
     usage = UsageEvidence(windowStart=window_start, windowEnd=window_end, uniqueCallerCount=unique_count)
 
-    cached_chain_id = eth_chain_id(rpc)
-    attestation = build_attestation(
-        schema_version=1,
-        project_id=m.projectId,
-        milestone_hash=milestone_hash,
+    with span(
+        "weft.evidence.collect",
+        **{
+            "weft.milestone_hash": milestone_hash,
+            "weft.template_id": m.templateId,
+            "weft.contract_address": contract_address,
+        },
+    ):
+        cached_chain_id = eth_chain_id(rpc)
+        attestation = build_attestation(
+            schema_version=1,
+            project_id=m.projectId,
+            milestone_hash=milestone_hash,
+            template_id=m.templateId,
+            chain_id=cached_chain_id,
+            contract_address=contract_address,
+            deadline=m.deadline,
+            measurement_window_seconds=measurement_window_seconds,
+            unique_caller_threshold=unique_caller_threshold,
+            deployment=deployment,
+            usage=usage,
+            node_address=node_address,
+            attested_at=int(time.time()),
+        )
+        set_span_attrs(**{"weft.verified": bool(attestation["verdict"]["verified"])})
+    record_histogram(
+        "weft_evidence_collection_duration_ms",
+        (time.monotonic() - evidence_started) * 1000,
         template_id=m.templateId,
-        chain_id=cached_chain_id,
-        contract_address=contract_address,
-        deadline=m.deadline,
-        measurement_window_seconds=measurement_window_seconds,
-        unique_caller_threshold=unique_caller_threshold,
-        deployment=deployment,
-        usage=usage,
-        node_address=node_address,
-        attested_at=int(time.time()),
     )
 
     ts = int(time.time())
@@ -395,10 +451,12 @@ def _process_one(
     evidence_root = base_evidence_root
 
     if publish_0g:
-        receipt = write_evidence_to_storage(milestone_hash, attestation, file_path=canonical_path)
-        if receipt and receipt.log_root and receipt.log_root.startswith("0x") and len(receipt.log_root) == 66:
-            base_evidence_root = receipt.log_root
-            evidence_root = base_evidence_root
+        with span("weft.storage.publish", **{"weft.milestone_hash": milestone_hash, "weft.publish_0g": True}):
+            receipt = write_evidence_to_storage(milestone_hash, attestation, file_path=canonical_path)
+            if receipt and receipt.log_root and receipt.log_root.startswith("0x") and len(receipt.log_root) == 66:
+                base_evidence_root = receipt.log_root
+                evidence_root = base_evidence_root
+                set_span_attrs(**{"weft.storage_root": receipt.log_root})
 
     recovery_emit(
         EventType.EVIDENCE_COLLECTED,
@@ -426,15 +484,24 @@ def _process_one(
     if wait_for_peers:
         # Wait until we observe N signed peer envelopes agreeing on the *base* evidence root.
         # Optionally derive a deterministic consensusRoot from the signer set and submit that onchain.
+        consensus_started = time.monotonic()
         deadline = time.time() + 60  # cap wait per cycle (seconds)
         chosen = None
         while time.time() < deadline:
-            peers = consensus_signers_for_base_root(
-                milestone_hash=milestone_hash,
-                verified=verified_bool,
-                base_evidence_root=base_evidence_root,
-                inbox_dir=inbox_dir,
-            )
+            with span(
+                "weft.consensus.wait",
+                **{
+                    "weft.milestone_hash": milestone_hash,
+                    "weft.peer_threshold": peer_threshold,
+                    "weft.consensus_root_enabled": use_consensus_root,
+                },
+            ):
+                peers = consensus_signers_for_base_root(
+                    milestone_hash=milestone_hash,
+                    verified=verified_bool,
+                    base_evidence_root=base_evidence_root,
+                    inbox_dir=inbox_dir,
+                )
 
             # Verify signature + authorization for each peer
             valid = []
@@ -497,7 +564,20 @@ def _process_one(
 
         if chosen is None:
             log.warning("peer quorum not reached, skipping vote", milestone=milestone_hash, threshold=peer_threshold)
+            record_histogram(
+                "weft_consensus_latency_ms",
+                (time.monotonic() - consensus_started) * 1000,
+                peer_threshold=peer_threshold,
+                matched_signers=0,
+            )
             return
+
+        record_histogram(
+            "weft_consensus_latency_ms",
+            (time.monotonic() - consensus_started) * 1000,
+            peer_threshold=peer_threshold,
+            matched_signers=len(chosen),
+        )
 
         # Build deterministic consensus bundle and derive consensus root (optional).
         if use_consensus_root:
@@ -659,10 +739,20 @@ def _process_one(
             rail.chain_id = cached_chain_id  # type: ignore[attr-defined]
             rail.out_dir = out_dir  # type: ignore[attr-defined]
 
-        receipt = rail.submit_verdict(
-            milestone_hash,
-            _VP(did_complete=verified_bool, evidence_hash=evidence_root),
-        )
+        with span(
+            "weft.settlement.submit_verdict",
+            **{
+                "weft.milestone_hash": milestone_hash,
+                "weft.rail": "evm",
+                "weft.verified": verified_bool,
+                "weft.evidence_root": evidence_root,
+            },
+        ):
+            receipt = rail.submit_verdict(
+                milestone_hash,
+                _VP(did_complete=verified_bool, evidence_hash=evidence_root),
+            )
+            set_span_attrs(**{"weft.settlement_via": (receipt.raw or {}).get("via", "evm")})
         if receipt.ok:
             via = (receipt.raw or {}).get("via", "evm")
             log.info("vote submitted via settlement", milestone=milestone_hash, via=via, tx=receipt.reference)
@@ -677,12 +767,26 @@ def _process_one(
 
     # Release escrowed capital via KeeperHub after a verified verdict
     if verified_bool and keeperhub_configured():
-        release_result = release_after_verification(
-            milestone_hash=milestone_hash,
-            contract_address=weft,
-            chain_id=cached_chain_id,
-            timeout=keeperhub_timeout,
-            out_dir=out_dir,
+        with span(
+            "weft.keeperhub.release",
+            **{"weft.milestone_hash": milestone_hash, "weft.attempted": True},
+        ):
+            release_result = release_after_verification(
+                milestone_hash=milestone_hash,
+                contract_address=weft,
+                chain_id=cached_chain_id,
+                timeout=keeperhub_timeout,
+                out_dir=out_dir,
+            )
+            set_span_attrs(
+                **{
+                    "weft.keeperhub_status": release_result.status.value if release_result else "not_attempted",
+                    "weft.tx_hash": release_result.tx_hash if release_result else "",
+                }
+            )
+        record_counter(
+            "weft_keeperhub_executions_total",
+            status=release_result.status.value if release_result else "not_attempted",
         )
         if release_result and release_result.status == ExecutionStatus.CONFIRMED:
             log.info("capital released via KeeperHub", milestone=milestone_hash, tx=release_result.tx_hash)
@@ -756,6 +860,50 @@ def _process_one(
                     )
         except Exception as _e:
             log.warning("ENS subname issuance failed (non-fatal)", error=str(_e))
+
+    # ── Agentic ID (ERC-7857-inspired): record verdict on the verifier's token ─────
+    # Tokenizes the verifier's track record onchain. The agent's "intelligence"
+    # (milestones verified, quorum participation, evidence roots) updates with
+    # every verdict. Built for the 0G Bridge Buildathon — see docs/0g-bridge-buildathon.md.
+    agentic_id_addr = os.environ.get("WEFT_AGENTIC_ID_ADDRESS", "")
+    if agentic_id_addr and node_address and node_address != "0x0000000000000000000000000000000000000000":
+        try:
+            from agent.lib.agentic_id_client import AgenticIdClient
+
+            # Encode recordVerdict(verifier, didComplete, evidenceRoot) calldata.
+            # Submit via cast send (the daemon's private key is the contract owner
+            # or the WeftMilestone contract itself — both are authorized callers).
+            calldata = AgenticIdClient.encode_record_verdict(
+                verifier=node_address,
+                did_complete=verified_bool,
+                evidence_root=evidence_root,
+            )
+            cast_cmd = [
+                "cast", "send",
+                agentic_id_addr,
+                calldata,
+                "--private-key", private_key,
+            ]
+            if rpc_url:
+                cast_cmd += ["--rpc-url", rpc_url]
+            _r = subprocess.run(cast_cmd, capture_output=True, text=True, check=False)
+            if _r.returncode == 0:
+                tx_hash = (_r.stdout.strip().splitlines() or [""])[-1]
+                log.info(
+                    "Agentic ID verdict recorded",
+                    milestone=milestone_hash,
+                    verifier=node_address,
+                    did_complete=verified_bool,
+                    tx=tx_hash,
+                )
+            else:
+                log.warning(
+                    "Agentic ID recordVerdict failed (non-fatal)",
+                    milestone=milestone_hash,
+                    error=_r.stderr.strip()[:200],
+                )
+        except Exception as _e:
+            log.warning("Agentic ID integration failed (non-fatal)", error=str(_e))
 
     # Generate Builder Journey chronicle (when KIMI_API_KEY is set)
     if os.environ.get("KIMI_API_KEY") and out_dir:
@@ -979,13 +1127,28 @@ def _process_canton_one(milestone_id: str) -> None:
         outcome=Outcome.SUCCESS,
     )
 
-    receipt = c.submit_verdict(
-        milestone_id,
-        VerdictPayload(
-            did_complete=verified_bool,
-            evidence_hash=evidence.document_hash or evidence_root,
-            verifier=node,
-        ),
+    with span(
+        "weft.settlement.submit_verdict",
+        **{
+            "weft.milestone_hash": milestone_id,
+            "weft.rail": "canton",
+            "weft.verified": verified_bool,
+            "weft.evidence_root": evidence_root,
+        },
+    ):
+        receipt = c.submit_verdict(
+            milestone_id,
+            VerdictPayload(
+                did_complete=verified_bool,
+                evidence_hash=evidence.document_hash or evidence_root,
+                verifier=node,
+            ),
+        )
+        set_span_attrs(**{"weft.settlement_via": "canton", "weft.receipt_ok": receipt.ok})
+    record_counter(
+        "weft_receipt_writebacks_total",
+        rail="canton",
+        outcome="success" if receipt.ok else "failed",
     )
     if receipt.ok:
         log.info(
@@ -1024,13 +1187,31 @@ def _run_canton_loop(*, once: bool, interval: int) -> int:
 
     while True:
         try:
-            pending = ch.pending_milestone_ids(c)
+            with span("weft.deadline.poll", **{"weft.rail": "canton"}):
+                pending = ch.pending_milestone_ids(c)
+                set_span_attrs(**{"weft.pending_count": len(pending)})
             log.info("canton poll", pending=len(pending))
             for mid in pending:
+                cycle_started = time.monotonic()
+                outcome = "failed"
                 try:
-                    _process_canton_one(mid)
+                    with span(
+                        "weft.verification_cycle",
+                        **{"weft.milestone_hash": mid, "weft.rail": "canton"},
+                    ):
+                        _process_canton_one(mid)
+                    outcome = "success"
                 except Exception as e:
                     log.error("canton process failed", milestone=mid, error=str(e), exc_info=True)
+                finally:
+                    duration_ms = (time.monotonic() - cycle_started) * 1000
+                    record_counter("weft_verification_cycles_total", rail="canton", outcome=outcome)
+                    record_histogram(
+                        "weft_verification_duration_ms",
+                        duration_ms,
+                        rail="canton",
+                        outcome=outcome,
+                    )
         except KeyboardInterrupt:
             log.info("shutting down (keyboard interrupt)")
             return 0

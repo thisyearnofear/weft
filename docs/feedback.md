@@ -40,7 +40,7 @@ Track known issues and design feedback across Weft integrations.
 
 ### 1. 0G Storage KV endpoint instability
 
-The 0G testnet indexer at `https://indexer-storage-testnet-standard.0g.ai` is unreliable (returns 503 intermittently). We have graceful fallback to local files and direct RPC reads, but a stable KV URL is needed for production.
+The 0G Standard testnet indexer at `https://indexer-storage-testnet-standard.0g.ai` was unreliable (returned 503 persistently). **Resolved 2026-07-19:** switched to the Turbo indexer at `https://indexer-storage-testnet-turbo.0g.ai` (recommended by the official 0G docs). Upload + KV write + stream auto-creation all verified working. The daemon has graceful fallback to local files and direct RPC reads if the indexer is unavailable.
 
 KV key namespace: `weft:<entity>:<id>:<artifact>` (documented in AGENTS.md).
 

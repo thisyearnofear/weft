@@ -114,6 +114,13 @@ function formatTime(ts: number): string {
 
 type DemoPhase = "idle" | "injecting" | "verifying" | "complete";
 
+const CONFETTI_STYLES = Array.from({ length: 30 }, (_, i) => ({
+  left: `${Math.random() * 100}%`,
+  animationDelay: `${Math.random() * 2}s`,
+  animationDuration: `${2 + Math.random() * 2}s`,
+  background: ["#22c55e", "#6366f1", "#f59e0b", "#ef4444", "#8b5cf6"][i % 5],
+}));
+
 export function ResiliencePanel() {
   const [data, setData] = useState<RecoveryResponse | null>(null);
   const [polling] = useState(true);
@@ -185,6 +192,47 @@ export function ResiliencePanel() {
     return () => clearTimeout(t);
   }, [celebrate]);
 
+  const runFullDemo = useCallback(async () => {
+    setPhase("injecting");
+    setData(null);
+    await fetch("/api/chaos", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "clear", fault: "all" }),
+    });
+
+    await new Promise((r) => setTimeout(r, 800));
+    await fetch("/api/chaos", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "inject", fault: "kill_all" }),
+    });
+    await fetchRecovery();
+
+    await new Promise((r) => setTimeout(r, 1200));
+    setPhase("verifying");
+    await fetch("/api/chaos/verify", { method: "POST" });
+  }, [fetchRecovery]);
+
+  const resetDemo = useCallback(async () => {
+    await fetch("/api/chaos", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "clear", fault: "all" }),
+    });
+    setData(null);
+    setPhase("idle");
+  }, []);
+
+  const clearChaos = useCallback(async () => {
+    await fetch("/api/chaos", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "clear", fault: "all" }),
+    });
+    fetchRecovery();
+  }, [fetchRecovery]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -203,57 +251,13 @@ export function ResiliencePanel() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [phase]);
-
-  const runFullDemo = async () => {
-    // Reset everything
-    setPhase("injecting");
-    setData(null);
-    await fetch("/api/chaos", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "clear", fault: "all" }),
-    });
-
-    // Small pause for dramatic effect, then inject all faults
-    await new Promise(r => setTimeout(r, 800));
-    await fetch("/api/chaos", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "inject", fault: "kill_all" }),
-    });
-    await fetchRecovery();
-
-    // Start verification after a beat
-    await new Promise(r => setTimeout(r, 1200));
-    setPhase("verifying");
-    await fetch("/api/chaos/verify", { method: "POST" });
-  };
-
-  const resetDemo = async () => {
-    await fetch("/api/chaos", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "clear", fault: "all" }),
-    });
-    setData(null);
-    setPhase("idle");
-  };
+  }, [phase, runFullDemo, resetDemo, clearChaos]);
 
   const injectChaos = async (fault: string) => {
     await fetch("/api/chaos", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ action: "inject", fault }),
-    });
-    fetchRecovery();
-  };
-
-  const clearChaos = async () => {
-    await fetch("/api/chaos", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "clear", fault: "all" }),
     });
     fetchRecovery();
   };
@@ -380,7 +384,7 @@ export function ResiliencePanel() {
             <p>{data.insights}</p>
           </div>
           <div className={styles.insightsFooter}>
-            Recall: "What are the most frequent infrastructure failures?"
+            Recall: &ldquo;What are the most frequent infrastructure failures?&rdquo;
           </div>
         </div>
       )}
@@ -388,13 +392,8 @@ export function ResiliencePanel() {
       {/* ── Celebration ── */}
       {celebrate && (
         <div className={styles.celebration} aria-hidden="true">
-          {Array.from({ length: 30 }).map((_, i) => (
-            <div key={i} className={styles.confetti} style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 2}s`,
-              animationDuration: `${2 + Math.random() * 2}s`,
-              background: ["#22c55e", "#6366f1", "#f59e0b", "#ef4444", "#8b5cf6"][i % 5],
-            }} />
+          {CONFETTI_STYLES.map((style, i) => (
+            <div key={i} className={styles.confetti} style={style} />
           ))}
         </div>
       )}

@@ -314,4 +314,147 @@ See [SUBMISSION.md](../SUBMISSION.md) for the full submission and [docs/submissi
 
 ---
 
-*Archived: May 2026 (entries 1-2, 4) · Jul 2026 (entries 3, 5)*
+## 6. KeeperHub — The Last Mile Hackathon (Jul–Aug 2026)
+
+### Overview
+
+**KeeperHub** is the execution and reliability layer for AI agents operating onchain. The hackathon is about building agents that actually execute onchain — not just decide.
+
+**Timeline (UTC+2):**
+
+| Date | Event |
+|---|---|
+| Jul 27, 12:00 | Hackathon opens |
+| Jul 27 – Aug 13 | Build phase (~2.5 weeks, weekly office hours) |
+| Aug 13, 12:00 | Submission deadline |
+| Aug 13–20 | Judging |
+| Aug 20 | Winners announced |
+
+**Prizes:** $5,000 in cash (1st: $2,000, 2nd: $1,200, 3rd: $800) + $1,000 in bounties (Best Onboarding UX Improvement).
+
+### Requirement
+
+Every project **must** use KeeperHub as its onchain execution layer. The KeeperHub stack includes:
+
+- **MCP server / CLI** — agent discovers and calls KeeperHub's execution capabilities
+- **x402 / MPP** — pay-per-execution over HTTP, settled onchain; or autonomous payments via Tempo and Stripe
+- **Smart Gas Estimation** — adaptive gas pricing with exponential backoff
+- **Private routing** — MEV protection via non-public submission paths
+- **Audit trail** — every action logged: trigger, simulation, submitted tx, gas used, outcome, timestamp
+- **Gas sponsorship** — available on mainnet Ethereum
+
+### Judging Criteria
+
+| Criterion | Weight |
+|---|---|
+| Does it execute onchain via KeeperHub? (working transactions, not mockups) | Heavy |
+| Use of KeeperHub surfaces (MCP, CLI, x402, MPP, workflow builder, audit trail) | Heavy |
+| Reliability and observability (retries, gas handling, audit trail) | Medium |
+| Originality and real-world usefulness | Medium |
+| Integration quality and developer experience | Medium |
+
+### Weft's Fit
+
+| Criterion | Weft's Position |
+|---|---|
+| **Executes onchain via KeeperHub** | ✅ `keeperhub_client.py` is the **preferred verdict-submission path** — `execute_verdict()` with retry + gas optimization + audit trail |
+| **KeeperHub surfaces used** | ✅ MCP (exposed via `weft_status_api.py`), audit trail logging to `keeperhub_audit.json`, full `IKeeperHub.sol` interface, deployed `keeperhubRelayer` contract |
+| **Reliability** | ✅ Exponential backoff on 503s, fallback to `cast send` if KeeperHub unavailable, configurable timeout (`KEEPERHUB_TIMEOUT`), chaos-injection test for `kill_keeperhub` |
+| **Real-world usefulness** | ✅ Grant milestone verification — gating capital release for onchain builders. Real market need ($10B+ milestone funding market) |
+| **Integration quality** | ✅ Dedicated client library (`agent/lib/keeperhub_client.py`), comprehensive test suite (`test/test_keeperhub.py`), CI integration, environment-configurable via `KEEPERHUB_*` vars |
+
+**Best angle:** Weft is an agent that decides grant milestone outcomes and then *executes the release onchain via KeeperHub* — exactly the "last mile" the hackathon is about. The agent thinks, KeeperHub acts.
+
+### KeeperHub Integration Details
+
+**Client library** (`agent/lib/keeperhub_client.py`):
+
+| Function | Purpose |
+|---|---|
+| `keeperhub_configured()` | Checks `KEEPERHUB_API_KEY` is set |
+| `execute_verdict(contract, args, verifier, milestone_hash, timeout, out_dir)` | Preferred verdict execution — submits `submitVerdict(...)` via KeeperHub with retry + gas optimization + audit trail |
+| `release_after_verification(contract, milestone_hash, keeper, verifier, timeout)` | Capital release via KeeperHub after verification passes |
+| `poll_execution_status(execution_id)` | Polls KeeperHub until transaction confirms |
+| `get_execution_logs(execution_id)` | Reads full audit trail for a given execution |
+
+**Environment variables:**
+
+```bash
+KEEPERHUB_API_KEY        # API key from app.keeperhub.com
+KEEPERHUB_API_URL        # Default: https://app.keeperhub.com
+KEEPERHUB_TIMEOUT        # Default: 120s
+KEEPERHUB_ENABLED        # Set "0" to disable (default: "1")
+```
+
+**Fallback architecture:** `evm_settlement.py` always tries KeeperHub first (`use_keeperhub=True`). If KeeperHub returns an error or times out, it falls back to `cast send` directly. This means Weft's onchain execution is never blocked by KeeperHub being down — it degrades gracefully.
+
+**Chaos engineering:** The recovery dashboard includes a `kill_keeperhub` action that simulates a 503 response from KeeperHub. Weft's retry with exponential backoff handles it autonomously.
+
+### Demo Requirements
+
+Submission requires:
+1. A link to source code on GitHub ✅ (https://github.com/thisyearnofear/weft)
+2. A short demo video showing the agent executing onchain through KeeperHub
+3. A link to a transaction executed via KeeperHub
+
+### Recommended Prep
+
+- [ ] Produce a demo video showing `weft_daemon.py` executing a verdict through KeeperHub
+- [ ] Capture and link a real KeeperHub-executed transaction from the audit trail
+- [ ] Optionally: merge a PR improving KeeperHub's onboarding UX (separate $1,000 bounty)
+
+---
+
+## 7. SigNoz Observability Hackathon (2026)
+
+### Overview
+
+SigNoz is an open-source observability platform built on OpenTelemetry. This hackathon requires deep integration with SigNoz — traces, metrics, logs, dashboards, and alerts.
+
+**Tracks:** AI & Agent Observability, Signals & Dashboards, Build Your Own.
+
+**Required tech:** Must use or integrate SigNoz. Install via Foundry. Repo must include `casting.yaml` and `casting.yaml.lock`.
+
+**Judging:** The more deeply you lean on SigNoz and OpenTelemetry — traces, metrics, logs, dashboards, alerts — the stronger your submission.
+
+### Weft's Fit
+
+| Criterion | Weft's Position |
+|---|---|
+| **Agent complexity** | Most complex multi-agent system in the set — daemon loop, AXL P2P consensus, FHE voting, KeeperHub execution, Hermes skills. Hundreds of spans per verification cycle |
+| **Existing observability** | Already has structured NDJSON logging, 17 event types, RecoveryLog, chaos engineering, HydraDB operational memory, live recovery dashboard. SigNoz replaces ad-hoc observability with production-grade tracing + metrics |
+| **OpenTelemetry surface** | Every verification step maps to a trace: evidence collection → peer broadcast → consensus → verdict submission → on-chain confirmation. Plus the chaos/recovery layer for alert rules |
+| **Dashboard value** | Verification success rates, peer consensus latency, KeeperHub execution times, chain RPC reliability, AI narrative generation durations, per-verifier accuracy |
+| **Alert potential** | Failed verdicts, peer dropouts, KeeperHub 503s, RPC timeouts, consensus degradation, low CSPR balance on Casper anchors |
+
+**Best track:** **AI & Agent Observability** — Weft's multi-agent verification swarm with peer-to-peer consensus, FHE voting, and recovery dashboards is exactly what this track targets.
+
+**Scope:** See [SigNoz Hackathon Scope](signoz-hackathon-scope.md) for the concrete build plan, acceptance criteria, dashboard panels, and demo deliverables.
+
+### Proposed Integration
+
+| SigNoz Feature | Weft Integration |
+|---|---|
+| **Traces** | OpenTelemetry spans around every verification step: `collect_evidence`, `broadcast_to_peers`, `reach_consensus`, `execute_verdict_keeperhub`, `submit_onchain`. Attributes for milestone hash, verifier address, evidence root |
+| **Metrics** | Verification success/failure rate, peer agreement ratio, execution latency (p50/p95/p99), KeeperHub fallback rate, chaos recovery time |
+| **Logs** | Structured NDJSON → OTel log pipeline. RecoveryLog events already have clean schema: event type, context, action, outcome, latency_ms |
+| **Dashboards** | Live verification dashboard: reliability heatmap, consensus health, execution rail usage (KeeperHub vs cast vs FHE), agent treasury P&L |
+| **Alerts** | Alert on: consecutive verification failures, peer quorum not reached, KeeperHub fallback activated, HydraDB recall errors |
+| **Foundry** | `casting.yaml` declares SigNoz service + OpenTelemetry Collector + Weft daemon as moldings |
+
+### Build Plan
+
+| Step | Work | Effort |
+|---|---|---|
+| 1 | Install SigNoz via Foundry, create `casting.yaml` | 1 hr |
+| 2 | Add OpenTelemetry instrumentation to `weft_daemon.py` — auto-instrument Python, manual spans for verification steps | 3–4 hrs |
+| 3 | Route existing NDJSON RecoveryLog events through OTel log pipeline | 2–3 hrs |
+| 4 | Create dashboards for verification reliability, peer consensus, execution latency | 2–3 hrs |
+| 5 | Set up alerts for failure modes (KeeperHub 503s, peer dropouts, consensus failures) | 1–2 hrs |
+| 6 | Demo video + reproduce-deploy verification | 1 hr |
+
+**Total: ~12 hours.**
+
+---
+
+*Archived: May 2026 (entries 1-2, 4) · Jul 2026 (entries 3, 5) · Aug 2026 (entries 6-7)*

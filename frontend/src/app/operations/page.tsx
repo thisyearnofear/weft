@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { Activity, DollarSign, CheckCircle, Zap, Lock } from "lucide-react";
+import { Activity, ArrowRight, Bot, DollarSign, CheckCircle, Eye, ServerCog, Zap, Lock } from "lucide-react";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
@@ -154,6 +154,44 @@ export default function OperationsPage() {
 
         {!isLoading && data && (
           <>
+            <div className={styles.observatoryBand}>
+              <div className={styles.observatoryCopy}>
+                <div className={styles.observatoryEyebrow}>
+                  <Eye size={15} /> SigNoz agent observability
+                </div>
+                <h2>Every autonomous step is inspectable.</h2>
+                <p>
+                  The winning demo trace follows one milestone through agent planning, chain tool
+                  calls, LLM narrative generation, deterministic evidence checks, and settlement
+                  fallback handling.
+                </p>
+                <Link href="/observability" className={styles.observatoryLink}>
+                  Open Agent Observatory <ArrowRight size={15} />
+                </Link>
+              </div>
+              <div className={styles.traceStack} aria-label="Validated SigNoz span stack">
+                {[
+                  ["weft.agent.plan", "1"],
+                  ["weft.agent.tool_call", "2"],
+                  ["weft.llm.chat", "1"],
+                  ["weft.verification_cycle", "1"],
+                  ["weft.evidence.deployment", "1"],
+                  ["weft.evidence.usage", "1"],
+                ].map(([name, count]) => (
+                  <div key={name} className={styles.traceRow}>
+                    <Bot size={14} />
+                    <span>{name}</span>
+                    <strong>{count}</strong>
+                  </div>
+                ))}
+              </div>
+              <div className={styles.sigNozProof}>
+                <ServerCog size={18} />
+                <span>Validated in SigNoz</span>
+                <code>0xwinningagent2</code>
+              </div>
+            </div>
+
             {/* KPI Cards — grouped by intent */}
             <div className={styles.kpiGroup}>
               <span className={styles.kpiGroupLabel}>Performance</span>

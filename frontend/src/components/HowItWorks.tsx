@@ -42,10 +42,7 @@ export function HowItWorks() {
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
-    if (reduced) {
-      setActiveStep(STEPS.length - 1); // all done
-      return;
-    }
+    if (reduced) return;
 
     const observer = new IntersectionObserver(
       (entries) => {

@@ -1,7 +1,8 @@
 # Pilot target list — post-award GMS SoR
 
-Fill this privately (do not commit org contacts). Prefer orgs that **already pay for**
-one of: Fluxx, Foundant, AmpliFund, Submittable, Salesforce Nonprofit Cloud, SmartSimple.
+Copy to `canton/PILOT_TARGETS.local.md` (gitignored) and fill privately — do not commit
+org contacts. Prefer orgs that **already pay for** one of: Fluxx, Foundant, AmpliFund,
+Submittable, Salesforce Nonprofit Cloud, SmartSimple.
 
 | # | Org | SoR | Contact / champion | Warmth | Next action |
 |---|---|---|---|---|---|

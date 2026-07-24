@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "sync-zama-sdk": "mkdir -p public/zama && cp node_modules/@zama-fhe/relayer-sdk/bundle/relayer-sdk-js.umd.cjs public/zama/relayer-sdk-js.umd.js && cp node_modules/@zama-fhe/relayer-sdk/bundle/tfhe_bg.wasm node_modules/@zama-fhe/relayer-sdk/bundle/kms_lib_bg.wasm node_modules/@zama-fhe/relayer-sdk/bundle/workerHelpers.js public/zama/",
+    "sync-zama-sdk": "node scripts/sync-zama-sdk.mjs",
     "predev": "npm run sync-zama-sdk",
     "prebuild": "npm run sync-zama-sdk",
     "dev": "next dev",
