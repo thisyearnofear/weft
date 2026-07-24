@@ -7,6 +7,8 @@ import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { ListSkeleton } from "@/components/KPISkeleton";
 import { Reveal } from "@/components/Reveal";
+import { DemoBadge } from "@/components/ui/DemoBadge";
+import { DemoBridge } from "@/components/ui/DemoBridge";
 import type { ActivityEvent } from "@/lib/activity";
 import styles from "./page.module.css";
 
@@ -125,9 +127,9 @@ export default function ActivityPage() {
             infrastructure paid for, revenue earned, and milestones created.
           </p>
           <p className={styles.feedNote}>
-            The sealed-ballot (FHE) entries are reference milestones on deployed Zama FHEVM
-            contracts — the encrypted votes are real onchain ciphertext, surfaced here so you can
-            see the full confidential-verification story.
+            Events tagged <strong>Demo</strong> are reference milestones on deployed Zama FHEVM
+            contracts (Sepolia). The onchain ciphertext is real, but the activity entries are
+            injected here since Sepolia events aren&apos;t in the 0G activity log.
           </p>
           <div style={{ marginTop: "1rem" }}>
             <RefreshButton onClick={() => refetch()} isFetching={isFetching} />
@@ -178,6 +180,7 @@ export default function ActivityPage() {
                       {TYPE_LABELS[event.type] ?? event.type}
                     </span>
                     {event.title}
+                    {event.type === "fhe" && <DemoBadge />}
                     {(event.count ?? 1) > 1 && (
                       <span className={styles.countBadge}>×{event.count}</span>
                     )}
@@ -192,6 +195,8 @@ export default function ActivityPage() {
           </div>
           </Reveal>
         )}
+
+        <DemoBridge context="activity feed" />
       </div>
     </div>
   );

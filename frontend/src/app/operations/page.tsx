@@ -15,6 +15,7 @@ import { AgentTraceReceipt } from "@/components/AgentTraceReceipt";
 import { TraceWaterfall } from "@/components/TraceWaterfall";
 import { Reveal } from "@/components/Reveal";
 import { ActSection } from "@/components/ui/ActSection";
+import { DemoBridge } from "@/components/ui/DemoBridge";
 import ui from "@/components/ui/weft-ui.module.css";
 import { useObservability } from "@/hooks/useObservability";
 import { getSignozTracesExplorerUrl, SIGNOZ_WINNING_MILESTONE_HASH } from "@/lib/signoz";
@@ -454,6 +455,8 @@ export default function OperationsPage() {
             </ActSection>
           </>
         )}
+
+        <DemoBridge context="operations" />
       </div>
     </div>
   );

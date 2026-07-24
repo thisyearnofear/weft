@@ -26,6 +26,7 @@ import { OfflineBadge } from "@/components/OfflineBadge";
 import { TraceWaterfall } from "@/components/TraceWaterfall";
 import { ActSection } from "@/components/ui/ActSection";
 import { GuidedPresenter } from "@/components/ui/GuidedPresenter";
+import { DemoBridge } from "@/components/ui/DemoBridge";
 import ui from "@/components/ui/weft-ui.module.css";
 import { useObservability } from "@/hooks/useObservability";
 import { sectionVisible } from "@/lib/observability-metrics";
@@ -426,6 +427,8 @@ export function ObservabilityClient({
             <CheckCircle2 size={18} />
           </section>
         )}
+
+        {!present && <DemoBridge context="observability" />}
       </div>
     </div>
   );

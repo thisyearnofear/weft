@@ -8,6 +8,7 @@ import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Reveal } from "@/components/Reveal";
 import { ActSection } from "@/components/ui/ActSection";
+import { DemoBadge } from "@/components/ui/DemoBadge";
 import styles from "./page.module.css";
 
 function PassportSkeleton() {
@@ -154,11 +155,17 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
                 <strong className={styles.metricValue}>{passport.weftProjects.length}</strong>
                 <p>Funded projects linked to this identity.</p>
               </article>
-              <article className={`${styles.metricCard} ${styles.metricHighlight} stagger stagger-5 lift`}>
-                <span className={styles.metricLabel}><Lock size={12} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }} />Sealed-Ballot Milestones</span>
-                <strong className={styles.metricValue}>2</strong>
-                <p>Verified via Zama FHE encrypted ballots on Sepolia (FHE.add + FHE.mul).</p>
-              </article>
+              {ens === "weft.thisyearnofear.eth" && (
+                <article className={`${styles.metricCard} ${styles.metricHighlight} stagger stagger-5 lift`}>
+                  <span className={styles.metricLabel}>
+                    <Lock size={12} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }} />
+                    Sealed-Ballot Milestones
+                    <DemoBadge className={styles.demoBadgeInline} />
+                  </span>
+                  <strong className={styles.metricValue}>2</strong>
+                  <p>Reference milestones on deployed Zama FHEVM contracts (Sepolia). FHE.add + FHE.mul.</p>
+                </article>
+              )}
             </section>
           </Reveal>
         </ActSection>

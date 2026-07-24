@@ -234,6 +234,11 @@
   color: var(--c-accent);
 }
 
+.demoBadgeInline {
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
 .mainGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);

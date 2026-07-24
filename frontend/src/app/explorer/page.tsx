@@ -8,6 +8,7 @@ import { useConfidentialMilestone } from "@/hooks/useConfidentialMilestone";
 import { useWeightedConfidentialMilestone } from "@/hooks/useWeightedConfidentialMilestone";
 import { CountUp } from "@/components/CountUp";
 import { Reveal } from "@/components/Reveal";
+import { DemoBridge } from "@/components/ui/DemoBridge";
 import { track } from "@/lib/track";
 import { DEMO_FHE_V1_HASH, DEMO_FHE_V2_HASH } from "@/lib/demo-milestones";
 import styles from "./page.module.css";
@@ -382,6 +383,8 @@ export default function ExplorerPage() {
           )}
         </div>
         </Reveal>
+
+        <DemoBridge context="explorer" />
       </div>
     </div>
   );
