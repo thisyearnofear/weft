@@ -21,15 +21,21 @@ export async function GET() {
       recoveryRes.status === "fulfilled" ? (recoveryRes.value as Record<string, unknown>) : null;
     const recoverySummary = recoveryRaw?.summary as Record<string, unknown> | undefined;
 
-    const spanCounts = live?.spanCounts && Object.keys(live.spanCounts).length > 0
-      ? live.spanCounts
-      : SIGNOZ_DEMO_SPAN_COUNTS;
+    const useDemoFallback = !(live?.configured);
+    const spanCounts =
+      useDemoFallback && (!live?.spanCounts || Object.keys(live.spanCounts).length === 0)
+        ? SIGNOZ_DEMO_SPAN_COUNTS
+        : (live?.spanCounts ?? {});
 
     const totalSpans =
       live?.totalSpans ??
-      SIGNOZ_SPAN_NAMES.reduce((sum, name) => sum + (spanCounts[name] ?? 0), 0);
+      (useDemoFallback
+        ? SIGNOZ_SPAN_NAMES.reduce((sum, name) => sum + (spanCounts[name] ?? 0), 0)
+        : 0);
 
-    const spanGroups = live?.spanGroups ?? SIGNOZ_SPAN_NAMES.length;
+    const spanGroups =
+      live?.spanGroups ??
+      (useDemoFallback ? SIGNOZ_SPAN_NAMES.length : Object.keys(spanCounts).length);
 
     return NextResponse.json(
       {

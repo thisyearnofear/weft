@@ -108,6 +108,15 @@ function normalizeTimestamp(value: unknown): number | null {
 
 function scalarFromResponse(body: unknown): number | null {
   if (!body || typeof body !== "object") return null;
+
+  const v5Results = (body as { data?: { data?: { results?: unknown[] } } }).data?.data?.results;
+  if (Array.isArray(v5Results) && v5Results.length > 0) {
+    const first = v5Results[0] as { data?: unknown[][] };
+    const cell = first.data?.[0]?.[0];
+    const n = parseNumber(cell);
+    if (n != null) return n;
+  }
+
   const data = (body as { data?: { result?: unknown[] } }).data?.result;
   if (!Array.isArray(data) || data.length === 0) return null;
 
@@ -141,6 +150,25 @@ function scalarFromResponse(body: unknown): number | null {
 function groupedCountsFromResponse(body: unknown): Record<string, number> {
   const out: Record<string, number> = {};
   if (!body || typeof body !== "object") return out;
+
+  const v5Results = (body as { data?: { data?: { results?: unknown[] } } }).data?.data?.results;
+  if (Array.isArray(v5Results)) {
+    for (const result of v5Results) {
+      if (!result || typeof result !== "object") continue;
+      const rows = (result as { data?: unknown[][] }).data;
+      if (!Array.isArray(rows)) continue;
+      for (const row of rows) {
+        if (!Array.isArray(row) || row.length < 2) continue;
+        const name = row[0];
+        const count = row[row.length - 1];
+        if (typeof name !== "string") continue;
+        const n = parseNumber(count);
+        if (n != null) out[name] = n;
+      }
+    }
+    if (Object.keys(out).length > 0) return out;
+  }
+
   const data = (body as { data?: { result?: unknown[] } }).data?.result;
   if (!Array.isArray(data)) return out;
 
@@ -184,6 +212,25 @@ function groupedCountsFromResponse(body: unknown): Record<string, number> {
 
 function timestampFromRawResponse(body: unknown): number | null {
   if (!body || typeof body !== "object") return null;
+
+  const v5Results = (body as { data?: { data?: { results?: unknown[] } } }).data?.data?.results;
+  if (Array.isArray(v5Results)) {
+    for (const result of v5Results) {
+      const rows = (result as { rows?: Array<Record<string, unknown>> }).rows;
+      for (const entry of rows ?? []) {
+        const iso =
+          (typeof entry.timestamp === "string" ? entry.timestamp : null) ??
+          (typeof entry.data === "object" && entry.data && typeof (entry.data as { timestamp?: unknown }).timestamp === "string"
+            ? (entry.data as { timestamp: string }).timestamp
+            : null);
+        if (iso) {
+          const parsed = Date.parse(iso);
+          if (Number.isFinite(parsed)) return parsed;
+        }
+      }
+    }
+  }
+
   const data = (body as { data?: { result?: unknown[] } }).data?.result;
   if (!Array.isArray(data)) return null;
 
@@ -215,6 +262,34 @@ function timestampFromRawResponse(body: unknown): number | null {
 function attrsFromRawResponse(body: unknown): Record<string, string | number | boolean> {
   const out: Record<string, string | number | boolean> = {};
   if (!body || typeof body !== "object") return out;
+
+  const v5Results = (body as { data?: { data?: { results?: unknown[] } } }).data?.data?.results;
+  if (Array.isArray(v5Results)) {
+    for (const result of v5Results) {
+      const rows = (result as { rows?: Array<Record<string, unknown>> }).rows;
+      const entry = rows?.[0];
+      if (!entry) continue;
+      const dataField = entry.data;
+      if (dataField && typeof dataField === "object") {
+        for (const [key, value] of Object.entries(dataField as Record<string, unknown>)) {
+          if (key.startsWith("weft.") || key.startsWith("gen_ai.")) {
+            if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+              out[key] = value;
+            }
+          }
+        }
+      }
+      for (const [key, value] of Object.entries(entry)) {
+        if (key.startsWith("weft.") || key.startsWith("gen_ai.")) {
+          if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+            out[key] = value;
+          }
+        }
+      }
+    }
+    if (Object.keys(out).length > 0) return out;
+  }
+
   const data = (body as { data?: { result?: unknown[] } }).data?.result;
   if (!Array.isArray(data)) return out;
 
