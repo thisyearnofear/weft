@@ -121,11 +121,10 @@
   position: absolute;
   top: calc(100% + 0.4rem);
   right: 0;
-  min-width: 160px;
-  background: var(--c-surface-2, rgba(15, 15, 28, 0.98));
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius);
+  min-width: 200px;
+  background: var(--c-bg-elevated, #1f2138);
+  border: 1px solid var(--c-border-2);
+  border-radius: var(--radius-sm);
   padding: 0.35rem;
   display: flex;
   flex-direction: column;
