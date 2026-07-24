@@ -9,6 +9,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Reveal } from "@/components/Reveal";
 import { ActSection } from "@/components/ui/ActSection";
 import { DemoBadge } from "@/components/ui/DemoBadge";
+import { AgentHelper } from "@/components/AgentHelper";
 import styles from "./page.module.css";
 
 function PassportSkeleton() {
@@ -65,7 +66,7 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
             <Breadcrumbs items={[{ label: "Explorer", href: "/explorer" }, { label: ens }]} />
             <div className={styles.roleBadge}>
               <Sparkles size={16} />
-              Portable trust profile
+              Builder profile
             </div>
           </div>
 
@@ -130,8 +131,8 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
         <ActSection
           act={1}
           id="act-identity"
-          title="Reputation and outcomes."
-          subtitle="Portable trust built from verified work, not social claims."
+          title="What this builder has shipped."
+          subtitle="Verified outcomes, capital unlocked, and collaborators — all portable."
         >
           <Reveal as="div" delay={0}>
             <section className={styles.metricsGrid}>
@@ -173,8 +174,8 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
         <ActSection
           act={2}
           id="act-evidence"
-          title="Trust graph and protocol interpretation."
-          subtitle="How Weft reads this passport, and who this builder ships with."
+          title="Who they ship with and how Weft reads them."
+          subtitle="Collaborators, linked projects, and the protocol's interpretation of this identity."
         >
           <Reveal as="div" delay={0}>
             <section className={styles.mainGrid}>
@@ -275,6 +276,15 @@ export default function BuilderPage({ params }: { params: Promise<{ ens: string 
             </section>
           </Reveal>
         </ActSection>
+
+        <AgentHelper
+          context={`builder profile for ${ens}`}
+          faqs={[
+            { q: "What is a builder profile?", a: "An ENS name with Weft text records: verified milestone count, total earned, collaborators, and reputation score. It follows the builder across projects and sponsors." },
+            { q: "How is the reputation score calculated?", a: "It's a composite (0-1000) based on verified milestones, capital unlocked, and collaborator count. It's written to ENS text records and updates as the builder ships." },
+            { q: "What are sealed-ballot milestones?", a: "Milestones verified via Zama FHE on Sepolia where verifier votes were encrypted and tallied homomorphically. Only the final result is decryptable, not individual votes." },
+          ]}
+        />
       </div>
     </div>
   );

@@ -27,6 +27,7 @@ import { TraceWaterfall } from "@/components/TraceWaterfall";
 import { ActSection } from "@/components/ui/ActSection";
 import { GuidedPresenter } from "@/components/ui/GuidedPresenter";
 import { DemoBridge } from "@/components/ui/DemoBridge";
+import { AgentHelper } from "@/components/AgentHelper";
 import ui from "@/components/ui/weft-ui.module.css";
 import { useObservability } from "@/hooks/useObservability";
 import { sectionVisible } from "@/lib/observability-metrics";
@@ -204,8 +205,8 @@ export function ObservabilityClient({
         <ActSection
           act={1}
           id="act-problem"
-          title="If an agent can release capital, it cannot be a black box."
-          subtitle="SigNoz traces every autonomous step — plan, tools, LLM, evidence — before money moves."
+          title="What the agent does, before any money moves."
+          subtitle="Every step — planning, tool calls, LLM, evidence checks — is traced and inspectable."
           visibility={act1Vis}
           entering={actEntering && activeStep === 0}
           onActivate={() => goToAnchor("step-problem")}
@@ -213,12 +214,14 @@ export function ObservabilityClient({
             <section className={styles.hero} id="step-problem">
               <div className={styles.heroCopy}>
                 <div className={ui.eyebrow}>
-                  <Eye size={15} /> SigNoz-powered agent observability
+                  <Eye size={15} /> Agent observability
                 </div>
-                <h1>{present ? "Weft × SigNoz" : "See inside the agent before it moves money."}</h1>
+                <h1>{present ? "Weft × SigNoz" : "Watch the agent think before it acts."}</h1>
                 <p>
-                  Weft traces the autonomous verifier from plan to tool calls to LLM narrative to deterministic
-                  evidence checks. SigNoz is the evidence backend; this page is the user-facing audit lens.
+                  When an autonomous agent decides to release capital, every step of that
+                  decision is recorded as a trace. This page makes those traces readable —
+                  what the agent planned, which tools it called, what the LLM said, and what
+                  evidence was checked before the verdict.
                 </p>
                 <div className={styles.heroActions}>
                   {!present && (
@@ -330,8 +333,8 @@ export function ObservabilityClient({
         <ActSection
           act={2}
           id="act-proof"
-          title="The agent is not a black box."
-          subtitle="Trace waterfall and audit receipt — SigNoz ground truth, Weft audit lens."
+          title="Step-by-step proof of what happened."
+          subtitle="The full trace waterfall and a human-readable receipt you can audit."
           visibility={act2Vis}
           entering={actEntering && (activeStep === 1 || activeStep === 2)}
           onActivate={() => goToAnchor("step-waterfall")}
@@ -356,8 +359,8 @@ export function ObservabilityClient({
         <ActSection
             act={3}
             id="act-ops"
-            title="Operations at a glance."
-            subtitle="Eight live panels and three alert rules — failure modes become operating signals."
+            title="Live operations dashboard."
+            subtitle="Real-time counts and alerts — failure modes become operating signals."
             visibility={act3Vis}
             entering={actEntering && (activeStep === 3 || activeStep === 4)}
             onActivate={() => goToAnchor("step-dashboard")}
@@ -429,6 +432,18 @@ export function ObservabilityClient({
         )}
 
         {!present && <DemoBridge context="observability" />}
+
+        {!present && (
+          <AgentHelper
+            context="observability"
+            faqs={[
+              { q: "What is a trace?", a: "A trace is a recorded sequence of steps the agent took during one verification cycle. Each step (plan, tool call, LLM, evidence check) is a span inside the trace." },
+              { q: "What is SigNoz?", a: "SigNoz is an open-source observability platform. Weft uses it to store and query agent traces. The panels on this page query the SigNoz API directly." },
+              { q: "Can I see this without a SigNoz account?", a: "Yes. This page queries the SigNoz API server-side and renders the results here. You don't need to log in to SigNoz to see the counts and traces." },
+              { q: "What happens when I click 'Run demo trace'?", a: "It triggers a Python script that emits a real OTel trace to SigNoz with the demo milestone hash. The page then polls until the trace appears." },
+            ]}
+          />
+        )}
       </div>
     </div>
   );

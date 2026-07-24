@@ -9,6 +9,7 @@ import { ListSkeleton } from "@/components/KPISkeleton";
 import { Reveal } from "@/components/Reveal";
 import { DemoBadge } from "@/components/ui/DemoBadge";
 import { DemoBridge } from "@/components/ui/DemoBridge";
+import { AgentHelper } from "@/components/AgentHelper";
 import type { ActivityEvent } from "@/lib/activity";
 import styles from "./page.module.css";
 
@@ -121,10 +122,11 @@ export default function ActivityPage() {
           <div className={styles.eyebrow}>
             <ActivityIcon size={15} /> Activity Feed
           </div>
-          <h1 className={styles.title}>Every action, timestamped.</h1>
+          <h1 className={styles.title}>Everything the agent has done, in order.</h1>
           <p className={styles.subtitle}>
-            A chronological feed of everything the Weft agent has done — verifications submitted,
-            infrastructure paid for, revenue earned, and milestones created.
+            Verifications submitted, infrastructure paid for, revenue earned,
+            milestones created — every action the Weft agent takes, timestamped
+            and public.
           </p>
           <p className={styles.feedNote}>
             Events tagged <strong>Demo</strong> are reference milestones on deployed Zama FHEVM
@@ -197,6 +199,15 @@ export default function ActivityPage() {
         )}
 
         <DemoBridge context="activity feed" />
+
+        <AgentHelper
+          context="activity"
+          faqs={[
+            { q: "What types of events are in this feed?", a: "Verifications (milestone verdicts), financial (revenue earned, services paid), consensus (quorum reached), sealed ballots (FHE votes on Sepolia), and resilience (self-healing events)." },
+            { q: "Why are some events tagged Demo?", a: "Events tagged Demo are reference milestones on deployed Zama FHEVM contracts (Sepolia). The onchain ciphertext is real, but the activity entries are injected here since Sepolia events aren't in the 0G activity log." },
+            { q: "How often does this update?", a: "The feed fetches from the status API every 15 seconds. Click refresh to force an update." },
+          ]}
+        />
       </div>
     </div>
   );

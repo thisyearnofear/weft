@@ -11,6 +11,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { OfflineBadge } from "@/components/OfflineBadge";
 import { Reveal } from "@/components/Reveal";
 import { ActSection } from "@/components/ui/ActSection";
+import { AgentHelper } from "@/components/AgentHelper";
 import styles from "./page.module.css";
 
 interface Verifier {
@@ -73,12 +74,11 @@ export default function VerifiersPage() {
           <div className={styles.eyebrow}>
             <Users size={15} /> Verifier Network
           </div>
-          <h1 className={styles.title}>The swarm that signs your capital.</h1>
+          <h1 className={styles.title}>Three independent agents must agree before capital moves.</h1>
           <p className={styles.subtitle}>
-            Independent AI agents that verify milestones and release capital.
-            Each agent collects evidence independently — deployment, usage, code activity —
-            then signs a verdict onchain. 2 of 3 must agree before capital moves.
-            No single party can fake a result.
+            Each verifier agent collects evidence on its own — deployment, usage, code
+            activity — then signs a verdict onchain. At least 2 of 3 must agree. No
+            single party can fake a result or block a valid one.
           </p>
           <div style={{ marginTop: "1rem" }}>
             <RefreshButton onClick={() => refetch()} isFetching={isFetching} />
@@ -102,8 +102,8 @@ export default function VerifiersPage() {
             <ActSection
               act={1}
               id="act-quorum"
-              title="2-of-3 quorum, no single party can fake a result."
-              subtitle="Independent AI agents verify milestones and release capital."
+              title="How quorum works."
+              subtitle="Three independent agents must agree. No single party controls the outcome."
             >
               <Reveal as="div" delay={0}>
                 <div className={styles.kpiGrid}>
@@ -156,7 +156,7 @@ export default function VerifiersPage() {
             <ActSection
               act={2}
               id="act-nodes"
-              title="The nodes and their sealed ballots."
+              title="The agents and their sealed ballots."
               subtitle="Each agent collects evidence independently, then signs a verdict onchain."
             >
               <Reveal as="div" delay={0}>
@@ -251,6 +251,16 @@ export default function VerifiersPage() {
             </ActSection>
           </>
         )}
+
+        <AgentHelper
+          context="verifiers"
+          faqs={[
+            { q: "What do verifier agents actually do?", a: "Each agent independently polls the blockchain, checks if a contract is deployed, counts unique callers, and reads GitHub commits. Then it signs a verdict (verified/not verified) onchain." },
+            { q: "Why 2-of-3?", a: "The contract requires at least 2 of 3 authorized verifiers to agree. This means one node going down or acting maliciously can't block a valid milestone or force an invalid one through." },
+            { q: "What are sealed ballots?", a: "On confidential milestones (Sepolia), verifier votes are encrypted with Zama FHE before submission. The contract tallies them homomorphically — no one can see individual votes, only the final result." },
+            { q: "Can I become a verifier?", a: "Verifier addresses are added to VerifierRegistry.sol by the contract owner. In production, this would be governed by the DAO or multisig that owns the registry." },
+          ]}
+        />
       </div>
     </div>
   );

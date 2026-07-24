@@ -9,6 +9,7 @@ import { useWeightedConfidentialMilestone } from "@/hooks/useWeightedConfidentia
 import { CountUp } from "@/components/CountUp";
 import { Reveal } from "@/components/Reveal";
 import { DemoBridge } from "@/components/ui/DemoBridge";
+import { AgentHelper } from "@/components/AgentHelper";
 import { track } from "@/lib/track";
 import { DEMO_FHE_V1_HASH, DEMO_FHE_V2_HASH } from "@/lib/demo-milestones";
 import styles from "./page.module.css";
@@ -166,13 +167,14 @@ export default function ExplorerPage() {
 
         <div className={styles.header}>
           <div className={styles.eyebrow}>
-            <Search size={15} /> Verification Explorer
+            <Search size={15} /> Explorer
           </div>
-          <h1 className={styles.title}>Onchain evidence, publicly auditable.</h1>
+          <h1 className={styles.title}>Browse every milestone and its evidence.</h1>
           <p className={styles.subtitle}>
-            Browse public milestones on 0G Chain, and try the confidential demos on
-            Sepolia — verifier votes encrypted with Zama FHE, tallied homomorphically,
-            decrypted by you.
+            Every milestone created on Weft is public — the builder, the stake,
+            the verifier votes, and the evidence root. Filter by status, search
+            by builder or hash, and open any milestone to see the full trust
+            decision. Confidential milestones on Sepolia show encrypted votes.
           </p>
         </div>
 
@@ -385,6 +387,16 @@ export default function ExplorerPage() {
         </Reveal>
 
         <DemoBridge context="explorer" />
+
+        <AgentHelper
+          context="explorer"
+          faqs={[
+            { q: "What am I looking at?", a: "A table of all milestones created on Weft — both public milestones on 0G Chain and confidential milestones on Sepolia. Each row shows the builder, stake, verifier votes, and evidence." },
+            { q: "What does 'sealed' mean in the votes column?", a: "On confidential milestones, verifier votes are encrypted. You can see how many ballots were cast, but not how each verifier voted — only the final result is decryptable." },
+            { q: "How do I try the FHE demos?", a: "Click either card at the top (v1 boolean quorum or v2 weighted consensus). You'll go to the milestone page where you can stake, watch sealed ballots arrive, and decrypt the result yourself." },
+            { q: "Can I filter by status?", a: "Yes — use the filter buttons (All, Verified, Pending, Failed) or search by milestone hash, builder address, or ENS name." },
+          ]}
+        />
       </div>
     </div>
   );

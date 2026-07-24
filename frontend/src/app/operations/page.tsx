@@ -16,6 +16,7 @@ import { TraceWaterfall } from "@/components/TraceWaterfall";
 import { Reveal } from "@/components/Reveal";
 import { ActSection } from "@/components/ui/ActSection";
 import { DemoBridge } from "@/components/ui/DemoBridge";
+import { AgentHelper } from "@/components/AgentHelper";
 import ui from "@/components/ui/weft-ui.module.css";
 import { useObservability } from "@/hooks/useObservability";
 import { getSignozTracesExplorerUrl, SIGNOZ_WINNING_MILESTONE_HASH } from "@/lib/signoz";
@@ -136,13 +137,13 @@ export default function OperationsPage() {
 
         <div className={styles.header}>
           <div className={styles.eyebrow}>
-            <Activity size={15} /> Agent Operations
+            <Activity size={15} /> Operations
           </div>
-          <h1 className={styles.title}>The agent&apos;s open books.</h1>
+          <h1 className={styles.title}>The agent earns money and spends it. Here are the books.</h1>
           <p className={styles.subtitle}>
-            Weft is an agent-run business. It earns 3% of every milestone it verifies,
-            then spends that revenue on AI inference, image generation, and onchain execution.
-            Every transaction is publicly auditable — no human touches the finances.
+            Weft takes a 3% fee on every milestone it verifies, then uses that revenue
+            to pay for AI inference, image generation, and onchain execution. Every
+            transaction is public — no human touches the finances.
           </p>
           <div style={{ marginTop: "1rem" }}>
             <RefreshButton onClick={() => refetch()} isFetching={isFetching} />
@@ -167,7 +168,7 @@ export default function OperationsPage() {
               act={1}
               id="act-present"
               title="The agent is present."
-              subtitle="SigNoz traces every autonomous step before capital moves."
+              subtitle="Every step it takes is traced and inspectable."
             >
               <Reveal as="div" delay={0}>
                 <div className={`${styles.observatoryBand} ${ui.surface} ${ui.surfaceAccent}`}>
@@ -227,8 +228,8 @@ export default function OperationsPage() {
             <ActSection
               act={2}
               id="act-business"
-              title="The agent runs a business."
-              subtitle="It earns 3% of every milestone, spends revenue on inference and execution."
+              title="How the agent earns and spends."
+              subtitle="3% fee on every verification. Revenue pays for inference, image generation, and onchain execution."
             >
               <Reveal as="div" delay={0}>
                 {/* KPI Cards — grouped by intent */}
@@ -340,8 +341,8 @@ export default function OperationsPage() {
             <ActSection
               act={3}
               id="act-audit"
-              title="Audit trail and infrastructure."
-              subtitle="Every verification is logged. Every failure mode is an operating signal."
+              title="Verification log and infrastructure."
+              subtitle="Every verification is onchain. Every failure mode becomes an alert."
             >
               <Reveal as="div" delay={0}>
                 {/* Verification Log */}
@@ -457,6 +458,16 @@ export default function OperationsPage() {
         )}
 
         <DemoBridge context="operations" />
+
+        <AgentHelper
+          context="operations"
+          faqs={[
+            { q: "How does the agent earn money?", a: "Weft takes a 3% fee on every milestone it verifies. When capital is released to a builder, 3% is swept to the agent's Stripe account." },
+            { q: "What does the agent spend money on?", a: "AI inference (Kimi, Nemotron, NousResearch), image generation (fal.ai), and onchain execution (KeeperHub gas optimization). Every charge is in the financial ledger." },
+            { q: "What is the verification log?", a: "A list of milestones the agent has verified on 0G Chain, including builder ENS, staked ETH, vote counts, and deadline. Two additional verifications were done via Zama FHE sealed ballots on Sepolia." },
+            { q: "What are recovery events?", a: "When infrastructure fails (RPC outage, peer timeout), the agent self-heals. Recovery events track failures and successful recoveries so nothing is hidden." },
+          ]}
+        />
       </div>
     </div>
   );

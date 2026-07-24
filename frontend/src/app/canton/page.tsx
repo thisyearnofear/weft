@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 import type { CantonMilestone, CantonRole } from "@/lib/canton-types";
 import { ROLE_PARTIES } from "@/lib/canton-types";
 import { parseMilestoneView } from "@/lib/milestone-view";
+import { AgentHelper } from "@/components/AgentHelper";
 import styles from "./page.module.css";
 
 const ROLES: { id: CantonRole; label: string; blurb: string }[] = [
@@ -163,14 +164,14 @@ export default function CantonPage() {
     <div className={styles.wrap}>
       <header className={styles.hero}>
         <p className={styles.eyebrow}>
-          Post-award ops · sits beside your GMS · Canton Devnet pilot
+          Program operations · beside your grant management system · Canton Devnet
         </p>
         <h1 className={styles.brand}>Weft</h1>
         <p className={styles.lede}>
-          For program officers: when a grantee claims a milestone in Fluxx,
-          Foundant, AmpliFund, or Salesforce, Weft checks a fixed checklist and
-          returns a verification receipt you paste onto that grant record.
-          Private settlement is optional lab infrastructure — not the pitch.
+          When a grantee claims a milestone in your grant management system
+          (Fluxx, Foundant, AmpliFund, or Salesforce), Weft checks a fixed
+          checklist and returns a verification receipt you can paste back
+          onto that grant record. No manual review, no subjective judgment.
         </p>
         <p className={styles.balance}>
           {party} pilot balance: <strong>{cbtc}</strong> CBTC
@@ -404,6 +405,16 @@ export default function CantonPage() {
             </>
           )}
         </div>
+
+        <AgentHelper
+          context="canton program ops"
+          faqs={[
+            { q: "What does this page do?", a: "It simulates a webhook from your grant management system. When a grantee claims a milestone, Weft checks a fixed checklist (document hash, delivery confirmed, invoice settled) and returns a verification receipt for GMS writeback." },
+            { q: "What are the roles?", a: "Program officer (ingest from GMS, release/refund), Funder (stake when capital is escrowed), Agent (checklist verdict or auto via ingest), Auditor (download verification receipts)." },
+            { q: "Is this real money?", a: "No. This runs on Canton Devnet with private CBTC. It's pilot infrastructure for institutional grant workflows." },
+            { q: "How do I integrate with my GMS?", a: "POST to /canton/ingest with the external grant ID and checklist evidence. The API returns a verification receipt JSON you write back to your GMS." },
+          ]}
+        />
       </div>
     </div>
   );

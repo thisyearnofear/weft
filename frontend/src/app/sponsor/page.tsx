@@ -11,6 +11,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { OfflineBadge } from "@/components/OfflineBadge";
 import { Reveal } from "@/components/Reveal";
 import { ActSection } from "@/components/ui/ActSection";
+import { AgentHelper } from "@/components/AgentHelper";
 import styles from "./page.module.css";
 
 interface SponsorMilestone {
@@ -78,13 +79,12 @@ export default function SponsorDashboardPage() {
           <div className={styles.eyebrow}>
             <Coins size={15} /> Program Dashboard
           </div>
-          <h1 className={styles.title}>Run your funding program on evidence.</h1>
+          <h1 className={styles.title}>Fund milestones, not promises.</h1>
           <p className={styles.subtitle}>
-            Grant rounds and milestone-based programs — lock capital behind
-            checkable deliverables. Agents verify against a fixed template
-            (deployment + usage on this public dashboard; institutional
-            checklist on Canton). Every release carries a receipt auditors can
-            inspect. For post-award checklist + GMS receipts, use{" "}
+            Lock capital behind a checkable deliverable. When the builder ships
+            and the agent verifies, funds release automatically — no manual
+            approval, no invoice chase. Every release carries a receipt
+            auditors can inspect. For post-award grant management, use{" "}
             <Link href="/canton">program ops</Link>.
           </p>
           <div style={{ marginTop: "1.25rem", display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
@@ -138,8 +138,8 @@ export default function SponsorDashboardPage() {
             <ActSection
               act={1}
               id="act-capital"
-              title="Capital at work."
-              subtitle="Every ETH locked behind a checkable deliverable. Every release carries a receipt."
+              title="Where your capital is."
+              subtitle="Every ETH is locked behind a deliverable. Released only when the agent verifies."
             >
               <Reveal as="div" delay={0}>
                 {/* Capital flow — hero element */}
@@ -215,8 +215,8 @@ export default function SponsorDashboardPage() {
             <ActSection
               act={2}
               id="act-milestones"
-              title="Program milestones."
-              subtitle="Each milestone links to its trust decision view with full evidence."
+              title="Your milestones."
+              subtitle="Each one links to its full trust decision view with evidence and receipts."
             >
               <Reveal as="div" delay={0}>
                 {/* Funded milestones */}
@@ -264,6 +264,16 @@ export default function SponsorDashboardPage() {
             </ActSection>
           </>
         )}
+
+        <AgentHelper
+          context="sponsor"
+          faqs={[
+            { q: "How do I fund a milestone?", a: "Click 'Fund a milestone' to create one. You set the deliverable, deadline, and stake. The agent verifies automatically when the deadline passes." },
+            { q: "When does capital release?", a: "When the agent reaches 2-of-3 quorum with 'verified', capital releases to the builder instantly. If verification fails, capital is refundable to the funder." },
+            { q: "What if the builder doesn't ship?", a: "The agent checks evidence (deployment, usage, GitHub). If the checks fail, the milestone is marked 'not verified' and staked capital becomes refundable." },
+            { q: "What's the difference between this and program ops?", a: "This page is for crypto-native funding on 0G Chain. Program ops (Canton) is for institutional grants that sit beside your grant management system." },
+          ]}
+        />
       </div>
     </div>
   );

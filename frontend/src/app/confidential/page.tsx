@@ -15,6 +15,7 @@ import {
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ConfidentialExplainer } from "@/components/ConfidentialExplainer";
 import { SealedReveal } from "@/components/SealedReveal";
+import { AgentHelper } from "@/components/AgentHelper";
 import { DEMO_FHE_V1_HASH, DEMO_FHE_V2_HASH } from "@/lib/demo-milestones";
 import styles from "./page.module.css";
 
@@ -45,13 +46,15 @@ export default function ConfidentialPage() {
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
             <div className={styles.eyebrow}>
-              <Lock size={15} /> Zama FHE · Sepolia
+              <Lock size={15} /> Encrypted verification · Sepolia
             </div>
-            <h1>Verifier votes stay private until the verdict.</h1>
+            <h1>Verifier votes stay encrypted until the result is final.</h1>
             <p>
-              Public milestones show every vote onchain. Confidential milestones seal each
-              verifier ballot as ciphertext, tally homomorphically, and reveal only the final
-              outcome — so teams can audit the result without exposing who voted how.
+              On public milestones, every verifier vote is visible onchain. On
+              confidential milestones, each vote is encrypted before it leaves the
+              agent. The contract tallies on ciphertext — no one sees individual
+              votes, only the final pass/fail. You decrypt the result yourself
+              once all ballots are in.
             </p>
             <div className={styles.heroActions}>
               <Link href={`/project/${DEMO_FHE_V1_HASH}?confidential=1`} className={styles.primaryAction}>
@@ -82,7 +85,7 @@ export default function ConfidentialPage() {
         <section className={styles.stepsSection}>
           <div className={styles.sectionHeader}>
             <span>How it works</span>
-            <h2>Three acts, zero plaintext votes.</h2>
+            <h2>Encrypt, tally, reveal — three steps, no plaintext votes.</h2>
           </div>
           <div className={styles.stepsGrid}>
             {STEPS.map((step, index) => {
@@ -152,6 +155,16 @@ export default function ConfidentialPage() {
             </p>
           </div>
         </section>
+
+        <AgentHelper
+          context="confidential verification"
+          faqs={[
+            { q: "What is FHE?", a: "Fully Homomorphic Encryption. It lets the contract compute on encrypted data without decrypting it. Weft uses Zama's FHEVM on Sepolia for sealed-ballot verification." },
+            { q: "Why encrypt verifier votes?", a: "So late voters can't copy early ones, and so no one can pressure a verifier by seeing how they voted. Only the final consensus result is decryptable." },
+            { q: "What's the difference between v1 and v2?", a: "V1 uses addition (FHE.add) for boolean yes/no ballots. V2 uses multiplication (FHE.mul) to weight each ballot by the verifier's confidence score before tallying." },
+            { q: "Can I decrypt the result early?", a: "No. The relayer refuses decryption requests until the contract marks the result as final. This is enforced onchain." },
+          ]}
+        />
 
         <section className={styles.crossLink}>
           <p>
