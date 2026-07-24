@@ -18,6 +18,20 @@ export {
 export const SIGNOZ_WINNING_MILESTONE_HASH = "0xwinningagent2";
 
 const DEFAULT_INSTANCE = "https://modest-mosquito.us2.signoz.cloud";
+const DEFAULT_DASHBOARD_RELATIVE_TIME = "7d";
+
+function withDashboardTimeRange(url: string, relativeTime = DEFAULT_DASHBOARD_RELATIVE_TIME): string {
+  try {
+    const parsed = new URL(url);
+    if (!parsed.searchParams.has("relativeTime") && !parsed.searchParams.has("startTime")) {
+      parsed.searchParams.set("relativeTime", relativeTime);
+    }
+    return parsed.toString();
+  } catch {
+    const joiner = url.includes("?") ? "&" : "?";
+    return `${url}${joiner}relativeTime=${encodeURIComponent(relativeTime)}`;
+  }
+}
 
 export function getSignozInstanceUrl(): string {
   return process.env.NEXT_PUBLIC_SIGNOZ_INSTANCE_URL?.trim() || DEFAULT_INSTANCE;
@@ -25,8 +39,8 @@ export function getSignozInstanceUrl(): string {
 
 export function getSignozDashboardUrl(): string | null {
   const url = process.env.NEXT_PUBLIC_SIGNOZ_DASHBOARD_URL?.trim();
-  if (url) return url;
-  return SIGNOZ_PUBLIC_DASHBOARD_URL;
+  const base = url || SIGNOZ_PUBLIC_DASHBOARD_URL;
+  return withDashboardTimeRange(base);
 }
 
 export function getSignozTracesExplorerUrl(filter = SIGNOZ_WINNING_TRACE_FILTER): string {

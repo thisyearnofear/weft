@@ -41,24 +41,14 @@ export function DashboardScreenshotStrip({
 
   return (
     <div className={styles.strip}>
-      <div className={styles.header}>
-        <strong>Weft Autonomous Agent Observatory</strong>
-        <a href={dashboardUrl} target="_blank" rel="noopener noreferrer" className={styles.openLink}>
-          Open in SigNoz <ArrowRight size={14} />
-        </a>
-      </div>
-
-      <iframe
-        src={dashboardUrl}
-        title="Weft Agent Observatory — SigNoz dashboard"
-        className={styles.iframe}
-        loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
-      />
-
       {signoz && (
         <div className={styles.liveMirror} aria-label="Live dashboard counts from Weft API">
-          <span className={styles.liveMirrorLabel}>Live counts mirrored from SigNoz</span>
+          <div className={styles.liveMirrorHeader}>
+            <span className={styles.liveMirrorLabel}>Live dashboard counts (SigNoz-backed)</span>
+            <a href={dashboardUrl} target="_blank" rel="noopener noreferrer" className={styles.openLink}>
+              Open in SigNoz <ArrowRight size={14} />
+            </a>
+          </div>
           <div className={styles.liveGrid}>
             {SIGNOZ_DASHBOARD_PANELS.map((panel) => {
               const metric = panelMetricValue(panel.metricKey, signoz, recovery ?? null);
@@ -76,6 +66,20 @@ export function DashboardScreenshotStrip({
           </div>
         </div>
       )}
+
+      <div className={styles.embedBlock}>
+        <div className={styles.header}>
+          <strong>SigNoz dashboard embed</strong>
+          <span className={styles.timeHint}>Last 7 days · use Run demo trace if panels are empty</span>
+        </div>
+        <iframe
+          src={dashboardUrl}
+          title="Weft Agent Observatory — SigNoz dashboard"
+          className={styles.iframe}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      </div>
     </div>
   );
 }
