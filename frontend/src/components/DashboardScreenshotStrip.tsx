@@ -1,36 +1,81 @@
 "use client";
 
-import Image from "next/image";
-import { useState } from "react";
+import { ArrowRight } from "lucide-react";
+import { getSignozDashboardUrl } from "@/lib/signoz";
+import type { ObservabilityData } from "@/hooks/useObservability";
+import { SIGNOZ_DASHBOARD_PANELS } from "@/lib/signoz-config";
 import styles from "./DashboardScreenshotStrip.module.css";
 
-export function DashboardScreenshotStrip() {
-  const [failed, setFailed] = useState(false);
-
-  if (failed) {
-    return (
-      <div className={styles.strip}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/signoz/dashboard-preview.svg"
-          alt="Weft Agent Observatory dashboard preview"
-          className={styles.image}
-        />
-      </div>
-    );
+function panelMetricValue(
+  key: (typeof SIGNOZ_DASHBOARD_PANELS)[number]["metricKey"],
+  signoz: ObservabilityData["signoz"],
+  recovery: ObservabilityData["recovery"]
+): string {
+  switch (key) {
+    case "spanGroups":
+      return String(signoz.spanGroups);
+    case "llmSpans":
+      return String(signoz.spanCounts["weft.llm.chat"] ?? 0);
+    case "traceCount":
+      return signoz.traceCount != null ? String(signoz.traceCount) : "—";
+    case "toolSpans":
+      return String(signoz.spanCounts["weft.agent.tool_call"] ?? 0);
+    case "recoveryEvents":
+      return recovery ? String(recovery.totalEvents) : "—";
+    default:
+      return "—";
   }
+}
+
+export function DashboardScreenshotStrip({
+  signoz,
+  recovery,
+  isLoading = false,
+}: {
+  signoz?: ObservabilityData["signoz"];
+  recovery?: ObservabilityData["recovery"];
+  isLoading?: boolean;
+}) {
+  const dashboardUrl = getSignozDashboardUrl();
+  if (!dashboardUrl) return null;
 
   return (
     <div className={styles.strip}>
-      <Image
-        src="/signoz/dashboard-preview.png"
-        alt="Weft Agent Observatory dashboard in SigNoz"
-        width={1200}
-        height={420}
-        className={styles.image}
-        onError={() => setFailed(true)}
-        priority={false}
+      <div className={styles.header}>
+        <strong>Weft Autonomous Agent Observatory</strong>
+        <a href={dashboardUrl} target="_blank" rel="noopener noreferrer" className={styles.openLink}>
+          Open in SigNoz <ArrowRight size={14} />
+        </a>
+      </div>
+
+      <iframe
+        src={dashboardUrl}
+        title="Weft Agent Observatory — SigNoz dashboard"
+        className={styles.iframe}
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
       />
+
+      {signoz && (
+        <div className={styles.liveMirror} aria-label="Live dashboard counts from Weft API">
+          <span className={styles.liveMirrorLabel}>Live counts mirrored from SigNoz</span>
+          <div className={styles.liveGrid}>
+            {SIGNOZ_DASHBOARD_PANELS.map((panel) => {
+              const metric = panelMetricValue(panel.metricKey, signoz, recovery ?? null);
+              const barWidth = Math.min(100, (Number(metric) || 0) * 8 + 14);
+              return (
+                <div key={panel.title} className={styles.livePanel}>
+                  <span>{panel.title}</span>
+                  <strong>{isLoading ? "…" : metric}</strong>
+                  <div className={styles.liveBar} aria-hidden="true">
+                    <i style={{ width: `${barWidth}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

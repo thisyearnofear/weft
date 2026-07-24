@@ -291,11 +291,11 @@ export function ObservabilityClient({
             <span>Dashboard</span>
             <h2>Eight panels — live counts when SigNoz is connected.</h2>
           </div>
-          <DashboardScreenshotStrip />
+          <DashboardScreenshotStrip signoz={signoz} recovery={recovery} isLoading={isLoading} />
           {signozDashboard && (
             <a href={signozDashboard} target="_blank" rel="noopener noreferrer" className={styles.dashboardEmbed}>
               <div className={styles.dashboardEmbedHeader}>
-                <strong>Weft Autonomous Agent Observatory</strong>
+                <strong>Quick panel snapshot</strong>
                 <span>Open full dashboard <ArrowRight size={14} /></span>
               </div>
               <div className={styles.dashboardPreview}>
