@@ -88,12 +88,22 @@ out/
 .output.txt
 .claude/
 
+# Agent skill installs and local dev tooling state
+.agents/
+.devin/
+skills-lock.json
+
+# Backup files
+*.bak
+
 # Demo recordings (keep locally, never commit binaries / presigned URLs)
 weft-demo-recording.mp4
 weft-demo-project.mp4
 weft-demo-recording-url.txt
 assets/demo-recording.webm
 assets/weft-demo-hackathon.mp4
+*.mp4
+videos/
 
 # HyperFrames video render output (generated, not source)
 compositions/**/renders/
