@@ -174,6 +174,66 @@ list_templates = _registry.template_ids
 verify = _registry.verify
 
 
+def infer_template_id(template_id_hex: str) -> str:
+    """
+    Decode an on-chain bytes32 template ID into a human-readable string.
+
+    Weft stores template IDs as bytes32. When the bytes encode an ASCII string
+    padded with nulls, this returns the original string. Otherwise it returns
+    the hex unchanged so callers can fall back to the EVM default or a CLI
+    override.
+    """
+    try:
+        raw = bytes.fromhex(template_id_hex.replace("0x", ""))
+        decoded = raw.rstrip(b"\x00").decode("ascii")
+        if decoded and decoded in _registry.template_ids():
+            return decoded
+    except Exception:
+        pass
+    return template_id_hex
+
+
+def build_attestation_envelope(
+    *,
+    project_id: str,
+    milestone_hash: str,
+    template_id: str,
+    inputs: Dict[str, Any],
+    verdict: Verdict,
+    node_address: str,
+    attested_at: int,
+    schema_version: int = 1,
+) -> Dict[str, Any]:
+    """
+    Build the standard Weft attestation dict from a generic Verdict.
+
+    Mirrors the shape produced by mvp_verifier.build_attestation and
+    domain/templates.build_institutional_attestation.
+    """
+    return {
+        "schemaVersion": schema_version,
+        "weft": {
+            "projectId": project_id,
+            "milestoneHash": milestone_hash,
+            "templateId": template_id,
+        },
+        "inputs": inputs,
+        "evidence": verdict.evidence_data,
+        "verdict": {
+            "verified": verdict.verified,
+            "reason": verdict.reason,
+            "confidence": verdict.confidence,
+            "templateId": verdict.template_id or template_id,
+        },
+        "narrative": {"summary": ""},
+        "verifier": {
+            "nodeAddress": node_address,
+            "signature": "",
+        },
+        "timestamps": {"attestedAt": attested_at},
+    }
+
+
 def _register_builtins() -> None:
     register(EvmDeploymentUsageTemplate())
     register(InstitutionalChecklistTemplate())

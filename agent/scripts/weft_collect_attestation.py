@@ -7,6 +7,7 @@ Wires: 0G Storage + ENS profile + AXL consensus.
 """
 
 import argparse
+import json
 import os
 import sys
 import time
@@ -30,6 +31,15 @@ from agent.lib.mvp_verifier import (
     keccak_hex,
     write_attestation_files,
 )
+from agent.lib.verification_templates import (
+    build_attestation_envelope,
+    infer_template_id,
+    list_templates as list_template_ids,
+    verify as verify_template,
+)
+
+# Import collectors so non-EVM templates self-register with the global registry.
+import agent.lib.collectors  # noqa: F401
 from agent.lib.weft_milestone_reader import read_milestone
 from agent.lib.zero_storage import write_evidence_to_storage, StorageReceipt
 from agent.lib.ens_client import update_ens_after_verification
@@ -49,7 +59,17 @@ def main() -> int:
     p.add_argument("--rpc-url", required=True)
     p.add_argument("--weft-milestone", required=True, help="WeftMilestone contract address")
     p.add_argument("--milestone-hash", required=True, help="bytes32 hex")
-    p.add_argument("--contract-address", required=True, help="Target contract for the MVP template")
+    p.add_argument("--contract-address", default="", help="Target contract for the EVM template")
+    p.add_argument(
+        "--evidence-template",
+        default="",
+        help="Override verification template ID (e.g., marketing.campaign.v1, research.report.v1)",
+    )
+    p.add_argument(
+        "--template-inputs",
+        default="{}",
+        help="JSON inputs for non-EVM templates",
+    )
     p.add_argument("--measurement-window-seconds", type=int, default=7 * 24 * 60 * 60)
     p.add_argument("--unique-caller-threshold", type=int, default=100)
     p.add_argument("--out", required=True, help="Path to write attestation JSON")
@@ -97,44 +117,84 @@ def main() -> int:
     chain_id = eth_chain_id(rpc)
     milestone = read_milestone(rpc, args.weft_milestone, args.milestone_hash)
 
-    window_start = int(milestone.deadline)
-    window_end = int(milestone.deadline) + int(args.measurement_window_seconds)
+    template_id = args.evidence_template or infer_template_id(milestone.templateId)
 
-    # Deployment evidence
-    code = eth_get_code(rpc, args.contract_address, "latest")
-    code_hash = ZERO_HASH if code == "0x" else keccak_hex(code)
+    # Fail fast if the user explicitly requested an unknown template.
+    if args.evidence_template and template_id not in list_template_ids():
+        print(f"ERROR: unknown evidence template '{template_id}'", file=sys.stderr)
+        return 1
 
-    deployment = DeploymentEvidence(
-        contractAddress=args.contract_address,
-        codeHash=code_hash,
-        blockNumber=eth_block_number(rpc),
-    )
+    if template_id in list_template_ids() and template_id != "evm.deployment_usage.v1":
+        # Generic template path (marketing, research, institutional, etc.)
+        try:
+            template_inputs = json.loads(args.template_inputs)
+        except json.JSONDecodeError as e:
+            print(f"ERROR: invalid --template-inputs JSON: {e}")
+            return 1
 
-    unique_count, start_block, end_block = count_unique_callers(
-        rpc,
-        args.contract_address,
-        window_start,
-        window_end,
-        stop_at=args.unique_caller_threshold,
-    )
+        # Inject milestone context
+        template_inputs.setdefault("project_id", milestone.projectId)
+        template_inputs.setdefault("milestone_hash", args.milestone_hash)
+        template_inputs.setdefault("deadline", milestone.deadline)
+        template_inputs.setdefault("chain_id", chain_id)
+        template_inputs.setdefault("node_address", args.node_address)
 
-    usage = UsageEvidence(windowStart=window_start, windowEnd=window_end, uniqueCallerCount=unique_count)
+        verdict = verify_template(template_id, template_inputs)
+        attestation = build_attestation_envelope(
+            project_id=milestone.projectId,
+            milestone_hash=args.milestone_hash,
+            template_id=template_id,
+            inputs=template_inputs,
+            verdict=verdict,
+            node_address=args.node_address,
+            attested_at=int(time.time()),
+        )
+        start_block = None
+        end_block = None
+    else:
+        # EVM deployment + usage path (default / backward-compatible)
+        if not args.contract_address:
+            print("ERROR: --contract-address is required for the EVM template")
+            return 1
 
-    attestation = build_attestation(
-        schema_version=1,
-        project_id=milestone.projectId,
-        milestone_hash=args.milestone_hash,
-        template_id=milestone.templateId,
-        chain_id=chain_id,
-        contract_address=args.contract_address,
-        deadline=milestone.deadline,
-        measurement_window_seconds=args.measurement_window_seconds,
-        unique_caller_threshold=args.unique_caller_threshold,
-        deployment=deployment,
-        usage=usage,
-        node_address=args.node_address,
-        attested_at=int(time.time()),
-    )
+        window_start = int(milestone.deadline)
+        window_end = int(milestone.deadline) + int(args.measurement_window_seconds)
+
+        # Deployment evidence
+        code = eth_get_code(rpc, args.contract_address, "latest")
+        code_hash = ZERO_HASH if code == "0x" else keccak_hex(code)
+
+        deployment = DeploymentEvidence(
+            contractAddress=args.contract_address,
+            codeHash=code_hash,
+            blockNumber=eth_block_number(rpc),
+        )
+
+        unique_count, start_block, end_block = count_unique_callers(
+            rpc,
+            args.contract_address,
+            window_start,
+            window_end,
+            stop_at=args.unique_caller_threshold,
+        )
+
+        usage = UsageEvidence(windowStart=window_start, windowEnd=window_end, uniqueCallerCount=unique_count)
+
+        attestation = build_attestation(
+            schema_version=1,
+            project_id=milestone.projectId,
+            milestone_hash=args.milestone_hash,
+            template_id=milestone.templateId,
+            chain_id=chain_id,
+            contract_address=args.contract_address,
+            deadline=milestone.deadline,
+            measurement_window_seconds=args.measurement_window_seconds,
+            unique_caller_threshold=args.unique_caller_threshold,
+            deployment=deployment,
+            usage=usage,
+            node_address=args.node_address,
+            attested_at=int(time.time()),
+        )
 
     canonical_path = write_attestation_files(attestation, args.out)
 
@@ -199,8 +259,11 @@ def main() -> int:
     # Output
     print(f"ATTESTATION={os.path.abspath(args.out)}")
     print(f"CANONICAL={os.path.abspath(canonical_path)}")
-    print(f"START_BLOCK={start_block}")
-    print(f"END_BLOCK={end_block}")
+    # START_BLOCK/END_BLOCK are EVM-specific; non-EVM templates intentionally omit them.
+    if start_block is not None:
+        print(f"START_BLOCK={start_block}")
+    if end_block is not None:
+        print(f"END_BLOCK={end_block}")
     print(f"VERIFIED={'true' if verified else 'false'}")
     print(f"EVIDENCE_ROOT={evidence_root}")
     print(f"HAS_QUORUM={'true' if has_quorum else 'false'}")

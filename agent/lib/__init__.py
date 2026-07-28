@@ -110,12 +110,18 @@ from .verification_templates import (
     Verdict,
     EvmDeploymentUsageTemplate,
     InstitutionalChecklistTemplate,
+    build_attestation_envelope,
+    infer_template_id,
     list_templates,
     verify as verify_template,
 )
 from .collectors.marketing_collector import (
     MarketingCampaignEvidence,
     MarketingCampaignTemplate,
+)
+from .collectors.research_collector import (
+    ResearchReportEvidence,
+    ResearchReportTemplate,
 )
 
 # Ensure built-in collectors register themselves with the global registry.
@@ -183,7 +189,9 @@ __all__ = [
     # verification templates
     "TemplateRegistry", "VerificationTemplate", "Verdict",
     "EvmDeploymentUsageTemplate", "InstitutionalChecklistTemplate",
+    "build_attestation_envelope", "infer_template_id",
     "list_templates", "verify_template",
     # collectors
     "MarketingCampaignEvidence", "MarketingCampaignTemplate",
+    "ResearchReportEvidence", "ResearchReportTemplate",
 ]
