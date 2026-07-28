@@ -1,0 +1,91 @@
+/* Weft shared button styles — single source of truth for CTAs.
+   Local modules can compose these classes or the page can use
+   the <Button> component directly. */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    transform 160ms var(--ease-out),
+    box-shadow 200ms var(--ease-out),
+    border-color 200ms var(--ease-out),
+    background 200ms var(--ease-out),
+    color 200ms var(--ease-out);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.primary {
+  color: #fff;
+  background: linear-gradient(135deg, var(--c-accent), var(--c-verified));
+  box-shadow: 0 14px 32px rgba(99, 102, 241, 0.25);
+}
+
+.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 42px rgba(99, 102, 241, 0.3);
+}
+
+.secondary {
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  color: var(--c-text);
+}
+
+.secondary:hover {
+  transform: translateY(-2px);
+  border-color: var(--c-border-2);
+  background: var(--c-surface-2);
+}
+
+.ghost {
+  border: 1px solid var(--c-border-2);
+  background: transparent;
+  color: var(--c-text);
+}
+
+.ghost:hover {
+  background: var(--c-surface);
+  border-color: var(--c-border);
+  color: var(--c-text);
+}
+
+.nav {
+  color: #fff;
+  background: var(--c-accent);
+}
+
+.nav:hover {
+  background: var(--c-accent-hover, #5558e6);
+}
+
+.navGhost {
+  color: var(--c-text);
+  background: transparent;
+  border: 1px solid var(--c-border-2);
+}
+
+.navGhost:hover {
+  background: var(--c-surface);
+  border-color: var(--c-border);
+  color: var(--c-text);
+}
+
+.sm {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.md {
+  padding: 0.9rem 1.25rem;
+  font-size: 0.92rem;
+}

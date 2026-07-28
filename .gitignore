@@ -108,6 +108,9 @@ videos/
 # HyperFrames video render output (generated, not source)
 compositions/**/renders/
 
+# Submission screenshots (large binary assets; keep locally, upload to portal)
+docs/submission-screenshots/
+
 # TestSprite run artifacts (screenshots/video/snapshots from individual runs —
 # keep the test definitions in .testsprite/plans/ and .testsprite/backend/)
 .testsprite/failure/
