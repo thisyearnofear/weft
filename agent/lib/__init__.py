@@ -104,6 +104,23 @@ from .agentic_id_client import (
     agentic_id_configured,
     get_agentic_id_address,
 )
+from .verification_templates import (
+    TemplateRegistry,
+    VerificationTemplate,
+    Verdict,
+    EvmDeploymentUsageTemplate,
+    InstitutionalChecklistTemplate,
+    list_templates,
+    verify as verify_template,
+)
+from .collectors.marketing_collector import (
+    MarketingCampaignEvidence,
+    MarketingCampaignTemplate,
+)
+
+# Ensure built-in collectors register themselves with the global registry.
+# This import has side-effects; it must remain after verification_templates.
+from . import collectors  # noqa: F401
 
 __all__ = [
     # abi
@@ -163,4 +180,10 @@ __all__ = [
     # agentic id (ERC-7857-inspired, 0G Bridge Buildathon)
     "AgenticIdClient", "VerifierStats",
     "agentic_id_configured", "get_agentic_id_address",
+    # verification templates
+    "TemplateRegistry", "VerificationTemplate", "Verdict",
+    "EvmDeploymentUsageTemplate", "InstitutionalChecklistTemplate",
+    "list_templates", "verify_template",
+    # collectors
+    "MarketingCampaignEvidence", "MarketingCampaignTemplate",
 ]
