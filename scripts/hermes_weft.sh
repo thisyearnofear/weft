@@ -17,6 +17,47 @@ set +a
 WEFT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 export WEFT_ROOT
 
+# Ensure Hermes loads Weft's config (including OKX skills external_dirs).
+# We symlink ~/.hermes/config.yaml -> agent/hermes.config.yml so edits in
+# the repo are picked up automatically. A backup is made if a real config file
+# already exists (symlinks are simply replaced).
+HERMES_DIR="${HOME}/.hermes"
+HERMES_CONFIG="${HERMES_DIR}/config.yaml"
+WEFT_HERMES_CONFIG="${WEFT_ROOT}/agent/hermes.config.yml"
+if [ -f "$WEFT_HERMES_CONFIG" ]; then
+  mkdir -p "$HERMES_DIR"
+  CURRENT_TARGET=""
+  if [ -L "$HERMES_CONFIG" ]; then
+    CURRENT_TARGET="$(readlink "$HERMES_CONFIG")"
+  fi
+  if [ "$CURRENT_TARGET" = "$WEFT_HERMES_CONFIG" ]; then
+    echo " Weft Hermes config already linked"
+  else
+    if [ -e "$HERMES_CONFIG" ]; then
+      if [ ! -L "$HERMES_CONFIG" ]; then
+        BACKUP_PATH="$HERMES_CONFIG.weft-backup.$(date +%s)"
+        cp "$HERMES_CONFIG" "$BACKUP_PATH"
+        echo "🛡️  Backed up existing Hermes config to $BACKUP_PATH"
+      else
+        OLD_TARGET="$(readlink "$HERMES_CONFIG")"
+        if [ "$OLD_TARGET" != "$WEFT_HERMES_CONFIG" ]; then
+          BACKUP_PATH="$HERMES_CONFIG.weft-backup.$(date +%s).symlink-target"
+          printf '%s\n' "$OLD_TARGET" > "$BACKUP_PATH"
+          echo "🛡️  Recorded previous Hermes config symlink target in $BACKUP_PATH"
+        fi
+      fi
+    fi
+    ln -sf "$WEFT_HERMES_CONFIG" "$HERMES_CONFIG"
+    echo "🧩 Linked Weft Hermes config: $HERMES_CONFIG -> $WEFT_HERMES_CONFIG"
+  fi
+fi
+
+# Ensure Hermes is available
+if ! command -v hermes >/dev/null 2>&1; then
+  echo "❌ hermes command not found. Please install the Hermes Agent CLI first." >&2
+  exit 1
+fi
+
 # Ensure Kimi key is available to Hermes
 export KIMI_API_KEY="${KIMI_API_KEY}"
 export ETH_RPC_URL="${ETH_RPC_URL}"

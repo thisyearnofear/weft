@@ -26,9 +26,9 @@
 
   --c-text:          #e8e8f2;
   --c-text-2:        rgba(232, 232, 242, 0.72);
-  --c-text-3:        rgba(232, 232, 242, 0.45);
+  --c-text-3:        rgba(232, 232, 242, 0.62);
   --c-text-secondary: #b6c2d4;
-  --c-text-muted:    #99a3b8;
+  --c-text-muted:    #a8b0c4;
 
   /* One accent: Weft indigo (matches ConsensusVisual, chronicle, wallet theme) */
   --c-accent:        hsl(239, 78%, 66%);

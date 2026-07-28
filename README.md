@@ -52,6 +52,19 @@ to displace.
 
 See [`canton/BUSINESS_BRIEF.md`](canton/BUSINESS_BRIEF.md) for ICP, SoR thesis, and pilot plan.
 
+## OKX.AI Agent Service Provider
+
+Weft is packaged as an **Agent Service Provider (ASP)** on [OKX.AI](https://okx.ai). It exposes deterministic milestone verification as hireable agent services in two modes:
+
+| Mode | What it does | Surface |
+|---|---|---|
+| **Agent-to-MCP** | Pay-per-call tools: `verify`, `narrate`, `attest`, `chronicle` | `GET /mcp/tools`, `POST /mcp/invoke` |
+| **Agent-to-Agent** | Neutral judge inside an escrow: evidence → consensus → release/refund | AXL peer network + OKX escrow adapter |
+
+Agent-to-MCP calls settle over **x402** on **X Layer** in USDC. The x402 middleware in `agent/lib/x402_middleware.py` challenges clients with `402 Payment Required`, validates `PAYMENT-SIGNATURE`, and returns `PAYMENT-RESPONSE`. A production `RpcEvmVerifier` recovers EVM signatures and can optionally verify on-chain USDC balances or settlement transactions.
+
+See [`docs/OKX-AI-SUBMISSION.md`](docs/OKX-AI-SUBMISSION.md) for setup, demo outline, and submission checklist.
+
 ## Sealed-ballot consensus (Zama FHE)
 
 When votes are public, the last verifier watches the first two and free-rides instead of

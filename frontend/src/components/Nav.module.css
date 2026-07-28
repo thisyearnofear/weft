@@ -147,6 +147,12 @@
   color: var(--c-text);
 }
 
+.externalLinkWrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .menuBtn {
   display: none;
   background: none;

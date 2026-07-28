@@ -16,61 +16,26 @@ Weft is an autonomous coordination layer that replaces four institutional primit
 ### Architecture Diagram
 
 ```text
-                                      ┌──────────────────────────────┐
-                                      │         Builder / Team       │
-                                      │   ENS identity + milestone   │
-                                      └──────────────┬───────────────┘
-                                                     │
-                                      createMilestone│ stake
-                                                     ▼
-                              ┌──────────────────────────────────────────┐
-                              │        WeftMilestone on 0G Chain         │
-                              │ milestone escrow + verifier quorum       │
-                              └──────────────────┬───────────────────────┘
-                                                 │
-                                       deadline passed / pending
-                                                 ▼
-                   ┌─────────────────────────────────────────────────────────────┐
-                   │                    Weft Verifier Swarm                     │
-                   │                                                             │
-                   │  Verifier A       Verifier B        Verifier C              │
-                   │  ──────────       ──────────        ──────────              │
-                   │  poll             poll              poll                    │
-                   │  verify           verify            verify                  │
-                   │  narrate          narrate           narrate                 │
-                   │  vote             vote              vote                    │
-                   └──────────────┬───────────────┬───────────────┬─────────────┘
-                                  │               │               │
-                                  └──── signed peer verdict envelopes ──────────┐
-                                                                                 │
-                                                                                 ▼
-                                                  ┌──────────────────────────────┐
-                                                  │       Gensyn AXL layer       │
-                                                  │ peer messaging / corroboration│
-                                                  └──────────────┬───────────────┘
-                                                                 │
-                                                         consensus on
-                                                   (verified, evidenceRoot)
-                                                                 │
-                         ┌───────────────────────────────────────┴──────────────────────────────────────┐
-                         │                                                                              │
-                         ▼                                                                              ▼
-        ┌────────────────────────────────┐                                   ┌────────────────────────────────────┐
-        │        0G Storage / Indexer    │                                   │            KeeperHub                │
-        │ metadata, evidence, bundles,   │                                   │ reliable submitVerdict() execution │
-        │ consensus artifacts, KV roots  │                                   │ retry + gas optimization + audit   │
-        └────────────────┬───────────────┘                                   └────────────────┬───────────────────┘
-                         │                                                                    │
-                         └─────────────────────────────── evidenceRoot / bundle pointers ─────┘
-                                                                                               │
-                                                                                               ▼
-                                                            ┌────────────────────────────────────────┐
-                                                            │      Onchain verdict / release path    │
-                                                            │ finalized milestone + capital movement │
-                                                            └────────────────────────────────────────┘
+Builder/Team ──createMilestone──▶ WeftMilestone (0G Chain)
+                                      │ deadline passed
+                                      ▼
+Verifier A ──poll/verify/narrate/vote──▶ AXL peer messaging
+Verifier B ──poll/verify/narrate/vote──▶ AXL peer messaging
+Verifier C ──poll/verify/narrate/vote──▶ AXL peer messaging
+                                      │ consensus(verified, evidenceRoot)
+                                      ▼
+                    ┌─────────────────┴─────────────────┐
+                    ▼                                    ▼
+            0G Storage/Indexer                    KeeperHub
+            (metadata, evidence,                   (reliable submitVerdict)
+             bundles, KV roots)                         │
+                    └──────── evidenceRoot / bundle ────┘
+                                      │
+                                      ▼
+                              Onchain verdict/release
 ```
 
-**Reading the diagram:** 0G anchors the contract, metadata lookup, and evidence artifacts. AXL coordinates the verifier swarm across separate nodes. KeeperHub is the preferred execution path once the swarm reaches confidence. ENS gives builders and verifier agents human-readable identity at the edge of the system.
+**Reading the diagram:** 0G anchors the contract, metadata lookup, and evidence artifacts. AXL coordinates the verifier swarm. KeeperHub is the preferred execution path once the swarm reaches confidence. ENS gives builders and verifier agents human-readable identity at the edge of the system.
 
 > Weft takes milestone funding from manual trust to agentic execution: verifiers gather evidence, corroborate it over AXL, persist proofs on 0G, and execute verdicts reliably with KeeperHub.
 
@@ -83,13 +48,9 @@ Weft has two agent tiers:
 | **Free (Daemon)** | `weft_daemon.py` — self-hosted Python loop | CLI only | 0% |
 | **Hermes Agent** | Hermes Agent with Weft skills — managed | Telegram/Discord/CLI | 2-3% of released capital |
 
-The **free daemon** reads onchain + offchain signals to produce milestone attestations.
-It runs deterministically (no AI judgment required for MVP) and can optionally call
-Kimi for human-readable narrative summaries.
+The **free daemon** reads onchain + offchain signals to produce milestone attestations. It runs deterministically (no AI judgment required for MVP) and can optionally call Kimi for human-readable narrative summaries.
 
-The **Hermes Agent** wraps the same verification logic as Hermes skills, adding persistent
-memory, auto-generated skills, anomaly detection, and a messaging interface. It runs as
-a managed service — builders text the bot, the agent handles everything.
+The **Hermes Agent** wraps the same verification logic as Hermes skills, adding persistent memory, auto-generated skills, anomaly detection, and a messaging interface. It runs as a managed service — builders text the bot, the agent handles everything.
 
 See [Product Plan](docs/product-plan.md) for the full tier structure and monetization.
 
@@ -122,28 +83,22 @@ The single source of truth for all shared agent logic. All scripts import from h
 
 | Module | Purpose |
 |---|---|
-| `jsonrpc.py` | JSON-RPC client with file-based cache for idempotent reads |
-| `abi.py` | Pure ABI encoding/decoding helpers |
-| `weft_milestone_reader.py` | Reads `Milestones(bytes32)` from WeftMilestone |
-| `mvp_verifier.py` | Deterministic evidence: deployment check + unique callers + attestation |
-| `settlement.py` | Settlement rail protocol + `get_settlement_rail()` (`WEFT_SETTLEMENT_RAIL=evm\|canton`) |
-| `evm_settlement.py` | EVM SettlementRail adapter (KeeperHub / cast) |
-| `canton_http.py` | Shared `/canton/*` HTTP handlers + `pending_milestone_ids()` (DRY for APIs + daemon) |
-| `canton_client.py` | Canton SettlementRail adapter + ledger mirror (institutional primary market) |
+| `canton_http.py` | Shared `/canton/*` HTTP handlers + `pending_milestone_ids()` |
+| `canton_client.py` | Canton SettlementRail adapter + ledger mirror |
 | `domain/` | Rail-agnostic milestone DTOs + institutional evidence template |
-| `domain/receipt.py` | GMS verification receipt / writeback JSON (`weft.verification_receipt.v1`) |
-| `github_client.py` | GitHub commits/PRs in milestone window (env: `GITHUB_TOKEN`) |
-| `kimi_client.py` | Kimi API for narrative + chronicle generation (env: `KIMI_API_KEY`) |
-| `chronicle.py` | HTML milestone achievement cards and chronicle pages (woven-fabric motif) |
-| `zero_storage.py` | 0G Storage read/write (env: `ZERO_G_*`, falls back gracefully) |
+| `domain/receipt.py` | GMS verification receipt / writeback JSON |
+| `github_client.py` | GitHub commits/PRs in milestone window |
+| `kimi_client.py` | Kimi API for narrative + chronicle generation |
+| `chronicle.py` | HTML milestone achievement cards and chronicle pages |
+| `zero_storage.py` | 0G Storage read/write (falls back gracefully) |
 | `deadline_scheduler.py` | Polls for milestones past deadline awaiting finalization |
-| `indexer_client.py` | Unified indexer: tries 0G KV, falls back to onchain events |
-| `axl_client.py` | AXL binary P2P transport for peer verdict broadcast (env: `AXL_PORT`, auto-starts node) |
-| `keeperhub_client.py` | KeeperHub reliable onchain execution (env: `KEEPERHUB_API_KEY`, retry + gas opt + audit trail) |
-| `fal_client.py` | fal.ai text-to-image client for AI-woven milestone swatch + chronicle cover images (env: `FAL_KEY`) |
-| `stripe_skills_client.py` | Stripe Skills autonomous spend layer — agent pays for its own services + sweeps earned revenue (env: `STRIPE_SKILLS_KEY`) |
-| `llm_backend.py` | Pluggable LLM backend selector: Nemotron 3 Ultra (NVIDIA/NemoClaw), Kimi, NousResearch (env: `LLM_BACKEND`) |
-| `fhe_client.py` | Zama FHE sealed-ballot votes — encrypts the verdict via `scripts/fhe_encrypt_vote.mjs` and submits to `WeftMilestoneConfidential` on Sepolia (env: `WEFT_MILESTONE_CONFIDENTIAL`, `FHE_SEPOLIA_RPC`); also supports v2 weighted ballots via `fhe_encrypt_weighted_vote.mjs` (env: `WEFT_MILESTONE_CONFIDENTIAL_WEIGHTED`) |
+| `indexer_client.py` | Unified indexer: 0G KV → onchain events fallback |
+| `axl_client.py` | AXL binary P2P transport for peer verdict broadcast |
+| `keeperhub_client.py` | KeeperHub reliable onchain execution |
+| `fal_client.py` | fal.ai text-to-image for milestone swatch + chronicle covers |
+| `stripe_skills_client.py` | Stripe Skills autonomous spend + revenue sweep |
+| `llm_backend.py` | Pluggable LLM backend: Nemotron / Kimi / NousResearch |
+| `fhe_client.py` | Zama FHE sealed-ballot votes (v1 FHE.add / v2 FHE.mul) |
 | `eth_rpc.py` | Low-level Ethereum RPC helpers |
 | `weft_topics.py` | Event topic constants for WeftMilestone |
 | `verifier_registry_reader.py` | Reads verifier list from VerifierRegistry |
@@ -152,7 +107,7 @@ The single source of truth for all shared agent logic. All scripts import from h
 | `verdict_envelope.py` | Signed envelope construction/verification |
 | `metadata_reader.py` | Reads milestone metadata from 0G Storage |
 | `bundle_manifest.py` | Deterministic bundle manifest (hashes + sizes) |
-| `bundle_pack.py` | Packs attestation directory into `bundle.tar.gz` |
+| `bundle_pack.py` | Packs attestation dir into `bundle.tar.gz` |
 | `__init__.py` | Re-exports all public symbols |
 
 ## Verification Flow
@@ -163,29 +118,26 @@ milestone deadline passes
         ▼
 deadline_scheduler.poll_pending_milestones()
         │
-        ├─ github_client.collect_github_evidence()  (commits + PRs)
-        ├─ mvp_verifier.count_unique_callers()       (usage signal)
-        ├─ mvp_verifier.eth_get_code()              (deployment signal)
+        ├─ github_client.collect_github_evidence()
+        ├─ mvp_verifier.count_unique_callers()
+        ├─ mvp_verifier.eth_get_code()
         │
         ├─ [optional] kimi_client.generate_narrative()
-        ├─ [optional] kimi_client.generate_chronicle()  (Builder Journey)
-        ├─ [optional] chronicle.write_card()             (milestone card HTML)
+        ├─ [optional] kimi_client.generate_chronicle()
+        ├─ [optional] chronicle.write_card()
         ├─ [optional] zero_storage.write_evidence_to_storage()
         │
         ▼
-mvp_verifier.build_attestation()  → attestation JSON
+mvp_verifier.build_attestation()
         │
         ▼
 keeperhub_client.execute_verdict()  → KeeperHub (preferred)
-        │   ├─ fallback: cast send submitVerdict()  (onchain vote)
-        │   ├─ v1 confidential: fhe_client.submit_encrypted_verdict()
-        │   │    (Zama FHE sealed ballot — FHE.add, vote encrypted, never decrypted)
-        │   └─ v2 confidential: fhe_client.submit_encrypted_weighted_verdict()
-        │        (Zama FHE weighted ballot — FHE.mul, ballot × confidence, never decrypted)
-        │        confidence = deterministic score from evidence strength (1-100)
+        │   ├─ fallback: cast send submitVerdict()
+        │   ├─ v1: fhe_client.submit_encrypted_verdict() (FHE.add)
+        │   └─ v2: fhe_client.submit_encrypted_weighted_verdict() (FHE.mul)
         │
         ▼
-indexer_client.get_milestone() reads final state
+indexer_client.get_milestone()
 ```
 
 ## Scripts
@@ -324,13 +276,7 @@ VERIFIER_REGISTRY_ADDRESS=0x...
 
 ### Peer-corroboration mode (recommended for demos)
 
-To make the multi-node behavior more legible, a node can be configured to **wait**
-until it observes a threshold of matching peer envelopes in `agent/.inbox/` before
-it submits its own onchain vote.
-
-This does **not** change the onchain quorum logic (the contract still enforces
-2-of-3). It simply adds an offchain safety gate so a node won’t vote if peers
-disagree on `(verified, evidenceRoot)`.
+To make the multi-node behavior more legible, a node can wait until it observes a threshold of matching peer envelopes in `agent/.inbox/` before submitting its own onchain vote. This does **not** change the onchain quorum logic (2-of-3). It adds an offchain safety gate so a node won't vote if peers disagree on `(verified, evidenceRoot)`.
 
 ```bash
 export AXL_WAIT_FOR_PEERS=1
@@ -346,8 +292,7 @@ When `AXL_USE_CONSENSUS_ROOT=1`, the daemon will:
 3) compute a deterministic `consensusRoot = keccak(canonical_json(consensus.json))`
 4) submit `consensusRoot` onchain as the `evidenceRoot`
 
-This keeps the contract unchanged while making the onchain `evidenceRoot` prove the
-offchain signer set (signatures over `baseEvidenceRoot`).
+This keeps the contract unchanged while making the onchain `evidenceRoot` prove the offchain signer set (signatures over `baseEvidenceRoot`).
 
 ```bash
 export AXL_USE_CONSENSUS_ROOT=1
@@ -373,9 +318,7 @@ Written KV keys:
 - `weft:milestone:<milestoneHash>:consensus` -> `<0g_root_of_consensus.json>`
 - `weft:consensus:<consensusRoot>` -> `<0g_root_of_consensus.json>`
 
-> **KV key namespace**: Weft uses the `weft:` prefix for all 0G KV keys to avoid
-> collisions with other teams writing to the same stream. The full convention is
-> `weft:<entity>:<id>:<artifact>`. Do not write keys outside this namespace.
+> **KV key namespace**: Weft uses the `weft:` prefix for all 0G KV keys to avoid collisions. Convention: `weft:<entity>:<id>:<artifact>`.
 
 #### Publishing the full attestation bundle to 0G (recommended)
 
@@ -501,9 +444,7 @@ NOUS_MODEL               # NousResearch model name (default: NousResearch/Hermes
 KeeperHub (optional — reliable onchain execution with retry, gas optimization, and audit trails):
 ```bash
 KEEPERHUB_API_KEY        # API key from app.keeperhub.com (enables KeeperHub execution)
-KEEPERHUB_API_URL        # Optional API URL override (default: https://app.keeperhub.com)
-                         # Use this to point at a testnet/staging KeeperHub instance,
-                         # e.g. export KEEPERHUB_API_URL="https://staging.keeperhub.com"
+KEEPERHUB_API_URL        # Optional override (default: https://app.keeperhub.com)
 KEEPERHUB_TIMEOUT        # Seconds to wait for tx confirmation (default: 120)
 KEEPERHUB_ENABLED        # Set to "0" to disable even if API key is set (default: "1")
 ```
@@ -522,10 +463,24 @@ FHE_SEPOLIA_RPC                        # Sepolia RPC for FHE transactions
 WEFT_MILESTONE_CONFIDENTIAL            # v1 contract address (FHE.add sealed ballots)
 WEFT_MILESTONE_CONFIDENTIAL_WEIGHTED   # v2 contract address (FHE.mul weighted ballots)
 ```
-When `WEFT_MILESTONE_CONFIDENTIAL_WEIGHTED` is set, the daemon computes a deterministic
-confidence score (1-100) from evidence strength and submits a weighted encrypted ballot
-via `FHE.mul`. When only `WEFT_MILESTONE_CONFIDENTIAL` is set, it submits a boolean
-encrypted ballot via `FHE.add`.
+When `WEFT_MILESTONE_CONFIDENTIAL_WEIGHTED` is set, the daemon computes a deterministic confidence score (1-100) from evidence strength and submits a weighted encrypted ballot via `FHE.mul`. When only `WEFT_MILESTONE_CONFIDENTIAL` is set, it submits a boolean encrypted ballot via `FHE.add`.
+
+Frontend observability demo (`frontend/src/app/api/observability/demo/route.ts`):
+```bash
+# Required
+WEFT_REPO_ROOT            # Absolute path to the Weft repo root so the demo route can locate agent/scripts/weft_signoz_smoke.py
+OTEL_EXPORTER_OTLP_HEADERS # SigNoz ingest token / headers (must be set on the frontend host for the demo to emit traces)
+
+# Optional
+WEFT_SIGNOZ_PYTHON        # Path to the Python binary to run weft_signoz_smoke.py (default: python3)
+OTEL_SERVICE_NAME         # Service name for demo traces (default: weft-daemon)
+OTEL_RESOURCE_ATTRIBUTES  # Comma-separated resource attributes (default: service.name=weft-daemon,deployment.environment=demo,weft.demo.batch=winning-position)
+OTEL_EXPORTER_OTLP_ENDPOINT # SigNoz OTLP endpoint (default: https://ingest.us2.signoz.cloud:443)
+OTEL_EXPORTER_OTLP_PROTOCOL # OTLP protocol: grpc or http/protobuf (default: http/protobuf)
+WEFT_OTEL_EXPORT_TIMEOUT  # Trace export timeout in seconds (default: 10)
+```
+
+> **Security note:** This route is intended for trusted/local demo environments. `WEFT_REPO_ROOT` determines which Python script is executed; never expose the route publicly without authenticating callers. Keep `OTEL_EXPORTER_OTLP_HEADERS` (which contains your SigNoz ingest token) in a secret store or `.env` file — do not commit it.
 
 ## Hermes Agent Setup
 
@@ -573,19 +528,19 @@ adding a new skill — just create a new subdirectory with a `SKILL.md`.
 
 ## What's Planned But Not Yet
 
-| Component | Reason |
+| Component | Status |
 |---|---|
-| AXL multi-node consensus | ✅ Implemented — real AXL binary with encrypted P2P transport; live node at `/api/status/axl` |
-| KeeperHub capital release | KeeperHub `scheduleRelease()` not deployed (contract-level integration) |
-| ENS text record updates | ✅ Implemented — `weft.thisyearnofear.eth` live with 6 records; subname issuance wired into daemon |
-| 0G Storage in production | ✅ Public testnet indexer available: `https://indexer-storage-testnet-turbo.0g.ai` |
-| Kimi narrative synthesis | ✅ Implemented — `generate_chronicle()` + `generate_narrative()` via `api.moonshot.ai/v1` |
-| Hermes skills auto-load | ✅ Implemented — `external_dirs` wired, `SOUL.md` identity written, `hermes_weft.sh` launcher |
-| MCP server | ✅ Implemented — `GET /mcp/tools`, `POST /mcp/invoke` on `weft_status_api.py`; exposes chronicle, status, verify tools to any MCP client |
-| Chat / conversational interface | ✅ Implemented — `POST /chat` on status API + `AskWeft` widget on frontend landing page; intent-routes to chronicle/status/verify |
-| ComfyUI milestone swatches | ✅ Implemented — `generate_milestone_image_comfyui()` in `fal_client.py` as supplement to fal.ai; submits workflow to local ComfyUI REST API |
-| Manim weaving animation | ✅ Implemented — `weft-manim` Hermes skill generates animated verification flow (warp→weft→fabric) as MP4; served at `/manim/<name>` on status API |
-| Chronicle on frontend | ✅ Implemented — `/milestone/<hash>/story` page with `localStorage` cache; `ChronicleShowcase` on landing page; `POST /chronicle/generate` API endpoint |
+| AXL multi-node consensus | ✅ Implemented — encrypted P2P transport; live node at `/api/status/axl` |
+| KeeperHub capital release | `scheduleRelease()` not deployed (contract-level) |
+| ENS text record updates | ✅ Implemented — `weft.thisyearnofear.eth` live with 6 records |
+| 0G Storage in production | ✅ Public testnet indexer at `https://indexer-storage-testnet-turbo.0g.ai` |
+| Kimi narrative synthesis | ✅ Implemented — `generate_chronicle()` + `generate_narrative()` |
+| Hermes skills auto-load | ✅ Implemented — `external_dirs` wired, `SOUL.md`, `hermes_weft.sh` |
+| MCP server | ✅ Implemented — `GET /mcp/tools`, `POST /mcp/invoke` on status API |
+| Chat / conversational | ✅ Implemented — `POST /chat` + `AskWeft` widget on landing page |
+| ComfyUI swatches | ✅ Implemented — `generate_milestone_image_comfyui()` in `fal_client.py` |
+| Manim weaving animation | ✅ Implemented — `weft-manim` skill; served at `/manim/<name>` |
+| Chronicle on frontend | ✅ Implemented — `/milestone/<hash>/story` page + `ChronicleShowcase` |
 
 ## Config
 
@@ -726,125 +681,41 @@ See [`signoz/README.md`](../signoz/README.md).
 <!-- BEGIN TESTSPRITE AGENT SECTION (testsprite agent install codex) -->
 # TestSprite Verification Loop
 
-After finishing a feature or fix in a TestSprite-tested repo, use the `testsprite`
-CLI to run the relevant TestSprite tests against the change and inspect any failure
-artifacts before reporting the work as done. Use whenever code has changed outside
-docs/config and is about to be reported complete.
+Run `testsprite` after a feature/fix lands (skip docs-only or build-only changes).
 
-## When to run
-
-Run after a feature or fix lands. Skip only for: docs-only edits, pure
-build/config changes, or when the repo has no TestSprite project linked.
-
-## Core loop
-
-### 1. Preflight
+## Quickstart
 
 ```bash
-testsprite --version          # CLI installed?
-testsprite auth whoami        # credentials valid?
-```
+# Preflight
+testsprite --version && testsprite auth whoami
 
-If `--version` fails, tell the user to install the CLI and stop.
-If `auth whoami` fails, tell the user to run `testsprite auth configure` and stop.
-
-### 2. Find the project
-
-In order: `$TESTSPRITE_PROJECT_ID` → `.testsprite/config.json` → `testsprite project list --output json`.
-
-### 3. Run
-
-```bash
-# New frontend test from plan (most common)
+# Find project: $TESTSPRITE_PROJECT_ID → .testsprite/config.json → testsprite project list
+# Run new frontend test
 testsprite test create --plan-from plan.json --run --wait \
   --target-url https://staging.example.com --timeout 600 --output json
 
-# Existing test
-testsprite test run <test-id> --target-url https://staging.example.com \
-  --wait --timeout 600 --output json
+# Run existing test or replay
+testsprite test run <test-id> --target-url https://staging.example.com --wait --timeout 600
+testsprite test rerun <test-id> --wait
 
-# New backend test from Python assertion file
-testsprite test create --type backend --name "Login rejects empty password" \
-  --project <id> --code-file /tmp/test.py --run --wait --timeout 600
-
-# Replay (cheaper than a fresh run — reuses saved test code)
-testsprite test rerun <test-id> --wait --output json
-
-# Backend tests sharing state: declare the dependency graph at create time;
-# the wave engine orders runs (producers → consumers → teardown last)
-testsprite test create --type backend --project <id> --code-file /tmp/login.py \
-  --name "login issues an auth token" --produces auth_token
-testsprite test create --type backend --project <id> --code-file /tmp/profile.py \
-  --name "profile update accepts the token" --needs auth_token
-testsprite test create --type backend --project <id> --code-file /tmp/cleanup.py \
-  --name "fixture user is deleted" --category teardown
-
-# Wave-ordered batch fresh run (BE tests, all or filtered)
+# Backend: wave-ordered batch
 testsprite test run --all --project <id> [--filter <substr>] \
   --wait --max-concurrency 4 --output json
-```
 
-**Key behaviors:**
-
-- `--target-url` must be publicly reachable (no localhost / RFC1918) and must
-  already have the change deployed (e.g. a CI preview deploy) — the CLI tests a
-  deployed URL, it doesn't host your environment. Running earlier verifies the
-  previous build.
-- Backend `--code-file`: the runner executes the file top-to-bottom (not `pytest`), so **call your `test_*` function(s) at the end of the file** — a defined-but-uncalled test silently passes.
-- Backend sandbox has only stdlib + `requests` + `pytest` + `numpy` + `scipy`. Test the API over HTTP with `requests`; do **not** `import` the project's own source modules or other packages (e.g. `torch`) — they aren't installed and the test won't run.
-- `--wait` long-polls until terminal. Do not wrap it in a retry loop.
-- Exit `0` = passed; `1` = failed/blocked; `7` = timeout (resume with `test wait <run-id>`).
-- BE dependency flags (`--produces`/`--needs`/`--category`) are backend-only and
-  **create-only** — they can't be read back or edited later (delete + recreate to
-  change the graph). Don't hand-sequence `test run` calls to fake ordering; use
-  `test run --all` so the engine passes captured variables between waves.
-- A BE `test rerun` dispatches the whole producer/teardown closure, side effects
-  included; `--skip-dependencies` reruns only the named test. If a producer failed
-  in the same closure, the consumer's failure is starvation (missing token/fixture)
-  — triage the producer first; it does not implicate your change.
-- `create` and `--wait` output include a `dashboardUrl` — if the user wants to
-  inspect a test or run themselves, point them there.
-
-### 4. On failure — download the artifact
-
-```bash
+# On failure
 testsprite test artifact get <run-id> --out ./.testsprite/runs/<run-id>/
+
+# Dry-run (no credentials needed)
+testsprite test run <test-id> --dry-run
 ```
 
-Inspect the bundle (failing step, screenshots, root-cause hypothesis) before
-deciding whether your change caused the failure.
+**Rules:** `--target-url` must be publicly reachable. BE `--code-file` runs top-to-bottom (call `test_*` at end). Sandbox has stdlib+requests+pytest+numpy+scipy only. `--wait` long-polls; exit 0=pass, 1=fail, 7=timeout. BE deps (`--produces`/`--needs`/`--category`) are create-only.
 
-### 5. One more tool — dry-run for learning
-
-Every command works without credentials under `--dry-run`:
+## Bootstrap
 
 ```bash
-testsprite test run <test-id> --dry-run --output json
-testsprite test create --plan-from plan.json --dry-run --output json
+npm install -g @testsprite/testsprite-cli && testsprite setup
 ```
 
-## Exit-code quick reference
-
-| Code | Meaning                                           |
-| ---- | ------------------------------------------------- |
-| 0    | Success (passed)                                  |
-| 1    | Failed / blocked / cancelled                      |
-| 3    | Auth error                                        |
-| 4    | Not found                                         |
-| 5    | Validation error                                  |
-| 6    | Conflict (already running)                        |
-| 7    | Timeout — resume: `testsprite test wait <run-id>` |
-| 11   | Rate limited (retriable)                          |
-| 12   | Insufficient credits                              |
-
-## Bootstrap (first-time setup)
-
-```bash
-npm install -g @testsprite/testsprite-cli
-testsprite setup         # configure + verify + install agent skill in one shot
-```
-
-Verify your setup anytime: `testsprite auth status`.
-
-**First-time setup:** if this repo has no TestSprite tests yet, seed a *broad* first suite across its main user flows — not just one test — each with a concrete, observable assertion, before reporting setup as done.
+Seed a broad suite across main user flows, not just one test.
 <!-- END TESTSPRITE AGENT SECTION -->

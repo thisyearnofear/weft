@@ -1,25 +1,20 @@
 import { spawnSync } from "node:child_process";
-import path from "node:path";
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 
 const COOLDOWN_MS = 45_000;
 let lastRunAt = 0;
 
-function repoRoot(): string {
-  return (
-    process.env.WEFT_REPO_ROOT?.trim() ||
-    path.join(/* turbopackIgnore: true */ process.cwd(), "..")
-  );
+// Resolve runtime paths from env vars only. Avoid process.cwd() and
+// dynamic path.join() against the repo root here — they cause Turbopack's
+// file tracer to include the whole project in the standalone output.
+function repoRoot(): string | null {
+  return process.env.WEFT_REPO_ROOT?.trim() ?? null;
 }
 
-function pythonBin(root: string): string {
-  const candidates = [
-    process.env.WEFT_SIGNOZ_PYTHON?.trim(),
-    path.join(root, ".venv-signoz", "bin", "python"),
-    path.join(root, "venv", "bin", "python"),
-    "python3",
-  ].filter(Boolean) as string[];
-  return candidates[0] ?? "python3";
+function pythonBin(): string {
+  return process.env.WEFT_SIGNOZ_PYTHON?.trim() ?? "python3";
 }
 
 export async function POST() {
@@ -47,8 +42,19 @@ export async function POST() {
   }
 
   const root = repoRoot();
-  const script = path.join(root, "agent/scripts/weft_signoz_smoke.py");
-  const python = pythonBin(root);
+  if (!root) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "repo_root_not_configured",
+        detail: "Set WEFT_REPO_ROOT on the frontend host so the demo can locate agent/scripts/weft_signoz_smoke.py.",
+      },
+      { status: 503 }
+    );
+  }
+
+  const python = pythonBin();
+  const script = `${root.replace(/\/+$/g, "")}/agent/scripts/weft_signoz_smoke.py`;
 
   const env = {
     ...process.env,
@@ -67,7 +73,6 @@ export async function POST() {
     python,
     [script, "--scenario", "fallback", "--milestone-hash", "0xwinningagent2"],
     {
-      cwd: root,
       env,
       encoding: "utf-8",
       timeout: 30_000,

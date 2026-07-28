@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useMemo } from "react";
 import { ArrowRight, Bot, Sparkles, Lock, Zap, Eye } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 import { HeroLoom } from "@/components/HeroLoom";
 import { MilestoneCard } from "@/components/MilestoneCard";
@@ -159,20 +160,20 @@ export default function Home() {
           </p>
 
           <div className={`${styles.heroActions} stagger stagger-4`}>
-            <Link
+            <Button
               href="/canton"
-              className={styles.primaryAction}
-              onClick={() => track("hero_canton_door_click")}
+              variant="primary"
+              onClick={() => track("hero_pilot_click")}
             >
-              Open program ops <ArrowRight size={16} />
-            </Link>
-            <Link
+              Request a pilot <ArrowRight size={16} />
+            </Button>
+            <Button
               href="/sponsor"
-              className={styles.secondaryAction}
-              onClick={() => track("hero_fund_door_click")}
+              variant="secondary"
+              onClick={() => track("hero_sponsor_click")}
             >
-              Program dashboard <ArrowRight size={16} />
-            </Link>
+              Sponsor dashboard <ArrowRight size={16} />
+            </Button>
           </div>
 
           {/* Honest environment line — demo rails, not production money */}
@@ -228,6 +229,79 @@ export default function Home() {
       </Reveal>
 
       {/* ════════════════════════════════════════════════════════════════
+          OKX.AI — Agent Service Provider
+          ════════════════════════════════════════════════════════════════ */}
+      <Reveal as="section" className={styles.section} delay={85}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>OKX.AI Agent Service Provider</span>
+            <h2 className={styles.sectionTitle}>Hire Weft as an agent</h2>
+          </div>
+        </div>
+        <p className={`${styles.sectionText} ${styles.sectionLede}`}>
+          Weft is joining the OKX.AI agent marketplace. Other agents will be
+          able to hire it for deterministic milestone verification — via
+          pay-per-call MCP tools or as a neutral judge inside agent-to-agent
+          escrow.
+        </p>
+        <div className={styles.demoGrid}>
+          <Link
+            href="/api/docs"
+            className={styles.demoCard}
+            onClick={() => track("okx_mcp_click")}
+          >
+            <div className={styles.demoIcon}><Zap size={20} /></div>
+            <span className={styles.demoKicker}>Agent-to-MCP</span>
+            <h3 className={styles.demoTitle}>Pay-per-call tools</h3>
+            <p className={styles.demoBody}>
+              Standardized Model Context Protocol integration. Agents query
+              verify, narrate, attest, and chronicle over x402 on X Layer.
+            </p>
+            <span className={styles.demoLink}>
+              View API docs <ArrowRight size={14} />
+            </span>
+          </Link>
+          <a
+            href="https://github.com/thisyearnofear/weft/blob/main/docs/OKX-AI-SUBMISSION.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.demoCard}
+            onClick={() => track("okx_a2a_click")}
+          >
+            <div className={styles.demoIcon}><Bot size={20} /></div>
+            <span className={styles.demoKicker}>Agent-to-Agent</span>
+            <h3 className={styles.demoTitle}>Escrow verification</h3>
+            <p className={styles.demoBody}>
+              Neutral judge for A2A escrow. Weft collects evidence, reaches
+              multi-node consensus over AXL, and triggers release or refund.
+            </p>
+            <span className={styles.demoLink}>
+              Read integration plan <ArrowRight size={14} />
+            </span>
+          </a>
+        </div>
+        <div className={styles.okxActions}>
+          <Button
+            href="https://github.com/thisyearnofear/weft/blob/main/docs/OKX-AI-SUBMISSION.md"
+            variant="primary"
+            external
+            onClick={() => track("okx_ai_plan_click")}
+          >
+            Read OKX.AI plan <ArrowRight size={16} />
+          </Button>
+          <span className={styles.comingSoonBadge}>Listing pending</span>
+          <Button
+            href="https://okx.ai"
+            variant="secondary"
+            external
+            onClick={() => track("okx_ai_visit_click")}
+          >
+            Visit OKX.AI <ArrowRight size={16} />
+          </Button>
+        </div>
+      </Reveal>
+
+      {/* ════════════════════════════════════════════════════════════════
           HOW IT WORKS — the weave story (Lock → Ship → Verify → Release)
           This is the narrative arc the page was missing. De-carded:
           steps are acts in a story, connected by the weft thread.
@@ -271,37 +345,37 @@ export default function Home() {
           how consensus can be reached without exposing individual votes — then
           let you decrypt the result yourself.
         </p>
-        <div className={styles.fheDemoGrid}>
+        <div className={styles.demoGrid}>
           <Link
             href={`/project/${DEMO_FHE_V1_HASH}?confidential=1`}
-            className={styles.fheDemoCard}
+            className={styles.demoCard}
             onClick={() => track("fhe_demo_v1_click")}
           >
-            <div className={styles.fheDemoIcon}><Lock size={20} /></div>
-            <span className={styles.fheDemoKicker}>v1 · Sealed ballots</span>
-            <h3 className={styles.fheDemoTitle}>Boolean quorum</h3>
-            <p className={styles.fheDemoBody}>
+            <div className={styles.demoIcon}><Lock size={20} /></div>
+            <span className={styles.demoKicker}>v1 · Sealed ballots</span>
+            <h3 className={styles.demoTitle}>Boolean quorum</h3>
+            <p className={styles.demoBody}>
               Each verifier encrypts a yes/no ballot. The contract checks quorum
               on encrypted votes and only reveals the final pass/fail result.
             </p>
-            <span className={styles.fheDemoLink}>
+            <span className={styles.demoLink}>
               Open &amp; decrypt <ArrowRight size={14} />
             </span>
           </Link>
           <Link
             href={`/project/${DEMO_FHE_V2_HASH}?weighted=1`}
-            className={styles.fheDemoCard}
+            className={styles.demoCard}
             onClick={() => track("fhe_demo_v2_click")}
           >
-            <div className={styles.fheDemoIcon}><Zap size={20} /></div>
-            <span className={styles.fheDemoKicker}>v2 · Weighted consensus</span>
-            <h3 className={styles.fheDemoTitle}>Confidence-weighted votes</h3>
-            <p className={styles.fheDemoBody}>
+            <div className={styles.demoIcon}><Zap size={20} /></div>
+            <span className={styles.demoKicker}>v2 · Weighted consensus</span>
+            <h3 className={styles.demoTitle}>Confidence-weighted votes</h3>
+            <p className={styles.demoBody}>
               Each verifier encrypts a ballot and a confidence score. The
               contract weights every vote before revealing only the weighted
               outcome.
             </p>
-            <span className={styles.fheDemoLink}>
+            <span className={styles.demoLink}>
               Open &amp; decrypt <ArrowRight size={14} />
             </span>
           </Link>

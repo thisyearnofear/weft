@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   experimental: {
     viewTransition: true,
   },
+  // The observability demo route shells out to a Python script located by an
+  // env-var path. Exclude that route's trace from pulling in the whole repo.
+  outputFileTracingExcludes: {
+    '/api/observability/demo': ['**/*'],
+  },
   images: {
     remotePatterns: [
       {

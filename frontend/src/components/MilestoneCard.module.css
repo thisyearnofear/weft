@@ -225,12 +225,18 @@
   margin-top: 1rem;
 }
 
-.swatch {
+.swatchWrap {
+  position: relative;
   width: 100%;
   height: 80px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.swatch {
   object-fit: cover;
   border-radius: var(--radius-md);
-  margin-bottom: 0.75rem;
   opacity: 0.85;
   transition: opacity var(--transition-base);
 }

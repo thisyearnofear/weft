@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowUpRight, BookOpen, CheckCircle2, Clock3, Coins, Database, ShieldCheck, XCircle, Wallet, AlertTriangle, Loader2, Bot } from "lucide-react";
@@ -376,10 +377,13 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
                 </p>
               </div>
               <div className={styles.falSwatchImageWrap}>
-                <img
+                <Image
                   src={falImageUrl}
                   alt="AI-generated woven swatch — visual proof of this milestone's verification metrics"
                   className={styles.falSwatchImage}
+                  fill
+                  unoptimized
+                  sizes="(max-width: 768px) 100vw, 380px"
                 />
                 <div className={styles.falSwatchOverlay} />
               </div>

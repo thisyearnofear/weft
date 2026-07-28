@@ -44,7 +44,26 @@ from agent.lib.peer_inbox import best_group, consensus_signers_for_base_root  # 
 from agent.lib.recovery import get_recovery_log  # noqa: E402
 from agent.lib.weft_milestone_reader import read_milestone  # noqa: E402
 
+try:
+    from agent.lib.x402_middleware import X402Middleware, env_middleware, ToolPricing  # noqa: E402
+    from agent.lib.okx_wallet_client import wallet_address  # noqa: E402
+except ImportError:
+    X402Middleware = None  # type: ignore
+    env_middleware = None  # type: ignore
+    ToolPricing = None  # type: ignore
+    wallet_address = None  # type: ignore
+
 _ATTESTATIONS_DIR = os.path.join("agent", ".attestations")
+
+
+def _x402_middleware() -> "X402Middleware | None":
+    """Lazy-initialize x402 middleware from environment."""
+    if X402Middleware is None:
+        return None
+    try:
+        return env_middleware()
+    except Exception:
+        return None
 
 
 def main() -> int:
@@ -515,12 +534,15 @@ def _make_handler(
 
             return self._send_json(200, resp)
 
-        def _send_json(self, code: int, obj: dict):
+        def _send_json(self, code: int, obj: dict, *, extra_headers: dict | None = None):
             body = json.dumps(obj).encode("utf-8")
             self.send_response(code)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Access-Control-Allow-Origin", "*")
+            if extra_headers:
+                for key, value in extra_headers.items():
+                    self.send_header(key, value)
             self.end_headers()
             self.wfile.write(body)
 
@@ -664,6 +686,15 @@ def _make_handler(
             tool = body.get("tool", "")
             params = body.get("params", {})
 
+            # x402 payment guard for paid MCP tools
+            mw = _x402_middleware()
+            if mw and mw.is_paid_tool(tool):
+                request_headers = {k.lower(): v for k, v in self.headers.items()}
+                result, status, extra_headers = mw.handle(tool, params, request_headers)
+                if status != 200:
+                    return self._send_json(status, result, extra_headers=extra_headers)
+                # Payment verified; fall through to execute the tool
+
             if tool == "chronicle":
                 # Reuse existing chronicle generation
                 milestone_hash = params.get("milestoneHash", "")
@@ -699,7 +730,7 @@ def _make_handler(
                 # Return current verification evidence
                 try:
                     m = read_milestone(rpc, weft, milestone_hash, use_cache=False)
-                    return self._send_json(200, {
+                    evidence = {
                         "ok": True,
                         "tool": "verify",
                         "milestoneHash": milestone_hash,
@@ -707,7 +738,10 @@ def _make_handler(
                         "finalized": bool(m.finalized),
                         "builder": m.builder,
                         "deadline": int(m.deadline),
-                    })
+                    }
+                    # Attach x402 payment response headers if present
+                    extra = getattr(self, "_x402_headers", None)
+                    return self._send_json(200, evidence, extra_headers=extra)
                 except Exception as e:
                     return self._send_json(500, {"ok": False, "error": str(e)})
 
@@ -852,16 +886,19 @@ def _mcp_tools_list() -> dict:
                 "name": "chronicle",
                 "description": "Generate a Builder Journey narrative for a milestone using Kimi.",
                 "parameters": {"milestoneHash": {"type": "string", "required": True}},
+                "pricing": {"amount": "50000", "currency": "USDC", "network": "eip155:84532"},
             },
             {
                 "name": "status",
                 "description": "Check the onchain status of a milestone (verified, staked, deadline).",
                 "parameters": {"milestoneHash": {"type": "string", "required": True}},
+                "pricing": {"free": True},
             },
             {
                 "name": "verify",
                 "description": "Return current verification evidence for a milestone.",
                 "parameters": {"milestoneHash": {"type": "string", "required": True}},
+                "pricing": {"amount": "10000", "currency": "USDC", "network": "eip155:84532"},
             },
         ],
         "invoke_endpoint": "/mcp/invoke",

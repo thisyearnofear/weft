@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import type { Milestone, MilestoneState } from "@/lib/milestone-types";
@@ -130,7 +131,16 @@ export function MilestoneCard({ milestone, index = 0, swatchUrl, confidential = 
 
       <div className={styles.cardBottom}>
         {swatchUrl && (
-          <img src={swatchUrl} alt="AI-woven milestone swatch" className={styles.swatch} />
+          <div className={styles.swatchWrap}>
+            <Image
+              src={swatchUrl}
+              alt="AI-woven milestone swatch"
+              className={styles.swatch}
+              fill
+              unoptimized
+              sizes="(max-width: 480px) 100vw, 320px"
+            />
+          </div>
         )}
         <div className={styles.ctaRow}>
           <span className={styles.cta}>

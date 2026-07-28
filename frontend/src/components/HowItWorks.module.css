@@ -22,16 +22,30 @@
    Scroll-driven: the active step lifts slightly; all steps stay fully
    readable so the narrative is never interrupted. */
 .stepCard {
+  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   padding: 1.25rem 1.25rem;
-  transition: transform 0.3s var(--ease-out), opacity 0.3s var(--ease-out);
+  border-radius: var(--radius-md);
+  transition: transform 0.3s var(--ease-out), opacity 0.3s var(--ease-out), background 0.3s var(--ease-out);
 }
 
 .stepCard[data-active="true"] {
   transform: translateY(-2px);
+  background: var(--c-surface);
+}
+
+.stepCard[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  width: 2px;
+  background: var(--c-accent);
+  border-radius: 2px;
 }
 
 .stepCard:hover {
@@ -123,7 +137,23 @@
 }
 
 /* ── Responsive ── */
-@media (max-width: 900px) {
+@media (min-width: 641px) and (max-width: 1024px) {
+  .stepsRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .stepWrapper {
+    min-width: auto;
+  }
+
+  .connector {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
   .stepsRow {
     flex-direction: column;
     gap: 0.75rem;

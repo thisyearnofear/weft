@@ -3,28 +3,33 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import styles from "./Nav.module.css";
 
 // Primary nav: institutional rail first, then public read surfaces.
 // Builder create on 0G Testnet is a secondary wedge (not the front door).
-const NAV_GROUPS = [
+type NavLink = { href: string; label: string; external?: boolean };
+type NavGroup = { label: string; links: NavLink[] };
+
+const NAV_GROUPS: NavGroup[] = [
   {
     label: "Explore",
     links: [
       { href: "/explorer", label: "Explorer" },
       { href: "/activity", label: "Activity" },
+      { href: "/observability", label: "Observatory" },
     ],
   },
 ];
 
-const DEV_LINKS = [
+const DEV_LINKS: NavLink[] = [
   { href: "/create-milestone", label: "Builder create (0G Testnet)" },
   { href: "/verifiers", label: "Verifiers" },
-  { href: "/observability", label: "Agent observatory" },
   { href: "/confidential", label: "Confidential vault" },
   { href: "/operations", label: "Operations" },
   { href: "/api/docs", label: "API docs" },
+  { href: "https://okx.ai", label: "OKX.AI ASP", external: true },
 ];
 
 export function Nav() {
@@ -74,20 +79,12 @@ export function Nav() {
       </button>
 
       <nav className={styles.desktopNav} aria-label="Main navigation">
-        <Link
-          href="/canton"
-          className={styles.navCta}
-          aria-label="Post-award program ops"
-        >
-          Program ops
-        </Link>
-        <Link
-          href="/sponsor"
-          className={styles.navCtaSecondary}
-          aria-label="Program dashboard"
-        >
-          Programs
-        </Link>
+        <Button href="/canton" variant="nav" size="sm" ariaLabel="Post-award grant pilot">
+          Grant pilot
+        </Button>
+        <Button href="/sponsor" variant="navGhost" size="sm" ariaLabel="Sponsor dashboard">
+          Sponsor dashboard
+        </Button>
 
         {NAV_GROUPS.map((group, gi) => (
           <div key={group.label} className={styles.navGroup}>
@@ -118,18 +115,36 @@ export function Nav() {
           </button>
           {devOpen && (
             <div className={styles.navDropdownMenu} role="menu">
-              {DEV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={styles.navDropdownItem}
-                  role="menuitem"
-                  aria-current={isActive(link.href) ? "page" : undefined}
-                  onClick={() => setDevOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {DEV_LINKS.map((link) =>
+                link.external ? (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    className={styles.navDropdownItem}
+                    role="menuitem"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${link.label} (opens in new tab)`}
+                    onClick={() => setDevOpen(false)}
+                  >
+                    <span className={styles.externalLinkWrapper}>
+                      {link.label}
+                      <ExternalLink size={12} aria-hidden="true" />
+                    </span>
+                  </a>
+                ) : (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={styles.navDropdownItem}
+                    role="menuitem"
+                    aria-current={isActive(link.href) ? "page" : undefined}
+                    onClick={() => setDevOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                )
+              )}
             </div>
           )}
         </div>
@@ -142,7 +157,7 @@ export function Nav() {
             className={styles.mobileNavCta}
             onClick={() => setOpen(false)}
           >
-            Program ops
+            Grant pilot
           </Link>
           <Link
             href="/sponsor"
@@ -150,22 +165,39 @@ export function Nav() {
             onClick={() => setOpen(false)}
             aria-current={isActive("/sponsor") ? "page" : undefined}
           >
-            Programs
+            Sponsor dashboard
           </Link>
           {[...NAV_GROUPS, { label: "Developers", links: DEV_LINKS }].map((group) => (
             <div key={group.label} className={styles.mobileNavGroup}>
               <span className={styles.mobileNavLabel}>{group.label}</span>
-              {group.links.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`${styles.mobileNavLink} ${isActive(link.href) ? styles.mobileNavLinkActive : ""}`}
-                  onClick={() => setOpen(false)}
-                  aria-current={isActive(link.href) ? "page" : undefined}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {group.links.map((link) =>
+                link.external ? (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    className={styles.mobileNavLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${link.label} (opens in new tab)`}
+                    onClick={() => setOpen(false)}
+                  >
+                    <span className={styles.externalLinkWrapper}>
+                      {link.label}
+                      <ExternalLink size={12} aria-hidden="true" />
+                    </span>
+                  </a>
+                ) : (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`${styles.mobileNavLink} ${isActive(link.href) ? styles.mobileNavLinkActive : ""}`}
+                    onClick={() => setOpen(false)}
+                    aria-current={isActive(link.href) ? "page" : undefined}
+                  >
+                    {link.label}
+                  </Link>
+                )
+              )}
             </div>
           ))}
         </nav>

@@ -457,4 +457,37 @@ SigNoz is an open-source observability platform built on OpenTelemetry. This hac
 
 ---
 
-*Archived: May 2026 (entries 1-2, 4) · Jul 2026 (entries 3, 5) · Aug 2026 (entries 6-7)*
+---
+
+## 8. OKX.AI Genesis Hackathon (Jul 2026)
+
+### Submission
+
+**Project:** Weft — Autonomous Milestone Verifier as an OKX.AI Agent Service Provider
+
+**The Vision**
+Weft makes agent-to-agent (A2A) work safe. In a marketplace where AI agents hire each other to build software, run workflows, or deliver services, the hardest problem is proving the work was actually done before escrowed funds are released. Weft solves that by collecting auditable evidence from blockchains, GitHub, and onchain usage signals, running deterministic verification rules, and authorizing escrow release only when the evidence meets a predefined threshold.
+
+**How it works on OKX.AI**
+Weft integrates with OKX.AI as an Agent Service Provider (ASP) in two modes:
+- **Agent-to-MCP**: Other OKX agents call Weft's pay-per-call tools (`verify`, `narrate`, `attest`, `chronicle`) over x402 on X Layer in USDC.
+- **Agent-to-Agent**: Weft acts as a neutral judge inside an escrow, verifying delivery, reaching multi-node consensus over its AXL peer network, persisting evidence to 0G Storage, and triggering release or refund.
+
+The entire pipeline is deterministic by design, so capital decisions are anchored to evidence rather than LLM hallucination.
+
+**Integration Layer**
+- `agent/lib/x402_middleware.py` — x402 middleware with `402 Payment Required` challenges, signature recovery, and optional on-chain USDC balance verification on X Layer.
+- `agent/lib/okx_wallet_client.py` / `agent/lib/okx_escrow.py` — OKX wallet wrapper and A2A escrow adapter with a WeftMilestone fallback and a stub for OKX APP contracts.
+- `agent/hermes.config.yml` / `scripts/hermes_weft.sh` — Hermes wiring for `okx-agentic-wallet` and `okx-agent-payments-protocol` skills.
+- `docs/OKX-AI-SUBMISSION.md` — submission README, setup, demo outline, and checklist.
+
+**Links**
+- **GitHub**: https://github.com/thisyearnofear/weft
+- **OKX.AI Listing**: https://okx.ai
+- **Integration plan**: [`docs/OKX-AI-SUBMISSION.md`](docs/OKX-AI-SUBMISSION.md)
+
+**Team**
+- **Team Name**: Weft
+- **Contact**: @thisyearnofear
+
+*Archived: May 2026 (entries 1-2, 4) · Jul 2026 (entries 3, 5, 8) · Aug 2026 (entries 6-7)*

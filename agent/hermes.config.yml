@@ -35,8 +35,8 @@ python agent/scripts/weft_collect_attestation.py \
 # Output includes:
 #   VERIFIED=true|false
 #   HAS_QUORUM=true|false  (if AXL_PEERS set)
-#   ENS_UPDATED=true|false (if --ens-name provided)
-#   STORAGE_LOG_ROOT=0x... (if 0G configured)
+#   ENS_UPDATED=true|false  (if --ens-name provided)
+#   STORAGE_LOG_ROOT=0x...  (if 0G configured)
 ```
 
 ## Environment Variables
@@ -90,6 +90,62 @@ KEEPERHUB_ENABLED: "1"                 # Set to "0" to disable even if API key i
 # When KEEPERHUB_API_KEY is set: submitVerdict() goes through KeeperHub
 #   (automatic retry, gas optimization, audit trail)
 # When unset: falls back to cast send (existing behavior)
+```
+
+## OKX.AI Agent Service Provider (ASP) Integration
+
+Weft can be listed on OKX.AI as an Agent Service Provider (ASP). It exposes
+derministic milestone verification as pay-per-call MCP tools (Agent-to-MCP)
+and can act as a verifier/judge in Agent-to-Agent escrow workflows.
+
+### Skill wiring
+
+Install the OKX Onchain OS skills into the repo:
+
+```bash
+npx skills add okx/onchainos-skills
+```
+
+Then make sure the relevant skill directories are listed under `external_dirs`
+in `~/.hermes/config.yaml` (or in this file if Hermes is launched from this
+checkout). The paths below are relative to the repo root so they stay portable:
+
+```yaml
+skills:
+  external_dirs:
+    - ./agent/skills
+    - ./.agents/skills/okx-agentic-wallet
+    - ./.agents/skills/okx-agent-payments-protocol
+    # Optional OKX skills (load as needed)
+    # - ./.agents/skills/okx-ai
+    # - ./.agents/skills/okx-guide
+```
+
+### Environment variables
+
+```yaml
+# OKX Agentic Wallet / x402 pay-per-call
+OKX_API_KEY: "..."                          # OKX API key (when skill is installed)
+OKX_SECRET_KEY: "..."                       # OKX secret key
+OKX_AGENTIC_WALLET_ADDRESS: "0x..."          # Wallet address that receives x402 payments
+OKX_X402_NETWORK: "eip155:195"              # X Layer testnet (mainnet = eip155:196)
+OKX_X402_CURRENCY: "USDC"                   # Settlement currency
+OKX_X402_VERIFY_AMOUNT: "10000"             # 0.01 USDC (6 decimals) per verify call
+OKX_X402_NARRATE_AMOUNT: "50000"             # 0.05 USDC per narrate call
+OKX_X402_ATTEST_AMOUNT: "25000"             # 0.025 USDC per attest call
+OKX_X402_CHRONICLE_AMOUNT: "50000"           # 0.05 USDC per chronicle call
+
+# Real on-chain x402 verification (optional, off by default)
+OKX_X402_REAL_VERIFIER: "1"                 # Use ExactEvmVerifier / RpcEvmVerifier
+OKX_X402_RPC_URL: "https://..."             # X Layer JSON-RPC endpoint
+OKX_X402_USDC_CONTRACT: "0x..."              # USDC contract on X Layer
+OKX_X402_CHECK_BALANCE: "1"                  # Verify payer USDC balance before accepting
+OKX_X402_REQUIRE_TX: "0"                     # Require an on-chain txHash in the signature
+
+# Agent-to-Agent escrow adapter
+OKX_A2A_ADAPTER: "weft_milestone"           # or "okx_app" when APP contracts are public
+OKX_APP_BROKER_URL: "https://..."            # OKX APP broker endpoint (future)
+OKX_A2A_ESCROW_CONTRACT: "0x..."              # OKX A2A escrow contract address (future)
 ```
 
 ## Verification Criteria (MVP)
