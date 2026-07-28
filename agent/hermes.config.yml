@@ -107,8 +107,9 @@ npx skills add okx/onchainos-skills
 ```
 
 Then make sure the relevant skill directories are listed under `external_dirs`
-in `~/.hermes/config.yaml` (or in this file if Hermes is launched from this
-checkout). The paths below are relative to the repo root so they stay portable:
+in `~/.hermes/config.yaml` (or in `agent/hermes.config.yaml` if Hermes is
+launched from this checkout). The paths below are relative to the repo root so
+they stay portable:
 
 ```yaml
 skills:
@@ -116,9 +117,13 @@ skills:
     - ./agent/skills
     - ./.agents/skills/okx-agentic-wallet
     - ./.agents/skills/okx-agent-payments-protocol
+    - ./.agents/skills/okx-ai
+    - ./.agents/skills/okx-guide
     # Optional OKX skills (load as needed)
-    # - ./.agents/skills/okx-ai
-    # - ./.agents/skills/okx-guide
+    # - ./.agents/skills/okx-dapp-discovery
+    # - ./.agents/skills/okx-defi
+    # - ./.agents/skills/okx-dex-market
+    # - ./.agents/skills/okx-growth-competition
 ```
 
 ### Environment variables

@@ -1,0 +1,15 @@
+# Valid Hermes YAML config for Weft.
+# See agent/hermes.config.yml for the full documentation and env var examples.
+
+skills:
+  external_dirs:
+    - ./agent/skills
+    - ./.agents/skills/okx-agentic-wallet
+    - ./.agents/skills/okx-agent-payments-protocol
+    - ./.agents/skills/okx-ai
+    - ./.agents/skills/okx-guide
+    # Optional OKX skills (load as needed)
+    # - ./.agents/skills/okx-dapp-discovery
+    # - ./.agents/skills/okx-defi
+    # - ./.agents/skills/okx-dex-market
+    # - ./.agents/skills/okx-growth-competition

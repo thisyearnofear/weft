@@ -23,7 +23,7 @@ export WEFT_ROOT
 # already exists (symlinks are simply replaced).
 HERMES_DIR="${HOME}/.hermes"
 HERMES_CONFIG="${HERMES_DIR}/config.yaml"
-WEFT_HERMES_CONFIG="${WEFT_ROOT}/agent/hermes.config.yml"
+WEFT_HERMES_CONFIG="${WEFT_ROOT}/agent/hermes.config.yaml"
 if [ -f "$WEFT_HERMES_CONFIG" ]; then
   mkdir -p "$HERMES_DIR"
   CURRENT_TARGET=""
