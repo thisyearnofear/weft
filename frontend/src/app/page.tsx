@@ -13,18 +13,15 @@ import { HeroProof } from "@/components/HeroProof";
 import { Reveal } from "@/components/Reveal";
 import { HowItWorks } from "@/components/HowItWorks";
 import { SVGPathMarquee } from "@/components/SVGPathMarquee";
-import { InteractiveDemo } from "@/components/InteractiveDemo";
+import { LiveSandbox } from "@/components/LiveSandbox";
 import { ScrollWeave } from "@/components/ScrollWeave";
+import { Tooltip } from "@/components/ui/Tooltip";
 import { ExpandableGrid } from "@/components/ExpandableGrid";
 import { useMilestones, useMilestone } from "@/hooks/useMilestones";
 import { useStatusOverview, useStatusMilestone } from "@/hooks/useStatusApi";
 import { useExplorerMilestones } from "@/hooks/useExplorer";
 import { useBuilderPassport } from "@/hooks/useBuilderPassport";
-import {
-  DEMO_FHE_V1_HASH,
-  DEMO_FHE_V2_HASH,
-  DEMO_RELEASE_HASH,
-} from "@/lib/demo-milestones";
+import { DEMO_RELEASE_HASH } from "@/lib/demo-milestones";
 import { milestoneCardFromView, shortAddress } from "@/lib/milestone-types";
 import { parseMilestoneView, statusFromFlags } from "@/lib/milestone-view";
 import { track } from "@/lib/track";
@@ -180,7 +177,11 @@ export default function Home() {
           <p className={`${styles.proofLine} stagger stagger-5`} style={{ cursor: "default" }}>
             <span className={styles.proofDot} />
             <span>
-              Pilot rails: <strong>Canton Devnet</strong> (private CBTC) ·{" "}
+              Pilot rails: <strong>Canton Devnet</strong> (private{" "}
+              <Tooltip tip="Canton Blockchain Token/Currency — the devnet asset used for private settlement pilots.">
+                CBTC
+              </Tooltip>
+              ) ·{" "}
               <strong>0G Testnet</strong> (builder wedge)
               {stats.ethReleased !== "0.00" && explorerMilestones && explorerMilestones.length > 0 ? (
                 <>
@@ -201,9 +202,134 @@ export default function Home() {
       </section>
 
       {/* ════════════════════════════════════════════════════════════════
-          PLATFORM WEDGES — SigNoz observability + Zama confidential
+          HOW IT WORKS — the weave story (Lock → Ship → Verify → Release)
+          This is the narrative arc the page needs first. De-carded:
+          steps are acts in a story, connected by the weft thread.
           ════════════════════════════════════════════════════════════════ */}
       <Reveal as="section" className={styles.section} delay={80}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>How it works</span>
+            <h2 className={styles.sectionTitle}>The weave, in four threads</h2>
+          </div>
+        </div>
+        <p className={`${styles.sectionText} ${styles.sectionLede}`}>
+          The funder locks capital against a checkable deliverable. Agents
+          collect evidence against a fixed template. At quorum, settlement
+          releases or refunds — no manual approval gate.
+        </p>
+        <SVGPathMarquee className={styles.marqueeStrip} />
+        <div className={styles.howItWorksWrap}>
+          <HowItWorks />
+        </div>
+      </Reveal>
+
+      {/* ════════════════════════════════════════════════════════════════
+          FOR PROGRAM OFFICES — post-award beside GMS SoR.
+          ════════════════════════════════════════════════════════════════ */}
+      <Reveal as="section" className={styles.section} delay={85}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>For program offices</span>
+            <h2 className={styles.sectionTitle}>
+              Built to sit beside the grant system you already pay for
+            </h2>
+          </div>
+        </div>
+        <p className={`${styles.sectionText} ${styles.sectionLede}`}>
+          Fluxx, Foundant, AmpliFund, Salesforce Nonprofit — when a grantee
+          claims a milestone, Weft checks your checklist and returns a receipt
+          for that{" "}
+          <Tooltip tip="Grant Management System of Record — the platform where grant data and milestones are already tracked.">
+            GMS SoR
+          </Tooltip>{" "}
+          record. Private settlement stays optional for pilots.
+        </p>
+        <div className={styles.orgGrid}>
+          <div className={styles.orgCard}>
+            <h3 className={styles.orgCardTitle}>A receipt for every release</h3>
+            <p className={styles.orgCardBody}>
+              Each release carries its evidence hash, verifier quorum, and
+              settlement reference — visible to parties that need to know.
+              When someone asks &ldquo;why did this get paid?&rdquo;, the answer is
+              an audit trail, not a meeting.
+            </p>
+          </div>
+          <div className={styles.orgCard}>
+            <h3 className={styles.orgCardTitle}>Checkable deliverables only</h3>
+            <p className={styles.orgCardBody}>
+              Agents verify against a fixed template — institutional checklist
+              on Canton, or deployment + usage on the public EVM wedge. Scope
+              ambiguity and subjective quality are out of band; Weft settles
+              what can be evidenced.
+            </p>
+          </div>
+          <div className={styles.orgCard}>
+            <h3 className={styles.orgCardTitle}>3% of released capital</h3>
+            <p className={styles.orgCardBody}>
+              Success fee aligned with unlocked capital — funds autonomous
+              verification ops. Compare that to recurring spend on manual
+              tranche review and escrow middlemen for the same programs.
+            </p>
+          </div>
+        </div>
+        <div className={styles.orgActions}>
+          <Link
+            href="/canton"
+            className={styles.emptyCta}
+            onClick={() => track("org_section_canton_click")}
+          >
+                Open program ops <ArrowRight size={16} />
+          </Link>
+          <Link
+            href="/sponsor"
+            className={styles.orgSecondaryLink}
+            onClick={() => track("org_section_sponsor_click")}
+          >
+            Public program dashboard →
+          </Link>
+        </div>
+      </Reveal>
+
+      {/* ════════════════════════════════════════════════════════════════
+          LIVE SANDBOX — tabbed public EVM + confidential FHE demos
+          Consolidates the two FHE cards and the InteractiveDemo into one
+          opt-in surface, reducing vertical scroll fatigue.
+          ════════════════════════════════════════════════════════════════ */}
+      <Reveal as="section" className={styles.section} delay={90}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionKicker}>Live sandbox</span>
+            <h2 className={styles.sectionTitle}>Try the verification rails</h2>
+          </div>
+          <Link href="/confidential" className={styles.sectionAction} onClick={() => track("live_sandbox_vault_click")}>
+            Full vault tour <ArrowRight size={14} />
+          </Link>
+        </div>
+        <p className={`${styles.sectionText} ${styles.sectionLede}`}>
+          Public EVM milestone on 0G Testnet, or sealed-ballot{" "}
+          <Tooltip tip="Fully Homomorphic Encryption — computation on encrypted data. Weft uses Zama FHEVM on Sepolia so votes stay private until the final result.">
+            FHE
+          </Tooltip>{" "}
+          demos on Sepolia. Pick a rail to step through evidence, consensus, and release
+          — or decrypt the confidential result yourself.
+        </p>
+        <LiveSandbox />
+        <button
+          type="button"
+          className={styles.demoChatToggle}
+          onClick={() => setShowChat((v) => !v)}
+          aria-expanded={showChat}
+        >
+          {showChat ? "Hide the agent chat" : "Prefer to ask? Talk to the agent that verified it →"}
+        </button>
+        {showChat && <AskWeft />}
+      </Reveal>
+
+      {/* ════════════════════════════════════════════════════════════════
+          PLATFORM WEDGES — SigNoz observability + Zama confidential
+          ════════════════════════════════════════════════════════════════ */}
+      <Reveal as="section" className={styles.section} delay={95}>
         <div className={styles.wedgeGrid}>
           <Link href="/observability" className={styles.wedgeCard} onClick={() => track("wedge_observability_click")}>
             <div className={styles.wedgeIcon}><Eye size={20} /></div>
@@ -231,7 +357,7 @@ export default function Home() {
       {/* ════════════════════════════════════════════════════════════════
           OKX.AI — Agent Service Provider
           ════════════════════════════════════════════════════════════════ */}
-      <Reveal as="section" className={styles.section} delay={85}>
+      <Reveal as="section" className={styles.section} delay={100}>
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.sectionKicker}>OKX.AI Agent Service Provider</span>
@@ -241,7 +367,7 @@ export default function Home() {
         <p className={`${styles.sectionText} ${styles.sectionLede}`}>
           Weft is joining the OKX.AI agent marketplace. Other agents will be
           able to hire it for deterministic milestone verification — via
-          pay-per-call MCP tools or as a neutral judge inside agent-to-agent
+          pay-per-call <Tooltip tip="Model Context Protocol — a standard for agents to expose tools and data.">MCP</Tooltip> tools or as a neutral judge inside agent-to-agent
           escrow.
         </p>
         <div className={styles.demoGrid}>
@@ -302,118 +428,6 @@ export default function Home() {
       </Reveal>
 
       {/* ════════════════════════════════════════════════════════════════
-          HOW IT WORKS — the weave story (Lock → Ship → Verify → Release)
-          This is the narrative arc the page was missing. De-carded:
-          steps are acts in a story, connected by the weft thread.
-          ════════════════════════════════════════════════════════════════ */}
-      <Reveal as="section" className={styles.section} delay={100}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <span className={styles.sectionKicker}>How it works</span>
-            <h2 className={styles.sectionTitle}>The weave, in four threads</h2>
-          </div>
-        </div>
-        <p className={`${styles.sectionText} ${styles.sectionLede}`}>
-          The funder locks capital against a checkable deliverable. Agents
-          collect evidence against a fixed template. At quorum, settlement
-          releases or refunds — no manual approval gate.
-        </p>
-        {/* Ambient evidence thread — swatch chips traveling a woven path.
-            The Weft metaphor in motion, not just in the background grid. */}
-        <SVGPathMarquee className={styles.marqueeStrip} />
-        <div className={styles.howItWorksWrap}>
-          <HowItWorks />
-        </div>
-      </Reveal>
-
-      {/* ════════════════════════════════════════════════════════════════
-          FHE DEMOS — two live sealed-ballot milestones on Sepolia.
-          The core Zama story: v1 (addition) → v2 (multiplication).
-          ════════════════════════════════════════════════════════════════ */}
-      <Reveal as="section" className={styles.section} delay={100}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <span className={styles.sectionKicker}>Confidential verification</span>
-            <h2 className={styles.sectionTitle}>Encrypted votes, public result</h2>
-          </div>
-          <Link href="/confidential" className={styles.sectionAction} onClick={() => track("fhe_section_vault_click")}>
-            Full vault tour <ArrowRight size={14} />
-          </Link>
-        </div>
-        <p className={`${styles.sectionText} ${styles.sectionLede}`}>
-          Verifier votes stay private until the final verdict. Two live demos show
-          how consensus can be reached without exposing individual votes — then
-          let you decrypt the result yourself.
-        </p>
-        <div className={styles.demoGrid}>
-          <Link
-            href={`/project/${DEMO_FHE_V1_HASH}?confidential=1`}
-            className={styles.demoCard}
-            onClick={() => track("fhe_demo_v1_click")}
-          >
-            <div className={styles.demoIcon}><Lock size={20} /></div>
-            <span className={styles.demoKicker}>v1 · Sealed ballots</span>
-            <h3 className={styles.demoTitle}>Boolean quorum</h3>
-            <p className={styles.demoBody}>
-              Each verifier encrypts a yes/no ballot. The contract checks quorum
-              on encrypted votes and only reveals the final pass/fail result.
-            </p>
-            <span className={styles.demoLink}>
-              Open &amp; decrypt <ArrowRight size={14} />
-            </span>
-          </Link>
-          <Link
-            href={`/project/${DEMO_FHE_V2_HASH}?weighted=1`}
-            className={styles.demoCard}
-            onClick={() => track("fhe_demo_v2_click")}
-          >
-            <div className={styles.demoIcon}><Zap size={20} /></div>
-            <span className={styles.demoKicker}>v2 · Weighted consensus</span>
-            <h3 className={styles.demoTitle}>Confidence-weighted votes</h3>
-            <p className={styles.demoBody}>
-              Each verifier encrypts a ballot and a confidence score. The
-              contract weights every vote before revealing only the weighted
-              outcome.
-            </p>
-            <span className={styles.demoLink}>
-              Open &amp; decrypt <ArrowRight size={14} />
-            </span>
-          </Link>
-        </div>
-      </Reveal>
-
-      {/* ════════════════════════════════════════════════════════════════
-          LIVE DEMO — hash lookup, agent chat behind a toggle.
-          The hero animation already explains the mechanic; this section's
-          only job is to prove it's real.
-          ════════════════════════════════════════════════════════════════ */}
-      <Reveal as="section" className={styles.demoSection} delay={100}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <span className={styles.sectionKicker}>Builder wedge · 0G Testnet</span>
-            <h2 className={styles.sectionTitle}>Public EVM demo (not production money)</h2>
-          </div>
-        </div>
-        <p className={`${styles.sectionText} ${styles.sectionLede}`}>
-          Crypto-native wedge for objectively checkable software milestones
-          (deployment + usage). Step through a real 0G Testnet verification —
-          evidence, consensus, release — separate from the institutional Canton rail.
-        </p>
-        <div className={styles.demoSingle}>
-          <InteractiveDemo />
-          <button
-            type="button"
-            className={styles.demoChatToggle}
-            onClick={() => setShowChat((v) => !v)}
-            aria-expanded={showChat}
-          >
-            {showChat ? "Hide the agent chat" : "Prefer to ask? Talk to the agent that verified it →"}
-          </button>
-          {showChat && <AskWeft />}
-        </div>
-      </Reveal>
-
-      {/* ════════════════════════════════════════════════════════════════
           LIVE MILESTONES + CTA
           ════════════════════════════════════════════════════════════════ */}
       <Reveal as="section" className={styles.section} delay={100}>
@@ -466,69 +480,6 @@ export default function Home() {
             </div>
           </div>
         )}
-      </Reveal>
-
-      {/* ════════════════════════════════════════════════════════════════
-          FOR PROGRAM OFFICES — post-award beside GMS SoR.
-          ════════════════════════════════════════════════════════════════ */}
-      <Reveal as="section" className={styles.section} delay={100}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <span className={styles.sectionKicker}>For program offices</span>
-            <h2 className={styles.sectionTitle}>
-              Built to sit beside the grant system you already pay for
-            </h2>
-          </div>
-        </div>
-        <p className={`${styles.sectionText} ${styles.sectionLede}`}>
-          Fluxx, Foundant, AmpliFund, Salesforce Nonprofit — when a grantee
-          claims a milestone, Weft checks your checklist and returns a receipt
-          for that grant record. Private settlement stays optional for pilots.
-        </p>
-        <div className={styles.orgGrid}>
-          <div className={styles.orgCard}>
-            <h3 className={styles.orgCardTitle}>A receipt for every release</h3>
-            <p className={styles.orgCardBody}>
-              Each release carries its evidence hash, verifier quorum, and
-              settlement reference — visible to parties that need to know.
-              When someone asks &ldquo;why did this get paid?&rdquo;, the answer is
-              an audit trail, not a meeting.
-            </p>
-          </div>
-          <div className={styles.orgCard}>
-            <h3 className={styles.orgCardTitle}>Checkable deliverables only</h3>
-            <p className={styles.orgCardBody}>
-              Agents verify against a fixed template — institutional checklist
-              on Canton, or deployment + usage on the public EVM wedge. Scope
-              ambiguity and subjective quality are out of band; Weft settles
-              what can be evidenced.
-            </p>
-          </div>
-          <div className={styles.orgCard}>
-            <h3 className={styles.orgCardTitle}>3% of released capital</h3>
-            <p className={styles.orgCardBody}>
-              Success fee aligned with unlocked capital — funds autonomous
-              verification ops. Compare that to recurring spend on manual
-              tranche review and escrow middlemen for the same programs.
-            </p>
-          </div>
-        </div>
-        <div className={styles.orgActions}>
-          <Link
-            href="/canton"
-            className={styles.emptyCta}
-            onClick={() => track("org_section_canton_click")}
-          >
-                Open program ops <ArrowRight size={16} />
-          </Link>
-          <Link
-            href="/sponsor"
-            className={styles.orgSecondaryLink}
-            onClick={() => track("org_section_sponsor_click")}
-          >
-            Public program dashboard →
-          </Link>
-        </div>
       </Reveal>
 
       {/* ── Pricing ── */}
