@@ -23,7 +23,7 @@ import os
 import subprocess
 import sys
 import time
-from typing import Optional
+from typing import Any, Dict, Optional
 
 # Allow running directly from repo root without installing.
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -50,6 +50,15 @@ from agent.lib.mvp_verifier import (
     keccak_hex,
     write_attestation_files,
 )
+from agent.lib.verification_templates import (
+    build_attestation_envelope,
+    infer_template_id,
+    list_templates as list_template_ids,
+    verify as verify_template,
+)
+
+# Import collectors so non-EVM templates self-register in the global registry.
+import agent.lib.collectors  # noqa: F401
 from agent.lib.eth_rpc import block_number as eth_block_number, chain_id as eth_chain_id, get_code as eth_get_code
 from agent.lib.deadline_scheduler import DeadlineScheduler
 from agent.lib.weft_milestone_reader import read_milestone
@@ -331,7 +340,7 @@ def _process_one(
     use_keeperhub: bool,
     keeperhub_timeout: int = 120,
     builder_ens: str = "",
-) -> None:
+) -> bool:
     recovery_emit(
         EventType.VERIFICATION_STARTED,
         context={"milestone": milestone_hash},
@@ -364,76 +373,125 @@ def _process_one(
             return False
         meta = None
 
-    contract_address = contract_address_override or (meta.contractAddress if meta else "")
-    measurement_window_seconds = measurement_window_seconds_override or (meta.measurementWindowSeconds if meta else 0)
-    unique_caller_threshold = unique_caller_threshold_override or (meta.uniqueCallerThreshold if meta else 0)
+    cached_chain_id = eth_chain_id(rpc)
+    template_id = infer_template_id(m.templateId)
+    if meta and meta.templateId:
+        template_id = meta.templateId
 
-    if not contract_address or measurement_window_seconds <= 0 or unique_caller_threshold <= 0:
-        log.error("missing template inputs", milestone=milestone_hash, contract=contract_address, window=measurement_window_seconds, threshold=unique_caller_threshold)
-        return False
-
-    # Window is defined relative to the onchain milestone deadline (source of truth).
-    window_start = int(m.deadline)
-    window_end = int(m.deadline) + int(measurement_window_seconds)
-
-    # Deployment evidence
     evidence_started = time.monotonic()
-    with span(
-        "weft.evidence.deployment",
-        **{"weft.milestone_hash": milestone_hash, "weft.contract_address": contract_address},
-    ):
-        code = eth_get_code(rpc, contract_address, "latest")
-        code_hash = ZERO_HASH if code == "0x" else keccak_hex(code)
-        set_span_attrs(**{"weft.code_exists": code != "0x", "weft.code_hash": code_hash})
-    deployment = DeploymentEvidence(
-        contractAddress=contract_address,
-        codeHash=code_hash,
-        blockNumber=eth_block_number(rpc),
-    )
 
-    with span(
-        "weft.evidence.usage",
-        **{
-            "weft.milestone_hash": milestone_hash,
-            "weft.threshold": unique_caller_threshold,
-            "weft.measurement_window_seconds": measurement_window_seconds,
-        },
-    ):
-        unique_count, start_block, end_block = count_unique_callers(
-            rpc,
-            contract_address,
-            window_start,
-            window_end,
-            stop_at=unique_caller_threshold,
-        )
-        set_span_attrs(**{"weft.unique_callers": unique_count})
-    usage = UsageEvidence(windowStart=window_start, windowEnd=window_end, uniqueCallerCount=unique_count)
+    if template_id == "evm.deployment_usage.v1":
+        contract_address = contract_address_override or (meta.contractAddress if meta else "")
+        measurement_window_seconds = measurement_window_seconds_override or (meta.measurementWindowSeconds if meta else 0)
+        unique_caller_threshold = unique_caller_threshold_override or (meta.uniqueCallerThreshold if meta else 0)
 
-    with span(
-        "weft.evidence.collect",
-        **{
-            "weft.milestone_hash": milestone_hash,
-            "weft.template_id": m.templateId,
-            "weft.contract_address": contract_address,
-        },
-    ):
-        cached_chain_id = eth_chain_id(rpc)
-        attestation = build_attestation(
-            schema_version=1,
-            project_id=m.projectId,
-            milestone_hash=milestone_hash,
-            template_id=m.templateId,
-            chain_id=cached_chain_id,
-            contract_address=contract_address,
-            deadline=m.deadline,
-            measurement_window_seconds=measurement_window_seconds,
-            unique_caller_threshold=unique_caller_threshold,
-            deployment=deployment,
-            usage=usage,
-            node_address=node_address,
-            attested_at=int(time.time()),
+        if not contract_address or measurement_window_seconds <= 0 or unique_caller_threshold <= 0:
+            log.error("missing template inputs", milestone=milestone_hash, contract=contract_address, window=measurement_window_seconds, threshold=unique_caller_threshold)
+            return False
+
+        # Window is defined relative to the onchain milestone deadline (source of truth).
+        window_start = int(m.deadline)
+        window_end = int(m.deadline) + int(measurement_window_seconds)
+
+        # Deployment evidence
+        with span(
+            "weft.evidence.deployment",
+            **{"weft.milestone_hash": milestone_hash, "weft.contract_address": contract_address},
+        ):
+            code = eth_get_code(rpc, contract_address, "latest")
+            code_hash = ZERO_HASH if code == "0x" else keccak_hex(code)
+            set_span_attrs(**{"weft.code_exists": code != "0x", "weft.code_hash": code_hash})
+        deployment = DeploymentEvidence(
+            contractAddress=contract_address,
+            codeHash=code_hash,
+            blockNumber=eth_block_number(rpc),
         )
-        set_span_attrs(**{"weft.verified": bool(attestation["verdict"]["verified"])})
+
+        with span(
+            "weft.evidence.usage",
+            **{
+                "weft.milestone_hash": milestone_hash,
+                "weft.threshold": unique_caller_threshold,
+                "weft.measurement_window_seconds": measurement_window_seconds,
+            },
+        ):
+            unique_count, start_block, end_block = count_unique_callers(
+                rpc,
+                contract_address,
+                window_start,
+                window_end,
+                stop_at=unique_caller_threshold,
+            )
+            set_span_attrs(**{"weft.unique_callers": unique_count})
+        usage = UsageEvidence(windowStart=window_start, windowEnd=window_end, uniqueCallerCount=unique_count)
+
+        with span(
+            "weft.evidence.collect",
+            **{
+                "weft.milestone_hash": milestone_hash,
+                "weft.template_id": m.templateId,
+                "weft.contract_address": contract_address,
+            },
+        ):
+            attestation = build_attestation(
+                schema_version=1,
+                project_id=m.projectId,
+                milestone_hash=milestone_hash,
+                template_id=m.templateId,
+                chain_id=cached_chain_id,
+                contract_address=contract_address,
+                deadline=m.deadline,
+                measurement_window_seconds=measurement_window_seconds,
+                unique_caller_threshold=unique_caller_threshold,
+                deployment=deployment,
+                usage=usage,
+                node_address=node_address,
+                attested_at=int(time.time()),
+            )
+            set_span_attrs(**{"weft.verified": bool(attestation["verdict"]["verified"])})
+    else:
+        # Generic (non-EVM) template path via TemplateRegistry.
+        template_inputs = (meta.templateInputs or {}) if meta else {}
+        template_inputs.setdefault("project_id", m.projectId)
+        template_inputs.setdefault("milestone_hash", milestone_hash)
+        template_inputs.setdefault("deadline", m.deadline)
+        template_inputs.setdefault("chain_id", cached_chain_id)
+        template_inputs.setdefault("node_address", node_address)
+
+        if template_id not in list_template_ids():
+            log.error(
+                "unknown verification template",
+                milestone=milestone_hash,
+                template_id=template_id,
+            )
+            return False
+
+        with span(
+            "weft.evidence.collect",
+            **{
+                "weft.milestone_hash": milestone_hash,
+                "weft.template_id": template_id,
+            },
+        ):
+            verdict = verify_template(template_id, template_inputs)
+            attestation = build_attestation_envelope(
+                project_id=m.projectId,
+                milestone_hash=milestone_hash,
+                template_id=template_id,
+                inputs=template_inputs,
+                verdict=verdict,
+                node_address=node_address,
+                attested_at=int(time.time()),
+            )
+            set_span_attrs(**{"weft.verified": bool(attestation["verdict"]["verified"])})
+
+        # EVM-specific variables are intentionally absent for non-EVM templates.
+        code_hash = ZERO_HASH
+        unique_count = 0
+        unique_caller_threshold = 0
+        start_block = None
+        end_block = None
+
     record_histogram(
         "weft_evidence_collection_duration_ms",
         (time.monotonic() - evidence_started) * 1000,
@@ -570,7 +628,7 @@ def _process_one(
                 peer_threshold=peer_threshold,
                 matched_signers=0,
             )
-            return
+            return False
 
         record_histogram(
             "weft_consensus_latency_ms",
@@ -647,16 +705,53 @@ def _process_one(
                 else:
                     log.warning("publish_bundle_0g enabled but upload failed", milestone=milestone_hash)
 
-    log.info(
-        "verification complete",
-        milestone=milestone_hash,
-        blocks=f"{start_block}-{end_block}",
-        unique_callers=unique_count,
-        verified=verified_arg,
-        evidence_root=evidence_root,
-    )
+    log_extra = {
+        "milestone": milestone_hash,
+        "verified": verified_arg,
+        "evidence_root": evidence_root,
+    }
+    if start_block is not None and end_block is not None:
+        log_extra["blocks"] = f"{start_block}-{end_block}"
+        log_extra["unique_callers"] = unique_count
+    log.info("verification complete", **log_extra)
 
-    # Submit verdict: FHE (Sepolia) or public EVM SettlementRail
+    _submit_verdict(
+        milestone_hash=milestone_hash,
+        verified_bool=verified_bool,
+        evidence_root=evidence_root,
+        private_key=private_key,
+        rpc_url=rpc_url,
+        weft=weft,
+        use_keeperhub=use_keeperhub,
+        keeperhub_timeout=keeperhub_timeout,
+        attestation=attestation,
+        code_hash=code_hash,
+        unique_callers=unique_count,
+        unique_caller_threshold=unique_caller_threshold,
+        cached_chain_id=cached_chain_id,
+        out_dir=out_dir,
+    )
+    return True
+
+
+def _submit_verdict(
+    *,
+    milestone_hash: str,
+    verified_bool: bool,
+    evidence_root: str,
+    private_key: str,
+    rpc_url: str,
+    weft: str,
+    use_keeperhub: bool,
+    keeperhub_timeout: int,
+    attestation: Dict[str, Any],
+    code_hash: str,
+    unique_callers: int,
+    unique_caller_threshold: int,
+    cached_chain_id: int,
+    out_dir: str,
+) -> None:
+    """Submit verdict: FHE (Sepolia) or public EVM SettlementRail."""
     confidential_contract = os.environ.get("WEFT_MILESTONE_CONFIDENTIAL", "")
     weighted_contract = os.environ.get("WEFT_MILESTONE_CONFIDENTIAL_WEIGHTED", "")
     fhe_rpc = os.environ.get("FHE_SEPOLIA_RPC", "")
@@ -667,12 +762,14 @@ def _process_one(
         # This keeps the weighted vote auditable and reproducible.
         from agent.lib.fhe_client import submit_encrypted_weighted_verdict, fhe_available
         if fhe_available():
-            confidence = _compute_confidence_score(
-                verified=verified_bool,
-                code_hash=code_hash,
-                unique_callers=unique_count,
-                threshold=unique_caller_threshold,
-            )
+            confidence = attestation["verdict"].get("confidence")
+            if confidence is None:
+                confidence = _compute_confidence_score(
+                    verified=verified_bool,
+                    code_hash=code_hash,
+                    unique_callers=unique_callers,
+                    threshold=unique_caller_threshold,
+                )
             log.info(
                 "submitting encrypted weighted verdict (FHE.mul)",
                 milestone=milestone_hash,
@@ -1023,7 +1120,6 @@ def _process_one(
             log.warning("chronicle generation failed (non-fatal)", milestone=milestone_hash, error=str(e))
 
     return True
-
 
 
 def _load_institutional_evidence(milestone_id: str, rec: Optional[dict] = None):

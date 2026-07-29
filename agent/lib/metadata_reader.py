@@ -31,6 +31,7 @@ class MilestoneMetadata:
     measurementWindowSeconds: int
     uniqueCallerThreshold: int
     notes: str = ""
+    templateInputs: Optional[Dict[str, Any]] = None  # generic inputs for non-EVM templates
 
 
 class MetadataError(RuntimeError):
@@ -88,20 +89,48 @@ def _load_json(path: str) -> Dict[str, Any]:
 def _validate_metadata_dict(raw: Dict[str, Any]) -> Tuple[MilestoneMetadata, str]:
     # Required keys
     tid = raw.get("templateId")
-    if tid != TEMPLATE_ID_STR:
-        return _dummy(), f"templateId mismatch (expected {TEMPLATE_ID_STR}, got {tid})"
+    if not tid:
+        return _dummy(), "templateId is required"
 
     chain_id = raw.get("chainId")
     if not isinstance(chain_id, int):
         return _dummy(), "chainId must be an int"
 
-    ca = raw.get("contractAddress")
-    if not (isinstance(ca, str) and ca.startswith("0x") and len(ca) == 42):
-        return _dummy(), "contractAddress must be a 0x-prefixed 20-byte address string"
-
     deadline = raw.get("deadline")
     if not isinstance(deadline, int):
         return _dummy(), "deadline must be an int (unix seconds)"
+
+    notes = raw.get("notes") or ""
+    if not isinstance(notes, str):
+        notes = str(notes)
+
+    # Legacy EVM template string maps to the registered EVM template ID.
+    if tid == TEMPLATE_ID_STR:
+        tid = "evm.deployment_usage.v1"
+
+    # Generic (non-EVM) template path.
+    if tid != "evm.deployment_usage.v1":
+        template_inputs = raw.get("templateInputs") or raw.get("template_inputs")
+        if not isinstance(template_inputs, dict):
+            return _dummy(), "templateInputs must be a dict for non-EVM templates"
+        return (
+            MilestoneMetadata(
+                templateId=tid,
+                chainId=chain_id,
+                contractAddress="",
+                deadline=deadline,
+                measurementWindowSeconds=0,
+                uniqueCallerThreshold=0,
+                notes=notes,
+                templateInputs=template_inputs,
+            ),
+            "",
+        )
+
+    # EVM template path (legacy schema).
+    ca = raw.get("contractAddress")
+    if not (isinstance(ca, str) and ca.startswith("0x") and len(ca) == 42):
+        return _dummy(), "contractAddress must be a 0x-prefixed 20-byte address string"
 
     mws = raw.get("measurementWindowSeconds")
     if not (isinstance(mws, int) and mws > 0):
@@ -110,10 +139,6 @@ def _validate_metadata_dict(raw: Dict[str, Any]) -> Tuple[MilestoneMetadata, str
     uct = raw.get("uniqueCallerThreshold")
     if not (isinstance(uct, int) and uct > 0):
         return _dummy(), "uniqueCallerThreshold must be a positive int"
-
-    notes = raw.get("notes") or ""
-    if not isinstance(notes, str):
-        notes = str(notes)
 
     return (
         MilestoneMetadata(
@@ -124,6 +149,7 @@ def _validate_metadata_dict(raw: Dict[str, Any]) -> Tuple[MilestoneMetadata, str
             measurementWindowSeconds=mws,
             uniqueCallerThreshold=uct,
             notes=notes,
+            templateInputs={},
         ),
         "",
     )
