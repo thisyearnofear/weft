@@ -4,19 +4,132 @@ import { useState } from "react";
 import Link from "next/link";
 import { useWriteContract, useWaitForTransactionReceipt, useAccount, useChainId, useSwitchChain } from "wagmi";
 import { sepolia } from "wagmi/chains";
-import { keccak256, encodePacked, stringToHex } from "viem";
-import { Bot, ArrowRight, Lock, Globe, Shield, Clock, Check, Loader2, Eye } from "lucide-react";
-import { WeftMilestoneAbi, WeftMilestoneConfidentialAbi, getAddresses, getConfidentialAddress, DEFAULT_CHAIN } from "../lib/contracts";
+import { keccak256, encodePacked, stringToHex, pad } from "viem";
+import {
+  Bot,
+  ArrowRight,
+  Lock,
+  Globe,
+  Shield,
+  Clock,
+  Check,
+  Loader2,
+  Eye,
+  Database,
+  FileText,
+  Megaphone,
+  Code,
+} from "lucide-react";
+import {
+  WeftMilestoneAbi,
+  WeftMilestoneConfidentialAbi,
+  getAddresses,
+  getConfidentialAddress,
+  DEFAULT_CHAIN,
+} from "../lib/contracts";
 import { rememberMilestoneName } from "../lib/milestone-meta";
 import { track } from "../lib/track";
 import styles from "./AgentBriefWizard.module.css";
+import templateStyles from "./TemplateWizard.module.css";
 
-const TEMPLATE_ID = "0x" + "00".repeat(32);
 const EXPLORER_TX = "https://chainscan-new.0g.ai/tx";
 const SEPOLIA_EXPLORER_TX = "https://sepolia.etherscan.io/tx";
 const DEMO_DEADLINE = 0; // sentinel: 10-minute deadline for confidential demo
 
-type WizardStep = -1 | 0 | 1 | 2 | 3 | "creating" | "done";
+export type TemplateId =
+  | "evm.deployment_usage.v1"
+  | "research.report.v1"
+  | "marketing.campaign.v1"
+  | "data.pipeline.v1";
+
+interface TemplateOption {
+  id: TemplateId;
+  label: string;
+  shortLabel: string;
+  description: string;
+  icon: React.ElementType;
+}
+
+const TEMPLATES: TemplateOption[] = [
+  {
+    id: "evm.deployment_usage.v1",
+    label: "EVM Deployment + Usage",
+    shortLabel: "EVM",
+    description: "Verify a deployed contract has real callers in a measurement window.",
+    icon: Code,
+  },
+  {
+    id: "research.report.v1",
+    label: "Research Report",
+    shortLabel: "Research",
+    description: "Verify a report by word count, citations, sources, and plagiarism score.",
+    icon: FileText,
+  },
+  {
+    id: "marketing.campaign.v1",
+    label: "Marketing Campaign",
+    shortLabel: "Marketing",
+    description: "Verify impressions, pageviews, and clicks against campaign thresholds.",
+    icon: Megaphone,
+  },
+  {
+    id: "data.pipeline.v1",
+    label: "Data Pipeline",
+    shortLabel: "Data",
+    description: "Verify a pipeline output by row count, freshness, and file hash.",
+    icon: Database,
+  },
+];
+
+type WizardStep = -1 | 0 | 1 | 2 | 3 | 4 | "creating" | "done";
+
+function templateIdToBytes32(templateId: TemplateId) {
+  return pad(stringToHex(templateId), { dir: "right", size: 32 });
+}
+
+function emptyInputs(templateId: TemplateId): Record<string, string> {
+  switch (templateId) {
+    case "evm.deployment_usage.v1":
+      return {
+        contractAddress: "",
+        measurementWindowSeconds: "604800",
+        uniqueCallerThreshold: "10",
+      };
+    case "research.report.v1":
+      return {
+        deliverableHash: "",
+        wordCount: "",
+        citationCount: "",
+        sourceCount: "",
+        plagiarismScore: "",
+        requiredWords: "1500",
+        requiredCitations: "10",
+        requiredSources: "5",
+        maxPlagiarism: "10",
+      };
+    case "marketing.campaign.v1":
+      return {
+        deliverableHash: "",
+        twitterImpressions: "",
+        gaPageviews: "",
+        gaClicks: "",
+        requiredImpressions: "1000",
+        requiredPageviews: "1000",
+        requiredClicks: "100",
+      };
+    case "data.pipeline.v1":
+      return {
+        fileHash: "",
+        rowCount: "",
+        freshnessTimestamp: "",
+        schemaHash: "",
+        requiredRowCount: "500",
+        requiredFreshnessSeconds: "3600",
+      };
+    default:
+      return {};
+  }
+}
 
 export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => void }) {
   const { isConnected, address } = useAccount();
@@ -24,6 +137,8 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
   const { switchChainAsync } = useSwitchChain();
 
   const [step, setStep] = useState<WizardStep>(-1);
+  const [templateId, setTemplateId] = useState<TemplateId>("evm.deployment_usage.v1");
+  const [templateInputs, setTemplateInputs] = useState<Record<string, string>>(emptyInputs("evm.deployment_usage.v1"));
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [deadlineDays, setDeadlineDays] = useState(14);
@@ -32,20 +147,21 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
   const [milestoneHash, setMilestoneHash] = useState<string | null>(null);
   const [deadlineUnix, setDeadlineUnix] = useState<bigint>(BigInt(0));
   const [deadlineAnchorMs] = useState(() => Date.now());
+  const [isUploading, setIsUploading] = useState(false);
 
   const confidentialAddress = getConfidentialAddress();
   const addresses = getAddresses(DEFAULT_CHAIN);
   const targetAddress = confidential ? confidentialAddress : addresses.weftMilestone;
 
   const projectId = name ? keccak256(stringToHex(name)) : ("0x" + "00".repeat(32));
-  const metadataHash = description
-    ? keccak256(stringToHex(description.slice(0, 256)))
-    : ("0x" + "00".repeat(32));
+  const [metadataHash, setMetadataHash] = useState<string>("0x" + "00".repeat(32));
+
+  const templateIdBytes32 = templateIdToBytes32(templateId);
 
   const computedHash = keccak256(
     encodePacked(
       ["bytes32", "bytes32", "uint64", "bytes32"],
-      [projectId as `0x${string}`, TEMPLATE_ID as `0x${string}`, deadlineUnix, metadataHash as `0x${string}`]
+      [projectId as `0x${string}`, templateIdBytes32, deadlineUnix, metadataHash as `0x${string}`]
     )
   );
 
@@ -56,6 +172,94 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
   const goToStep = (s: WizardStep) => {
     setStep(s);
     track("wizard_step", { step: String(s) });
+  };
+
+  const buildMetadata = (): Record<string, unknown> => {
+    const base = {
+      templateId,
+      chainId: confidential ? sepolia.id : (chainId ?? 16602),
+      deadline: Number(deadlineUnix),
+      notes: description || name,
+    };
+
+    switch (templateId) {
+      case "evm.deployment_usage.v1":
+        return {
+          ...base,
+          contractAddress: templateInputs.contractAddress,
+          measurementWindowSeconds: Number(templateInputs.measurementWindowSeconds) || 0,
+          uniqueCallerThreshold: Number(templateInputs.uniqueCallerThreshold) || 0,
+        };
+      case "research.report.v1":
+        return {
+          ...base,
+          templateInputs: {
+            deliverable_hash: templateInputs.deliverableHash,
+            word_count: Number(templateInputs.wordCount) || 0,
+            citation_count: Number(templateInputs.citationCount) || 0,
+            source_count: Number(templateInputs.sourceCount) || 0,
+            plagiarism_score: Number(templateInputs.plagiarismScore) || 0,
+            required_words: Number(templateInputs.requiredWords) || 0,
+            required_citations: Number(templateInputs.requiredCitations) || 0,
+            required_sources: Number(templateInputs.requiredSources) || 0,
+            max_plagiarism: Number(templateInputs.maxPlagiarism) || 100,
+          },
+        };
+      case "marketing.campaign.v1":
+        return {
+          ...base,
+          templateInputs: {
+            deliverable_hash: templateInputs.deliverableHash,
+            twitter_impressions: Number(templateInputs.twitterImpressions) || 0,
+            ga_pageviews: Number(templateInputs.gaPageviews) || 0,
+            ga_clicks: Number(templateInputs.gaClicks) || 0,
+            required_impressions: Number(templateInputs.requiredImpressions) || 0,
+            required_pageviews: Number(templateInputs.requiredPageviews) || 0,
+            required_clicks: Number(templateInputs.requiredClicks) || 0,
+          },
+        };
+      case "data.pipeline.v1":
+        return {
+          ...base,
+          templateInputs: {
+            file_hash: templateInputs.fileHash,
+            row_count: Number(templateInputs.rowCount) || 0,
+            freshness_timestamp: Number(templateInputs.freshnessTimestamp) || 0,
+            schema_hash: templateInputs.schemaHash,
+            required_row_count: Number(templateInputs.requiredRowCount) || 0,
+            required_freshness_seconds: Number(templateInputs.requiredFreshnessSeconds) || 0,
+          },
+        };
+      default:
+        return base;
+    }
+  };
+
+  const prepareMetadata = async () => {
+    setIsUploading(true);
+    setError(null);
+    try {
+      const metadata = buildMetadata();
+      const res = await fetch("/api/milestone-metadata", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(metadata),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        throw new Error(data.error || "Failed to prepare metadata");
+      }
+      setMetadataHash(data.metadataHash);
+      if (!data.uploaded) {
+        console.warn("0G upload not available; using deterministic metadata hash fallback.", data.fallbackReason);
+      }
+      return data.metadataHash as string;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Metadata preparation failed");
+      throw err;
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleCreate = async () => {
@@ -76,7 +280,7 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
               args: [
                 computedHash,
                 projectId as `0x${string}`,
-                TEMPLATE_ID as `0x${string}`,
+                templateIdBytes32,
                 deadlineUnix,
                 metadataHash as `0x${string}`,
                 [{ wallet: address, shareBps: 10_000 }],
@@ -89,7 +293,7 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
               args: [
                 computedHash,
                 projectId as `0x${string}`,
-                TEMPLATE_ID as `0x${string}`,
+                templateIdBytes32,
                 deadlineUnix,
                 metadataHash as `0x${string}`,
                 [],
@@ -98,7 +302,7 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Creation failed");
-      setStep(3);
+      setStep(4);
     }
   };
 
@@ -198,8 +402,8 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
     <div className={styles.wrap}>
       {/* Progress dots */}
       <div className={styles.progress} aria-hidden="true">
-        {[-1, 0, 1, 2, 3].map((i) => {
-          const stepNum = typeof step === "number" ? step + 1 : 5;
+        {[-1, 0, 1, 2, 3, 4].map((i) => {
+          const stepNum = typeof step === "number" ? step + 1 : 6;
           const idx = i + 1;
           return (
             <span
@@ -259,9 +463,50 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
         </div>
       )}
 
-      {/* ── Step 0: What are you building? ── */}
+      {/* ── Step 0: Choose verification template ── */}
       {step === 0 && (
         <div className={styles.step} key="step0">
+          <AgentMessage>What kind of work will you ship?</AgentMessage>
+          <p className={styles.agentSubtext}>
+            Pick the evidence template the verifier agent will use to check your milestone.
+          </p>
+
+          <div className={templateStyles.templateGrid}>
+            {TEMPLATES.map((t) => {
+              const Icon = t.icon;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  className={templateStyles.templateCard}
+                  data-selected={templateId === t.id}
+                  onClick={() => {
+                    setTemplateId(t.id);
+                    setTemplateInputs(emptyInputs(t.id));
+                  }}
+                >
+                  <span className={templateStyles.templateIcon}><Icon size={20} /></span>
+                  <div className={templateStyles.templateTitle}>{t.label}</div>
+                  <div className={templateStyles.templateDesc}>{t.description}</div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className={styles.stepActions}>
+            <button type="button" className={styles.backBtn} onClick={() => goToStep(-1)}>
+              Back
+            </button>
+            <button type="button" className={styles.stepBtn} onClick={() => goToStep(1)}>
+              Continue <ArrowRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Step 1: What are you building? ── */}
+      {step === 1 && (
+        <div className={styles.step} key="step1">
           <AgentMessage>
             What are you building?
           </AgentMessage>
@@ -276,7 +521,7 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
               placeholder="e.g. My App v2"
               className={styles.input}
               autoFocus
-              onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) goToStep(1); }}
+              onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) goToStep(2); }}
             />
           </div>
 
@@ -290,20 +535,31 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
             />
           </div>
 
-          <button
-            type="button"
-            className={styles.stepBtn}
-            disabled={!name.trim()}
-            onClick={() => goToStep(1)}
-          >
-            Continue <ArrowRight size={16} />
-          </button>
+          <TemplateInputs
+            templateId={templateId}
+            values={templateInputs}
+            onChange={setTemplateInputs}
+          />
+
+          <div className={styles.stepActions}>
+            <button type="button" className={styles.backBtn} onClick={() => goToStep(0)}>
+              Back
+            </button>
+            <button
+              type="button"
+              className={styles.stepBtn}
+              disabled={!name.trim()}
+              onClick={() => goToStep(2)}
+            >
+              Continue <ArrowRight size={16} />
+            </button>
+          </div>
         </div>
       )}
 
-      {/* ── Step 1: When will it be ready? ── */}
-      {step === 1 && (
-        <div className={styles.step} key="step1">
+      {/* ── Step 2: When will it be ready? ── */}
+      {step === 2 && (
+        <div className={styles.step} key="step2">
           <AgentMessage>
             {name.trim()} — got it.
             {description.trim() && " I'll use your description to understand what evidence to look for."}
@@ -354,19 +610,19 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
           </div>
 
           <div className={styles.stepActions}>
-            <button type="button" className={styles.backBtn} onClick={() => goToStep(0)}>
+            <button type="button" className={styles.backBtn} onClick={() => goToStep(1)}>
               Back
             </button>
-            <button type="button" className={styles.stepBtn} onClick={() => goToStep(2)}>
+            <button type="button" className={styles.stepBtn} onClick={() => goToStep(3)}>
               Continue <ArrowRight size={16} />
             </button>
           </div>
         </div>
       )}
 
-      {/* ── Step 2: Public or confidential? ── */}
-      {step === 2 && (
-        <div className={styles.step} key="step2">
+      {/* ── Step 3: Public or confidential? ── */}
+      {step === 3 && (
+        <div className={styles.step} key="step3">
           <AgentMessage>
             Should verification be public or confidential?
           </AgentMessage>
@@ -404,12 +660,12 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
           </div>
 
           <div className={styles.stepActions}>
-            <button type="button" className={styles.backBtn} onClick={() => goToStep(1)}>
+            <button type="button" className={styles.backBtn} onClick={() => goToStep(2)}>
               Back
             </button>
             <button type="button" className={styles.stepBtn} onClick={() => {
               setDeadlineUnix(BigInt(Math.floor(Date.now() / 1000) + deadlineSeconds));
-              goToStep(3);
+              goToStep(4);
             }}>
               Continue <ArrowRight size={16} />
             </button>
@@ -417,9 +673,9 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
         </div>
       )}
 
-      {/* ── Step 3: Here's what I'll do ── */}
-      {step === 3 && (
-        <div className={styles.step} key="step3">
+      {/* ── Step 4: Here's what I'll do ── */}
+      {step === 4 && (
+        <div className={styles.step} key="step4">
           <AgentMessage>
             Here&apos;s my plan for <strong>{name}</strong>.
           </AgentMessage>
@@ -437,9 +693,7 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
               <span className={styles.planIcon}><Eye size={14} /></span>
               <div>
                 <div className={styles.planLabel}>What I&apos;ll check</div>
-                <div className={styles.planValue}>
-                  Contract deployment, unique callers, GitHub commits in the milestone window
-                </div>
+                <div className={styles.planValue}>{templateLabel(templateId)}</div>
               </div>
             </div>
 
@@ -473,16 +727,25 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
           </div>
 
           <div className={styles.stepActions}>
-            <button type="button" className={styles.backBtn} onClick={() => goToStep(2)}>
+            <button type="button" className={styles.backBtn} onClick={() => goToStep(3)}>
               Back
             </button>
             <button
               type="button"
               className={styles.stepBtn}
-              onClick={handleCreate}
-              disabled={isPending || !targetAddress}
+              onClick={async () => {
+                try {
+                  await prepareMetadata();
+                  await handleCreate();
+                } catch {
+                  // prepareMetadata sets error state
+                }
+              }}
+              disabled={isPending || !targetAddress || isUploading}
             >
-              {isPending ? (
+              {isUploading ? (
+                <><Loader2 size={16} className={styles.spinner} /> Uploading instructions...</>
+              ) : isPending ? (
                 <><Loader2 size={16} className={styles.spinner} /> Signing...</>
               ) : confidential ? (
                 <><Bot size={16} /> Create on Sepolia — I&apos;ll start watching</>
@@ -523,7 +786,7 @@ function AgentMessage({ children }: { children: React.ReactNode }) {
 
 const PREVIEW_STEPS = [
   { icon: Bot, label: "What I do", desc: "How verification works" },
-  { icon: Bot, label: "What you'll ship", desc: "Name + description" },
+  { icon: Bot, label: "Template", desc: "Pick an evidence template" },
   { icon: Clock, label: "Deadline", desc: "Choose a verification date" },
   { icon: Shield, label: "Privacy mode", desc: "Public or encrypted votes" },
   { icon: Check, label: "Review & create", desc: "Agent starts watching" },
@@ -550,4 +813,190 @@ function WizardPreview() {
       </div>
     </div>
   );
+}
+
+function templateLabel(templateId: TemplateId) {
+  return TEMPLATES.find((t) => t.id === templateId)?.label ?? templateId;
+}
+
+interface TemplateInputsProps {
+  templateId: TemplateId;
+  values: Record<string, string>;
+  onChange: (values: Record<string, string>) => void;
+}
+
+function TemplateInputs({ templateId, values, onChange }: TemplateInputsProps) {
+  const update = (key: string, value: string) => {
+    onChange({ ...values, [key]: value });
+  };
+
+  switch (templateId) {
+    case "evm.deployment_usage.v1":
+      return (
+        <div className={templateStyles.inputSection}>
+          <label className={templateStyles.inputLabel}>Contract address</label>
+          <input
+            value={values.contractAddress}
+            onChange={(e) => update("contractAddress", e.target.value)}
+            placeholder="0x..."
+            className={templateStyles.input}
+          />
+          <div className={templateStyles.inputRow}>
+            <div>
+              <label className={templateStyles.inputLabel}>Measurement window (seconds)</label>
+              <input
+                type="number"
+                value={values.measurementWindowSeconds}
+                onChange={(e) => update("measurementWindowSeconds", e.target.value)}
+                className={templateStyles.input}
+              />
+            </div>
+            <div>
+              <label className={templateStyles.inputLabel}>Unique caller threshold</label>
+              <input
+                type="number"
+                value={values.uniqueCallerThreshold}
+                onChange={(e) => update("uniqueCallerThreshold", e.target.value)}
+                className={templateStyles.input}
+              />
+            </div>
+          </div>
+        </div>
+      );
+    case "research.report.v1":
+      return (
+        <div className={templateStyles.inputSection}>
+          <label className={templateStyles.inputLabel}>Deliverable hash</label>
+          <input
+            value={values.deliverableHash}
+            onChange={(e) => update("deliverableHash", e.target.value)}
+            placeholder="0x... (IPFS/0G root)"
+            className={templateStyles.input}
+          />
+          <div className={templateStyles.inputRow}>
+            <div>
+              <label className={templateStyles.inputLabel}>Word count</label>
+              <input
+                type="number"
+                value={values.wordCount}
+                onChange={(e) => update("wordCount", e.target.value)}
+                className={templateStyles.input}
+              />
+            </div>
+            <div>
+              <label className={templateStyles.inputLabel}>Citation count</label>
+              <input
+                type="number"
+                value={values.citationCount}
+                onChange={(e) => update("citationCount", e.target.value)}
+                className={templateStyles.input}
+              />
+            </div>
+            <div>
+              <label className={templateStyles.inputLabel}>Source count</label>
+              <input
+                type="number"
+                value={values.sourceCount}
+                onChange={(e) => update("sourceCount", e.target.value)}
+                className={templateStyles.input}
+              />
+            </div>
+            <div>
+              <label className={templateStyles.inputLabel}>Plagiarism %</label>
+              <input
+                type="number"
+                value={values.plagiarismScore}
+                onChange={(e) => update("plagiarismScore", e.target.value)}
+                className={templateStyles.input}
+              />
+            </div>
+          </div>
+        </div>
+      );
+    case "marketing.campaign.v1":
+      return (
+        <div className={templateStyles.inputSection}>
+          <label className={templateStyles.inputLabel}>Deliverable hash</label>
+          <input
+            value={values.deliverableHash}
+            onChange={(e) => update("deliverableHash", e.target.value)}
+            placeholder="0x... (Notion/Figma/0G root)"
+            className={templateStyles.input}
+          />
+          <div className={templateStyles.inputRow}>
+            <div>
+              <label className={templateStyles.inputLabel}>Twitter impressions</label>
+              <input
+                type="number"
+                value={values.twitterImpressions}
+                onChange={(e) => update("twitterImpressions", e.target.value)}
+                className={templateStyles.input}
+              />
+            </div>
+            <div>
+              <label className={templateStyles.inputLabel}>GA pageviews</label>
+              <input
+                type="number"
+                value={values.gaPageviews}
+                onChange={(e) => update("gaPageviews", e.target.value)}
+                className={templateStyles.input}
+              />
+            </div>
+            <div>
+              <label className={templateStyles.inputLabel}>GA clicks</label>
+              <input
+                type="number"
+                value={values.gaClicks}
+                onChange={(e) => update("gaClicks", e.target.value)}
+                className={templateStyles.input}
+              />
+            </div>
+          </div>
+        </div>
+      );
+    case "data.pipeline.v1":
+      return (
+        <div className={templateStyles.inputSection}>
+          <label className={templateStyles.inputLabel}>Output file hash</label>
+          <input
+            value={values.fileHash}
+            onChange={(e) => update("fileHash", e.target.value)}
+            placeholder="0x... (S3/GCS/0G root)"
+            className={templateStyles.input}
+          />
+          <div className={templateStyles.inputRow}>
+            <div>
+              <label className={templateStyles.inputLabel}>Row count</label>
+              <input
+                type="number"
+                value={values.rowCount}
+                onChange={(e) => update("rowCount", e.target.value)}
+                className={templateStyles.input}
+              />
+            </div>
+            <div>
+              <label className={templateStyles.inputLabel}>Freshness timestamp</label>
+              <input
+                type="number"
+                value={values.freshnessTimestamp}
+                onChange={(e) => update("freshnessTimestamp", e.target.value)}
+                placeholder="Unix seconds"
+                className={templateStyles.input}
+              />
+            </div>
+            <div>
+              <label className={templateStyles.inputLabel}>Schema hash</label>
+              <input
+                value={values.schemaHash}
+                onChange={(e) => update("schemaHash", e.target.value)}
+                placeholder="0x..."
+                className={templateStyles.input}
+              />
+            </div>
+          </div>
+        </div>
+      );
+    default:
+      return null;
+  }
 }
