@@ -15,6 +15,7 @@ from agent.lib.verification_templates import (
     list_templates,
     verify,
 )
+from agent.lib.collectors.data_pipeline_collector import DataPipelineTemplate
 from agent.lib.collectors.research_collector import ResearchReportTemplate
 
 
@@ -25,6 +26,7 @@ class TestTemplateRegistry(unittest.TestCase):
         self.assertIn("canton.institutional_checklist.v1", templates)
         self.assertIn("marketing.campaign.v1", templates)
         self.assertIn("research.report.v1", templates)
+        self.assertIn("data.pipeline.v1", templates)
 
     def test_verify_unknown_template_raises(self):
         with self.assertRaises(KeyError):
@@ -131,6 +133,82 @@ class TestMarketingCampaignTemplate(unittest.TestCase):
         )
         self.assertFalse(verdict.verified)
         self.assertIn("impressions", verdict.reason)
+
+
+class TestDataPipelineTemplate(unittest.TestCase):
+    def setUp(self):
+        self.template = DataPipelineTemplate()
+
+    def test_pipeline_meets_all_criteria(self):
+        inputs = {
+            "file_hash": "0x" + "aa" * 32,
+            "row_count": 1000,
+            "freshness_timestamp": 1700000000,
+            "required_row_count": 500,
+            "required_freshness_seconds": 3600,
+            "now": 1700000100,
+        }
+        verdict = self.template.evaluate(self.template.collect_evidence(inputs), inputs)
+        self.assertTrue(verdict.verified)
+        self.assertEqual(verdict.template_id, "data.pipeline.v1")
+        self.assertIn("meets criteria", verdict.reason)
+
+    def test_pipeline_fails_row_count(self):
+        inputs = {
+            "file_hash": "0x" + "aa" * 32,
+            "row_count": 100,
+            "freshness_timestamp": 1700000000,
+            "required_row_count": 500,
+            "required_freshness_seconds": 3600,
+            "now": 1700000100,
+        }
+        verdict = self.template.evaluate(self.template.collect_evidence(inputs), inputs)
+        self.assertFalse(verdict.verified)
+        self.assertIn("row count", verdict.reason)
+
+    def test_pipeline_fails_freshness(self):
+        inputs = {
+            "file_hash": "0x" + "aa" * 32,
+            "row_count": 1000,
+            "freshness_timestamp": 1700000000,
+            "required_row_count": 500,
+            "required_freshness_seconds": 3600,
+            "now": 1700004000,
+        }
+        verdict = self.template.evaluate(self.template.collect_evidence(inputs), inputs)
+        self.assertFalse(verdict.verified)
+        self.assertIn("freshness", verdict.reason)
+
+    def test_pipeline_missing_expected_schema_hash(self):
+        inputs = {
+            "file_hash": "0x" + "aa" * 32,
+            "row_count": 1000,
+            "freshness_timestamp": 1700000000,
+            "schema_hash": "0xbad",
+            "required_row_count": 500,
+            "required_freshness_seconds": 3600,
+            "require_schema": True,
+            "now": 1700000100,
+        }
+        verdict = self.template.evaluate(self.template.collect_evidence(inputs), inputs)
+        self.assertFalse(verdict.verified)
+        self.assertIn("expected_schema_hash", verdict.reason)
+
+    def test_pipeline_schema_mismatch(self):
+        inputs = {
+            "file_hash": "0x" + "aa" * 32,
+            "row_count": 1000,
+            "freshness_timestamp": 1700000000,
+            "schema_hash": "0xbad",
+            "required_row_count": 500,
+            "required_freshness_seconds": 3600,
+            "require_schema": True,
+            "expected_schema_hash": "0xexpected",
+            "now": 1700000100,
+        }
+        verdict = self.template.evaluate(self.template.collect_evidence(inputs), inputs)
+        self.assertFalse(verdict.verified)
+        self.assertIn("schema mismatch", verdict.reason)
 
 
 class TestResearchReportTemplate(unittest.TestCase):
