@@ -7,9 +7,19 @@ import { keccak256, encodePacked, stringToHex } from "viem";
 import { WeftMilestoneAbi, WeftMilestoneConfidentialAbi, getAddresses, getConfidentialAddress, DEFAULT_CHAIN } from "../lib/contracts";
 import { rememberMilestoneName } from "../lib/milestone-meta";
 import { track } from "../lib/track";
+import {
+  TEMPLATES,
+  TemplateId,
+  emptyInputs,
+  templateIdToBytes32,
+  templateLabel,
+  buildMilestoneMetadata,
+  prepareMilestoneMetadata,
+} from "../lib/milestoneTemplates";
+import { TemplateInputs } from "./TemplateInputs";
 import styles from "./StakeForm.module.css";
+import templateStyles from "./TemplateWizard.module.css";
 
-const TEMPLATE_ID = "0x" + "00".repeat(32);
 const EXPLORER_TX = "https://chainscan-new.0g.ai/tx";
 const SEPOLIA_EXPLORER_TX = "https://sepolia.etherscan.io/tx";
 const DEMO_DEADLINE = 0; // sentinel: 10-minute deadline so sealed ballots open quickly
@@ -19,6 +29,8 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
   const chainId = useChainId();
   const { switchChainAsync } = useSwitchChain();
   const [step, setStep] = useState<"form" | "preview" | "done">("form");
+  const [templateId, setTemplateId] = useState<TemplateId>("evm.deployment_usage.v1");
+  const [templateInputs, setTemplateInputs] = useState<Record<string, string>>(emptyInputs("evm.deployment_usage.v1"));
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [deadlineDays, setDeadlineDays] = useState(14);
@@ -27,29 +39,54 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
   const [milestoneHash, setMilestoneHash] = useState<string | null>(null);
   // Frozen when entering preview so the displayed hash matches the one submitted
   const [deadlineUnix, setDeadlineUnix] = useState<bigint>(BigInt(0));
+  const [metadataHash, setMetadataHash] = useState<string>("0x" + "00".repeat(32));
+  const [isUploading, setIsUploading] = useState(false);
 
   const confidentialAddress = getConfidentialAddress();
   const addresses = getAddresses(DEFAULT_CHAIN);
   const targetAddress = confidential ? confidentialAddress : addresses.weftMilestone;
 
   const projectId = name ? keccak256(stringToHex(name)) : ("0x" + "00".repeat(32));
-  const metadataHash = description
-    ? keccak256(stringToHex(description.slice(0, 256)))
-    : ("0x" + "00".repeat(32));
+  const templateIdBytes32 = templateIdToBytes32(templateId);
 
   const computedHash = keccak256(
     encodePacked(
       ["bytes32", "bytes32", "uint64", "bytes32"],
-      [projectId as `0x${string}`, TEMPLATE_ID as `0x${string}`, deadlineUnix, metadataHash as `0x${string}`]
+      [projectId as `0x${string}`, templateIdBytes32, deadlineUnix, metadataHash as `0x${string}`]
     )
   );
 
   const { writeContract, data: txHash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
 
-  const enterPreview = () => {
+  const enterPreview = async () => {
     const seconds = deadlineDays === DEMO_DEADLINE ? 10 * 60 : deadlineDays * 86400;
-    setDeadlineUnix(BigInt(Math.floor(Date.now() / 1000) + seconds));
+    const nextDeadlineUnix = BigInt(Math.floor(Date.now() / 1000) + seconds);
+    setDeadlineUnix(nextDeadlineUnix);
+    setError(null);
+    setIsUploading(true);
+    try {
+      const metadata = buildMilestoneMetadata({
+        templateId,
+        templateInputs,
+        confidential,
+        chainId,
+        deadlineUnix: nextDeadlineUnix,
+        name,
+        description,
+      });
+      const data = await prepareMilestoneMetadata(metadata);
+      setMetadataHash(data.metadataHash);
+      if (!data.uploaded) {
+        console.warn("0G upload not available; using deterministic metadata hash fallback.", data.fallbackReason);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Metadata preparation failed");
+      setIsUploading(false);
+      return;
+    } finally {
+      setIsUploading(false);
+    }
     setStep("preview");
     track("create_started");
   };
@@ -71,7 +108,7 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
               args: [
                 computedHash,
                 projectId as `0x${string}`,
-                TEMPLATE_ID as `0x${string}`,
+                templateIdBytes32,
                 deadlineUnix,
                 metadataHash as `0x${string}`,
                 // Confidential contract requires at least one payout split
@@ -85,7 +122,7 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
               args: [
                 computedHash,
                 projectId as `0x${string}`,
-                TEMPLATE_ID as `0x${string}`,
+                templateIdBytes32,
                 deadlineUnix,
                 metadataHash as `0x${string}`,
                 [],
@@ -170,6 +207,10 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
             </div>
           )}
           <div>
+            <span className={styles.previewLabel}>Template</span>
+            <p className={styles.previewValue}>{templateLabel(templateId)}</p>
+          </div>
+          <div>
             <span className={styles.previewLabel}>Deadline</span>
             <p className={styles.previewValue}>
               {new Date(Number(deadlineUnix) * 1000).toLocaleString("en-US", {
@@ -205,7 +246,7 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
           </button>
           <button
             onClick={handleCreate}
-            disabled={isPending || !targetAddress}
+            disabled={isPending || !targetAddress || isUploading}
             className={`${styles.button} ${styles.buttonFlex}`}
           >
             {isPending ? "Signing..." : confidential ? "Create on Sepolia" : "Create Milestone"}
@@ -225,6 +266,31 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
       className={styles.container}
     >
       <div className={styles.inputGroup}>
+        <span className={styles.previewLabel}>Verification template</span>
+        <div className={templateStyles.templateGrid}>
+          {TEMPLATES.map((t) => {
+            const Icon = t.icon;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                className={templateStyles.templateCard}
+                data-selected={templateId === t.id}
+                onClick={() => {
+                  setTemplateId(t.id);
+                  setTemplateInputs(emptyInputs(t.id));
+                }}
+              >
+                <span className={templateStyles.templateIcon}><Icon size={20} /></span>
+                <div className={templateStyles.templateTitle}>{t.label}</div>
+                <div className={templateStyles.templateDesc}>{t.description}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className={styles.inputGroup}>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -243,6 +309,12 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
           rows={3}
         />
       </div>
+
+      <TemplateInputs
+        templateId={templateId}
+        values={templateInputs}
+        onChange={setTemplateInputs}
+      />
 
       <div className={styles.inputGroup}>
         <select
@@ -275,11 +347,12 @@ export function CreateMilestoneForm({ onCreated }: { onCreated?: (hash: string) 
 
       <button
         type="submit"
-        disabled={!name.trim()}
+        disabled={!name.trim() || isUploading}
         className={styles.button}
       >
-        Review Milestone
+        {isUploading ? "Preparing instructions..." : "Review Milestone"}
       </button>
+      {error && <div className={styles.error}>{error}</div>}
     </form>
   );
 }

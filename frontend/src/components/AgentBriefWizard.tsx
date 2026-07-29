@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useWriteContract, useWaitForTransactionReceipt, useAccount, useChainId, useSwitchChain } from "wagmi";
 import { sepolia } from "wagmi/chains";
-import { keccak256, encodePacked, stringToHex, pad } from "viem";
+import { keccak256, encodePacked, stringToHex } from "viem";
 import {
   Bot,
   ArrowRight,
@@ -15,10 +15,6 @@ import {
   Check,
   Loader2,
   Eye,
-  Database,
-  FileText,
-  Megaphone,
-  Code,
 } from "lucide-react";
 import {
   WeftMilestoneAbi,
@@ -29,6 +25,16 @@ import {
 } from "../lib/contracts";
 import { rememberMilestoneName } from "../lib/milestone-meta";
 import { track } from "../lib/track";
+import {
+  TEMPLATES,
+  TemplateId,
+  emptyInputs,
+  templateIdToBytes32,
+  templateLabel,
+  buildMilestoneMetadata,
+  prepareMilestoneMetadata,
+} from "../lib/milestoneTemplates";
+import { TemplateInputs } from "./TemplateInputs";
 import styles from "./AgentBriefWizard.module.css";
 import templateStyles from "./TemplateWizard.module.css";
 
@@ -36,100 +42,7 @@ const EXPLORER_TX = "https://chainscan-new.0g.ai/tx";
 const SEPOLIA_EXPLORER_TX = "https://sepolia.etherscan.io/tx";
 const DEMO_DEADLINE = 0; // sentinel: 10-minute deadline for confidential demo
 
-export type TemplateId =
-  | "evm.deployment_usage.v1"
-  | "research.report.v1"
-  | "marketing.campaign.v1"
-  | "data.pipeline.v1";
-
-interface TemplateOption {
-  id: TemplateId;
-  label: string;
-  shortLabel: string;
-  description: string;
-  icon: React.ElementType;
-}
-
-const TEMPLATES: TemplateOption[] = [
-  {
-    id: "evm.deployment_usage.v1",
-    label: "EVM Deployment + Usage",
-    shortLabel: "EVM",
-    description: "Verify a deployed contract has real callers in a measurement window.",
-    icon: Code,
-  },
-  {
-    id: "research.report.v1",
-    label: "Research Report",
-    shortLabel: "Research",
-    description: "Verify a report by word count, citations, sources, and plagiarism score.",
-    icon: FileText,
-  },
-  {
-    id: "marketing.campaign.v1",
-    label: "Marketing Campaign",
-    shortLabel: "Marketing",
-    description: "Verify impressions, pageviews, and clicks against campaign thresholds.",
-    icon: Megaphone,
-  },
-  {
-    id: "data.pipeline.v1",
-    label: "Data Pipeline",
-    shortLabel: "Data",
-    description: "Verify a pipeline output by row count, freshness, and file hash.",
-    icon: Database,
-  },
-];
-
 type WizardStep = -1 | 0 | 1 | 2 | 3 | 4 | "creating" | "done";
-
-function templateIdToBytes32(templateId: TemplateId) {
-  return pad(stringToHex(templateId), { dir: "right", size: 32 });
-}
-
-function emptyInputs(templateId: TemplateId): Record<string, string> {
-  switch (templateId) {
-    case "evm.deployment_usage.v1":
-      return {
-        contractAddress: "",
-        measurementWindowSeconds: "604800",
-        uniqueCallerThreshold: "10",
-      };
-    case "research.report.v1":
-      return {
-        deliverableHash: "",
-        wordCount: "",
-        citationCount: "",
-        sourceCount: "",
-        plagiarismScore: "",
-        requiredWords: "1500",
-        requiredCitations: "10",
-        requiredSources: "5",
-        maxPlagiarism: "10",
-      };
-    case "marketing.campaign.v1":
-      return {
-        deliverableHash: "",
-        twitterImpressions: "",
-        gaPageviews: "",
-        gaClicks: "",
-        requiredImpressions: "1000",
-        requiredPageviews: "1000",
-        requiredClicks: "100",
-      };
-    case "data.pipeline.v1":
-      return {
-        fileHash: "",
-        rowCount: "",
-        freshnessTimestamp: "",
-        schemaHash: "",
-        requiredRowCount: "500",
-        requiredFreshnessSeconds: "3600",
-      };
-    default:
-      return {};
-  }
-}
 
 export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => void }) {
   const { isConnected, address } = useAccount();
@@ -174,86 +87,25 @@ export function AgentBriefWizard({ onCreated }: { onCreated?: (hash: string) => 
     track("wizard_step", { step: String(s) });
   };
 
-  const buildMetadata = (): Record<string, unknown> => {
-    const base = {
-      templateId,
-      chainId: confidential ? sepolia.id : (chainId ?? 16602),
-      deadline: Number(deadlineUnix),
-      notes: description || name,
-    };
-
-    switch (templateId) {
-      case "evm.deployment_usage.v1":
-        return {
-          ...base,
-          contractAddress: templateInputs.contractAddress,
-          measurementWindowSeconds: Number(templateInputs.measurementWindowSeconds) || 0,
-          uniqueCallerThreshold: Number(templateInputs.uniqueCallerThreshold) || 0,
-        };
-      case "research.report.v1":
-        return {
-          ...base,
-          templateInputs: {
-            deliverable_hash: templateInputs.deliverableHash,
-            word_count: Number(templateInputs.wordCount) || 0,
-            citation_count: Number(templateInputs.citationCount) || 0,
-            source_count: Number(templateInputs.sourceCount) || 0,
-            plagiarism_score: Number(templateInputs.plagiarismScore) || 0,
-            required_words: Number(templateInputs.requiredWords) || 0,
-            required_citations: Number(templateInputs.requiredCitations) || 0,
-            required_sources: Number(templateInputs.requiredSources) || 0,
-            max_plagiarism: Number(templateInputs.maxPlagiarism) || 100,
-          },
-        };
-      case "marketing.campaign.v1":
-        return {
-          ...base,
-          templateInputs: {
-            deliverable_hash: templateInputs.deliverableHash,
-            twitter_impressions: Number(templateInputs.twitterImpressions) || 0,
-            ga_pageviews: Number(templateInputs.gaPageviews) || 0,
-            ga_clicks: Number(templateInputs.gaClicks) || 0,
-            required_impressions: Number(templateInputs.requiredImpressions) || 0,
-            required_pageviews: Number(templateInputs.requiredPageviews) || 0,
-            required_clicks: Number(templateInputs.requiredClicks) || 0,
-          },
-        };
-      case "data.pipeline.v1":
-        return {
-          ...base,
-          templateInputs: {
-            file_hash: templateInputs.fileHash,
-            row_count: Number(templateInputs.rowCount) || 0,
-            freshness_timestamp: Number(templateInputs.freshnessTimestamp) || 0,
-            schema_hash: templateInputs.schemaHash,
-            required_row_count: Number(templateInputs.requiredRowCount) || 0,
-            required_freshness_seconds: Number(templateInputs.requiredFreshnessSeconds) || 0,
-          },
-        };
-      default:
-        return base;
-    }
-  };
-
   const prepareMetadata = async () => {
     setIsUploading(true);
     setError(null);
     try {
-      const metadata = buildMetadata();
-      const res = await fetch("/api/milestone-metadata", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(metadata),
+      const metadata = buildMilestoneMetadata({
+        templateId,
+        templateInputs,
+        confidential,
+        chainId,
+        deadlineUnix,
+        name,
+        description,
       });
-      const data = await res.json();
-      if (!data.ok) {
-        throw new Error(data.error || "Failed to prepare metadata");
-      }
+      const data = await prepareMilestoneMetadata(metadata);
       setMetadataHash(data.metadataHash);
       if (!data.uploaded) {
         console.warn("0G upload not available; using deterministic metadata hash fallback.", data.fallbackReason);
       }
-      return data.metadataHash as string;
+      return data.metadataHash;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Metadata preparation failed");
       throw err;
@@ -815,188 +667,4 @@ function WizardPreview() {
   );
 }
 
-function templateLabel(templateId: TemplateId) {
-  return TEMPLATES.find((t) => t.id === templateId)?.label ?? templateId;
-}
 
-interface TemplateInputsProps {
-  templateId: TemplateId;
-  values: Record<string, string>;
-  onChange: (values: Record<string, string>) => void;
-}
-
-function TemplateInputs({ templateId, values, onChange }: TemplateInputsProps) {
-  const update = (key: string, value: string) => {
-    onChange({ ...values, [key]: value });
-  };
-
-  switch (templateId) {
-    case "evm.deployment_usage.v1":
-      return (
-        <div className={templateStyles.inputSection}>
-          <label className={templateStyles.inputLabel}>Contract address</label>
-          <input
-            value={values.contractAddress}
-            onChange={(e) => update("contractAddress", e.target.value)}
-            placeholder="0x..."
-            className={templateStyles.input}
-          />
-          <div className={templateStyles.inputRow}>
-            <div>
-              <label className={templateStyles.inputLabel}>Measurement window (seconds)</label>
-              <input
-                type="number"
-                value={values.measurementWindowSeconds}
-                onChange={(e) => update("measurementWindowSeconds", e.target.value)}
-                className={templateStyles.input}
-              />
-            </div>
-            <div>
-              <label className={templateStyles.inputLabel}>Unique caller threshold</label>
-              <input
-                type="number"
-                value={values.uniqueCallerThreshold}
-                onChange={(e) => update("uniqueCallerThreshold", e.target.value)}
-                className={templateStyles.input}
-              />
-            </div>
-          </div>
-        </div>
-      );
-    case "research.report.v1":
-      return (
-        <div className={templateStyles.inputSection}>
-          <label className={templateStyles.inputLabel}>Deliverable hash</label>
-          <input
-            value={values.deliverableHash}
-            onChange={(e) => update("deliverableHash", e.target.value)}
-            placeholder="0x... (IPFS/0G root)"
-            className={templateStyles.input}
-          />
-          <div className={templateStyles.inputRow}>
-            <div>
-              <label className={templateStyles.inputLabel}>Word count</label>
-              <input
-                type="number"
-                value={values.wordCount}
-                onChange={(e) => update("wordCount", e.target.value)}
-                className={templateStyles.input}
-              />
-            </div>
-            <div>
-              <label className={templateStyles.inputLabel}>Citation count</label>
-              <input
-                type="number"
-                value={values.citationCount}
-                onChange={(e) => update("citationCount", e.target.value)}
-                className={templateStyles.input}
-              />
-            </div>
-            <div>
-              <label className={templateStyles.inputLabel}>Source count</label>
-              <input
-                type="number"
-                value={values.sourceCount}
-                onChange={(e) => update("sourceCount", e.target.value)}
-                className={templateStyles.input}
-              />
-            </div>
-            <div>
-              <label className={templateStyles.inputLabel}>Plagiarism %</label>
-              <input
-                type="number"
-                value={values.plagiarismScore}
-                onChange={(e) => update("plagiarismScore", e.target.value)}
-                className={templateStyles.input}
-              />
-            </div>
-          </div>
-        </div>
-      );
-    case "marketing.campaign.v1":
-      return (
-        <div className={templateStyles.inputSection}>
-          <label className={templateStyles.inputLabel}>Deliverable hash</label>
-          <input
-            value={values.deliverableHash}
-            onChange={(e) => update("deliverableHash", e.target.value)}
-            placeholder="0x... (Notion/Figma/0G root)"
-            className={templateStyles.input}
-          />
-          <div className={templateStyles.inputRow}>
-            <div>
-              <label className={templateStyles.inputLabel}>Twitter impressions</label>
-              <input
-                type="number"
-                value={values.twitterImpressions}
-                onChange={(e) => update("twitterImpressions", e.target.value)}
-                className={templateStyles.input}
-              />
-            </div>
-            <div>
-              <label className={templateStyles.inputLabel}>GA pageviews</label>
-              <input
-                type="number"
-                value={values.gaPageviews}
-                onChange={(e) => update("gaPageviews", e.target.value)}
-                className={templateStyles.input}
-              />
-            </div>
-            <div>
-              <label className={templateStyles.inputLabel}>GA clicks</label>
-              <input
-                type="number"
-                value={values.gaClicks}
-                onChange={(e) => update("gaClicks", e.target.value)}
-                className={templateStyles.input}
-              />
-            </div>
-          </div>
-        </div>
-      );
-    case "data.pipeline.v1":
-      return (
-        <div className={templateStyles.inputSection}>
-          <label className={templateStyles.inputLabel}>Output file hash</label>
-          <input
-            value={values.fileHash}
-            onChange={(e) => update("fileHash", e.target.value)}
-            placeholder="0x... (S3/GCS/0G root)"
-            className={templateStyles.input}
-          />
-          <div className={templateStyles.inputRow}>
-            <div>
-              <label className={templateStyles.inputLabel}>Row count</label>
-              <input
-                type="number"
-                value={values.rowCount}
-                onChange={(e) => update("rowCount", e.target.value)}
-                className={templateStyles.input}
-              />
-            </div>
-            <div>
-              <label className={templateStyles.inputLabel}>Freshness timestamp</label>
-              <input
-                type="number"
-                value={values.freshnessTimestamp}
-                onChange={(e) => update("freshnessTimestamp", e.target.value)}
-                placeholder="Unix seconds"
-                className={templateStyles.input}
-              />
-            </div>
-            <div>
-              <label className={templateStyles.inputLabel}>Schema hash</label>
-              <input
-                value={values.schemaHash}
-                onChange={(e) => update("schemaHash", e.target.value)}
-                placeholder="0x..."
-                className={templateStyles.input}
-              />
-            </div>
-          </div>
-        </div>
-      );
-    default:
-      return null;
-  }
-}
