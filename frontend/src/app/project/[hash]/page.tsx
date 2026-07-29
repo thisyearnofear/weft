@@ -19,6 +19,8 @@ import { ProofShareCard } from "../../../components/ProofShareCard";
 import { VerificationReceipt } from "../../../components/VerificationReceipt";
 import { DEFAULT_CHAIN, getAddresses, WeftMilestoneAbi } from "../../../lib/contracts";
 import { resolveMilestoneMeta, shortHash } from "../../../lib/milestone-meta";
+import { templateLabelFromBytes32 } from "../../../lib/milestoneTemplates";
+import { TemplateEvidencePanel } from "../../../components/TemplateEvidencePanel";
 import styles from "./page.module.css";
 
 const EXPLORER_ADDR = "https://chainscan-new.0g.ai/address";
@@ -64,20 +66,6 @@ function StatusBadge({ milestone }: { milestone: { finalized: boolean; verified:
   if (milestone.verified) return <span className={`${styles.statusBadge} ${styles.statusVerified}`}>Verified</span>;
   if (milestone.finalized) return <span className={`${styles.statusBadge} ${styles.statusRejected}`}>Rejected</span>;
   return <span className={`${styles.statusBadge} ${styles.statusActive}`}>In verification</span>;
-}
-
-function EvidenceRow({ label, passed, detail }: { label: string; passed: boolean; detail: string }) {
-  return (
-    <div className={styles.evidenceRow}>
-      <span className={`${styles.evidenceIcon} ${passed ? styles.evidenceIconPassed : ""}`}>
-        {passed ? "✓" : "○"}
-      </span>
-      <div className={styles.evidenceBody}>
-        <div className={styles.evidenceLabel}>{label}</div>
-        <div className={styles.evidenceDetail}>{detail}</div>
-      </div>
-    </div>
-  );
 }
 
 function ReleaseButton({ milestoneHash, contractAddress, milestone, demoMode }: {
@@ -196,6 +184,8 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const evidenceRoot = milestone?.finalEvidenceRoot && milestone.finalEvidenceRoot !== ZERO_ROOT ? milestone.finalEvidenceRoot : null;
   const verificationProgress = milestone?.verifierCount ? Math.min(100, Math.round((milestone.verifiedVotes / milestone.verifierCount) * 100)) : 0;
+  const templateLabelText = templateLabelFromBytes32(milestone?.templateId ?? "");
+  const metadataNotes = (statusMilestone?.metadata as { notes?: string } | undefined)?.notes;
   const payoutStatus = isVerified
     ? isUnfunded
       ? "This outcome verified with no capital staked — the proof itself is the payout, minted to the builder's reputation."
@@ -288,10 +278,11 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
                 </div>
               )}
               <span className={styles.kicker}>Milestone</span>
+              <span className={styles.templateBadge}>{templateLabelText}</span>
               <h1 className={styles.title}>{resolveMilestoneMeta(milestoneHash).name}</h1>
               <p className={styles.identityValue}>{shortHash(milestoneHash, 10, 8)}</p>
               <p className={styles.subtitle}>
-                {demo?.pitch || "This page answers the real question: did this builder deliver the outcome they were funded for?"}
+                {metadataNotes || demo?.pitch || "This page answers the real question: did this builder deliver the outcome they were funded for?"}
               </p>
 
               <div className={styles.heroActions}>
@@ -421,65 +412,11 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
               </div>
             </article>
 
-            <article className={styles.panel}>
-              <div className={styles.panelHeader}>
-                <div>
-                  <span className={styles.kicker}>What I checked</span>
-                  <h3>Verification timeline</h3>
-                </div>
-                <CheckCircle2 size={18} />
-              </div>
-              <p className={styles.panelText} style={{ marginBottom: "0.5rem" }}>
-                {isVerified
-                  ? "Here's what I found when I verified this milestone. Each check ran autonomously."
-                  : milestone?.finalized
-                    ? "Here's what I found. The threshold wasn't met."
-                    : "Here's what I'll check when the deadline passes. Some signals are already live."}
-              </p>
-              <div className={styles.evidenceList}>
-                <EvidenceRow
-                  label="Contract deployment"
-                  passed={milestone.builder !== "0x0000000000000000000000000000000000000000"}
-                  detail="Deployed contract exists on 0G chain at the stated address"
-                />
-                <EvidenceRow
-                  label="Unique callers"
-                  passed={milestone.verifiedVotes > 0}
-                  detail={milestone.verifiedVotes > 0 ? `${milestone.verifiedVotes} unique caller${milestone.verifiedVotes === 1 ? "" : "s"} detected` : "Awaiting usage data"}
-                />
-                <EvidenceRow
-                  label="Verifier quorum"
-                  passed={milestone.verifierCount > 0 && milestone.verifiedVotes > 0}
-                  detail={milestone.verifierCount > 0 ? `${milestone.verifiedVotes}/${milestone.verifierCount} votes` : "No verifiers assigned"}
-                />
-                <EvidenceRow
-                  label="Final evidence"
-                  passed={!!evidenceRoot}
-                  detail={evidenceRoot ? "Anchored onchain" : "Not yet published"}
-                />
-                <EvidenceRow
-                  label={isUnfunded ? "Reputation payout" : "Capital release"}
-                  passed={isUnfunded ? milestone.verified : milestone.released}
-                  detail={
-                    isUnfunded
-                      ? milestone.verified
-                        ? "No stake to move — verified proof minted to the builder's reputation"
-                        : "Unfunded run — a verified outcome mints reputation instead of capital"
-                      : milestone.released
-                        ? "Capital released to builder"
-                        : milestone.verified
-                          ? "Ready — call release()"
-                          : "Locked until verification"
-                  }
-                />
-              </div>
-              {evidenceRoot && (
-                <div className={styles.codeBlock}>
-                  <span className={styles.codeLabel}>Evidence root</span>
-                  <code>{evidenceRoot}</code>
-                </div>
-              )}
-            </article>
+            <TemplateEvidencePanel
+              templateId={milestone?.templateId ?? ""}
+              metadata={statusMilestone?.metadata}
+              milestone={milestone}
+            />
 
             <article className={styles.panel}>
               <div className={styles.panelHeader}>

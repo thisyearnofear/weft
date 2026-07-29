@@ -779,6 +779,22 @@
   }
 }
 
+/* Milestone template badge */
+.templateBadge {
+  display: inline-flex;
+  margin-left: 0.75rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.16);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: #c7d2fe;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  vertical-align: middle;
+}
+
 /* fal.ai AI-woven swatch section */
 .falSwatchSection {
   border-radius: var(--radius-lg);

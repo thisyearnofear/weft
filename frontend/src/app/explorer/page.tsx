@@ -12,6 +12,7 @@ import { DemoBridge } from "@/components/ui/DemoBridge";
 import { AgentHelper } from "@/components/AgentHelper";
 import { track } from "@/lib/track";
 import { DEMO_FHE_V1_HASH, DEMO_FHE_V2_HASH } from "@/lib/demo-milestones";
+import { templateShortLabelFromBytes32 } from "@/lib/milestoneTemplates";
 import styles from "./page.module.css";
 
 type StatusFilter = "all" | "verified" | "pending" | "failed";
@@ -50,6 +51,8 @@ interface UnifiedRow {
   finalEvidenceRoot: string;
   chain: "0g" | "sepolia-fhe-v1" | "sepolia-fhe-v2";
   href: string;
+  templateId: string;
+  templateLabel: string;
 }
 
 export default function ExplorerPage() {
@@ -79,6 +82,8 @@ export default function ExplorerPage() {
           finalEvidenceRoot: m.finalEvidenceRoot,
           chain: "0g",
           href: `/project/${m.milestoneHash}`,
+          templateId: m.templateId,
+          templateLabel: templateShortLabelFromBytes32(m.templateId),
         });
       }
     }
@@ -98,6 +103,8 @@ export default function ExplorerPage() {
         finalEvidenceRoot: v1Data.finalEvidenceRoot,
         chain: "sepolia-fhe-v1",
         href: `/project/${DEMO_FHE_V1_HASH}?confidential=1`,
+        templateId: "",
+        templateLabel: "FHE v1",
       });
     }
 
@@ -116,6 +123,8 @@ export default function ExplorerPage() {
         finalEvidenceRoot: v2Data.finalEvidenceRoot,
         chain: "sepolia-fhe-v2",
         href: `/project/${DEMO_FHE_V2_HASH}?weighted=1`,
+        templateId: "",
+        templateLabel: "FHE v2",
       });
     }
 
@@ -298,6 +307,7 @@ export default function ExplorerPage() {
               <thead>
                 <tr>
                   <th>Milestone</th>
+                  <th>Template</th>
                   <th>Status</th>
                   <th>Builder</th>
                   <th>Stake</th>
@@ -322,6 +332,11 @@ export default function ExplorerPage() {
                           {m.chain === "sepolia-fhe-v1" ? <><Lock size={10} /> FHE</> : <><Zap size={10} /> FHE.mul</>}
                         </span>
                       )}
+                    </td>
+                    <td>
+                      <span className={styles.templateCell} title={m.templateId || "FHE confidential"}>
+                        {m.templateLabel}
+                      </span>
                     </td>
                     <td>
                       <span

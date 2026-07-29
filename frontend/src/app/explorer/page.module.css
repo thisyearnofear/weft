@@ -379,6 +379,17 @@
   font-variant-numeric: tabular-nums;
 }
 
+.templateCell {
+  display: inline-flex;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: rgba(99, 102, 241, 0.12);
+  color: #c7d2fe;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 /* ── Empty / loading states ── */
 .emptyState {
   text-align: center;

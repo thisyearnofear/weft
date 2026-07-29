@@ -1,4 +1,4 @@
-import { pad, stringToHex } from "viem";
+import { pad, stringToHex, hexToString } from "viem";
 import { Code, Database, FileText, Megaphone } from "lucide-react";
 
 export type TemplateId =
@@ -50,8 +50,34 @@ export function templateIdToBytes32(templateId: TemplateId) {
   return pad(stringToHex(templateId), { dir: "right", size: 32 });
 }
 
-export function templateLabel(templateId: TemplateId) {
+export function bytes32ToTemplateId(bytes32: string): string {
+  try {
+    const str = hexToString(bytes32 as `0x${string}`);
+    const trimmed = str.replace(/\0/g, "");
+    return trimmed || "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+export function templateLabel(templateId: string) {
   return TEMPLATES.find((t) => t.id === templateId)?.label ?? templateId;
+}
+
+export function templateShortLabel(templateId: string) {
+  return TEMPLATES.find((t) => t.id === templateId)?.shortLabel ?? templateId;
+}
+
+export function templateLabelFromBytes32(bytes32: string): string {
+  const id = bytes32ToTemplateId(bytes32);
+  if (id === "unknown") return "Legacy EVM";
+  return templateLabel(id);
+}
+
+export function templateShortLabelFromBytes32(bytes32: string): string {
+  const id = bytes32ToTemplateId(bytes32);
+  if (id === "unknown") return "Legacy";
+  return templateShortLabel(id);
 }
 
 export function emptyInputs(templateId: TemplateId): Record<string, string> {
