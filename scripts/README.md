@@ -11,6 +11,8 @@ Legacy partial deploy (rsync frontend only). Prefer **`deploy-snel-bot.sh`** for
 Safe full deploy to `snel-bot` (`weft.thisyearnofear.com`): git pull without `git clean`, preserves
 `frontend/.env.local`, `ecosystem.config.js`, `agent/.axl/`, and `venv/`, rebuilds frontend, restarts PM2.
 
+Server env template: `ecosystem.config.js.example` (copy to `ecosystem.config.js` on the host; never commit secrets).
+
 ```bash
 ./scripts/deploy-snel-bot.sh
 ```

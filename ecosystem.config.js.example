@@ -1,0 +1,76 @@
+/**
+ * PM2 process layout for snel-bot (/opt/weft).
+ *
+ * Copy to ecosystem.config.js on the server and fill secrets from
+ * /opt/weft/scripts/.env or /opt/weft/.env (never commit the live file).
+ *
+ *   cp ecosystem.config.js.example ecosystem.config.js
+ *   # edit secrets + pm2 startOrRestart ecosystem.config.js
+ */
+module.exports = {
+  apps: [
+    {
+      name: "weft-frontend",
+      cwd: "/opt/weft/frontend",
+      script: "npm",
+      args: "start",
+      env: {
+        PORT: 3010,
+        WEFT_STATUS_API_URL: "http://127.0.0.1:9010",
+        NEXT_PUBLIC_DEFAULT_CHAIN: "zeroGTestnet",
+        NEXT_PUBLIC_WEFT_MILESTONE_0G_TESTNET: "0x9f66158c560ce5c8b40820fdcd2874ff8d852192",
+        NEXT_PUBLIC_VERIFIER_REGISTRY_0G_TESTNET: "0x1356dd3f28461685ffd81d44f6ae9ae87937e34a",
+        NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: "your-walletconnect-project-id",
+        // Server-side metadata route (/api/milestone-metadata/[hash])
+        ZERO_G_INDEXER_RPC: "https://indexer-storage-testnet-turbo.0g.ai",
+        ETH_RPC_URL: "https://evmrpc-testnet.0g.ai",
+      },
+      autorestart: true,
+      watch: false,
+    },
+    {
+      name: "weft-api",
+      cwd: "/opt/weft",
+      script: "agent/scripts/weft_status_api.py",
+      interpreter: "/opt/weft/venv/bin/python3",
+      args: "--port 9010",
+      env: {
+        ETH_RPC_URL: "https://evmrpc-testnet.0g.ai",
+        WEFT_CONTRACT_ADDRESS: "0x9f66158c560ce5c8b40820fdcd2874ff8d852192",
+        VERIFIER_REGISTRY_ADDRESS: "0x1356dd3f28461685ffd81d44f6ae9ae87937e34a",
+        WEFT_ENS_PARENT: "thisyearnofear.eth",
+        WEFT_BUILDER_ENS: "weft.thisyearnofear.eth",
+        WEFT_AGENT_ENS: "weft.thisyearnofear.eth",
+        ZERO_G_INDEXER_RPC: "https://indexer-storage-testnet-turbo.0g.ai",
+        // Landing demo chip + MCP smoke (set to your public milestone hash)
+        DEMO_MILESTONE_HASH: "0xYOUR_MILESTONE_HASH",
+        MILESTONE_HASH: "0xYOUR_MILESTONE_HASH",
+        CHAIN_ID: "16602",
+        KEEPERHUB_TRANSPORT: "mcp",
+        KEEPERHUB_ENABLED: "1",
+        KEEPERHUB_API_URL: "https://app.keeperhub.com",
+        KEEPERHUB_TIMEOUT: "120",
+        KEEPERHUB_RELAYER_ADDRESS: "0x5EB72B6576581c38fa44BdFa6EcDFe8C13a1fB9c",
+        // Secrets — load from server gitignored env; do not commit real values:
+        VERIFIER_ADDRESS: "0x...",
+        PRIVATE_KEY: "0x...",
+        KEEPERHUB_API_KEY: "kh_...",
+        KIMI_API_KEY: "sk-...",
+        FAL_KEY: "...",
+        NVIDIA_API_KEY: "...",
+        LLM_BACKEND: "kimi",
+        HYDRADB_API_KEY: "...",
+        STRIPE_SKILLS_KEY: "sk_test_...",
+      },
+      autorestart: true,
+      watch: false,
+    },
+    {
+      name: "weft-axl",
+      script: "axl",
+      args: "-config /opt/weft/agent/.axl/node-config.json",
+      autorestart: true,
+      watch: false,
+    },
+  ],
+};
