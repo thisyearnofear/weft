@@ -78,24 +78,9 @@ cat agent/.attestations/0xb643d0a8…/keeperhub_audit.json
 
 ## Demo video (~63s)
 
-HyperFrames composition: `compositions/trailer/keeperhub-demo/`
+**Local file:** render with HyperFrames (not shipped in the repo — hackathon submission artifact only).
 
-**Local render:** `compositions/trailer/keeperhub-demo/renders/` (regenerate with `npm run assets && npm run render`)
-
-Reproduce:
-
-```bash
-cd compositions/trailer/keeperhub-demo
-npm run assets && npm run render
-```
-
-**Beat sheet:**
-
-1. **Hook (8s)** — Agents decide. KeeperHub executes.
-2. **Problem (10s)** — Milestone escrow needs execution, not just a verdict.
-3. **Proof (20s)** — Live project page + chainscan **`submitVerdict`** tx + `keeperhub_audit.json` (`transport: mcp`).
-4. **Flow (14s)** — Weft agent → MCP → KeeperHub → `WeftMilestone.submitVerdict()` on 0G.
-5. **CTA (8s)** — weft.thisyearnofear.com + proof tx hash.
+Primary proof shown in video: MCP **`submitVerdict()`** tx [`0x4348599a…9157d`](https://chainscan-galileo.0g.ai/tx/0x4348599a0c6eec130b03dd6ec5806488651734aadbc5623d2da4d2559a09157d)
 
 _Video URL: (upload MP4 to YouTube/Loom unlisted and paste link at submission)_
 

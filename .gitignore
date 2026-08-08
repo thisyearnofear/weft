@@ -106,6 +106,7 @@ skills-lock.json
 *.wmv
 videos/
 compositions/**/renders/
+compositions/trailer/keeperhub-demo/
 weft-demo-recording-url.txt
 
 # Submission screenshots (large binary assets; keep locally, upload to portal)
