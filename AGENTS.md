@@ -444,6 +444,7 @@ NOUS_MODEL               # NousResearch model name (default: NousResearch/Hermes
 KeeperHub (optional — reliable onchain execution with retry, gas optimization, and audit trails):
 ```bash
 KEEPERHUB_API_KEY        # API key from app.keeperhub.com (enables KeeperHub execution)
+KEEPERHUB_TRANSPORT      # rest (default) or mcp — mcp uses hosted MCP tools at /mcp
 KEEPERHUB_API_URL        # Optional override (default: https://app.keeperhub.com)
 KEEPERHUB_TIMEOUT        # Seconds to wait for tx confirmation (default: 120)
 KEEPERHUB_ENABLED        # Set to "0" to disable even if API key is set (default: "1")

@@ -24,6 +24,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+USER_AGENT = "weft-daemon/1.0.0 (Weft; +https://github.com/thisyearnofear/weft)"
+
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -49,6 +51,21 @@ def _api_key() -> str:
 def _timeout() -> int:
     """Return the timeout in seconds for polling execution status."""
     return int(os.environ.get("KEEPERHUB_TIMEOUT", "120"))
+
+
+def keeperhub_transport() -> str:
+    """Return execution transport: ``rest`` (default) or ``mcp``.
+
+    Set ``KEEPERHUB_TRANSPORT=mcp`` to route writes through KeeperHub's hosted
+    MCP tools (``execute_contract_call``, ``get_direct_execution_status``).
+    Recommended for the Agents Onchain hackathon submission.
+    """
+    mode = os.environ.get("KEEPERHUB_TRANSPORT", "rest").strip().lower()
+    return mode if mode in ("rest", "mcp") else "rest"
+
+
+def _use_mcp_transport() -> bool:
+    return keeperhub_transport() == "mcp"
 
 
 # KeeperHub rate limit: 100 requests/minute for authenticated users.
@@ -104,17 +121,19 @@ def _request(
     *,
     body: Optional[Dict[str, Any]] = None,
     http_timeout: int = 30,
+    api_prefix: str = "/api",
 ) -> Dict[str, Any]:
     """Make an authenticated request to the KeeperHub REST API.
 
     Returns the unwrapped response data as a dict.
     Raises KeeperHubClientError on 4xx, RuntimeError on 5xx/connection errors.
     """
-    url = f"{_api_url()}/api/v1/{path.lstrip('/')}"
+    url = f"{_api_url()}{api_prefix}/{path.lstrip('/')}"
     headers = {
         "Authorization": f"Bearer {_api_key()}",
         "Content-Type": "application/json",
         "Accept": "application/json",
+        "User-Agent": USER_AGENT,
     }
     data = json.dumps(body).encode("utf-8") if body else None
 
@@ -204,8 +223,8 @@ def execute_contract_call(
 
     body: Dict[str, Any] = {
         "contractAddress": contract_address,
-        "functionSignature": function_signature,
-        "args": args,
+        "functionName": function_signature.split("(")[0] if "(" in function_signature else function_signature,
+        "functionArgs": json.dumps(args),
     }
     if chain_id is not None:
         body["chainId"] = chain_id
@@ -218,12 +237,32 @@ def execute_contract_call(
     if wallet_id is not None:
         body["walletId"] = wallet_id
 
-    resp = _request("POST", "executions/contract-call", body=body)
+    if _use_mcp_transport():
+        from .keeperhub_mcp import KeeperHubMcpError, mcp_execute_contract_call
+
+        try:
+            execution_id, status_str, tx_hash, explorer_url = mcp_execute_contract_call(
+                contract_address=contract_address,
+                function_signature=function_signature,
+                args=args,
+                chain_id=chain_id,
+            )
+        except KeeperHubMcpError as e:
+            raise KeeperHubClientError(str(e), status_code=400) from e
+
+        return KeeperHubExecution(
+            execution_id=execution_id,
+            tx_hash=tx_hash,
+            status=ExecutionStatus(status_str) if status_str in _VALID_STATUSES else ExecutionStatus.UNKNOWN,
+            explorer_url=explorer_url,
+        )
+
+    resp = _request("POST", "execute/contract-call", body=body)
 
     execution_id = resp.get("executionId") or resp.get("id") or ""
     status_str = resp.get("status", "pending").lower()
     tx_hash = resp.get("txHash") or resp.get("transactionHash")
-    explorer_url = resp.get("explorerUrl") or resp.get("txExplorerUrl")
+    explorer_url = resp.get("explorerUrl") or resp.get("transactionLink") or resp.get("txExplorerUrl")
 
     return KeeperHubExecution(
         execution_id=execution_id,
@@ -249,11 +288,42 @@ def poll_execution_status(
     Returns:
         Final KeeperHubExecution with tx_hash on success or error on failure.
     """
+    if _use_mcp_transport():
+        from .keeperhub_mcp import mcp_poll_direct_execution
+
+        status_str, tx_hash, explorer_url, error = mcp_poll_direct_execution(
+            execution_id,
+            timeout=timeout or _timeout(),
+            poll_interval=poll_interval,
+        )
+        if status_str == "confirmed":
+            return KeeperHubExecution(
+                execution_id=execution_id,
+                tx_hash=tx_hash,
+                status=ExecutionStatus.CONFIRMED,
+                explorer_url=explorer_url,
+            )
+        if status_str == "failed":
+            return KeeperHubExecution(
+                execution_id=execution_id,
+                tx_hash=tx_hash,
+                status=ExecutionStatus.FAILED,
+                explorer_url=explorer_url,
+                error=error,
+            )
+        return KeeperHubExecution(
+            execution_id=execution_id,
+            tx_hash=None,
+            status=ExecutionStatus.PENDING,
+            explorer_url=None,
+            error=error,
+        )
+
     deadline = time.time() + (timeout or _timeout())
 
     while time.time() < deadline:
         try:
-            resp = _request("GET", f"executions/{execution_id}/status", http_timeout=10)
+            resp = _request("GET", f"execute/{execution_id}/status", http_timeout=10)
         except KeeperHubClientError as e:
             # 429 rate-limit: back off and keep polling.
             if e.status_code == 429:
@@ -312,8 +382,17 @@ def get_execution_logs(execution_id: str) -> List[Dict[str, Any]]:
     Returns:
         List of log entry dicts with timestamp, level, message, etc.
     """
-    resp = _request("GET", f"executions/{execution_id}/logs")
-    return resp.get("logs") or resp.get("entries") or []
+    if _use_mcp_transport():
+        from .keeperhub_mcp import mcp_get_execution_logs
+
+        try:
+            return mcp_get_execution_logs(execution_id)
+        except RuntimeError:
+            return []
+
+    resp = _request("GET", f"execute/{execution_id}/status")
+    logs = resp.get("logs") or resp.get("entries") or []
+    return logs if isinstance(logs, list) else []
 
 
 def execute_verdict(
@@ -400,6 +479,8 @@ def execute_verdict(
                 "tx_hash": final.tx_hash,
                 "explorer_url": final.explorer_url,
                 "error": final.error,
+                "transport": keeperhub_transport(),
+                "mcp_endpoint": f"{_api_url()}/mcp" if _use_mcp_transport() else None,
             }
             # Fetch logs if not already retrieved (e.g. failed execution)
             if logs is None:

@@ -730,6 +730,7 @@ def _process_one(
         unique_caller_threshold=unique_caller_threshold,
         cached_chain_id=cached_chain_id,
         out_dir=out_dir,
+        builder_ens=builder_ens,
     )
     return True
 
@@ -750,6 +751,7 @@ def _submit_verdict(
     unique_caller_threshold: int,
     cached_chain_id: int,
     out_dir: str,
+    builder_ens: str = "",
 ) -> None:
     """Submit verdict: FHE (Sepolia) or public EVM SettlementRail."""
     confidential_contract = os.environ.get("WEFT_MILESTONE_CONFIDENTIAL", "")

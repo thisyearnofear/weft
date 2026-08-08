@@ -72,6 +72,7 @@ from .keeperhub_client import (
     execute_verdict,
     get_execution_logs,
     keeperhub_configured,
+    keeperhub_transport,
     poll_execution_status,
     release_after_verification,
 )
@@ -168,7 +169,7 @@ __all__ = [
     # keeperhub_client
     "ExecutionStatus", "KeeperHubClientError", "KeeperHubExecution",
     "execute_contract_call", "execute_verdict",
-    "get_execution_logs", "keeperhub_configured",
+    "get_execution_logs", "keeperhub_configured", "keeperhub_transport",
     "poll_execution_status", "release_after_verification",
     # stripe_skills_client
     "Balance", "Charge", "PaymentResult", "ProfitLoss", "ProvisionResult",

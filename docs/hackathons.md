@@ -358,7 +358,7 @@ Every project **must** use KeeperHub as its onchain execution layer. The KeeperH
 | Criterion | Weft's Position |
 |---|---|
 | **Executes onchain via KeeperHub** | ✅ `keeperhub_client.py` is the **preferred verdict-submission path** — `execute_verdict()` with retry + gas optimization + audit trail |
-| **KeeperHub surfaces used** | ✅ MCP (exposed via `weft_status_api.py`), audit trail logging to `keeperhub_audit.json`, full `IKeeperHub.sol` interface, deployed `keeperhubRelayer` contract |
+| **KeeperHub surfaces used** | ✅ MCP (`KEEPERHUB_TRANSPORT=mcp` → `execute_contract_call`, `get_direct_execution_status`, `get_execution`), REST fallback, audit trail in `keeperhub_audit.json`, workflow template in `docs/keeperhub/weft-verdict-workflow.json`, onboarding guide in `docs/keeperhub/starter-template.md` |
 | **Reliability** | ✅ Exponential backoff on 503s, fallback to `cast send` if KeeperHub unavailable, configurable timeout (`KEEPERHUB_TIMEOUT`), chaos-injection test for `kill_keeperhub` |
 | **Real-world usefulness** | ✅ Grant milestone verification — gating capital release for onchain builders. Real market need ($10B+ milestone funding market) |
 | **Integration quality** | ✅ Dedicated client library (`agent/lib/keeperhub_client.py`), comprehensive test suite (`test/test_keeperhub.py`), CI integration, environment-configurable via `KEEPERHUB_*` vars |
@@ -399,9 +399,10 @@ Submission requires:
 
 ### Recommended Prep
 
-- [ ] Produce a demo video showing `weft_daemon.py` executing a verdict through KeeperHub
-- [ ] Capture and link a real KeeperHub-executed transaction from the audit trail
-- [ ] Optionally: merge a PR improving KeeperHub's onboarding UX (separate $1,000 bounty)
+- [ ] Set `KEEPERHUB_TRANSPORT=mcp` and run `python3 agent/scripts/weft_keeperhub_mcp_smoke.py`
+- [ ] Produce a demo video showing `weft_daemon.py` executing a verdict through KeeperHub MCP
+- [ ] Capture and link a real KeeperHub-executed transaction from `keeperhub_audit.json`
+- [ ] Open PR to KeeperHub repo with `docs/keeperhub/starter-template.md` (onboarding bounty)
 
 ---
 

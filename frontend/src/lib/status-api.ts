@@ -28,6 +28,8 @@ export interface DemoTrackGensyn {
 
 export interface DemoTrackKeeperHub {
   configured: boolean;
+  transport?: string;
+  mcpEndpoint?: string;
   apiUrl: string;
   timeoutSeconds: number;
   note: string;

@@ -963,9 +963,11 @@ def _milestone_demo_summary(
             },
             "keeperhub": {
                 "configured": bool(os.environ.get("KEEPERHUB_API_KEY")) and os.environ.get("KEEPERHUB_ENABLED", "1") != "0",
+                "transport": os.environ.get("KEEPERHUB_TRANSPORT", "rest"),
+                "mcpEndpoint": f"{os.environ.get('KEEPERHUB_API_URL', 'https://app.keeperhub.com').rstrip('/')}/mcp",
                 "apiUrl": os.environ.get("KEEPERHUB_API_URL", "https://app.keeperhub.com"),
                 "timeoutSeconds": int(os.environ.get("KEEPERHUB_TIMEOUT") or "120"),
-                "note": "KeeperHub is the preferred execution path for submitVerdict().",
+                "note": "KeeperHub executes submitVerdict() — set KEEPERHUB_TRANSPORT=mcp for hosted MCP tools.",
             },
             "ens": {
                 "builderAddress": builder,

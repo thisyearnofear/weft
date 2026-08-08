@@ -14,6 +14,7 @@ import { WeightedMilestoneView } from "./WeightedMilestoneView";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useBuilderPassport } from "../../../hooks/useBuilderPassport";
 import { useStatusMilestone } from "../../../hooks/useStatusApi";
+import { useMilestoneMetadata } from "../../../hooks/useMilestoneMetadata";
 import { StakeForm } from "../../../components/StakeForm";
 import { ProofShareCard } from "../../../components/ProofShareCard";
 import { VerificationReceipt } from "../../../components/VerificationReceipt";
@@ -166,6 +167,12 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
     weightedMode || (publicMissing && !confidentialMilestone)
   );
   const { data: statusMilestone } = useStatusMilestone(milestoneHash, true);
+  const metadataHash = milestone?.metadataHash;
+  const statusMetadata = statusMilestone?.metadata as { ok?: boolean } | undefined;
+  const hasStatusMetadata = statusMetadata?.ok === true;
+  const { data: rawMetadata } = useMilestoneMetadata(hasStatusMetadata ? undefined : metadataHash);
+  const activeMetadata = hasStatusMetadata ? (statusMilestone?.metadata as Record<string, unknown>) : rawMetadata?.metadata;
+  const metadataNotes = (activeMetadata as { notes?: string } | undefined)?.notes;
   const addresses = getAddresses(DEFAULT_CHAIN);
 
   const builderAddr = milestone?.builder ?? "";
@@ -414,7 +421,7 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
 
             <TemplateEvidencePanel
               templateId={milestone?.templateId ?? ""}
-              metadata={statusMilestone?.metadata}
+              metadata={activeMetadata}
               milestone={milestone}
             />
 

@@ -124,11 +124,11 @@ class TestExecuteContractCall(unittest.TestCase):
         # Verify the request payload
         call_args = mock_request.call_args
         self.assertEqual(call_args[0][0], "POST")
-        self.assertEqual(call_args[0][1], "executions/contract-call")
+        self.assertEqual(call_args[0][1], "execute/contract-call")
         body = call_args[1]["body"]
         self.assertEqual(body["contractAddress"], "0xWeftContract")
-        self.assertEqual(body["functionSignature"], "submitVerdict(bytes32,bool,bytes32)")
-        self.assertEqual(body["args"], ["0xhash", "true", "0xevidence"])
+        self.assertEqual(body["functionName"], "submitVerdict")
+        self.assertEqual(json.loads(body["functionArgs"]), ["0xhash", "true", "0xevidence"])
 
     @patch.dict(os.environ, {"KEEPERHUB_API_KEY": "kh_test"})
     @patch("agent.lib.keeperhub_client._request")
