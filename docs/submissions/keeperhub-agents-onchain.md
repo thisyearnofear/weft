@@ -44,9 +44,14 @@ Org wallet: `0xfafcc3e54c344288bb73ca472d913ffe853f05a0` · chain **16602** · v
 
 | Action | executionId | Tx |
 |---|---|---|
-| **MCP `stake(bytes32)`** (primary hackathon proof) | `muoaanjmlvcx2nhx51bls` | [`0xd27b96ed…0138e`](https://chainscan-galileo.0g.ai/tx/0xd27b96ed9ee32147e44c5fa8ce546e4798dfc4aff63ed8876994499baaf0138e) |
+| **MCP `submitVerdict(bytes32,bool,bytes32)`** (primary hackathon proof) | `5nlz4ndmxbvrqe7c22qeh` | [`0x4348599a…9157d`](https://chainscan-galileo.0g.ai/tx/0x4348599a0c6eec130b03dd6ec5806488651734aadbc5623d2da4d2559a09157d) |
+| MCP `stake(bytes32)` | `muoaanjmlvcx2nhx51bls` | [`0xd27b96ed…0138e`](https://chainscan-galileo.0g.ai/tx/0xd27b96ed9ee32147e44c5fa8ce546e4798dfc4aff63ed8876994499baaf0138e) |
 | MCP `execute_transfer` | `2cfjcw0enjte47o1t9s5m` | [`0x721031b4…e95e`](https://chainscan-galileo.0g.ai/tx/0x721031b4753433fc62ab509b22cf84fa57ee640533d5bfe1426e3fda3956e95e) |
 | CLI `kh ex t` | `rzs2n3qfd6cda73nloaul` | [`0xcb8230fc…a84`](https://chainscan-galileo.0g.ai/tx/0xcb8230fc35b5ef8f6798196642e55342b351a925ba49fef6d243cc205aea4a84) |
+
+**VerifierRegistry:** org wallet registered via [`0x3434e654…8f1b7`](https://chainscan-galileo.0g.ai/tx/0x3434e654f2afe8401372b6cb915582317f29239d8fd4395c1d32691c0028f1b7) (`addVerifier` on `0x1356dd3f…`).
+
+Verdict milestone: `0xb643d0a8223cf278a77e2dfe82e6d20e6f641335a8ccae71daaf6a94936bd7a2` · evidence root `0xb33d6ae7…3859`
 
 Stake target milestone (fresh deadline): `0x709ab5f0c3ddd703a9ce74a4156840204df267bc5812dbdbb96e1eafd4d99891` · create tx [`0xe34ee1fe…a033c`](https://chainscan-galileo.0g.ai/tx/0xe34ee1fe34c26eaf0205a9615f325275ab73b0fa29fb78261c86dafb4b2a033c)
 
@@ -71,7 +76,32 @@ cat agent/.attestations/0xb643d0a8…/keeperhub_audit.json
 
 ---
 
-## Demo video script (~2:30)
+## Demo video (~63s)
+
+HyperFrames composition: `compositions/trailer/keeperhub-demo/`
+
+**Local render:** `compositions/trailer/keeperhub-demo/renders/` (regenerate with `npm run assets && npm run render`)
+
+Reproduce:
+
+```bash
+cd compositions/trailer/keeperhub-demo
+npm run assets && npm run render
+```
+
+**Beat sheet:**
+
+1. **Hook (8s)** — Agents decide. KeeperHub executes.
+2. **Problem (10s)** — Milestone escrow needs execution, not just a verdict.
+3. **Proof (20s)** — Live project page + chainscan **`submitVerdict`** tx + `keeperhub_audit.json` (`transport: mcp`).
+4. **Flow (14s)** — Weft agent → MCP → KeeperHub → `WeftMilestone.submitVerdict()` on 0G.
+5. **CTA (8s)** — weft.thisyearnofear.com + proof tx hash.
+
+_Video URL: (upload MP4 to YouTube/Loom unlisted and paste link at submission)_
+
+---
+
+## Demo video script (extended cut ~2:30)
 
 1. **Problem (20s)** — Milestone escrow needs an agent that *executes*, not just decides.
 2. **Evidence (30s)** — Show demo milestone on [0G explorer](https://explorer-testnet.0g.ai); daemon log: evidence collected, `verified=false`, evidence root.
@@ -79,7 +109,7 @@ cat agent/.attestations/0xb643d0a8…/keeperhub_audit.json
 4. **Reliability (30s)** — `/recovery` → Kill KeeperHub → watch retry → verdict still lands.
 5. **Close (10s)** — Agent thinks; KeeperHub acts.
 
-_Video URL: (paste Loom/YouTube link at submission)_
+_Video URL: (paste Loom/YouTube link at submission — see **Demo video (~63s)** above)_
 
 ---
 
@@ -102,11 +132,11 @@ Documents: kh_ vs wfb_ keys, simulate→idempotency write sequence, 0G chain ID 
 
 ✅ **Org wallet funded** — `0xfafcc3e54c344288bb73ca472d913ffe853f05a0` on Galileo.
 
-✅ **Broadcast** — KeeperHub fixed an RPC-level gas-estimation bug on 0G (2026-08-08, Joel). MCP `stake()` + transfers confirmed onchain — see **KeeperHub proof txs** above.
+✅ **Broadcast** — KeeperHub fixed an RPC-level gas-estimation bug on 0G (2026-08-08, Joel). MCP `submitVerdict()`, `stake()`, and transfers confirmed onchain — see **KeeperHub proof txs** above.
+
+✅ **Verifier authorization** — KeeperHub org wallet added to `VerifierRegistry` (2026-08-08); MCP `submitVerdict()` simulates and broadcasts successfully.
 
 **Tip:** Broadcast can take 2–3 minutes. If the HTTP client times out, replay with the same `idempotency_key` / `Idempotency-Key` — the execution may already be `completed`.
-
-**Note:** `submitVerdict()` still simulates as `NotAuthorizedVerifier` from the org wallet unless that address is in `VerifierRegistry`. The **`stake()` MCP tx** above is sufficient hackathon proof of KeeperHub execution on Weft's live contract.
 
 ---
 
@@ -114,7 +144,7 @@ Documents: kh_ vs wfb_ keys, simulate→idempotency write sequence, 0G chain ID 
 
 | Criterion | Evidence |
 |---|---|
-| Executes via KeeperHub | MCP `stake()` tx [`0xd27b96ed…`](https://chainscan-galileo.0g.ai/tx/0xd27b96ed9ee32147e44c5fa8ce546e4798dfc4aff63ed8876994499baaf0138e) + client + audit JSON |
+| Executes via KeeperHub | MCP **`submitVerdict()`** tx [`0x4348599a…`](https://chainscan-galileo.0g.ai/tx/0x4348599a0c6eec130b03dd6ec5806488651734aadbc5623d2da4d2559a09157d) + MCP `stake()` + audit JSON |
 | KeeperHub surfaces | MCP tools + workflow JSON + starter doc PR |
 | Reliability | `/recovery` chaos, cast fallback, SigNoz spans |
 | Real-world use | Milestone verification on live 0G contract |

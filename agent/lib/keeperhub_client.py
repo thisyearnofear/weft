@@ -454,7 +454,7 @@ def execute_verdict(
         return None
 
     # If already confirmed (synchronous path on some configs)
-    if exec_result.status == ExecutionStatus.CONFIRMED:
+    if exec_result.status == ExecutionStatus.CONFIRMED and exec_result.tx_hash:
         return exec_result
 
     # Poll for completion

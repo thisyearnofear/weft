@@ -399,10 +399,10 @@ Submission requires:
 
 ### Recommended Prep
 
-- [ ] Set `KEEPERHUB_TRANSPORT=mcp` and run `python3 agent/scripts/weft_keeperhub_mcp_smoke.py`
-- [ ] Produce a demo video showing `weft_daemon.py` executing a verdict through KeeperHub MCP
-- [ ] Capture and link a real KeeperHub-executed transaction from `keeperhub_audit.json`
-- [ ] Open PR to KeeperHub repo with `docs/keeperhub/starter-template.md` (onboarding bounty)
+- [x] Set `KEEPERHUB_TRANSPORT=mcp` and run `python3 agent/scripts/weft_keeperhub_mcp_smoke.py`
+- [x] Produce a demo video showing KeeperHub MCP executing `submitVerdict()` on live WeftMilestone
+- [x] Capture and link a real KeeperHub-executed transaction from `keeperhub_audit.json` — [`0x4348599a…9157d`](https://chainscan-galileo.0g.ai/tx/0x4348599a0c6eec130b03dd6ec5806488651734aadbc5623d2da4d2559a09157d)
+- [ ] Open PR to KeeperHub repo with `docs/keeperhub/starter-template.md` (onboarding bounty — [#1969](https://github.com/KeeperHub/keeperhub/pull/1969) open)
 
 ---
 

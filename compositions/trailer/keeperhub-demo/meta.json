@@ -1,0 +1,9 @@
+{
+  "id": "keeperhub-demo",
+  "name": "Weft × KeeperHub — Agents Onchain Demo",
+  "description": "60s hackathon demo: Weft agent executes onchain via KeeperHub MCP on 0G Galileo.",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "duration": 63
+}

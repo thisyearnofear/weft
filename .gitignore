@@ -96,17 +96,17 @@ skills-lock.json
 # Backup files
 *.bak
 
-# Demo recordings (keep locally, never commit binaries / presigned URLs)
-weft-demo-recording.mp4
-weft-demo-project.mp4
-weft-demo-recording-url.txt
-assets/demo-recording.webm
-assets/weft-demo-hackathon.mp4
+# Video files (renders, demos, recordings — keep locally; upload to YouTube/Loom)
 *.mp4
+*.mov
+*.webm
+*.mkv
+*.m4v
+*.avi
+*.wmv
 videos/
-
-# HyperFrames video render output (generated, not source)
 compositions/**/renders/
+weft-demo-recording-url.txt
 
 # Submission screenshots (large binary assets; keep locally, upload to portal)
 docs/submission-screenshots/

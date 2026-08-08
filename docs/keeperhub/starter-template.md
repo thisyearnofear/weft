@@ -24,9 +24,17 @@ This template shows two KeeperHub surfaces:
 2. Organization API key (`kh_…`) from **Settings → API Keys → Organisation**  
    ⚠️ Webhook keys (`wfb_…`) do **not** work for MCP or direct execution
 3. Testnet funds on the org wallet (0G Galileo: chain ID **16602**)
+4. **VerifierRegistry:** the KeeperHub org wallet must be an authorized verifier before `submitVerdict()` succeeds. The registry owner calls `addVerifier(<org_wallet>)` on `VerifierRegistry` (Weft Galileo: `0x1356dd3f28461685ffd81d44f6ae9ae87937e34a`):
 
-> **Common blocker:** `kh auth status` shows `Organization` empty or execution returns `401 Unauthorized`.  
-> Fix: select/create an org in the app UI, connect a wallet integration for your chain, fund it, then mint a **new** org-scoped `kh_` key. Until the org wallet is configured, MCP `tools/call` and `/api/execute/*` reject the key even though `initialize` succeeds.
+```bash
+cast send 0x1356dd3f28461685ffd81d44f6ae9ae87937e34a \
+  "addVerifier(address)" 0xfafcc3e54c344288bb73ca472d913ffe853f05a0 \
+  --rpc-url https://evmrpc-testnet.0g.ai --private-key $REGISTRY_OWNER_KEY --legacy
+```
+
+> **Common blockers:**
+> - `submitVerdict()` simulates as `NotAuthorizedVerifier` → register the KeeperHub org wallet in `VerifierRegistry` (step 4).
+> - `kh auth status` shows empty Organization or `401 Unauthorized` → select/create an org in the app UI, connect wallet integration for your chain, fund it, then mint a new org-scoped `kh_` key.
 
 ---
 

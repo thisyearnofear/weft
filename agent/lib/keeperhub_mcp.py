@@ -328,8 +328,17 @@ def mcp_execute_contract_call(
         or ""
     )
     status = _status_from_payload(payload)
-    tx_hash = payload.get("txHash") or payload.get("transactionHash")
-    explorer_url = payload.get("explorerUrl") or payload.get("transactionLink")
+    tx_hash = (
+        payload.get("txHash")
+        or payload.get("transactionHash")
+        or (payload.get("result") or {}).get("transactionHash")
+        or (payload.get("receipts") or [{}])[0].get("hash")
+    )
+    explorer_url = (
+        payload.get("explorerUrl")
+        or payload.get("transactionLink")
+        or (payload.get("result") or {}).get("transactionLink")
+    )
     return execution_id, status, tx_hash, explorer_url
 
 
@@ -355,8 +364,17 @@ def mcp_poll_direct_execution(
         )
         payload = _parse_tool_result(raw)
         status = _status_from_payload(payload)
-        tx_hash = payload.get("txHash") or payload.get("transactionHash")
-        explorer_url = payload.get("explorerUrl") or payload.get("transactionLink")
+        tx_hash = (
+            payload.get("txHash")
+            or payload.get("transactionHash")
+            or (payload.get("result") or {}).get("transactionHash")
+            or (payload.get("receipts") or [{}])[0].get("hash")
+        )
+        explorer_url = (
+            payload.get("explorerUrl")
+            or payload.get("transactionLink")
+            or (payload.get("result") or {}).get("transactionLink")
+        )
         error = payload.get("error") or payload.get("errorMessage")
 
         if status == "confirmed":

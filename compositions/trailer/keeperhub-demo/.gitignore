@@ -1,0 +1,7 @@
+node_modules/
+assets/narration.wav
+assets/bgm.wav
+renders/
+*.mp4
+*.mov
+*.webm
