@@ -192,7 +192,6 @@ export default function ProjectPage({ params }: { params: Promise<{ hash: string
   const evidenceRoot = milestone?.finalEvidenceRoot && milestone.finalEvidenceRoot !== ZERO_ROOT ? milestone.finalEvidenceRoot : null;
   const verificationProgress = milestone?.verifierCount ? Math.min(100, Math.round((milestone.verifiedVotes / milestone.verifierCount) * 100)) : 0;
   const templateLabelText = templateLabelFromBytes32(milestone?.templateId ?? "");
-  const metadataNotes = (statusMilestone?.metadata as { notes?: string } | undefined)?.notes;
   const payoutStatus = isVerified
     ? isUnfunded
       ? "This outcome verified with no capital staked — the proof itself is the payout, minted to the builder's reputation."
