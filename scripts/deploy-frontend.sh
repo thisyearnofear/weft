@@ -1,58 +1,20 @@
 #!/usr/bin/env bash
-# Deploy Weft frontend to the VPS.
-# Builds locally, rsyncs source, builds on server, restarts PM2.
-set -euo pipefail
+# SPDX-License-Identifier: MIT
+#
+# DEPRECATED — the Weft frontend is deployed by Vercel, not this VPS.
+#
+# Frontend deploys now work by pushing to the tracked git branch; Vercel
+# builds and serves weft.persidian.com. The backend on snel-bot (status API
+# :9010 + AXL :9002) is deployed by ./scripts/deploy-snel-bot.sh.
+#
+# This stub remains so older docs/aliases fail loudly instead of rsyncing a
+# frontend tree onto a disk-constrained box.
 
-SERVER="snel-bot"
-REMOTE_DIR="/opt/weft"
-FRONTEND_DIR="$REMOTE_DIR/frontend"
+cat <<'EOF'
+deploy-frontend.sh is deprecated.
 
-echo "▶ Building frontend locally to verify it compiles..."
-cd "$(dirname "$0")/../frontend"
-npm run build 2>&1 | tail -5
+  frontend  → Vercel (git push; serves https://weft.persidian.com)
+  backend   → ./scripts/deploy-snel-bot.sh  (status API + AXL on snel-bot)
 
-echo "▶ Syncing frontend source to server..."
-rsync -avz --delete \
-  --exclude node_modules \
-  --exclude .next \
-  --exclude .env.local \
-  ./ "$SERVER:$FRONTEND_DIR/"
-
-echo "▶ Syncing new backend files (explorer API, etc)..."
-rsync -avz \
-  --exclude node_modules \
-  --exclude .next \
-  --exclude venv \
-  --exclude .git \
-  --exclude agent/.attestations \
-  --exclude agent/.inbox \
-  ../ "$SERVER:$REMOTE_DIR/" 2>/dev/null || true
-
-echo "▶ Installing dependencies on server..."
-ssh "$SERVER" "cd $FRONTEND_DIR && npm install --legacy-peer-deps 2>&1 | tail -3"
-
-echo "▶ Building on server..."
-ssh "$SERVER" "cd $FRONTEND_DIR && npm run build 2>&1 | tail -10"
-
-echo "▶ Restarting weft-frontend..."
-ssh "$SERVER" "pm2 restart weft-frontend 2>&1"
-
-echo "▶ Waiting for app to start..."
-sleep 5
-
-echo "▶ Health check..."
-HEALTH_URL="https://weft.thisyearnofear.com/api/status/demo"
-for i in $(seq 1 30); do
-  HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" 2>/dev/null || echo "000")
-  if [ "$HTTP_CODE" = "200" ]; then
-    echo "✅ Health check passed (attempt $i)"
-    echo "✅ Deploy complete. Check https://weft.thisyearnofear.com"
-    exit 0
-  fi
-  echo "⏳ Attempt $i/30 — HTTP $HTTP_CODE..."
-  sleep 2
-done
-
-echo "❌ Health check failed after 60 seconds"
-echo "❌ Deploy may be broken. Check PM2 logs: ssh $SERVER 'pm2 logs weft-frontend --lines 50'"
+EOF
 exit 1

@@ -124,7 +124,7 @@ export default function OpengraphImage() {
             padding: '10px 22px',
           }}
         >
-          weft.thisyearnofear.com
+          weft.persidian.com
         </div>
       </div>
     ),

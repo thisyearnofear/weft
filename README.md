@@ -39,16 +39,16 @@ to displace.
 
 ## Surfaces
 
-**https://weft.thisyearnofear.com**
+**https://weft.persidian.com**
 
 | Surface | URL | Note |
 |---|---|---|
-| Program ops (primary) | [/canton](https://weft.thisyearnofear.com/canton) | GMS ingest + receipt · Canton Devnet pilot |
-| Program dashboard | [/sponsor](https://weft.thisyearnofear.com/sponsor) | Public EVM demos |
-| Verification Explorer | [/explorer](https://weft.thisyearnofear.com/explorer) | 0G Testnet milestones |
-| Agent observatory | [/observability](https://weft.thisyearnofear.com/observability) | SigNoz-backed agent trace story |
-| Builder create (wedge) | [/create-milestone](https://weft.thisyearnofear.com/create-milestone) | 0G Testnet — not prod |
-| Agent Operations | [/operations](https://weft.thisyearnofear.com/operations) | Developer |
+| Program ops (primary) | [/canton](https://weft.persidian.com/canton) | GMS ingest + receipt · Canton Devnet pilot |
+| Program dashboard | [/sponsor](https://weft.persidian.com/sponsor) | Public EVM demos |
+| Verification Explorer | [/explorer](https://weft.persidian.com/explorer) | 0G Testnet milestones |
+| Agent observatory | [/observability](https://weft.persidian.com/observability) | SigNoz-backed agent trace story |
+| Builder create (wedge) | [/create-milestone](https://weft.persidian.com/create-milestone) | 0G Testnet — not prod |
+| Agent Operations | [/operations](https://weft.persidian.com/operations) | Developer |
 
 See [`canton/BUSINESS_BRIEF.md`](canton/BUSINESS_BRIEF.md) for ICP, SoR thesis, and pilot plan.
 
@@ -84,7 +84,7 @@ Each verifier encrypts a boolean ballot. The contract counts votes on ciphertext
 2-of-3 quorum on ciphertext, and branches on ciphertext.
 
 - Contract: [`WeftMilestoneConfidential.sol`](contracts/src-fhe/WeftMilestoneConfidential.sol) — [`0x152d758d…d212`](https://sepolia.etherscan.io/address/0x152d758d496db7444a00a6b2c7fe254b9aced212)
-- Demo: [Confidential demos on Explorer](https://weft.thisyearnofear.com/explorer#fhe-demos) — open v1 sealed ballot and decrypt
+- Demo: [Confidential demos on Explorer](https://weft.persidian.com/explorer#fhe-demos) — open v1 sealed ballot and decrypt
 
 **v2 — Multiplication-class FHE** (`FHE.mul`, `FHE.and`, `FHE.add`, `FHE.ge`, `FHE.select`)
 
@@ -95,7 +95,7 @@ quorum (≥100), combined with `FHE.and`. No vote, no confidence score, and no w
 is ever decrypted. This is FHE multiplication, not just addition.
 
 - Contract: [`WeftMilestoneConfidentialWeighted.sol`](contracts/src-fhe/WeftMilestoneConfidentialWeighted.sol) — [`0xcc2395ac…60f8`](https://sepolia.etherscan.io/address/0xcc2395ac3f70ace0c1828cb0a18b00da823760f8)
-- Demo: [Confidential demos on Explorer](https://weft.thisyearnofear.com/explorer#fhe-demos) — open v2 weighted ballot and decrypt
+- Demo: [Confidential demos on Explorer](https://weft.persidian.com/explorer#fhe-demos) — open v2 weighted ballot and decrypt
 - Sealed ballot tx (FHE.mul on Sepolia): see [SUBMISSION.md](SUBMISSION.md) for full tx links
 - Tests: 5 forge-fhevm tests — [high confidence verified, low confidence rejected, binary gate required, inflated ballot clamped](contracts/test-fhe/WeftMilestoneConfidentialWeighted.t.sol)
 

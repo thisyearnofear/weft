@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 
 const STATUS =
   process.env.CANTON_API_URL ||
@@ -13,7 +14,7 @@ export async function GET(
 ) {
   const { id } = await ctx.params;
   try {
-    const res = await fetch(`${STATUS}/canton/receipt/${encodeURIComponent(id)}`, {
+    const res = await fetchWithTimeout(`${STATUS}/canton/receipt/${encodeURIComponent(id)}`, {
       cache: "no-store",
     });
     const data = await res.json();

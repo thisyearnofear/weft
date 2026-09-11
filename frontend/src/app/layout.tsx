@@ -18,7 +18,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://weft.thisyearnofear.com'),
+  metadataBase: new URL('https://weft.persidian.com'),
   title: {
     default: 'Weft — Milestone Release for Program Offices',
     template: '%s · Weft',
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   applicationName: 'Weft',
   openGraph: {
     type: 'website',
-    url: 'https://weft.thisyearnofear.com',
+    url: 'https://weft.persidian.com',
     siteName: 'Weft',
     title: 'Weft — Milestone Release for Program Offices',
     description:

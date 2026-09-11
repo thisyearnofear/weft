@@ -6,28 +6,14 @@
  *
  *   cp ecosystem.config.js.example ecosystem.config.js
  *   # edit secrets + pm2 startOrRestart ecosystem.config.js
+ *
+ * NOTE: the frontend moved to Vercel (weft.persidian.com). The only public
+ * surface on this box is the status API behind nginx at
+ * api.weft.persidian.com → 127.0.0.1:9010, which requires the x-weft-key
+ * shared-secret header. Do not re-add a weft-frontend app here.
  */
 module.exports = {
   apps: [
-    {
-      name: "weft-frontend",
-      cwd: "/opt/weft/frontend",
-      script: "npm",
-      args: "start",
-      env: {
-        PORT: 3010,
-        WEFT_STATUS_API_URL: "http://127.0.0.1:9010",
-        NEXT_PUBLIC_DEFAULT_CHAIN: "zeroGTestnet",
-        NEXT_PUBLIC_WEFT_MILESTONE_0G_TESTNET: "0x9f66158c560ce5c8b40820fdcd2874ff8d852192",
-        NEXT_PUBLIC_VERIFIER_REGISTRY_0G_TESTNET: "0x1356dd3f28461685ffd81d44f6ae9ae87937e34a",
-        NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: "your-walletconnect-project-id",
-        // Server-side metadata route (/api/milestone-metadata/[hash])
-        ZERO_G_INDEXER_RPC: "https://indexer-storage-testnet-turbo.0g.ai",
-        ETH_RPC_URL: "https://evmrpc-testnet.0g.ai",
-      },
-      autorestart: true,
-      watch: false,
-    },
     {
       name: "weft-api",
       cwd: "/opt/weft",
@@ -35,6 +21,8 @@ module.exports = {
       interpreter: "/opt/weft/venv/bin/python3",
       args: "--port 9010",
       env: {
+        // localhost-only: nginx (api.weft.persidian.com) is the sole ingress
+        STATUS_HOST: "127.0.0.1",
         ETH_RPC_URL: "https://evmrpc-testnet.0g.ai",
         WEFT_CONTRACT_ADDRESS: "0x9f66158c560ce5c8b40820fdcd2874ff8d852192",
         VERIFIER_REGISTRY_ADDRESS: "0x1356dd3f28461685ffd81d44f6ae9ae87937e34a",

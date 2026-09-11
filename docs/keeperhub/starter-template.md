@@ -186,7 +186,7 @@ Expected audit fields:
 ## Links
 
 - **Weft repo:** https://github.com/thisyearnofear/weft  
-- **Live demo:** https://weft.thisyearnofear.com/recovery (chaos → KeeperHub retry)  
+- **Live demo:** https://weft.persidian.com/recovery (chaos → KeeperHub retry)  
 - **KeeperHub MCP docs:** https://docs.keeperhub.com/ai-tools/mcp-server  
 - **Hackathon:** https://dorahacks.io/hackathon/agents-onchain  
 

@@ -9,7 +9,7 @@ Verifies the operations dashboard API returns valid JSON with:
 import json
 import urllib.request
 
-BASE = "https://weft.thisyearnofear.com"
+BASE = "https://weft.persidian.com"
 
 
 def test_operations_schema():

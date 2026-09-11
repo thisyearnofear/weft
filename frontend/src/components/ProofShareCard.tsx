@@ -118,5 +118,5 @@ export function ProofShareCard({
 
 function origin(): string {
   if (typeof window !== "undefined") return window.location.origin;
-  return "https://weft.thisyearnofear.com";
+  return "https://weft.persidian.com";
 }

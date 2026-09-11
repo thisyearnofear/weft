@@ -18,7 +18,7 @@ const ENDPOINTS: Endpoint[] = [
     method: "GET",
     path: "/api/status/demo",
     description: "Overview of the Weft system — pitch, demo hints, known milestone hashes, and partner stack.",
-    example: `curl https://weft.thisyearnofear.com/api/status/demo`,
+    example: `curl https://weft.persidian.com/api/status/demo`,
     response: `{
   "ok": true,
   "pitch": "Weft is a decentralized verifier swarm...",
@@ -34,7 +34,7 @@ const ENDPOINTS: Endpoint[] = [
     method: "GET",
     path: "/api/status/milestone/[hash]",
     description: "Full milestone detail by hash — onchain state, verifier votes, evidence root, and demo tracks.",
-    example: `curl https://weft.thisyearnofear.com/api/status/milestone/0x516975af...`,
+    example: `curl https://weft.persidian.com/api/status/milestone/0x516975af...`,
     response: `{
   "ok": true,
   "milestoneHash": "0x516975af...",
@@ -51,7 +51,7 @@ const ENDPOINTS: Endpoint[] = [
     method: "GET",
     path: "/api/explorer/milestones",
     description: "List all known milestones with derived state, builder ENS, stake in ETH, and evidence roots.",
-    example: `curl https://weft.thisyearnofear.com/api/explorer/milestones`,
+    example: `curl https://weft.persidian.com/api/explorer/milestones`,
     response: `{
   "ok": true,
   "count": 1,
@@ -69,7 +69,7 @@ const ENDPOINTS: Endpoint[] = [
     method: "GET",
     path: "/api/operations",
     description: "Agent operations dashboard data — treasury ledger, verification log, and infrastructure health.",
-    example: `curl https://weft.thisyearnofear.com/api/operations`,
+    example: `curl https://weft.persidian.com/api/operations`,
     response: `{
   "ok": true,
   "treasury": { "earned": 1.0, "spent": 1.5, "net": -0.5 },
@@ -82,7 +82,7 @@ const ENDPOINTS: Endpoint[] = [
     method: "GET",
     path: "/api/sponsor",
     description: "Sponsor dashboard — funded milestones with capital flow status (locked/released/refundable).",
-    example: `curl https://weft.thisyearnofear.com/api/sponsor`,
+    example: `curl https://weft.persidian.com/api/sponsor`,
     response: `{
   "ok": true,
   "summary": {
@@ -98,7 +98,7 @@ const ENDPOINTS: Endpoint[] = [
     method: "GET",
     path: "/api/activity",
     description: "Chronological activity feed — all agent actions (verifications, charges, revenue, chaos events).",
-    example: `curl https://weft.thisyearnofear.com/api/activity`,
+    example: `curl https://weft.persidian.com/api/activity`,
     response: `{
   "ok": true,
   "count": 7,
@@ -114,7 +114,7 @@ const ENDPOINTS: Endpoint[] = [
     method: "GET",
     path: "/api/verifiers",
     description: "Verifier network status — authorized nodes, votes cast, consensus agreement rate.",
-    example: `curl https://weft.thisyearnofear.com/api/verifiers`,
+    example: `curl https://weft.persidian.com/api/verifiers`,
     response: `{
   "ok": true,
   "verifiers": [{ "address": "0xebe2...", "votesCast": 2 }],
@@ -126,7 +126,7 @@ const ENDPOINTS: Endpoint[] = [
     method: "GET",
     path: "/api/treasury",
     description: "Agent treasury — Stripe charges, revenue sweeps, balance, and per-service spend breakdown.",
-    example: `curl https://weft.thisyearnofear.com/api/treasury`,
+    example: `curl https://weft.persidian.com/api/treasury`,
     response: `{
   "ok": true,
   "earned": 1.0,
@@ -140,7 +140,7 @@ const ENDPOINTS: Endpoint[] = [
     method: "GET",
     path: "/api/recovery",
     description: "Recovery and resilience data — chaos events, failures, recoveries, and verdict landing status.",
-    example: `curl https://weft.thisyearnofear.com/api/recovery`,
+    example: `curl https://weft.persidian.com/api/recovery`,
     response: `{
   "ok": true,
   "summary": { "totalEvents": 0, "failures": 0, "recoveries": 0 },
@@ -152,7 +152,7 @@ const ENDPOINTS: Endpoint[] = [
     method: "GET",
     path: "/api/ens/[name]",
     description: "ENS text records for a builder — avatar, description, social links, and Weft reputation fields.",
-    example: `curl https://weft.thisyearnofear.com/api/ens/weft.thisyearnofear.eth`,
+    example: `curl https://weft.persidian.com/api/ens/weft.thisyearnofear.eth`,
     response: `{
   "ens": "weft.thisyearnofear.eth",
   "address": "0xebe2ee53...",
@@ -165,7 +165,7 @@ const ENDPOINTS: Endpoint[] = [
     method: "POST",
     path: "/api/chaos",
     description: "Inject a chaos event into the verification pipeline (for resilience testing).",
-    example: `curl -X POST https://weft.thisyearnofear.com/api/chaos \\
+    example: `curl -X POST https://weft.persidian.com/api/chaos \\
   -H "Content-Type: application/json" \\
   -d '{"type":"rpc_timeout"}'`,
     response: `{ "ok": true, "injected": true }`,
@@ -174,7 +174,7 @@ const ENDPOINTS: Endpoint[] = [
     method: "POST",
     path: "/api/chaos/verify",
     description: "Trigger a demo verification cycle through the chaos-injected pipeline.",
-    example: `curl -X POST https://weft.thisyearnofear.com/api/chaos/verify`,
+    example: `curl -X POST https://weft.persidian.com/api/chaos/verify`,
     response: `{ "ok": true, "verified": true }`,
   },
 ];

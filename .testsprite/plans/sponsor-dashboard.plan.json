@@ -4,7 +4,7 @@
   "name": "Sponsor dashboard loads with capital flow and milestones",
   "description": "The /sponsor page loads as a data-driven dashboard with KPI cards, capital flow bar, and funded milestone cards.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/sponsor", "description": "Navigate to sponsor dashboard" },
+    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/sponsor", "description": "Navigate to sponsor dashboard" },
     { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Sponsor title is visible" },
     { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "capital", "description": "Title says 'capital'" },
     { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Total Funded", "description": "KPI card shows Total Funded" },

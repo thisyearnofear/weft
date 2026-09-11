@@ -8,7 +8,7 @@ Shell scripts for deploying and managing Weft contracts and verifier nodes.
 Legacy partial deploy (rsync frontend only). Prefer **`deploy-snel-bot.sh`** for production.
 
 ### `deploy-snel-bot.sh`
-Safe full deploy to `snel-bot` (`weft.thisyearnofear.com`): git pull without `git clean`, preserves
+Safe full deploy to `snel-bot` (`weft.persidian.com`): git pull without `git clean`, preserves
 `frontend/.env.local`, `ecosystem.config.js`, `agent/.axl/`, and `venv/`, rebuilds frontend, restarts PM2.
 
 Server env template: `ecosystem.config.js.example` (copy to `ecosystem.config.js` on the host; never commit secrets).
@@ -71,7 +71,7 @@ DEADLINE_SECS=180 STAKE_ETH=0.02ether ./demo_fhe_e2e.sh
 ### `deploy-frontend.sh`
 Deploys the frontend to the VPS: builds locally to verify, rsyncs source to the
 server, installs + builds there, restarts the `weft-frontend` PM2 process, and
-health-checks `https://weft.thisyearnofear.com`.
+health-checks `https://weft.persidian.com`.
 
 ## Environment Variables
 

@@ -8,7 +8,7 @@ Verifies the milestone detail API returns valid JSON with:
 import json
 import urllib.request
 
-BASE = "https://weft.thisyearnofear.com"
+BASE = "https://weft.persidian.com"
 DEMO_HASH = "0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f"
 
 

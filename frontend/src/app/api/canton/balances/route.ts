@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 
 const STATUS =
   process.env.CANTON_API_URL ||
@@ -11,7 +12,7 @@ export async function GET(req: NextRequest) {
   const party = req.nextUrl.searchParams.get("party") || "";
   const qs = party ? `?party=${encodeURIComponent(party)}` : "";
   try {
-    const res = await fetch(`${STATUS}/canton/balances${qs}`, { cache: "no-store" });
+    const res = await fetchWithTimeout(`${STATUS}/canton/balances${qs}`, { cache: "no-store" });
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
   } catch (e) {

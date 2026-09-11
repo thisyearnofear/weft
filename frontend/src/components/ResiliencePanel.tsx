@@ -134,7 +134,7 @@ export function ResiliencePanel() {
 
 
   const shareDemo = async () => {
-    const text = "Built @weft — an autonomous verifier agent that treats infrastructure failure as a routing problem, not a crash. Kill RPC. Kill peers. Kill AI. Kill execution. Verdict still lands. Demo: weft.thisyearnofear.com/recovery #AgentsUnderPressure #BuildYourOwnOS";
+    const text = "Built @weft — an autonomous verifier agent that treats infrastructure failure as a routing problem, not a crash. Kill RPC. Kill peers. Kill AI. Kill execution. Verdict still lands. Demo: weft.persidian.com/recovery #AgentsUnderPressure #BuildYourOwnOS";
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);

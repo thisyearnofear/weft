@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 
 const STATUS =
   process.env.CANTON_API_URL ||
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest) {
   if (party) qs.set("party", party);
   if (role) qs.set("role", role);
   try {
-    const res = await fetch(`${STATUS}/canton/milestones?${qs}`, {
+    const res = await fetchWithTimeout(`${STATUS}/canton/milestones?${qs}`, {
       cache: "no-store",
     });
     const data = await res.json();

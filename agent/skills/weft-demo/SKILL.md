@@ -497,7 +497,7 @@ for execution. No human touched the finances.
 Technology provides the warp. Liberal arts provide the weft.
 The agent runs the loom — and pays for the thread.
 
-  Live:    https://weft.thisyearnofear.com
+  Live:    https://weft.persidian.com
   GitHub:  https://github.com/thisyearnofear/weft
   ENS:     weft.thisyearnofear.eth
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

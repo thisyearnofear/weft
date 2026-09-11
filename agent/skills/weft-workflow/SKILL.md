@@ -353,7 +353,7 @@ print('ENS records updated.')
     The builder shipped working code. Users came. Peers confirmed.
     Capital will release automatically after the challenge period.
 
-  View: weft.thisyearnofear.com/project/$MILESTONE_HASH
+  View: weft.persidian.com/project/$MILESTONE_HASH
 ```
 
 ---

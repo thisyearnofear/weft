@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 
 const STATUS =
   process.env.CANTON_API_URL ||
@@ -10,7 +11,7 @@ const STATUS =
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const res = await fetch(`${STATUS}/canton/ingest`, {
+    const res = await fetchWithTimeout(`${STATUS}/canton/ingest`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

@@ -52,7 +52,7 @@ set_text() {
 }
 
 # --- Protocol identity records ---
-set_text "url"         "https://weft.thisyearnofear.com"
+set_text "url"         "https://weft.persidian.com"
 set_text "description" "Weft — trustless milestone verification for onchain builders. Raw evidence threads woven into verified fabric."
 set_text "com.github"  "thisyearnofear/weft"
 set_text "com.twitter" "thisyearnofear"
@@ -69,9 +69,9 @@ echo ""
 echo "=== Done! ==="
 echo ""
 echo "Verify at: https://app.ens.domains/$ENS_NAME"
-echo "Frontend:  https://weft.thisyearnofear.com/builder/$ENS_NAME"
+echo "Frontend:  https://weft.persidian.com/builder/$ENS_NAME"
 echo ""
 echo "Next steps:"
 echo "  1. Set WEFT_ENS_PARENT=thisyearnofear.eth on your verifier daemon"
 echo "  2. Verified builders will receive <project>.thisyearnofear.eth subnames"
-echo "  3. Subnames are readable at https://weft.thisyearnofear.com/builder/<project>.thisyearnofear.eth"
+echo "  3. Subnames are readable at https://weft.persidian.com/builder/<project>.thisyearnofear.eth"

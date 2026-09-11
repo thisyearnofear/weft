@@ -9,7 +9,7 @@ Verifies the activity feed API returns valid JSON with:
 import json
 import urllib.request
 
-BASE = "https://weft.thisyearnofear.com"
+BASE = "https://weft.persidian.com"
 
 VALID_TYPES = {"verification", "charge", "revenue", "consensus", "deadline", "chaos"}
 

@@ -349,7 +349,7 @@ See [0G Bridge Buildathon plan](0g-bridge-buildathon.md) for the full wave-by-wa
 - [x] AXL encrypted P2P path implemented; public demo runs one live AXL process, local demo can run multiple nodes
 - [x] Kimi narrative generation + fal.ai milestone imagery
 - [x] ENS text record updates for portable builder reputation
-- [x] Live frontend at weft.thisyearnofear.com
+- [x] Live frontend at weft.persidian.com
 - [x] Comprehensive architecture docs, data model, hackathon strategy
 - [x] Autonomous spend loop via Stripe Skills (agent earns 3% → sweeps to Stripe → pays for Kimi/fal/KeeperHub)
 - [x] Pluggable LLM backend: Nemotron 3 Ultra (NVIDIA/NemoClaw), Kimi, NousResearch

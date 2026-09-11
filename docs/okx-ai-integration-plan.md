@@ -241,7 +241,7 @@ Buyer Agent ──negotiate──▶ Seller Agent
   - Description: "Verify agent-delivered tasks and authorize escrow release with auditable evidence"
   - Service type: A2A escrow verifier + A2MCP verification tools
   - Pricing: free status, paid verify/narrate/attest
-  - Demo URL: https://weft.thisyearnofear.com
+  - Demo URL: https://weft.persidian.com
   - GitHub repo: https://github.com/thisyearnofear/weft
 - [ ] Pass OKX internal review
 - [ ] Go live on marketplace

@@ -4,7 +4,7 @@
   "name": "Builder profile page shows reputation",
   "description": "The /builder/weft.thisyearnofear.eth page loads, shows the ENS name, reputation score, and verified milestones count.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/builder/weft.thisyearnofear.eth", "description": "Navigate to the builder profile page" },
+    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/builder/weft.thisyearnofear.eth", "description": "Navigate to the builder profile page" },
     { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Builder ENS name is visible as h1" },
     { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "weft.thisyearnofear.eth", "description": "Page shows the ENS name" },
     { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Trust", "description": "Page shows trust/reputation section" },

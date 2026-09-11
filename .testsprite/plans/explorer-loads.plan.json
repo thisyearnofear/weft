@@ -4,7 +4,7 @@
   "name": "Explorer page loads with milestone table",
   "description": "The /explorer page loads, shows the title, stats bar, and at least one milestone in the table.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/explorer", "description": "Navigate to the explorer page" },
+    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/explorer", "description": "Navigate to the explorer page" },
     { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Explorer title is visible" },
     { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "Every milestone", "description": "Title says 'Every milestone'" },
     { "type": "assertion", "selector": "table", "condition": "visible", "description": "Milestone table is visible" },

@@ -8,7 +8,7 @@ Verifies the explorer API returns valid JSON with the expected schema:
 import json
 import urllib.request
 
-BASE = "https://weft.thisyearnofear.com"
+BASE = "https://weft.persidian.com"
 
 
 def test_explorer_milestones_schema():

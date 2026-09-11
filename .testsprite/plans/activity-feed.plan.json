@@ -4,7 +4,7 @@
   "name": "Activity feed loads with timeline events",
   "description": "The /activity page loads and shows a chronological timeline of agent actions.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/activity", "description": "Navigate to activity feed" },
+    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/activity", "description": "Navigate to activity feed" },
     { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Activity title is visible" },
     { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "timestamped", "description": "Title says 'timestamped'" },
     { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Revenue", "description": "Timeline shows Revenue event" },

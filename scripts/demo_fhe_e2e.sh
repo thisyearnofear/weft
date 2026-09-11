@@ -76,5 +76,5 @@ fi
 
 echo
 echo "Demo milestone: $HASH"
-echo "View: https://weft.thisyearnofear.com/project/$HASH?confidential=1"
+echo "View: https://weft.persidian.com/project/$HASH?confidential=1"
 echo "Contract: https://sepolia.etherscan.io/address/$CONTRACT"

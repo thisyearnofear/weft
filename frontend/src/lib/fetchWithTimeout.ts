@@ -1,6 +1,10 @@
+import { upstreamAuthHeaders } from "./upstreamAuth";
+
 /**
  * Fetch with timeout via AbortController.
  * Prevents API routes from hanging indefinitely when upstream services are slow.
+ * Injects the x-weft-key shared secret when the URL targets a configured
+ * Weft upstream API (see upstreamAuth.ts).
  */
 export async function fetchWithTimeout(
   url: string,
@@ -10,8 +14,13 @@ export async function fetchWithTimeout(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
+    const headers = new Headers(options.headers);
+    for (const [k, v] of Object.entries(upstreamAuthHeaders(url))) {
+      if (!headers.has(k)) headers.set(k, v);
+    }
     const res = await fetch(url, {
       ...options,
+      headers,
       signal: controller.signal,
     });
     clearTimeout(timeoutId);

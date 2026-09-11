@@ -4,7 +4,7 @@ Record against **Devnet** (or nuncio mirror for rehearsal). Target: judges see w
 
 ## Props
 
-- Live UI: `https://weft.thisyearnofear.com/canton` (or localhost → nuncio `:9020`)
+- Live UI: `https://weft.persidian.com/canton` (or localhost → nuncio `:9020`)
 - Console Wallet: https://devnet.consolewallet.io  
 - CBTC faucet: https://cbtc-faucet.bitsafe.finance/  
 - API health: `http://<nuncio>:9020/health`

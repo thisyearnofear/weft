@@ -4,7 +4,7 @@
   "name": "Landing page loads and shows hero",
   "description": "Baseline: the Weft landing page loads, shows the hero title 'Escrow that releases itself', and the milestone lookup input is visible.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com", "description": "Navigate to the Weft landing page" },
+    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com", "description": "Navigate to the Weft landing page" },
     { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Hero title h1 is visible" },
     { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "Escrow", "description": "Hero title contains 'Escrow'" },
     { "type": "assertion", "selector": "input[placeholder*='milestone hash']", "condition": "visible", "description": "Milestone hash input is visible in the hero section" },

@@ -4,7 +4,7 @@
   "name": "Operations dashboard loads with ledger and verification log",
   "description": "The /operations page loads, shows KPI cards, a financial ledger with transactions, a verification log, and infrastructure health indicators.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.thisyearnofear.com/operations", "description": "Navigate to the operations dashboard" },
+    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/operations", "description": "Navigate to the operations dashboard" },
     { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Operations title is visible" },
     { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "open books", "description": "Title says 'open books'" },
     { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Financial Ledger", "description": "Financial ledger section is visible" },

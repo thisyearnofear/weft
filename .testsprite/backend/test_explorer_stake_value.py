@@ -7,7 +7,7 @@ If the API returns raw wei instead of ETH, this test catches it.
 import json
 import urllib.request
 
-BASE = "https://weft.thisyearnofear.com"
+BASE = "https://weft.persidian.com"
 
 
 def test_explorer_staked_eth_is_converted():
