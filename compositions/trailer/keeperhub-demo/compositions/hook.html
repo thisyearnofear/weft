@@ -1,0 +1,48 @@
+<template id="hook-template">
+  <div data-composition-id="hook" data-width="1920" data-height="1080" data-start="0" data-duration="8">
+    <style>
+      [data-composition-id="hook"] {
+        width:1920px; height:1080px; position:relative; overflow:hidden;
+        font-family:'Inter',system-ui,sans-serif;
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        text-align:center;
+      }
+      .h-eyebrow {
+        font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:600;
+        letter-spacing:5px; text-transform:uppercase; color:rgba(124,92,252,0.5);
+      }
+      .h-line1 { font-size:88px; font-weight:800; letter-spacing:-0.04em; color:#f0f0f5; line-height:1.05; }
+      .h-line2 {
+        font-size:88px; font-weight:800; letter-spacing:-0.04em; line-height:1.05;
+        background:linear-gradient(135deg, #7c5cfc 0%, #22d65e 100%);
+        -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      }
+      .h-rule { width:120px; height:3px; margin:28px 0; background:linear-gradient(90deg, transparent, #7c5cfc, #22d65e, transparent); }
+      .h-sub { font-size:28px; font-weight:500; color:#8888bb; max-width:900px; line-height:1.4; }
+    </style>
+
+    <div class="h-eyebrow clip" data-start="0" data-duration="8" data-track-index="0" style="opacity:0">Agents Onchain · KeeperHub</div>
+    <div style="height:20px"></div>
+    <div id="h-l1" class="h-line1 clip" data-start="0" data-duration="8" data-track-index="1" style="opacity:0">Agents decide.</div>
+    <div id="h-l2" class="h-line2 clip" data-start="0" data-duration="8" data-track-index="2" style="opacity:0">KeeperHub executes.</div>
+    <div id="h-rule" class="h-rule clip" data-start="0" data-duration="8" data-track-index="3" style="opacity:0; transform:scaleX(0)"></div>
+    <div id="h-sub" class="h-sub clip" data-start="0" data-duration="8" data-track-index="4" style="opacity:0">Weft — autonomous milestone verification on 0G</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+    (function(){
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const pO = 'power3.out', pI = 'power2.in';
+      tl.fromTo('.h-eyebrow', { y:20, opacity:0 }, { y:0, opacity:1, duration:0.4, ease:pO }, 0.2);
+      tl.fromTo('#h-l1', { y:60, opacity:0, filter:'blur(10px)' }, { y:0, opacity:1, filter:'blur(0px)', duration:0.55, ease:pO }, 0.5);
+      tl.fromTo('#h-l2', { y:60, opacity:0, filter:'blur(10px)' }, { y:0, opacity:1, filter:'blur(0px)', duration:0.55, ease:pO }, 1.1);
+      tl.fromTo('#h-rule', { scaleX:0, opacity:0 }, { scaleX:1, opacity:1, duration:0.35, ease:pO }, 1.8);
+      tl.fromTo('#h-sub', { y:20, opacity:0 }, { y:0, opacity:1, duration:0.4, ease:pO }, 2.2);
+      tl.to('#h-l1, #h-l2', { scale:1.02, duration:1.5, ease:'sine.inOut', yoyo:true, repeat:1 }, 3.5);
+      tl.to('.h-eyebrow, #h-l1, #h-l2, #h-rule, #h-sub', { opacity:0, y:-30, duration:0.25, ease:pI, stagger:0.04 }, 7.2);
+      window.__timelines["hook"] = tl;
+    })();
+    </script>
+  </div>
+</template>
