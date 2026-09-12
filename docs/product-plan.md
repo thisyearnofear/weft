@@ -354,6 +354,7 @@ See [0G Bridge Buildathon plan](0g-bridge-buildathon.md) for the full wave-by-wa
 - [x] Autonomous spend loop via Stripe Skills (agent earns 3% → sweeps to Stripe → pays for Kimi/fal/KeeperHub)
 - [x] Pluggable LLM backend: Nemotron 3 Ultra (NVIDIA/NemoClaw), Kimi, NousResearch
 - [x] Treasury widget on landing page (live agent P&L — earned vs spent)
+- [ ] WalletConnect Cloud: add `weft.persidian.com` to the project's allowed origins (wallet connect rejects unlisted domains)
 - [ ] Record demo video
 - [ ] Submit to 0G APAC Hackathon
 
