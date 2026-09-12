@@ -65,7 +65,7 @@ See [Product Plan](docs/product-plan.md) for the full tier structure and monetiz
 | `src-fhe/WeftMilestoneConfidential.sol` | v1 FHEVM escrow — addition-class sealed-ballot consensus (Sepolia) |
 | `src-fhe/WeftMilestoneConfidentialWeighted.sol` | v2 FHEVM escrow — multiplication-class weighted consensus (Sepolia) |
 
-See [SUBMISSION.md](SUBMISSION.md) for deployed addresses and FHE details.
+See [README.md](README.md#deployed-contracts) for deployed addresses and FHE details.
 
 ## Canton / post-award rail (primary commercial)
 

@@ -96,7 +96,10 @@ is ever decrypted. This is FHE multiplication, not just addition.
 
 - Contract: [`WeftMilestoneConfidentialWeighted.sol`](contracts/src-fhe/WeftMilestoneConfidentialWeighted.sol) — [`0xcc2395ac…60f8`](https://sepolia.etherscan.io/address/0xcc2395ac3f70ace0c1828cb0a18b00da823760f8)
 - Demo: [Confidential demos on Explorer](https://weft.persidian.com/explorer#fhe-demos) — open v2 weighted ballot and decrypt
-- Sealed ballot tx (FHE.mul on Sepolia): see [SUBMISSION.md](SUBMISSION.md) for full tx links
+- Sealed ballot txs (Sepolia) — no readable vote in any calldata:
+  - v1 (FHE.add): [1](https://sepolia.etherscan.io/tx/0x6f5ac704017896404791143b8539009f40f16ccd7809871ea9ec71f66144a2cc) · [2](https://sepolia.etherscan.io/tx/0xec08880a0f141a9b8bfbd6b1fd33f55357b963b5d689fe8b50e99c9642762710) · [3](https://sepolia.etherscan.io/tx/0x8a3ca353655eb3757107cb713d8fdb204d157bfb678a34ebb9447ffdf97dabb8)
+  - v2 (FHE.mul, two encrypted handles per vote): [1](https://sepolia.etherscan.io/tx/0xe5a94fd2632c06b5837e39b14c83c0a5e1406eae9be78b295a5de038ef04b462) · [2](https://sepolia.etherscan.io/tx/0x7f5d16833a0923d88aff8d6518bc872fc4bf5476a2e2932fa2c6a682a9adb055) · [3](https://sepolia.etherscan.io/tx/0x0127aae91718a9292332d559f93fe31b2d38809df607cc0831a25fd3ff78fb5a)
+  - v2 result confirmation (KMS decryption proof, result = VERIFIED): [`0x3dc5b03b…`](https://sepolia.etherscan.io/tx/0x3dc5b03b5247a870867a2da6abf4bbd9433b9b23bb185b6f160bacfdd20a122f)
 - Tests: 5 forge-fhevm tests — [high confidence verified, low confidence rejected, binary gate required, inflated ballot clamped](contracts/test-fhe/WeftMilestoneConfidentialWeighted.t.sol)
 
 ### FHE operations used
@@ -171,7 +174,6 @@ on every PR and fails the build if anything breaks.
 
 ## Documentation
 
-- [Zama S3 submission details](SUBMISSION.md)
 - [X thread + video script](docs/submissions/zama-s3-x-thread-and-video.md)
 - [Technical reference](AGENTS.md) — architecture, agent layer, data model, env vars, scripts
 - [Product plan & monetization](docs/product-plan.md)

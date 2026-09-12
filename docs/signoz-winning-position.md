@@ -53,7 +53,7 @@ Full shot list: [`docs/signoz-demo-recording.md`](signoz-demo-recording.md)
 - [x] Live site deployed: https://weft.thisyearnofear.com
 - [x] SigNoz dashboard provisioned (8 panels + 3 alerts)
 - [x] Demo trace emitter (`weft_signoz_demo.sh`)
-- [x] Submission doc: `SUBMISSION-SIGNOZ.md`
+- [x] Submission doc: [`docs/submissions/signoz-hackathon.md`](submissions/signoz-hackathon.md)
 - [x] Demo recording guide updated for current UX
 - [x] Progressive disclosure on all pages
 - [x] AgentHelper on all pages

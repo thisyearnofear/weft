@@ -304,7 +304,7 @@ Two FHEVM contracts on Sepolia:
 - **v1 (FHE.add):** Boolean ballots, encrypted quorum check, no vote ever decrypted
 - **v2 (FHE.mul):** Ballot × confidence, multiplied on ciphertext, weighted consensus
 
-See [SUBMISSION.md](../SUBMISSION.md) for the full submission and [docs/submissions/zama-s3-x-thread-and-video.md](submissions/zama-s3-x-thread-and-video.md) for the X thread + video script.
+See [README.md](../README.md#deployed-contracts) for deployed contracts and sealed-ballot tx links, and [docs/submissions/zama-s3-x-thread-and-video.md](submissions/zama-s3-x-thread-and-video.md) for the X thread + video script.
 
 **Links:**
 - **Live site**: https://weft.thisyearnofear.com

@@ -15,7 +15,7 @@ import {WeftErrors} from "./WeftErrors.sol";
 ///      2-of-3 quorum on encrypted votes without decrypting any individual
 ///      vote (sealed ballot). Stake and release amounts are plaintext ETH —
 ///      msg.value is inherently public, so encrypting them would add no
-///      privacy (see SUBMISSION.md for the scope rationale).
+///      privacy (scope rationale documented in the repo README).
 contract WeftMilestoneConfidential is ZamaEthereumConfig, Ownable, ReentrancyGuard {
     // ----------------------------
     // Types
