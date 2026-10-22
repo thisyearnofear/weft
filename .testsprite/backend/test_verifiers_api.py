@@ -6,16 +6,17 @@ Verifies the verifier network API returns valid JSON with:
 - consensus object with agreementRate, totalVotes
 """
 import json
-import urllib.request
+
+import requests
 
 BASE = "https://weft.persidian.com"
 
 
 def test_verifiers_schema():
     url = f"{BASE}/api/verifiers"
-    with urllib.request.urlopen(url, timeout=30) as resp:
-        assert resp.status == 200, f"Expected 200, got {resp.status}"
-        data = json.loads(resp.read().decode())
+    resp = requests.get(url, timeout=30)
+    assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
+    data = resp.json()
 
     assert data.get("ok") is True, f"Expected ok=true, got {data.get('ok')}"
 
@@ -37,3 +38,7 @@ def test_verifiers_schema():
     assert "agreementRate" in consensus, "consensus missing 'agreementRate'"
     assert "totalVotes" in consensus, "consensus missing 'totalVotes'"
     assert "totalVerifierSlots" in consensus, "consensus missing 'totalVerifierSlots'"
+
+# TestSprite executes this file top to bottom, so the test function
+# MUST be called: a defined-but-never-called function would pass vacuously.
+test_verifiers_schema()

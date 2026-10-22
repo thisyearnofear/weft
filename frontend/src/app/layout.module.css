@@ -41,11 +41,17 @@
   gap: 0.5rem;
   font-weight: 700;
   font-size: 1.25rem;
+  color: var(--c-accent);
   background: linear-gradient(135deg, var(--c-accent), var(--c-verified));
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
   white-space: nowrap;
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .logo {
+    -webkit-text-fill-color: transparent;
+  }
 }
 
 .main {

@@ -1,13 +1,54 @@
 {
-  "projectId": "6121d8fe-a142-48e1-8522-585c22f6099d",
+  "projectId": "38b4b7d0-d18b-444c-92f7-df7991478e67",
   "type": "frontend",
   "name": "Builder profile page shows reputation",
-  "description": "The /builder/weft.thisyearnofear.eth page loads, shows the ENS name, reputation score, and verified milestones count.",
+  "description": "The /builder/weft.thisyearnofear.eth page loads, shows the ENS name, reputation score, and verified milestone count.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/builder/weft.thisyearnofear.eth", "description": "Navigate to the builder profile page" },
-    { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Builder ENS name is visible as h1" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "weft.thisyearnofear.eth", "description": "Page shows the ENS name" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Trust", "description": "Page shows trust/reputation section" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Verified", "description": "Page shows verified milestones count" }
+    {
+      "type": "action",
+      "action": "navigate",
+      "value": "https://weft.persidian.com",
+      "description": "Navigate to the Weft landing page"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "a[href='/explorer']",
+      "description": "Click the Explorer link"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "a[href='/builder/weft.thisyearnofear.eth']",
+      "description": "Click the weft.thisyearnofear.eth builder link"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "weft.thisyearnofear.eth",
+      "description": "Builder profile displays the ENS name weft.thisyearnofear.eth"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Reputation Score",
+      "description": "Builder profile shows a reputation score"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "85",
+      "description": "Reputation score is 85"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Verified Outcomes",
+      "description": "Builder profile shows verified outcomes count"
+    }
   ]
 }

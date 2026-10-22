@@ -1,15 +1,54 @@
 {
-  "projectId": "6121d8fe-a142-48e1-8522-585c22f6099d",
+  "projectId": "38b4b7d0-d18b-444c-92f7-df7991478e67",
   "type": "frontend",
   "name": "API docs page loads with endpoint reference",
   "description": "The /api/docs page loads and shows documented API endpoints with methods, paths, and examples.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/api/docs", "description": "Navigate to API docs page" },
-    { "type": "assertion", "selector": "h1", "condition": "visible", "description": "API docs title is visible" },
-    { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "Public REST API", "description": "Title says 'Public REST API'" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "/api/explorer/milestones", "description": "Docs show explorer endpoint" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "/api/operations", "description": "Docs show operations endpoint" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "GET", "description": "Docs show GET method badges" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Try it", "description": "Docs have try-it links" }
+    {
+      "type": "action",
+      "action": "navigate",
+      "value": "https://weft.persidian.com",
+      "description": "Navigate to the Weft landing page"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "button[aria-haspopup='true']",
+      "description": "Click the Developers dropdown button"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "a[href='/api/docs']",
+      "description": "Click the API docs link"
+    },
+    {
+      "type": "assertion",
+      "selector": "h1",
+      "condition": "text-contains",
+      "value": "Public REST API",
+      "description": "API docs h1 reads 'Public REST API'"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "/api/status/demo",
+      "description": "GET /api/status/demo is documented"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "/api/status/milestone",
+      "description": "GET /api/status/milestone/[hash] is documented"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "curl",
+      "description": "Endpoint documentation includes a curl example"
+    }
   ]
 }

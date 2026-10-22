@@ -1,16 +1,54 @@
 {
-  "projectId": "6121d8fe-a142-48e1-8522-585c22f6099d",
+  "projectId": "38b4b7d0-d18b-444c-92f7-df7991478e67",
   "type": "frontend",
-  "name": "Chaos and resilience — recovery page shows zero failures",
-  "description": "Navigate to the recovery page and verify the chaos engineering section shows no active chaos and zero failures.",
+  "name": "Chaos and resilience \u2014 operations page shows zero failures",
+  "description": "The /operations dashboard hosts the chaos/resilience section. Verify Infrastructure Health reports zero failures and no active chaos.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/recovery", "description": "Navigate to the resilience page" },
-    { "type": "assertion", "selector": "main", "condition": "visible", "description": "Recovery page content is visible" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Recovery", "description": "Page shows recovery section" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "0", "description": "Page shows zero failures" },
-    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/api/recovery", "description": "Navigate to recovery API" },
-    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "summary", "description": "Recovery API returns summary" },
-    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "chaos", "description": "Recovery API returns chaos data" },
-    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "failures", "description": "Recovery API returns failures count" }
+    {
+      "type": "action",
+      "action": "navigate",
+      "value": "https://weft.persidian.com",
+      "description": "Navigate to the Weft landing page"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "button[aria-haspopup='true']",
+      "description": "Click the Developers dropdown button"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "a[href='/operations']",
+      "description": "Click the Operations link"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Infrastructure Health",
+      "description": "Infrastructure Health section is visible"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Failures 0",
+      "description": "Infrastructure Health reports zero failures (Failures 0)"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Recovery Events",
+      "description": "Recovery events indicator is present"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Chaos Active",
+      "description": "Chaos status indicator is present"
+    }
   ]
 }

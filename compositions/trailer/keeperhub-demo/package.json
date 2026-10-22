@@ -9,7 +9,8 @@
     "publish": "npx --yes hyperframes@0.7.39 publish",
     "capture": "node scripts/capture-keeperhub-demo.mjs",
     "bgm": "bash scripts/generate-bgm.sh",
+    "mix": "bash scripts/mix-audio.sh",
     "tts": "npx --yes hyperframes@0.7.39 tts -o assets/narration.wav SCRIPT.txt -v am_adam -s 1.05",
-    "assets": "npm run capture && npm run bgm && npm run tts"
+    "assets": "npm run capture && npm run tts && npm run bgm && npm run mix"
   }
 }

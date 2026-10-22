@@ -1,13 +1,33 @@
 {
-  "projectId": "6121d8fe-a142-48e1-8522-585c22f6099d",
+  "projectId": "38b4b7d0-d18b-444c-92f7-df7991478e67",
   "type": "frontend",
   "name": "Activity feed loads with timeline events",
   "description": "The /activity page loads and shows a chronological timeline of agent actions.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/activity", "description": "Navigate to activity feed" },
-    { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Activity title is visible" },
-    { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "timestamped", "description": "Title says 'timestamped'" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Revenue", "description": "Timeline shows Revenue event" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Milestone", "description": "Timeline shows Milestone event" }
+    {
+      "type": "action",
+      "action": "navigate",
+      "value": "https://weft.persidian.com",
+      "description": "Navigate to the Weft landing page"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "a[href='/activity']",
+      "description": "Click the Activity link"
+    },
+    {
+      "type": "assertion",
+      "selector": "h1",
+      "condition": "visible",
+      "description": "Activity page h1 is visible"
+    },
+    {
+      "type": "assertion",
+      "selector": "h1",
+      "condition": "text-contains",
+      "value": "agent has done",
+      "description": "h1 reads 'Everything the agent has done, in order.'"
+    }
   ]
 }

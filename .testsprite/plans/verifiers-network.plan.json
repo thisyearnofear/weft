@@ -1,14 +1,40 @@
 {
-  "projectId": "6121d8fe-a142-48e1-8522-585c22f6099d",
+  "projectId": "38b4b7d0-d18b-444c-92f7-df7991478e67",
   "type": "frontend",
   "name": "Verifier network page loads with node list and consensus stats",
-  "description": "The /verifiers page loads and shows verifier nodes, votes cast, and consensus agreement rate.",
+  "description": "The /verifiers page loads and explains the 2-of-3 verifier quorum.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/verifiers", "description": "Navigate to verifier network page" },
-    { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Verifiers title is visible" },
-    { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "swarm", "description": "Title says 'swarm'" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Active Verifiers", "description": "KPI shows Active Verifiers" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Agreement", "description": "KPI shows Agreement rate" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Consensus", "description": "Consensus section is visible" }
+    {
+      "type": "action",
+      "action": "navigate",
+      "value": "https://weft.persidian.com",
+      "description": "Navigate to the Weft landing page"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "button[aria-haspopup='true']",
+      "description": "Click the Developers dropdown button"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "a[href='/verifiers']",
+      "description": "Click the Verifiers link"
+    },
+    {
+      "type": "assertion",
+      "selector": "h1",
+      "condition": "text-contains",
+      "value": "independent agents must agree",
+      "description": "h1 explains that independent agents must agree"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "2-of-3",
+      "description": "The page explains the 2-of-3 verifier quorum"
+    }
   ]
 }

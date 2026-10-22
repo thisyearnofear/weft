@@ -70,10 +70,16 @@
 }
 
 .accent {
+  color: var(--c-accent);
   background: linear-gradient(135deg, var(--c-accent), var(--c-verified));
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .accent {
+    -webkit-text-fill-color: transparent;
+  }
 }
 
 .subtitle {

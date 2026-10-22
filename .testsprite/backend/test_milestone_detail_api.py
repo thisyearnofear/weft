@@ -6,7 +6,8 @@ Verifies the milestone detail API returns valid JSON with:
 - Cross-checks: if verified=true then verifiedVotes > 0
 """
 import json
-import urllib.request
+
+import requests
 
 BASE = "https://weft.persidian.com"
 DEMO_HASH = "0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f"
@@ -14,9 +15,9 @@ DEMO_HASH = "0x516975afcb46acf3ea2265789ea0a64516db9f1d8e6cfb65737fc9cfafb1c16f"
 
 def test_milestone_detail_schema():
     url = f"{BASE}/api/status/milestone/{DEMO_HASH}"
-    with urllib.request.urlopen(url, timeout=30) as resp:
-        assert resp.status == 200, f"Expected 200, got {resp.status}"
-        data = json.loads(resp.read().decode())
+    resp = requests.get(url, timeout=30)
+    assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
+    data = resp.json()
 
     assert data.get("ok") is True, f"Expected ok=true, got {data.get('ok')}"
     assert data.get("milestoneHash") == DEMO_HASH, \
@@ -43,3 +44,7 @@ def test_milestone_detail_schema():
             "released=true but verified=false — capital released without verification"
         assert data["finalized"] is True, \
             "released=true but finalized=false — capital released before finalization"
+
+# TestSprite executes this file top to bottom, so the test function
+# MUST be called: a defined-but-never-called function would pass vacuously.
+test_milestone_detail_schema()

@@ -1,6 +1,7 @@
 node_modules/
 assets/narration.wav
 assets/bgm.wav
+assets/mix.wav
 renders/
 *.mp4
 *.mov

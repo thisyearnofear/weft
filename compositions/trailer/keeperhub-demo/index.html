@@ -18,9 +18,8 @@
   <div id="root" data-composition-id="keeperhub-demo" data-width="1920" data-height="1080" data-duration="63" data-start="0">
     <canvas id="bg-canvas" class="clip" data-start="0" data-duration="63" data-track-index="0"></canvas>
 
-    <!-- Background music + narration -->
-    <audio id="bgm" class="clip" data-start="0" data-duration="63" data-track-index="9" data-volume="0.28" src="assets/bgm.wav" preload="auto"></audio>
-    <audio id="narration" class="clip" data-start="0" data-duration="63" data-track-index="10" data-volume="1" src="assets/narration.wav" preload="auto"></audio>
+    <!-- Mixed narration + BGM (see scripts/mix-audio.sh) -->
+    <audio id="mix" class="clip" data-start="0" data-duration="63" data-track-index="10" data-volume="1" src="assets/mix.wav" preload="auto"></audio>
 
     <!-- Scene 1: Hook (0–8s) -->
     <div id="c-hook" data-composition-id="hook" data-composition-src="compositions/hook.html" data-start="0" data-duration="8" data-width="1920" data-height="1080" data-track-index="1"></div>

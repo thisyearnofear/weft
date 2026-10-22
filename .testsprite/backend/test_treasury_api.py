@@ -8,16 +8,17 @@ Verifies the treasury API returns valid JSON with:
 - balance object with available and pending
 """
 import json
-import urllib.request
+
+import requests
 
 BASE = "https://weft.persidian.com"
 
 
 def test_treasury_schema():
     url = f"{BASE}/api/treasury"
-    with urllib.request.urlopen(url, timeout=30) as resp:
-        assert resp.status == 200, f"Expected 200, got {resp.status}"
-        data = json.loads(resp.read().decode())
+    resp = requests.get(url, timeout=30)
+    assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
+    data = resp.json()
 
     assert data.get("ok") is True, f"Expected ok=true, got {data.get('ok')}"
     assert "earned" in data, "missing 'earned'"
@@ -43,3 +44,7 @@ def test_treasury_schema():
     expected_net = data["earned"] - data["spent"]
     assert abs(data["net"] - expected_net) < 0.01, \
         f"net ({data['net']}) != earned - spent ({expected_net})"
+
+# TestSprite executes this file top to bottom, so the test function
+# MUST be called: a defined-but-never-called function would pass vacuously.
+test_treasury_schema()
