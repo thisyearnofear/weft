@@ -1,6 +1,25 @@
 {
-  "projectId": "6121d8fe-a142-48e1-8522-585c22f6099d",
+  "projectId": "38b4b7d0-d18b-444c-92f7-df7991478e67",
   "name": "Weft Frontend",
   "type": "frontend",
-  "targetUrl": "https://weft.persidian.com"
+  "targetUrl": "https://weft.persidian.com",
+  "projects": {
+    "frontend": {
+      "projectId": "38b4b7d0-d18b-444c-92f7-df7991478e67",
+      "name": "Weft Frontend",
+      "type": "frontend",
+      "targetUrl": "https://weft.persidian.com"
+    },
+    "backend": {
+      "projectId": "350ab61a-0d30-4cdc-a64c-49991d8a0015",
+      "name": "Weft Backend API",
+      "type": "backend",
+      "targetUrl": "https://weft.persidian.com"
+    }
+  },
+  "legacyProjects": {
+    "frontendV2": "6121d8fe-a142-48e1-8522-585c22f6099d",
+    "frontendMcpMirror": "43bfaf67-931e-4d7f-b5c0-0063a9ade62f"
+  }
 }
+

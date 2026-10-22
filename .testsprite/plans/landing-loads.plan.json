@@ -1,13 +1,47 @@
 {
-  "projectId": "6121d8fe-a142-48e1-8522-585c22f6099d",
+  "projectId": "38b4b7d0-d18b-444c-92f7-df7991478e67",
   "type": "frontend",
   "name": "Landing page loads and shows hero",
-  "description": "Baseline: the Weft landing page loads, shows the hero title 'Escrow that releases itself', and the milestone lookup input is visible.",
+  "description": "The Weft landing page shows the h1 heading 'Fund milestones. Release on evidence.' and the page body contains the word 'Escrow'.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com", "description": "Navigate to the Weft landing page" },
-    { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Hero title h1 is visible" },
-    { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "Escrow", "description": "Hero title contains 'Escrow'" },
-    { "type": "assertion", "selector": "input[placeholder*='milestone hash']", "condition": "visible", "description": "Milestone hash input is visible in the hero section" },
-    { "type": "assertion", "selector": "a[href='/explorer']", "condition": "visible", "description": "Link to Explorer page is visible in navigation" }
+    {
+      "type": "action",
+      "action": "navigate",
+      "value": "https://weft.persidian.com",
+      "description": "Navigate to the Weft landing page"
+    },
+    {
+      "type": "assertion",
+      "selector": "h1",
+      "condition": "visible",
+      "description": "Hero h1 is visible"
+    },
+    {
+      "type": "assertion",
+      "selector": "h1",
+      "condition": "text-contains",
+      "value": "Fund milestones",
+      "description": "Hero h1 reads 'Fund milestones. Release on evidence.'"
+    },
+    {
+      "type": "assertion",
+      "selector": "h1",
+      "condition": "text-contains",
+      "value": "Release on evidence",
+      "description": "Hero h1 contains the accent phrase 'Release on evidence.'"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Escrow",
+      "description": "Landing page body contains the word 'Escrow'"
+    },
+    {
+      "type": "assertion",
+      "selector": "a[href='/explorer']",
+      "condition": "visible",
+      "description": "Explorer link is visible in navigation"
+    }
   ]
 }

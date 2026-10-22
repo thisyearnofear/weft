@@ -7,16 +7,17 @@ Verifies the operations dashboard API returns valid JSON with:
 - recovery object
 """
 import json
-import urllib.request
+
+import requests
 
 BASE = "https://weft.persidian.com"
 
 
 def test_operations_schema():
     url = f"{BASE}/api/operations"
-    with urllib.request.urlopen(url, timeout=30) as resp:
-        assert resp.status == 200, f"Expected 200, got {resp.status}"
-        data = json.loads(resp.read().decode())
+    resp = requests.get(url, timeout=30)
+    assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
+    data = resp.json()
 
     assert data.get("ok") is True, f"Expected ok=true, got {data.get('ok')}"
 
@@ -32,3 +33,7 @@ def test_operations_schema():
 
     recovery = data.get("recovery")
     assert recovery is not None, "Missing 'recovery' object"
+
+# TestSprite executes this file top to bottom, so the test function
+# MUST be called: a defined-but-never-called function would pass vacuously.
+test_operations_schema()

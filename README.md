@@ -153,10 +153,11 @@ is ever decrypted. This is FHE multiplication, not just addition.
 | WeftMilestoneConfidentialWeighted (v2) | `0xcc2395ac3f70ace0c1828cb0a18b00da823760f8` |
 | VerifierRegistry (Sepolia) | `0xa7e74abb5c4c4fc70aff99bc4ac0b9f9bf6b5a66` |
 
-## Verification loop (TestSprite S3)
+## Verification loop (TestSprite)
 
 Built with the [TestSprite CLI](https://github.com/TestSprite/testsprite-cli) as the checker in a
 write → verify → fix → verify loop. Full agent-written log in [LOOP.md](LOOP.md).
+What the suite covers — and what it does not — is in [docs/TESTING.md](docs/TESTING.md).
 
 **40 tests** across 3 project types:
 - 14 frontend CLI tests — surface loads, API contracts, E2E user journey, chaos/resilience, onchain cross-checks
@@ -167,19 +168,33 @@ write → verify → fix → verify loop. Full agent-written log in [LOOP.md](LO
 **The loop caught a real bug** (iter 19): a backend test detected a wei-to-ETH conversion error in
 the explorer API (`stakedEth` returned raw wei instead of ETH). The failure bundle pinpointed the
 root cause, the fix was deployed, and the rerun confirmed the fix — the complete
-write→verify→fix→verify cycle.
+write→verify→fix→verify cycle. That iteration was deliberately constructed: the bug was
+**planted on purpose** (the `/ 1e18` division removed, the broken build deployed) so the loop
+could not be dismissed as never having been closed.
+
+**The loop is wired into the repo, not just into our process.** The TestSprite agent skills
+live in [`.claude/skills/`](.claude/skills/) and `AGENTS.md` carries a `TESTSPRITE AGENT
+SECTION` block, so any coding agent that opens the project discovers the verification loop
+without being told.
 
 **CI/CD**: [.github/workflows/testsprite.yml](.github/workflows/testsprite.yml) reruns all tests
 on every PR and fails the build if anything breaks.
+
+**Season 4 (Oct 2026)**: the suite moves to the TestSprite 3.0 **web portal** and the **GitHub
+App**, so every PR is checked automatically against the live deployment and the agent fixes
+from the failure bundle on its own. Submitting 22 Oct. See
+[docs/hackathons.md § 9](docs/hackathons.md).
 
 ## Documentation
 
 - [X thread + video script](docs/submissions/zama-s3-x-thread-and-video.md)
 - [Technical reference](AGENTS.md) — architecture, agent layer, data model, env vars, scripts
+- [Verification & TestSprite](docs/TESTING.md) — what the suite covers, the loop, what it does not cover
 - [Product plan & monetization](docs/product-plan.md)
 - [MVP spec](docs/mvp.md)
 - [Hackathon archive](docs/hackathons.md) — past submission materials
 - [Build log](LOOP.md) — TestSprite verification loop
+- [TestSprite S4 post](docs/submissions/testsprite-s4-discord-post.md) — draft, for the Oct 22 submission
 - [Known issues & feedback](docs/feedback.md)
 - [0G Bridge Buildathon plan](docs/0g-bridge-buildathon.md) — wave-by-wave integration plan, Agentic ID (ERC-7857) play
 

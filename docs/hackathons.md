@@ -256,12 +256,12 @@ The builder keeps the story — and a portable trust record.
 - `/api/docs` — interactive API reference with 12 documented endpoints
 - `/recovery` — chaos engineering demo with fault injection
 
-**The loop:** 28 TestSprite tests across 3 project types (14 frontend, 8 backend, 12 MCP-generated). 25 iterations logged in [loop.md](loop.md), backed by commits + TestSprite run history. The loop caught a real bug (iter 19): wei-to-ETH conversion error in the explorer API.
+**The loop:** 40 TestSprite tests across 3 project types (14 frontend, 8 backend, 12 MCP-generated). 34 iterations logged in [LOOP.md](../LOOP.md), backed by commits + TestSprite run history. The loop caught a real bug (iter 19): wei-to-ETH conversion error in the explorer API.
 
 **Links:**
 - **Live site**: https://weft.thisyearnofear.com
 - **Repo**: https://github.com/thisyearnofear/weft
-- **Build log**: [loop.md](loop.md)
+- **Build log**: [LOOP.md](../LOOP.md)
 
 ---
 
@@ -485,10 +485,60 @@ The entire pipeline is deterministic by design, so capital decisions are anchore
 **Links**
 - **GitHub**: https://github.com/thisyearnofear/weft
 - **OKX.AI Listing**: https://okx.ai
-- **Integration plan**: [`docs/OKX-AI-SUBMISSION.md`](docs/OKX-AI-SUBMISSION.md)
+- **Integration plan**: [`docs/OKX-AI-SUBMISSION.md`](./OKX-AI-SUBMISSION.md)
 
 **Team**
 - **Team Name**: Weft
 - **Contact**: @thisyearnofear
 
-*Archived: May 2026 (entries 1-2, 4) · Jul 2026 (entries 3, 5, 8) · Aug 2026 (entries 6-7)*
+## 9. TestSprite Season 4 — Portal & GitHub App (Oct 2026)
+
+**Status: preparing.** Build window 16–22 Oct 2026, **submissions close 22 Oct
+23:59 PT**; judging 23–27 Oct; winners 6 Nov. $3,000 project pool (1st $1,500 ·
+2nd $750 · 3rd $450 · 4th/5th $150) plus a separate $1,000 CLI-improvement pool
+closing 29 Oct. Full rules: <https://www.testsprite.com/hackathon-s4>.
+
+**One-line pitch:** S3 proved the loop works; S4 makes the loop **the product
+mechanism** — the portal suite plus the GitHub App, so every PR is checked
+automatically and the agent fixes from the failure bundle on its own.
+
+**What carries over from S3** (entry 3, and the full 34-iteration log in
+[`../LOOP.md`](../LOOP.md)):
+
+- 14 frontend plans + 8 backend Python modules, run in the cloud against the
+  live deployment
+- the deliberate-bug-injection proof at iteration 19 — the suite caught a
+  planted wei-to-ETH conversion error and the fix was re-verified green
+- CI on every pull request, with failure bundles uploaded as artifacts
+- the TestSprite agent skills installed into `.claude/skills/`, so any coding
+  agent that opens the repo discovers the loop without being told
+
+**What S4 changes:** the suite is generated in the **TestSprite 3.0 web portal**
+rather than the CLI, the **GitHub App** runs it on every PR, and **Blocking
+PRs** are enabled so the check holds the merge. The submitted TestSprite account
+must be the account that generated the suite and connected the GitHub App — a
+mismatch is disqualifying.
+
+**Open item — reconcile the project ids.** Three frontend/backend project ids
+are in play and they do not agree:
+
+| Source | Id |
+|---|---|
+| `.testsprite/config.json` | `6121d8fe-a142-48e1-8522-585c22f6099d` (frontend) |
+| `LOOP.md` iter 0 | `cdf9309d` (frontend — "Weft — Verifier's Ledger") |
+| `LOOP.md` iter 18 | `1f6f51ae` (backend — "Weft API — Backend Tests") |
+| CI | `FRONTEND_PROJECT_ID` + `BACKEND_PROJECT_ID`, both repository secrets |
+
+Settle which is authoritative before submitting, and record the answer here.
+
+**Links:**
+- **Live site**: https://weft.persidian.com
+- **Repo**: https://github.com/thisyearnofear/weft
+- **Verification doc**: [`docs/TESTING.md`](./TESTING.md)
+- **Build log**: [`../LOOP.md`](../LOOP.md)
+- **S3 post, as a template**: [`submissions/testsprite-s3-discord-post.md`](./submissions/testsprite-s3-discord-post.md)
+- **S4 post**: [`submissions/testsprite-s4-discord-post.md`](./submissions/testsprite-s4-discord-post.md)
+
+---
+
+*Archived: May 2026 (entries 1-2, 4) · Jul 2026 (entries 3, 5, 8) · Aug 2026 (entries 6-7) · Oct 2026 (entry 9, preparing)*

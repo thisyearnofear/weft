@@ -5,16 +5,17 @@ The raw totalStaked is 10000000000000000 wei = 0.0100 ETH.
 If the API returns raw wei instead of ETH, this test catches it.
 """
 import json
-import urllib.request
+
+import requests
 
 BASE = "https://weft.persidian.com"
 
 
 def test_explorer_staked_eth_is_converted():
     url = f"{BASE}/api/explorer/milestones"
-    with urllib.request.urlopen(url, timeout=30) as resp:
-        assert resp.status == 200, f"Expected 200, got {resp.status}"
-        data = json.loads(resp.read().decode())
+    resp = requests.get(url, timeout=30)
+    assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
+    data = resp.json()
 
     assert data.get("ok") is True
     milestones = data.get("milestones", [])
@@ -39,3 +40,7 @@ def test_explorer_staked_eth_is_converted():
         f"stakedEth ({staked_eth}) = {eth_value} ETH — expected < 1.0 ETH for demo milestone"
     assert eth_value > 0, \
         f"stakedEth ({staked_eth}) should be positive"
+
+# TestSprite executes this file top to bottom, so the test function
+# MUST be called: a defined-but-never-called function would pass vacuously.
+test_explorer_staked_eth_is_converted()

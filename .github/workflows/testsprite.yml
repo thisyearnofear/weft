@@ -3,11 +3,23 @@ name: TestSprite Verification
 on:
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: testsprite-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   testsprite:
     name: TestSprite Loop Verification
     runs-on: ubuntu-latest
+    env:
+      TESTSPRITE_API_KEY: ${{ secrets.TESTSPRITE_API_KEY }}
+      # Project ids are pinned here as well as in .testsprite/config.json so CI
+      # never silently drifts onto a legacy or view-only project.
+      FRONTEND_PROJECT_ID: ${{ vars.TESTSPRITE_FRONTEND_PROJECT_ID }}
+      BACKEND_PROJECT_ID: ${{ vars.TESTSPRITE_BACKEND_PROJECT_ID }}
+      TARGET_URL: https://weft.persidian.com
     steps:
       - uses: actions/checkout@v4
 
@@ -19,35 +31,100 @@ jobs:
       - name: Install TestSprite CLI
         run: npm install -g @testsprite/testsprite-cli
 
-      - name: Run frontend tests
-        env:
-          TESTSPRITE_API_KEY: ${{ secrets.TESTSPRITE_API_KEY }}
-          FRONTEND_PROJECT_ID: ${{ secrets.TESTSPRITE_PROJECT_ID }}
+      - name: Verify credentials and project ids
         run: |
-          testsprite setup --from-env --yes --no-agent
-          testsprite test rerun --all --project "$FRONTEND_PROJECT_ID" --wait --output json
+          set -euo pipefail
+          if [ -z "${TESTSPRITE_API_KEY:-}" ]; then
+            echo "::error::TESTSPRITE_API_KEY secret is not configured on this repository."
+            exit 1
+          fi
+          for var in FRONTEND_PROJECT_ID BACKEND_PROJECT_ID; do
+            if [ -z "${!var:-}" ]; then
+              echo "::error::Repository variable $var is not set (expected the TestSprite project id)."
+              exit 1
+            fi
+            echo "$var=${!var}"
+          done
+          testsprite setup --from-env --yes --no-agent --skip-if-configured
+          testsprite auth whoami
+
+      - name: Run frontend tests
+        id: frontend
+        run: |
+          set -uo pipefail
+          # --no-auto-heal: replay each test's pinned stored code verbatim
+          # instead of letting the run-time agent re-author it. The agentic
+          # path sometimes drops assertion steps entirely (a "passed" run
+          # that verified nothing); replay is deterministic — every
+          # expect() in the pushed code executes. Stored code lives in
+          # .testsprite/code/ and is pushed with `test code put`.
+          testsprite test run --all --project "$FRONTEND_PROJECT_ID" \
+            --target-url "$TARGET_URL" \
+            --no-auto-heal --skip-preflight \
+            --wait --max-concurrency 4 --timeout 1800 --output json \
+            | tee frontend-run.json
+          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
 
       - name: Run backend API tests
-        env:
-          TESTSPRITE_API_KEY: ${{ secrets.TESTSPRITE_API_KEY }}
-          BACKEND_PROJECT_ID: ${{ secrets.TESTSPRITE_BACKEND_PROJECT_ID }}
+        id: backend
         run: |
-          testsprite test rerun --all --project "$BACKEND_PROJECT_ID" --wait --output json
+          set -uo pipefail
+          testsprite test run --all --project "$BACKEND_PROJECT_ID" \
+            --wait --max-concurrency 4 --timeout 1800 --output json \
+            | tee backend-run.json
+          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Collect run ids
+        # TestSprite artifacts are addressable by RUN id, not by test id, so the
+        # run ids returned by the batch run are the only way to pull the
+        # failure-context bundles (video + per-step HTML snapshots + JSON).
+        run: |
+          set -euo pipefail
+          mkdir -p .testsprite/runs
+          python3 .testsprite/ci/collect_run_ids.py frontend-run.json backend-run.json \
+            | tee .testsprite/run-ids.txt
+          echo "run_ids=$(wc -l < .testsprite/run-ids.txt | tr -d ' ')"
 
       - name: Download failure artifacts
-        if: failure()
+        # Only failed/blocked runs have a failure bundle; exit code 4 from
+        # `artifact get` just means "no bundle for this run".
+        if: always()
         run: |
-          mkdir -p .testsprite/failures
-          testsprite test list --project "${{ secrets.TESTSPRITE_PROJECT_ID }}" --status failed,blocked --output json \
-            | jq -r '.items[].id' \
-            | xargs -I{} testsprite test artifact get {} --out ".testsprite/failures/{}" || true
+          set -uo pipefail
+          mkdir -p .testsprite/runs
+          if [ -s .testsprite/run-ids.txt ]; then
+            while IFS=$'\t' read -r run_id test_id status source; do
+              [ -n "$run_id" ] || continue
+              case "$status" in
+                failed|blocked|cancelled|timeout)
+                  echo "::group::Fetching bundle for $test_id ($status)"
+                  testsprite test artifact get "$run_id" \
+                    --out ".testsprite/runs/$run_id" || true
+                  echo "::endgroup::"
+                  ;;
+              esac
+            done < .testsprite/run-ids.txt
+          fi
+          ls -R .testsprite/runs || true
 
-      - name: Upload failure bundle
-        if: failure()
+      - name: Upload failure bundles
+        if: failure() || always()
         uses: actions/upload-artifact@v4
         with:
           name: testsprite-failure-bundles
-          path: .testsprite/failures/
+          path: .testsprite/runs/
+          if-no-files-found: ignore
+
+      - name: Upload run reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testsprite-run-reports
+          path: |
+            frontend-run.json
+            backend-run.json
+            .testsprite/run-ids.txt
+          if-no-files-found: ignore
 
       - name: Upload MCP test report
         if: always()
@@ -55,3 +132,22 @@ jobs:
         with:
           name: testsprite-mcp-report
           path: frontend/testsprite_tests/testsprite-mcp-test-report.html
+          if-no-files-found: ignore
+
+      - name: Fail if any test failed
+        if: always()
+        run: |
+          set -euo pipefail
+          python3 .testsprite/ci/check_summary.py frontend-run.json backend-run.json
+
+      - name: Fail if a frontend test asserted nothing
+        # A frontend test can pass while asserting nothing: the plan compiler
+        # sometimes folds assertion steps into action comments, leaving a run
+        # that only navigates and clicks. Such a run is a silent pass. This
+        # step requires every frontend run to have executed at least one
+        # assertion step.
+        if: always()
+        run: |
+          set -euo pipefail
+          python3 .testsprite/ci/check_assertions.py frontend-run.json
+

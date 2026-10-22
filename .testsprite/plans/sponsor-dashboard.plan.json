@@ -1,16 +1,83 @@
 {
-  "projectId": "6121d8fe-a142-48e1-8522-585c22f6099d",
+  "projectId": "38b4b7d0-d18b-444c-92f7-df7991478e67",
   "type": "frontend",
   "name": "Sponsor dashboard loads with capital flow and milestones",
-  "description": "The /sponsor page loads as a data-driven dashboard with KPI cards, capital flow bar, and funded milestone cards.",
+  "description": "The /sponsor page loads as a data-driven dashboard with capital-flow KPIs and funded milestone cards.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/sponsor", "description": "Navigate to sponsor dashboard" },
-    { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Sponsor title is visible" },
-    { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "capital", "description": "Title says 'capital'" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Total Funded", "description": "KPI card shows Total Funded" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Capital Released", "description": "KPI card shows Capital Released" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Capital Flow", "description": "Capital flow section is visible" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Funded Milestones", "description": "Funded milestones section is visible" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Released", "description": "Milestone shows Released status" }
+    {
+      "type": "action",
+      "action": "navigate",
+      "value": "https://weft.persidian.com",
+      "description": "Navigate to the Weft landing page"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "a[href='/sponsor']",
+      "description": "Click the Sponsor dashboard link"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Capital Flow",
+      "description": "Capital Flow section is visible on the sponsor dashboard"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Total Funded",
+      "description": "Total Funded KPI is visible"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Capital Released",
+      "description": "Capital Released KPI is visible"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Capital Locked",
+      "description": "Capital Locked KPI is visible"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Verified Rate",
+      "description": "Verified Rate KPI is visible"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "0.0010",
+      "description": "Dashboard shows 0.0010 ETH funded and locked"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "0%",
+      "description": "Dashboard shows a 0% verified rate"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Program Milestones",
+      "description": "The funded milestone card is visible"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "0x709ab5f0",
+      "description": "The milestone card shows 0x709ab5f0...d99891"
+    }
   ]
 }

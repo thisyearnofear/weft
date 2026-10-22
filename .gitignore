@@ -106,6 +106,7 @@ skills-lock.json
 *.wmv
 videos/
 compositions/**/renders/
+compositions/**/node_modules/
 compositions/trailer/keeperhub-demo/
 weft-demo-recording-url.txt
 
@@ -116,4 +117,5 @@ docs/submission-screenshots/
 # keep the test definitions in .testsprite/plans/ and .testsprite/backend/)
 .testsprite/failure/
 .testsprite/failure-*/
+.testsprite/runs/
 pours/

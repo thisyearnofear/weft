@@ -6,16 +6,17 @@ Verifies the sponsor dashboard API returns valid JSON with:
 - milestones array with capitalStatus field
 """
 import json
-import urllib.request
+
+import requests
 
 BASE = "https://weft.persidian.com"
 
 
 def test_sponsor_schema():
     url = f"{BASE}/api/sponsor"
-    with urllib.request.urlopen(url, timeout=30) as resp:
-        assert resp.status == 200, f"Expected 200, got {resp.status}"
-        data = json.loads(resp.read().decode())
+    resp = requests.get(url, timeout=30)
+    assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
+    data = resp.json()
 
     assert data.get("ok") is True, f"Expected ok=true, got {data.get('ok')}"
 
@@ -37,3 +38,7 @@ def test_sponsor_schema():
         f"Invalid capitalStatus: {m['capitalStatus']}"
     assert "stakedEth" in m, "milestone missing 'stakedEth'"
     assert "milestoneHash" in m, "milestone missing 'milestoneHash'"
+
+# TestSprite executes this file top to bottom, so the test function
+# MUST be called: a defined-but-never-called function would pass vacuously.
+test_sponsor_schema()

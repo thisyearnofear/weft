@@ -1,16 +1,124 @@
 {
-  "projectId": "6121d8fe-a142-48e1-8522-585c22f6099d",
+  "projectId": "38b4b7d0-d18b-444c-92f7-df7991478e67",
   "type": "frontend",
   "name": "Operations dashboard loads with ledger and verification log",
   "description": "The /operations page loads, shows KPI cards, a financial ledger with transactions, a verification log, and infrastructure health indicators.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/operations", "description": "Navigate to the operations dashboard" },
-    { "type": "assertion", "selector": "h1", "condition": "visible", "description": "Operations title is visible" },
-    { "type": "assertion", "selector": "h1", "condition": "text-contains", "value": "open books", "description": "Title says 'open books'" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Financial Ledger", "description": "Financial ledger section is visible" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Verification Log", "description": "Verification log section is visible" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Infrastructure Health", "description": "Infrastructure health section is visible" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "KeeperHub", "description": "Ledger shows KeeperHub transaction" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "weft.thisyearnofear.eth", "description": "Verification log shows builder ENS" }
+    {
+      "type": "action",
+      "action": "navigate",
+      "value": "https://weft.persidian.com",
+      "description": "Navigate to the Weft landing page"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "a[href='/canton']",
+      "description": "Click the Open program ops link"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "a[href='/operations']",
+      "description": "Click the Operations link"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Performance",
+      "description": "Performance KPI cards are visible on the Operations page"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Milestones Verified",
+      "description": "KPI cards include the Milestones Verified metric"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Capital Processed",
+      "description": "KPI cards include the Capital Processed metric"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Financial Ledger",
+      "description": "The Financial Ledger section is visible"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Reliable Execution",
+      "description": "Financial Ledger includes a Reliable Execution transaction"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Revenue Earned",
+      "description": "Operations metrics include Revenue Earned"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Net P&L",
+      "description": "Operations metrics include Net P&L"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Verification Log",
+      "description": "The Verification Log section is visible"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "0x709ab5f0",
+      "description": "Verification Log lists the pending milestone"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Infrastructure Health",
+      "description": "Infrastructure Health section is visible"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Recovery Events",
+      "description": "Infrastructure Health displays the recovery-events indicator"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Failures",
+      "description": "Infrastructure Health displays the failures indicator"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Recoveries",
+      "description": "Infrastructure Health displays the recoveries indicator"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Stripe",
+      "description": "Infrastructure Health displays Stripe status"
+    }
   ]
 }

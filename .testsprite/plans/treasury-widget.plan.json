@@ -1,11 +1,48 @@
 {
-  "projectId": "6121d8fe-a142-48e1-8522-585c22f6099d",
+  "projectId": "38b4b7d0-d18b-444c-92f7-df7991478e67",
   "type": "frontend",
   "name": "Treasury widget shows agent P&L",
-  "description": "Baseline: the landing page shows the treasury widget with earned/spent figures.",
+  "description": "The Weft operations dashboard shows the agent's treasury P&L: a Revenue Earned and a Net P&L KPI card, plus a Financial Ledger listing at least one revenue sweep charge.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com", "description": "Navigate to the Weft landing page" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "Agent", "description": "Page mentions Agent" },
-    { "type": "assertion", "selector": "main", "condition": "text-contains", "value": "earned", "description": "Page shows earned figure" }
+    {
+      "type": "action",
+      "action": "navigate",
+      "value": "https://weft.persidian.com",
+      "description": "Navigate to the Weft landing page"
+    },
+    {
+      "type": "action",
+      "action": "click",
+      "selector": "footer a[href='/operations']",
+      "description": "Open the Operations link in the footer navigation"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Revenue Earned",
+      "description": "Operations dashboard shows a KPI card titled Revenue Earned with a dollar amount"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Net P&L",
+      "description": "Operations dashboard shows a KPI card titled Net P&L with a dollar amount"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Financial Ledger",
+      "description": "The Financial Ledger section is visible"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "Reliable Execution",
+      "description": "Financial Ledger lists at least one charge naming a milestone"
+    }
   ]
 }

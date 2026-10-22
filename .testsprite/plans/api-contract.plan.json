@@ -1,21 +1,94 @@
 {
-  "projectId": "6121d8fe-a142-48e1-8522-585c22f6099d",
+  "projectId": "38b4b7d0-d18b-444c-92f7-df7991478e67",
   "type": "frontend",
-  "name": "API contract tests — all public endpoints return valid JSON",
-  "description": "Navigate to each API endpoint and verify it returns valid JSON with expected schema fields.",
+  "name": "API contract tests \u2014 all public endpoints return valid JSON",
+  "description": "Navigate to each public API endpoint and verify it returns valid JSON with the expected schema fields.",
   "planSteps": [
-    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/api/explorer/milestones", "description": "Navigate to explorer API" },
-    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "milestones", "description": "Explorer API returns milestones array" },
-    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "ok", "description": "Explorer API returns ok field" },
-    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/api/operations", "description": "Navigate to operations API" },
-    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "treasury", "description": "Operations API returns treasury data" },
-    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "verifications", "description": "Operations API returns verifications array" },
-    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/api/sponsor", "description": "Navigate to sponsor API" },
-    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "summary", "description": "Sponsor API returns summary object" },
-    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "totalReleased", "description": "Sponsor API returns capital flow data" },
-    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/api/activity", "description": "Navigate to activity API" },
-    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "events", "description": "Activity API returns events array" },
-    { "type": "action", "action": "navigate", "value": "https://weft.persidian.com/api/verifiers", "description": "Navigate to verifiers API" },
-    { "type": "assertion", "selector": "body", "condition": "text-contains", "value": "consensus", "description": "Verifiers API returns consensus data" }
+    {
+      "type": "action",
+      "action": "navigate",
+      "value": "https://weft.persidian.com/api/explorer/milestones",
+      "description": "Navigate to explorer API"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "milestones",
+      "description": "Explorer API returns milestones array"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "ok",
+      "description": "Explorer API returns ok field"
+    },
+    {
+      "type": "action",
+      "action": "navigate",
+      "value": "https://weft.persidian.com/api/operations",
+      "description": "Navigate to operations API"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "treasury",
+      "description": "Operations API returns treasury data"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "verifications",
+      "description": "Operations API returns verifications array"
+    },
+    {
+      "type": "action",
+      "action": "navigate",
+      "value": "https://weft.persidian.com/api/sponsor",
+      "description": "Navigate to sponsor API"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "summary",
+      "description": "Sponsor API returns summary object"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "totalReleased",
+      "description": "Sponsor API returns capital flow data"
+    },
+    {
+      "type": "action",
+      "action": "navigate",
+      "value": "https://weft.persidian.com/api/activity",
+      "description": "Navigate to activity API"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "events",
+      "description": "Activity API returns events array"
+    },
+    {
+      "type": "action",
+      "action": "navigate",
+      "value": "https://weft.persidian.com/api/verifiers",
+      "description": "Navigate to verifiers API"
+    },
+    {
+      "type": "assertion",
+      "selector": "body",
+      "condition": "text-contains",
+      "value": "consensus",
+      "description": "Verifiers API returns consensus data"
+    }
   ]
 }
